@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { FiSettings, FiTrash2 } from "react-icons/fi";
@@ -162,6 +162,8 @@ const App: React.FC = () => {
   const [userIdeaKeyword, setUserIdeaKeyword] = useState<string>("");
   const [appliedIdeaKeyword, setAppliedIdeaKeyword] = useState<string>("");
   const [isFetchingTranscript, setIsFetchingTranscript] = useState<boolean>(false);
+  const transcriptFetchTimer = useRef<number | null>(null);
+  const lastFetchedUrlRef = useRef<string>("");
 
   // localStorage에서 저장된 데이터 복원
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(() => {
@@ -389,6 +391,47 @@ const App: React.FC = () => {
 
     restoreData();
   }, []); // 최초 한 번만 실행
+
+  // 유튜브 URL 입력 시 자동으로 자막(대본) 가져오기
+  useEffect(() => {
+    const trimmed = youtubeUrl.trim();
+
+    if (transcriptFetchTimer.current) {
+      clearTimeout(transcriptFetchTimer.current);
+    }
+
+    if (!trimmed) {
+      setTranscript("");
+      lastFetchedUrlRef.current = "";
+      return;
+    }
+
+    transcriptFetchTimer.current = window.setTimeout(async () => {
+      if (trimmed === lastFetchedUrlRef.current) {
+        return;
+      }
+      setIsFetchingTranscript(true);
+      try {
+        const result = await fetchTranscript(trimmed);
+        setTranscript(result.text.trim());
+        lastFetchedUrlRef.current = trimmed;
+        setError(null);
+      } catch (error: any) {
+        console.error("Transcript auto-fetch failed:", error);
+        setError(
+          error?.message || "대본을 불러오지 못했습니다. 수동으로 입력해주세요."
+        );
+      } finally {
+        setIsFetchingTranscript(false);
+      }
+    }, 700);
+
+    return () => {
+      if (transcriptFetchTimer.current) {
+        clearTimeout(transcriptFetchTimer.current);
+      }
+    };
+  }, [youtubeUrl]);
 
   useEffect(() => {
     const fetchVideoDetails = async () => {
@@ -1332,23 +1375,6 @@ const App: React.FC = () => {
     navigate("/image", { state: { script: scriptText } });
   };
 
-  const handleFetchTranscript = async () => {
-    if (!youtubeUrl.trim()) {
-      alert("유튜브 URL을 입력해주세요.");
-      return;
-    }
-    setIsFetchingTranscript(true);
-    try {
-      const result = await fetchTranscript(youtubeUrl.trim());
-      setTranscript(result.text.trim());
-    } catch (error: any) {
-      console.error("Transcript fetch failed:", error);
-      alert(error?.message || "대본을 불러오지 못했습니다. 수동으로 입력해주세요.");
-    } finally {
-      setIsFetchingTranscript(false);
-    }
-  };
-
   const ideasTitle =
     selectedCategory === "쇼핑 리뷰"
       ? "리뷰할 제품 추천"
@@ -1484,15 +1510,8 @@ const App: React.FC = () => {
                       } as React.CSSProperties
                     }
                   />
-                  <button
-                    onClick={handleFetchTranscript}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 text-xs font-semibold rounded-md bg-red-600 hover:bg-red-700 text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
-                    disabled={isFetchingTranscript}
-                  >
-                    {isFetchingTranscript ? "불러오는 중..." : "대본 자동 입력"}
-                  </button>
-                  {isFetchingDetails && (
-                    <div className="absolute inset-y-0 right-28 flex items-center pr-3">
+                  {(isFetchingDetails || isFetchingTranscript) && (
+                    <div className="absolute inset-y-0 right-3 flex items-center pr-1">
                       <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-red-500"></div>
                     </div>
                   )}
