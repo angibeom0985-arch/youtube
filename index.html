@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- SEO Meta Tags -->
+    <title>유튜브 대본 분석 · 이미지 생성 통합도구</title>
+    <meta
+      name="description"
+      content="youtube.money-hotissue.com에서 대본 분석, 챕터/이미지 프롬프트 생성, 스토리보드 이미지 제작까지 한 번에 처리하세요."
+    />
+    <meta
+      name="keywords"
+      content="유튜브 대본 분석, 이미지 생성, 스토리보드, Gemini, 롱폼, AI, 유튜브 콘텐츠"
+    />
+    <meta name="author" content="youtube.money-hotissue.com" />
+    <meta name="robots" content="index, follow" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:url"
+      content="https://youtube.money-hotissue.com/"
+    />
+    <meta
+      property="og:title"
+      content="유튜브 대본 분석 · 이미지 생성 통합도구"
+    />
+    <meta
+      property="og:description"
+      content="대본 분석과 이미지 생성을 하나의 워크플로우로 제공하는 통합 서비스입니다."
+    />
+    <meta
+      property="og:image"
+      content="https://youtube.money-hotissue.com/og-image.png"
+    />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image"
+      content="https://youtube.money-hotissue.com/og-image-square.png"
+    />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="1200" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta
+      property="twitter:url"
+      content="https://youtube.money-hotissue.com/"
+    />
+    <meta
+      property="twitter:title"
+      content="유튜브 대본 분석 · 이미지 생성 통합도구"
+    />
+    <meta
+      property="twitter:description"
+      content="대본 분석 결과로부터 바로 이미지까지 만들어내는 통합 워크플로우."
+    />
+    <meta
+      property="twitter:image"
+      content="https://youtube.money-hotissue.com/og-image.png"
+    />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.svg" />
+    <link rel="shortcut icon" href="/favicon.svg" />
+
+    <!-- Google AdSense -->
+    <script
+      async
+      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2686975437928535"
+      crossorigin="anonymous"
+    ></script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="importmap">
+      {
+        "imports": {
+          "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
+          "react/": "https://aistudiocdn.com/react@^19.1.1/",
+          "react": "https://aistudiocdn.com/react@^19.1.1",
+          "@google/genai": "https://aistudiocdn.com/@google/genai@^1.21.0",
+          "react-markdown": "https://aistudiocdn.com/react-markdown@^9.0.1",
+          "remark-gfm": "https://aistudiocdn.com/remark-gfm@^4.0.0"
+        }
+      }
+    </script>
+
+    <!-- 강력한 복사/드래그 방지 CSS -->
+    <style>
+      /* 허용된 입력 필드들 - 최우선 순위 */
+      .api-key-modal input,
+      .api-key-modal textarea,
+      .api-key-modal input[type="text"],
+      .api-key-modal input[type="password"],
+      .api-key-modal *,
+      .youtube-url-input input,
+      .youtube-url-input textarea,
+      .youtube-url-input *,
+      .transcript-input input,
+      .transcript-input textarea,
+      .transcript-input *,
+      .user-idea-keyword-input,
+      .user-idea-keyword-input input,
+      .user-idea-keyword-input textarea,
+      .user-idea-keyword-input *,
+      .new-idea-input,
+      .new-idea-input input,
+      .new-idea-input textarea,
+      .new-idea-input *,
+      .new-title-input,
+      .new-title-input input,
+      .new-title-input textarea,
+      .new-title-input * {
+        -webkit-user-select: text !important;
+        -moz-user-select: text !important;
+        -ms-user-select: text !important;
+        user-select: text !important;
+        -webkit-user-drag: auto !important;
+        -khtml-user-drag: auto !important;
+        -moz-user-drag: auto !important;
+        -o-user-drag: auto !important;
+        user-drag: auto !important;
+        cursor: text !important;
+        pointer-events: auto !important;
+        -webkit-touch-callout: default !important;
+      }
+
+      *:not(.api-key-modal):not(.api-key-modal *):not(.youtube-url-input):not(
+          .youtube-url-input *
+        ):not(.transcript-input):not(.transcript-input *):not(
+          .user-idea-keyword-input
+        ):not(.user-idea-keyword-input *):not(.new-idea-input):not(
+          .new-idea-input *
+        ):not(.new-title-input):not(.new-title-input *) {
+        -webkit-user-select: none !important;
+        -moz-user-select: none !important;
+        -ms-user-select: none !important;
+        user-select: none !important;
+        -webkit-user-drag: none !important;
+        -khtml-user-drag: none !important;
+        -moz-user-drag: none !important;
+        -o-user-drag: none !important;
+        user-drag: none !important;
+      }
+
+      /* 중복 제거됨 - 위의 통합된 선언 사용 */
+
+      body {
+        -webkit-touch-callout: none !important;
+      }
+
+      /* 인쇄 방지 */
+      @media print {
+        body {
+          display: none !important;
+        }
+      }
+    </style>
+
+    <!-- 추가 보안 스크립트 -->
+    <script>
+      // 즉시 실행되는 보안 코드
+      (function () {
+        "use strict";
+
+        // 입력 필드 확인 헬퍼 함수
+        function isAllowedInput(target) {
+          if (!target || !target.closest) return false;
+          return (
+            target.closest(".api-key-modal") ||
+            target.closest(".youtube-url-input") ||
+            target.closest(".transcript-input") ||
+            target.closest(".user-idea-keyword-input") ||
+            target.closest(".new-idea-input") ||
+            target.closest(".new-title-input") ||
+            target.tagName === "INPUT" ||
+            target.tagName === "TEXTAREA"
+          );
+        }
+
+        // 우클릭 방지 (허용된 입력 필드 제외)
+        document.addEventListener(
+          "contextmenu",
+          function (e) {
+            if (isAllowedInput(e.target)) {
+              return true;
+            }
+            e.preventDefault();
+            return false;
+          },
+          false
+        );
+
+        // 드래그 방지 (허용된 입력 필드 제외)
+        document.addEventListener(
+          "dragstart",
+          function (e) {
+            if (isAllowedInput(e.target)) {
+              return true;
+            }
+            e.preventDefault();
+            return false;
+          },
+          false
+        );
+
+        // 선택 방지 (허용된 입력 필드 제외)
+        document.addEventListener(
+          "selectstart",
+          function (e) {
+            if (isAllowedInput(e.target)) {
+              return true;
+            }
+            e.preventDefault();
+            return false;
+          },
+          false
+        );
+
+        // 복사 방지 (허용된 입력 필드 제외)
+        document.addEventListener(
+          "copy",
+          function (e) {
+            if (isAllowedInput(e.target)) {
+              return true;
+            }
+            e.preventDefault();
+            if (e.clipboardData) {
+              e.clipboardData.clearData();
+            }
+            return false;
+          },
+          false
+        );
+
+        // 잘라내기 방지 (허용된 입력 필드 제외)
+        document.addEventListener(
+          "cut",
+          function (e) {
+            if (isAllowedInput(e.target)) {
+              return true;
+            }
+            e.preventDefault();
+            if (e.clipboardData) {
+              e.clipboardData.clearData();
+            }
+            return false;
+          },
+          false
+        );
+
+        // 붙여넣기 방지 (허용된 입력 필드 제외)
+        document.addEventListener(
+          "paste",
+          function (e) {
+            if (isAllowedInput(e.target)) {
+              return true;
+            }
+            e.preventDefault();
+            return false;
+          },
+          false
+        );
+
+        // 키보드 단축키 방지
+        document.addEventListener(
+          "keydown",
+          function (e) {
+            // F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+S, Ctrl+U, Ctrl+S, Ctrl+P, PrintScreen, Win+Shift+S
+            // 알캡처(ALCapture) 단축키 Ctrl+Shift+C/W/D/A/S/F
+            if (
+              e.keyCode === 123 ||
+              e.keyCode === 44 || // PrintScreen
+              (e.ctrlKey && e.shiftKey && e.keyCode === 73) || // Ctrl+Shift+I
+              (e.ctrlKey && e.shiftKey && e.keyCode === 74) || // Ctrl+Shift+J
+              (e.ctrlKey && e.shiftKey && e.keyCode === 67) || // Ctrl+Shift+C (알캡처 직접 영작 캡처)
+              (e.ctrlKey && e.shiftKey && e.keyCode === 87) || // Ctrl+Shift+W (알캡처 창 캡처)
+              (e.ctrlKey && e.shiftKey && e.keyCode === 68) || // Ctrl+Shift+D (알캡처 일일영역 캡처)
+              (e.ctrlKey && e.shiftKey && e.keyCode === 65) || // Ctrl+Shift+A (알캡처 전체캡처)
+              (e.ctrlKey && e.shiftKey && e.keyCode === 83) || // Ctrl+Shift+S (알캡처 스크롤 캡처)
+              (e.ctrlKey && e.shiftKey && e.keyCode === 70) || // Ctrl+Shift+F (알캡처 지정사이즈 캡처)
+              (e.metaKey && e.shiftKey && e.keyCode === 83) || // Win+Shift+S (Windows 스크린샷 도구)
+              (e.ctrlKey && e.keyCode === 85) || // Ctrl+U
+              (e.ctrlKey && e.keyCode === 83) || // Ctrl+S (페이지 저장
+              (e.ctrlKey && e.keyCode === 80)
+            ) {
+              // Ctrl+P (인쇄)
+              e.preventDefault();
+              e.stopPropagation();
+              return false;
+            }
+
+            // Ctrl+C, Ctrl+X, Ctrl+A, Ctrl+V, Ctrl+Z
+            if (
+              e.ctrlKey &&
+              (e.keyCode === 67 ||
+                e.keyCode === 88 ||
+                e.keyCode === 65 ||
+                e.keyCode === 86 ||
+                e.keyCode === 90)
+            ) {
+              var target = e.target;
+              // API 키 모달, 유튜브 URL, 대본 입력, 새 아이디어, 새 제목 입력창은 모두 허용
+              if (
+                target.closest &&
+                (target.closest(".api-key-modal") ||
+                  target.closest(".youtube-url-input") ||
+                  target.closest(".transcript-input") ||
+                  target.closest(".user-idea-keyword-input") ||
+                  target.closest(".new-idea-input") ||
+                  target.closest(".new-title-input"))
+              ) {
+                return;
+              }
+              // 일반 INPUT/TEXTAREA는 허용
+              if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") {
+                return;
+              }
+              e.preventDefault();
+              e.stopPropagation();
+              return false;
+            }
+          },
+          true
+        );
+
+        // 인쇄 차단
+        window.addEventListener(
+          "beforeprint",
+          function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            alert("???�이지??인쇄?????�습?�다.");
+            return false;
+          },
+          true
+        );
+
+        // Print Screen 키 추가 감지
+        document.addEventListener(
+          "keyup",
+          function (e) {
+            if (e.key === "PrintScreen" || e.keyCode === 44) {
+              navigator.clipboard.writeText("");
+              console.log("Screenshot blocked");
+            }
+          },
+          true
+        );
+
+        // DevTools 감지
+        var devtools = { open: false };
+        var threshold = 160;
+
+        setInterval(function () {
+          if (
+            window.outerWidth - window.innerWidth > threshold ||
+            window.outerHeight - window.innerHeight > threshold
+          ) {
+            devtools.open = true;
+            console.clear();
+          }
+        }, 1000);
+
+        // Selection 감시 (API 키 모달, 유튜브 URL 입력, 대본 입력, 새 아이디어 입력, 새 제목 입력 제외)
+        setInterval(function () {
+          try {
+            // API 키 모달, 유튜브 URL 입력, 대본 입력, 새 아이디어 입력, 새 제목 입력이 열려있으면 건너뜁
+            var modal = document.querySelector(".api-key-modal");
+            var youtubeInput = document.querySelector(".youtube-url-input");
+            var transcriptInput = document.querySelector(".transcript-input");
+            var userIdeaInput = document.querySelector(
+              ".user-idea-keyword-input"
+            );
+            var newIdeaInput = document.querySelector(".new-idea-input");
+            var newTitleInput = document.querySelector(".new-title-input");
+            if (
+              modal ||
+              youtubeInput ||
+              transcriptInput ||
+              userIdeaInput ||
+              newIdeaInput ||
+              newTitleInput
+            ) {
+              return;
+            }
+
+            var selection = window.getSelection();
+            if (!selection || selection.toString().length === 0) {
+              return;
+            }
+
+            // 선택된 요소가 API 키 모달, 유튜브 URL 입력, 대본 입력, 새 아이디어 입력, 새 제목 입력 입력창인지 확인
+            if (selection.rangeCount > 0) {
+              var range = selection.getRangeAt(0);
+              var container = range.commonAncestorContainer;
+              var element =
+                container.nodeType === 1 ? container : container.parentElement;
+
+              // input이나 textarea는 무조건 허용
+              if (
+                element &&
+                (element.tagName === "INPUT" || element.tagName === "TEXTAREA")
+              ) {
+                return;
+              }
+
+              // API 키 모달, 유튜브 URL 입력, 대본 입력, 새 아이디어 입력, 새 제목 입력 내부는 허용
+              if (
+                element &&
+                element.closest &&
+                (element.closest(".api-key-modal") ||
+                  element.closest(".youtube-url-input") ||
+                  element.closest(".transcript-input") ||
+                  element.closest(".user-idea-keyword-input") ||
+                  element.closest(".new-idea-input") ||
+                  element.closest(".new-title-input"))
+              ) {
+                return;
+              }
+            }
+
+            selection.removeAllRanges();
+          } catch (e) {
+            // 에러 발생 시 선택 제거 안함
+          }
+        }, 100);
+      })();
+    </script>
+  </head>
+  <body class="bg-[#121212]">
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>

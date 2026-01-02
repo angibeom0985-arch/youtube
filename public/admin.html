@@ -1,0 +1,1697 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>관리자 페이지</title>
+    <!-- Tailwind CSS 추가 (실제 웹사이트와 동일한 스타일링) -->
+    <script>
+        // Tailwind CDN production 경고 억제
+        window.process = { env: { NODE_ENV: 'development' } };
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Malgun Gothic', '맑은 고딕', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .login-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .login-form {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-form h1 {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .login-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .error-message {
+            color: #e74c3c;
+            text-align: center;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        /* Admin Panel Styles */
+        .admin-panel {
+            display: none;
+            padding: 2rem;
+            background: white;
+            min-height: 100vh;
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e1e5e9;
+        }
+
+        .admin-header h1 {
+            color: #333;
+            font-weight: 600;
+        }
+
+        .logout-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #c0392b;
+        }
+
+        .editor-container {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+        }
+
+        .editor-controls {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            border-bottom: 3px solid #667eea;
+        }
+
+        .page-selector {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .page-selector label {
+            font-weight: 600;
+            color: #333;
+            font-size: 0.9rem;
+        }
+
+        .page-select {
+            padding: 0.5rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 5px;
+            background: white;
+            font-size: 0.9rem;
+            min-width: 200px;
+            cursor: pointer;
+        }
+
+        .page-select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .mode-selector {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .mode-btn {
+            padding: 0.5rem 1rem;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .mode-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .editor-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        .preview-btn {
+            background: #28a745;
+            color: white;
+        }
+
+        .preview-btn:hover {
+            background: #218838;
+        }
+
+        .save-btn {
+            background: #007bff !important;
+            color: white !important;
+            cursor: pointer !important;
+            opacity: 1 !important;
+        }
+
+        .save-btn:hover {
+            background: #0056b3 !important;
+        }
+
+        .action-btn:disabled:not(.save-btn) {
+            background: #6c757d;
+            color: #adb5bd;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        /* 저장 버튼은 항상 활성화 */
+        #saveBtn[disabled] {
+            background: #007bff !important;
+            color: white !important;
+            cursor: pointer !important;
+            opacity: 1 !important;
+        }
+
+        .image-btn {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .image-btn:hover {
+            background: #138496;
+        }
+
+        .editor-textarea {
+            width: 100%;
+            min-height: 500px;
+            padding: 1rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-family: 'Malgun Gothic', '맑은 고딕', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 15px;
+            line-height: 1.6;
+            resize: vertical;
+            outline: none;
+            transition: border-color 0.3s;
+            background: #ffffff;
+            color: #333333;
+        }
+
+        .editor-textarea:focus {
+            border-color: #667eea;
+        }
+
+        /* HTML 모드 스타일링 */
+        .html-mode .editor-textarea {
+            display: block;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            border-color: #404040;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            tab-size: 4;
+            -moz-tab-size: 4;
+            -o-tab-size: 4;
+        }
+
+        .html-mode .html-preview {
+            display: none !important;
+        }
+
+        .html-mode .editor-textarea::selection {
+            background: #264f78;
+        }
+
+        .html-mode .editor-textarea::-moz-selection {
+            background: #264f78;
+        }
+
+        /* HTML 문법 하이라이팅을 위한 스타일 */
+        .code-highlight {
+            position: relative;
+        }
+
+        .syntax-html-tag { color: #569cd6; }
+        .syntax-attribute { color: #92c5f8; }
+        .syntax-string { color: #ce9178; }
+        .syntax-comment { color: #6a9955; }
+        .syntax-doctype { color: #808080; }
+        .syntax-text { color: #d4d4d4; }
+
+        /* 기본모드는 편집 가능한 WYSIWYG 에디터로 */
+        .basic-mode .editor-textarea {
+            display: none;
+        }
+
+        .basic-mode .html-preview {
+            display: block !important;
+            width: 100%;
+            min-height: 500px;
+            padding: 2rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            background: #f8fafc; /* 실제 웹사이트와 동일한 밝은 배경 */
+            color: #1a202c; /* 어두운 텍스트 */
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
+            overflow-y: auto;
+            /* 편집 가능한 스타일 */
+            outline: none;
+            cursor: text;
+        }
+
+        .basic-mode .html-preview:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .basic-mode .html-preview:empty:before {
+            content: "여기를 클릭하여 내용을 입력하세요...";
+            color: #9ca3af;
+            pointer-events: none;
+        }
+
+        /* Tailwind CSS 스타일 적용 - 실제 웹사이트와 동일 */
+        .html-preview h1 {
+            font-size: 2.25rem;
+            font-weight: 700;
+            margin: 1.5rem 0 1rem 0;
+            color: #1f2937;
+            line-height: 1.2;
+            text-align: center;
+        }
+
+        .html-preview h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 1.5rem 0 1rem 0;
+            color: #1f2937;
+        }
+
+        .html-preview h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 1rem 0 0.5rem 0;
+            color: #1f2937;
+        }
+
+        .html-preview p {
+            margin: 0.75rem 0;
+            color: #374151;
+            line-height: 1.7;
+        }
+
+        .html-preview img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin: 1rem 0;
+            cursor: pointer;
+        }
+
+        .html-preview img:hover {
+            transform: scale(1.02);
+            transition: transform 0.2s ease;
+        }
+
+        .html-preview .bg-blue-50 {
+            background: #eff6ff;
+            border: 1px solid #dbeafe;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+
+        .html-preview .bg-amber-50 {
+            background: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            padding: 1.5rem;
+            border-radius: 0 8px 8px 0;
+            margin: 1rem 0;
+        }
+
+        .html-preview .text-blue-800 {
+            color: #1e40af;
+        }
+
+        .html-preview .text-amber-800 {
+            color: #92400e;
+        }
+
+        .html-preview .text-amber-700 {
+            color: #b45309;
+        }
+
+        .html-preview .bg-gray-900 {
+            background: #111827;
+            color: #10b981;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.875rem;
+            margin: 1rem 0;
+        }
+
+        .html-preview .bg-white {
+            background: #ffffff;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #3b82f6;
+            margin: 2rem 0;
+        }
+
+        .html-preview .step-number {
+            background: #3b82f6;
+            color: white;
+            border-radius: 50%;
+            width: 2rem;
+            height: 2rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            margin-right: 1rem;
+        }
+
+        .html-preview h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 1rem 0 0.5rem 0;
+            color: #e2e8f0;
+        }
+
+        .html-preview p {
+            margin: 1rem 0;
+            color: #cbd5e0;
+            line-height: 1.7;
+        }
+
+        .html-preview a {
+            color: #63b3ed;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .html-preview a:hover {
+            color: #90cdf4;
+            text-decoration: underline;
+        }
+
+        .html-preview ul, .html-preview ol {
+            margin: 1rem 0;
+            padding-left: 2rem;
+            color: #cbd5e0;
+        }
+
+        .html-preview li {
+            margin: 0.5rem 0;
+        }
+
+        .html-preview img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+
+        .html-preview blockquote {
+            border-left: 4px solid #4a5568;
+            padding-left: 1rem;
+            margin: 1rem 0;
+            color: #a0aec0;
+            font-style: italic;
+        }
+
+        .html-preview code {
+            background: #2d3748;
+            color: #f56565;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas, monospace;
+            font-size: 0.875rem;
+        }
+
+        .html-preview pre {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            overflow-x: auto;
+            font-family: ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas, monospace;
+        }
+
+        .html-preview pre code {
+            background: transparent;
+            color: inherit;
+            padding: 0;
+        }
+
+        /* Tailwind 유틸리티 클래스들 */
+        .html-preview .text-blue-400 { color: #63b3ed; }
+        .html-preview .text-green-400 { color: #68d391; }
+        .html-preview .text-red-400 { color: #fc8181; }
+        .html-preview .text-yellow-400 { color: #f6e05e; }
+        .html-preview .text-purple-400 { color: #b794f6; }
+        .html-preview .text-gray-400 { color: #a0aec0; }
+        
+        .html-preview .bg-gray-800 { background-color: #2d3748; padding: 1rem; border-radius: 8px; }
+        .html-preview .bg-blue-900 { background-color: #2a4365; padding: 1rem; border-radius: 8px; }
+        
+        .html-preview .border { border: 1px solid #4a5568; }
+        .html-preview .border-l { border-left: 4px solid #4a5568; }
+        
+        .html-preview .rounded { border-radius: 8px; }
+        .html-preview .p-4 { padding: 1rem; }
+        .html-preview .m-4 { margin: 1rem; }
+        
+        .html-preview .font-bold { font-weight: 700; }
+        .html-preview .font-semibold { font-weight: 600; }
+        .html-preview .text-lg { font-size: 1.125rem; }
+        .html-preview .text-xl { font-size: 1.25rem; }
+        .html-preview .text-2xl { font-size: 1.5rem; }
+
+        /* 상태 메시지 스타일 */
+
+        .image-upload {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .image-upload-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .image-upload h3 {
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .image-upload input[type="file"] {
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+
+        .image-upload-actions {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+        }
+
+        .close-btn {
+            background: #6c757d;
+            color: white;
+        }
+
+        .close-btn:hover {
+            background: #545b62;
+        }
+
+        .insert-btn {
+            background: #28a745;
+            color: white;
+        }
+
+        .insert-btn:hover {
+            background: #218838;
+        }
+
+        .status-message {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 5px;
+            text-align: center;
+            display: none;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status-loading {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        /* 성공 알림 모달 */
+        .success-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .success-modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .success-modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            transform: scale(0.7);
+            transition: transform 0.3s ease;
+        }
+
+        .success-modal.show .success-modal-content {
+            transform: scale(1);
+        }
+
+        .success-icon {
+            font-size: 3rem;
+            color: #28a745;
+            margin-bottom: 1rem;
+        }
+
+        .success-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .success-message {
+            color: #666;
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+
+        .success-ok-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .success-ok-btn:hover {
+            background: #218838;
+        }
+    </style>
+</head>
+<body>
+    <!-- 로그인 화면 -->
+    <div id="loginContainer" class="login-container">
+        <form id="loginForm" class="login-form">
+            <h1>관리자 로그인</h1>
+            <div class="form-group">
+                <label for="username">아이디</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">비밀번호</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit" class="login-btn">로그인</button>
+            <div id="errorMessage" class="error-message">아이디 또는 비밀번호가 잘못되었습니다.</div>
+        </form>
+    </div>
+
+    <!-- 관리자 패널 -->
+    <div id="adminPanel" class="admin-panel">
+        <header class="admin-header">
+            <h1>관리자 패널 - 글 편집</h1>
+            <button id="logoutBtn" class="logout-btn">로그아웃</button>
+        </header>
+
+        <div class="editor-container">
+            <div class="editor-controls">
+                <div class="page-selector">
+                    <label for="pageSelect">수정할 페이지:</label>
+                    <select id="pageSelect" class="page-select">
+                        <option value="">페이지를 선택하세요</option>
+                        <option value="API 키 발급 가이드">API 키 발급 가이드</option>
+                        <option value="사용법 가이드">사용법 가이드</option>
+                    </select>
+                </div>
+                
+                <div class="mode-selector">
+                    <button id="basicModeBtn" class="mode-btn active">기본모드</button>
+                    <button id="htmlModeBtn" class="mode-btn">HTML모드</button>
+                </div>
+                
+                <div class="editor-actions">
+                    <button id="imageBtn" class="action-btn image-btn">이미지 첨부</button>
+                    <button id="previewBtn" class="action-btn preview-btn">미리보기</button>
+                    <button id="saveBtn" class="action-btn save-btn" disabled>저장하기</button>
+                </div>
+            </div>
+
+            <div class="code-container">
+                <!-- 기본모드: HTML 미리보기 영역 -->
+                <div id="htmlPreview" class="html-preview" style="display: none;"></div>
+                <!-- HTML모드: 코드 에디터 -->
+                <textarea id="contentEditor" class="editor-textarea" placeholder="여기에 내용을 작성하세요..."></textarea>
+            </div>
+            
+            <div id="statusMessage" class="status-message"></div>
+        </div>
+    </div>
+
+    <!-- 이미지 업로드 모달 -->
+    <div id="imageUpload" class="image-upload">
+        <div class="image-upload-content">
+            <h3>이미지 첨부</h3>
+            <input type="file" id="imageFile" accept="image/*">
+            <div class="image-upload-actions">
+                <button id="closeImageBtn" class="action-btn close-btn">취소</button>
+                <button id="insertImageBtn" class="action-btn insert-btn">삽입</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 성공 알림 모달 -->
+    <div id="successModal" class="success-modal">
+        <div class="success-modal-content">
+            <div class="success-icon">✅</div>
+            <div class="success-title">저장 완료!</div>
+            <div class="success-message" id="successMessage">
+                페이지가 성공적으로 저장되었습니다.
+            </div>
+            <button id="successOkBtn" class="success-ok-btn">확인</button>
+        </div>
+    </div>
+
+    <script>
+        // API 베이스 URL 설정 (로컬과 배포 환경 자동 감지)
+        const API_BASE_URL = window.location.hostname === 'localhost' 
+            ? 'http://localhost:3003' 
+            : '';  // 배포 환경에서는 상대 경로 사용 (Vercel Functions)
+        
+        console.log('API Base URL:', API_BASE_URL);
+        console.log('Current hostname:', window.location.hostname);
+        
+        // 전역 변수
+        let currentMode = 'basic';
+        let isLoggedIn = false;
+        let currentPage = '';
+        
+        // DOM 요소
+        const loginContainer = document.getElementById('loginContainer');
+        const adminPanel = document.getElementById('adminPanel');
+        const loginForm = document.getElementById('loginForm');
+        const errorMessage = document.getElementById('errorMessage');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const contentEditor = document.getElementById('contentEditor');
+        const htmlPreview = document.getElementById('htmlPreview');
+        const pageSelect = document.getElementById('pageSelect');
+        const basicModeBtn = document.getElementById('basicModeBtn');
+        const htmlModeBtn = document.getElementById('htmlModeBtn');
+        const imageBtn = document.getElementById('imageBtn');
+        const previewBtn = document.getElementById('previewBtn');
+        const saveBtn = document.getElementById('saveBtn');
+        const statusMessage = document.getElementById('statusMessage');
+        const imageUpload = document.getElementById('imageUpload');
+        const closeImageBtn = document.getElementById('closeImageBtn');
+        const insertImageBtn = document.getElementById('insertImageBtn');
+        const imageFile = document.getElementById('imageFile');
+        
+        // 성공 모달 요소
+        const successModal = document.getElementById('successModal');
+        const successMessage = document.getElementById('successMessage');
+        const successOkBtn = document.getElementById('successOkBtn');
+
+        // 로그인 기능
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            // 인증 확인
+            if (username === 'akb0811' && password === 'rlqja0985!') {
+                isLoggedIn = true;
+                sessionStorage.setItem('adminLoggedIn', 'true');
+                showAdminPanel();
+            } else {
+                showError('아이디 또는 비밀번호가 잘못되었습니다.');
+            }
+        });
+
+        // 로그아웃 기능
+        logoutBtn.addEventListener('click', function() {
+            isLoggedIn = false;
+            sessionStorage.removeItem('adminLoggedIn');
+            showLoginForm();
+        });
+
+        // 페이지 선택 및 로드 기능
+        pageSelect.addEventListener('change', async function() {
+            const selectedPage = this.value;
+            console.log('페이지 선택됨:', selectedPage); // 디버깅용
+            
+            if (selectedPage) {
+                currentPage = selectedPage;
+                
+                // 저장 버튼 즉시 활성화
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    console.log('저장 버튼 활성화됨'); // 디버깅용
+                }
+                
+                await loadPageContent(selectedPage);
+                
+                // 현재 페이지 저장
+                localStorage.setItem('adminCurrentPage', selectedPage);
+            }
+        });
+
+        // 이 함수는 위에서 새로 정의된 async loadPageContent로 대체됨
+
+        // 화면 전환 함수
+        function showAdminPanel() {
+            loginContainer.style.display = 'none';
+            adminPanel.style.display = 'block';
+            errorMessage.style.display = 'none';
+            
+            // 저장 버튼 강제 활성화
+            if (saveBtn) {
+                saveBtn.disabled = false;
+                saveBtn.textContent = '💾 저장';
+                console.log('Admin 패널 표시 - 저장 버튼 활성화됨');
+            }
+            
+            // 기본 페이지 선택 및 로드
+            if (pageSelect) {
+                pageSelect.value = 'API 키 발급 가이드';
+                currentPage = 'API 키 발급 가이드';
+                console.log('기본 페이지 설정:', currentPage);
+                
+                // 페이지 내용 로드
+                setTimeout(() => {
+                    loadPageContent(currentPage);
+                }, 300);
+            }
+            
+            loadSavedContent();
+        }
+
+        function showLoginForm() {
+            loginContainer.style.display = 'flex';
+            adminPanel.style.display = 'none';
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+        }
+
+        // 모드 전환 기능
+        basicModeBtn.addEventListener('click', function() {
+            switchMode('basic');
+        });
+
+        htmlModeBtn.addEventListener('click', function() {
+            switchMode('html');
+        });
+
+        function switchMode(mode) {
+            currentMode = mode;
+            
+            // 버튼 상태 업데이트
+            basicModeBtn.classList.toggle('active', mode === 'basic');
+            htmlModeBtn.classList.toggle('active', mode === 'html');
+            
+            // 에디터 컨테이너에 모드 클래스 적용
+            const editorContainer = document.querySelector('.editor-container');
+            editorContainer.classList.remove('basic-mode', 'html-mode');
+            editorContainer.classList.add(`${mode}-mode`);
+            
+            // body에도 클래스 적용 (기존 호환성을 위해)
+            document.body.classList.toggle('html-mode', mode === 'html');
+            document.body.classList.toggle('basic-mode', mode === 'basic');
+            
+            if (mode === 'basic') {
+                // 기본모드: WYSIWYG 편집 가능하게 설정
+                htmlPreview.contentEditable = true;
+                htmlPreview.setAttribute('data-placeholder', '여기를 클릭하여 내용을 입력하세요...');
+                
+                // HTML 미리보기를 현재 textarea 내용으로 업데이트
+                updateHtmlPreview();
+                
+                // 기본모드에서 편집 시 textarea와 동기화
+                htmlPreview.addEventListener('input', syncPreviewToTextarea);
+                htmlPreview.addEventListener('paste', handlePasteInPreview);
+                
+                // 드래그앤드롭 이벤트 추가
+                htmlPreview.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    htmlPreview.style.borderColor = '#667eea';
+                    htmlPreview.style.backgroundColor = '#f0f4ff';
+                });
+                
+                htmlPreview.addEventListener('dragleave', (e) => {
+                    e.preventDefault();
+                    htmlPreview.style.borderColor = '#e1e5e9';
+                    htmlPreview.style.backgroundColor = '#f8fafc';
+                });
+                
+                htmlPreview.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    htmlPreview.style.borderColor = '#e1e5e9';
+                    htmlPreview.style.backgroundColor = '#f8fafc';
+                    
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0 && files[0].type.startsWith('image/')) {
+                        handleImageUpload(files[0]);
+                    }
+                });
+                
+                // textarea 변경 시 미리보기 업데이트 (외부에서 로드할 때)
+                contentEditor.addEventListener('input', function() {
+                    updateHtmlPreview();
+                    // 내용이 변경되면 저장 버튼 활성화
+                    if (currentPage) {
+                        saveBtn.disabled = false;
+                    }
+                });
+            } else {
+                // HTML모드: 편집 불가능하게 설정
+                htmlPreview.contentEditable = false;
+                
+                // 이벤트 리스너 제거
+                htmlPreview.removeEventListener('input', syncPreviewToTextarea);
+                htmlPreview.removeEventListener('paste', handlePasteInPreview);
+                contentEditor.removeEventListener('input', updateHtmlPreview);
+                
+                // HTML 문법 하이라이팅 적용
+                applyCodeHighlighting();
+                contentEditor.addEventListener('input', applyCodeHighlighting);
+            }
+            
+            showStatusMessage('success', `${mode === 'basic' ? '기본' : 'HTML'}모드로 전환되었습니다.`);
+        }
+
+        // HTML 미리보기 업데이트 함수
+        function updateHtmlPreview() {
+            if (currentMode === 'basic') {
+                const htmlContent = contentEditor.value || '<div class="p-4"><p class="text-gray-400">내용을 입력하세요...</p></div>';
+                
+                // Tailwind 클래스가 적용되지 않은 HTML을 자동으로 스타일링
+                let processedContent = htmlContent;
+                
+                // 기본 태그들에 Tailwind 클래스 자동 추가
+                processedContent = processedContent.replace(/<h1(?![^>]*class)/g, '<h1 class="text-3xl font-bold text-white mb-4"');
+                processedContent = processedContent.replace(/<h2(?![^>]*class)/g, '<h2 class="text-2xl font-semibold text-gray-200 mb-3"');
+                processedContent = processedContent.replace(/<h3(?![^>]*class)/g, '<h3 class="text-xl font-semibold text-gray-300 mb-2"');
+                processedContent = processedContent.replace(/<p(?![^>]*class)/g, '<p class="text-gray-300 mb-4 leading-relaxed"');
+                processedContent = processedContent.replace(/<a(?![^>]*class)/g, '<a class="text-blue-400 hover:text-blue-300 underline"');
+                processedContent = processedContent.replace(/<ul(?![^>]*class)/g, '<ul class="list-disc list-inside text-gray-300 mb-4 space-y-2"');
+                processedContent = processedContent.replace(/<ol(?![^>]*class)/g, '<ol class="list-decimal list-inside text-gray-300 mb-4 space-y-2"');
+                processedContent = processedContent.replace(/<li(?![^>]*class)/g, '<li class="text-gray-300"');
+                processedContent = processedContent.replace(/<blockquote(?![^>]*class)/g, '<blockquote class="border-l-4 border-gray-600 pl-4 text-gray-400 italic"');
+                processedContent = processedContent.replace(/<code(?![^>]*class)/g, '<code class="bg-gray-800 text-red-400 px-2 py-1 rounded text-sm font-mono"');
+                processedContent = processedContent.replace(/<pre(?![^>]*class)/g, '<pre class="bg-gray-800 text-gray-200 p-4 rounded-lg overflow-x-auto mb-4"');
+                
+                htmlPreview.innerHTML = processedContent;
+            }
+        }
+
+        // 간단한 HTML 문법 하이라이팅
+        function applyCodeHighlighting() {
+            if (currentMode !== 'html') return;
+            
+            // 기본적인 다크테마 적용 (실제 문법 하이라이팅은 복잡하므로 CSS만 적용)
+            const textarea = contentEditor;
+            textarea.style.background = '#1e1e1e';
+            textarea.style.color = '#d4d4d4';
+            textarea.style.border = '2px solid #404040';
+        }
+
+        // 이미지 업로드 처리 함수
+        async function handleImageUpload(file) {
+            if (!file || !file.type.startsWith('image/')) {
+                showStatusMessage('error', '이미지 파일만 업로드 가능합니다.');
+                return;
+            }
+
+            const maxSize = 5 * 1024 * 1024; // 5MB
+            if (file.size > maxSize) {
+                showStatusMessage('error', '이미지 크기는 5MB 이하로 제한됩니다.');
+                return;
+            }
+
+            try {
+                // 파일을 base64로 변환
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    const base64Data = e.target.result;
+                    const filename = `uploaded_${Date.now()}_${file.name}`;
+                    
+                    try {
+                        // 서버에 이미지 업로드
+                        const response = await fetch(`${API_BASE_URL}/api/upload-image`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                filename: filename,
+                                data: base64Data
+                            })
+                        });
+
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            // 이미지를 에디터에 삽입
+                            insertImageToEditor(result.path, filename);
+                            showStatusMessage('success', '이미지가 성공적으로 업로드되었습니다!');
+                        } else {
+                            throw new Error(result.error);
+                        }
+                    } catch (uploadError) {
+                        console.error('이미지 업로드 실패:', uploadError);
+                        // 업로드 실패 시 로컬 이미지로 표시
+                        insertImageToEditor(base64Data, filename);
+                        showStatusMessage('warning', '서버 업로드에 실패했지만 로컬에서 표시됩니다.');
+                    }
+                };
+                reader.readAsDataURL(file);
+            } catch (error) {
+                console.error('이미지 처리 오류:', error);
+                showStatusMessage('error', '이미지 처리 중 오류가 발생했습니다.');
+            }
+        }
+
+        // 에디터에 이미지 삽입
+        function insertImageToEditor(imageSrc, altText) {
+            const imgHtml = `<img src="${imageSrc}" alt="${altText}" class="w-full rounded-lg shadow-md my-4" style="max-width: 100%; height: auto;">`;
+            
+            if (currentMode === 'basic') {
+                // 기본모드: contenteditable 영역에 실제 이미지 요소로 삽입
+                const selection = window.getSelection();
+                
+                // 실제 img DOM 요소 생성
+                const imgElement = document.createElement('img');
+                imgElement.src = imageSrc;
+                imgElement.alt = altText;
+                imgElement.className = 'w-full rounded-lg shadow-md my-4';
+                imgElement.style.maxWidth = '100%';
+                imgElement.style.height = 'auto';
+                
+                if (selection.rangeCount > 0) {
+                    const range = selection.getRangeAt(0);
+                    range.deleteContents();
+                    
+                    // 이미지를 감싸는 div 생성 (블록 레벨 요소로 만들기)
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'my-4';
+                    wrapper.appendChild(imgElement);
+                    range.insertNode(wrapper);
+                    
+                    // 커서를 이미지 뒤로 이동 (try-catch로 오류 방지)
+                    try {
+                        range.setStartAfter(wrapper);
+                        range.collapse(true);
+                        selection.removeAllRanges();
+                        selection.addRange(range);
+                    } catch (e) {
+                        console.log('커서 위치 설정 오류 (무시됨):', e);
+                    }
+                } else {
+                    // 선택 영역이 없으면 끝에 추가
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'my-4';
+                    wrapper.appendChild(imgElement);
+                    htmlPreview.appendChild(wrapper);
+                }
+                syncPreviewToTextarea();
+            } else {
+                // HTML모드: textarea에 직접 삽입
+                const cursorPos = contentEditor.selectionStart;
+                const textBefore = contentEditor.value.substring(0, cursorPos);
+                const textAfter = contentEditor.value.substring(cursorPos);
+                contentEditor.value = textBefore + imgHtml + textAfter;
+                contentEditor.setSelectionRange(cursorPos + imgHtml.length, cursorPos + imgHtml.length);
+            }
+            
+            if (currentPage) {
+                saveBtn.disabled = false;
+            }
+        }
+
+        // 미리보기 편집 내용을 textarea에 동기화
+        function syncPreviewToTextarea() {
+            if (currentMode === 'basic') {
+                // 편집된 HTML 내용을 정리해서 textarea에 저장
+                let cleanHtml = htmlPreview.innerHTML;
+                
+                // 자동으로 추가된 Tailwind 클래스들을 제거하여 깔끔한 HTML로 변환
+                cleanHtml = cleanHtml.replace(/ class="text-3xl font-bold text-white mb-4"/g, '');
+                cleanHtml = cleanHtml.replace(/ class="text-2xl font-semibold text-gray-200 mb-3"/g, '');
+                cleanHtml = cleanHtml.replace(/ class="text-xl font-semibold text-gray-300 mb-2"/g, '');
+                cleanHtml = cleanHtml.replace(/ class="text-gray-300 mb-4 leading-relaxed"/g, '');
+                cleanHtml = cleanHtml.replace(/ class="text-blue-400 hover:text-blue-300 underline"/g, '');
+                cleanHtml = cleanHtml.replace(/ class="list-disc list-inside text-gray-300 mb-4 space-y-2"/g, '');
+                cleanHtml = cleanHtml.replace(/ class="list-decimal list-inside text-gray-300 mb-4 space-y-2"/g, '');
+                cleanHtml = cleanHtml.replace(/ class="text-gray-300"/g, '');
+                cleanHtml = cleanHtml.replace(/ class="border-l-4 border-gray-600 pl-4 text-gray-400 italic"/g, '');
+                cleanHtml = cleanHtml.replace(/ class="bg-gray-800 text-red-400 px-2 py-1 rounded text-sm font-mono"/g, '');
+                cleanHtml = cleanHtml.replace(/ class="bg-gray-800 text-gray-200 p-4 rounded-lg overflow-x-auto mb-4"/g, '');
+                
+                // 빈 속성들 정리
+                cleanHtml = cleanHtml.replace(/ class=""/g, '');
+                
+                contentEditor.value = cleanHtml;
+            }
+        }
+
+        // 붙여넣기 처리
+        function handlePasteInPreview(e) {
+            e.preventDefault();
+            
+            // 일반 텍스트로 붙여넣기 (HTML 태그 제거)
+            const text = (e.clipboardData || window.clipboardData).getData('text');
+            const selection = window.getSelection();
+            
+            if (selection.rangeCount) {
+                const range = selection.getRangeAt(0);
+                range.deleteContents();
+                
+                // 줄바꿈을 <br>로 변환
+                const formattedText = text.replace(/\n/g, '<br>');
+                range.insertNode(range.createContextualFragment(formattedText));
+                
+                // 커서를 끝으로 이동
+                range.collapse(false);
+                selection.removeAllRanges();
+                selection.addRange(range);
+            }
+            
+            // textarea와 동기화
+            syncPreviewToTextarea();
+        }
+
+        // 기본모드에서 키보드 단축키 처리
+        document.addEventListener('keydown', function(e) {
+            if (currentMode === 'basic' && htmlPreview.contentEditable === 'true') {
+                // Ctrl+B: 볼드
+                if (e.ctrlKey && e.key === 'b') {
+                    e.preventDefault();
+                    document.execCommand('bold');
+                    syncPreviewToTextarea();
+                }
+                // Ctrl+I: 이탤릭
+                else if (e.ctrlKey && e.key === 'i') {
+                    e.preventDefault();
+                    document.execCommand('italic');
+                    syncPreviewToTextarea();
+                }
+                // Ctrl+U: 밑줄
+                else if (e.ctrlKey && e.key === 'u') {
+                    e.preventDefault();
+                    document.execCommand('underline');
+                    syncPreviewToTextarea();
+                }
+                // Enter: 문단 나누기
+                else if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    document.execCommand('insertHTML', false, '<br><br>');
+                    syncPreviewToTextarea();
+                }
+                // Shift+Enter: 줄바꿈
+                else if (e.key === 'Enter' && e.shiftKey) {
+                    e.preventDefault();
+                    document.execCommand('insertHTML', false, '<br>');
+                    syncPreviewToTextarea();
+                }
+            }
+        });
+
+        // 이미지 첨부 기능
+        imageBtn.addEventListener('click', function() {
+            imageUpload.style.display = 'block';
+        });
+
+        closeImageBtn.addEventListener('click', function() {
+            imageUpload.style.display = 'none';
+            imageFile.value = '';
+        });
+
+        insertImageBtn.addEventListener('click', async function() {
+            const file = imageFile.files[0];
+            if (file) {
+                imageUpload.style.display = 'none';
+                imageFile.value = '';
+                await handleImageUpload(file);
+            } else {
+                showStatusMessage('error', '이미지 파일을 선택해주세요.');
+            }
+        });
+
+        // 파일 선택 시 자동 업로드 (선택사항)
+        imageFile.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                // 파일이 선택되면 미리보기만 표시, 실제 업로드는 "삽입" 버튼 클릭 시
+                showStatusMessage('success', `${file.name} 파일이 선택되었습니다. 삽입 버튼을 클릭하세요.`);
+            }
+        });
+
+        // 미리보기 기능
+        previewBtn.addEventListener('click', function() {
+            const content = contentEditor.value;
+            if (!content.trim()) {
+                alert('미리보기할 내용이 없습니다.');
+                return;
+            }
+
+            // 새 창으로 열기 (이름 없는 새 탭)
+            const previewWindow = window.open('', '_blank', 'width=1000,height=700,scrollbars=yes,resizable=yes,toolbar=yes,location=yes');
+            
+            if (currentMode === 'html') {
+                previewWindow.document.write('<!DOCTYPE html>');
+                previewWindow.document.write('<html lang="ko">');
+                previewWindow.document.write('<head>');
+                previewWindow.document.write('<meta charset="UTF-8">');
+                previewWindow.document.write('<meta name="viewport" content="width=device-width, initial-scale=1.0">');
+                previewWindow.document.write('<title>미리보기 (HTML모드)</title>');
+                previewWindow.document.write('<script' + ' src="https://cdn.tailwindcss.com"><' + '/script>');
+                previewWindow.document.write('<style>body{font-family:"Malgun Gothic","맑은 고딕",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:2rem;line-height:1.6;background:#f8fafc}img{max-width:100%;height:auto}.container{max-width:1200px;margin:0 auto}.code-block{background:#1a202c;border-radius:8px;padding:1rem;margin:1rem 0}.code-block code{color:#68d391!important;font-family:"Courier New",monospace}</style>');
+                previewWindow.document.write('</head>');
+                previewWindow.document.write('<body>');
+                previewWindow.document.write('<div class="container">');
+                previewWindow.document.write(content);
+                previewWindow.document.write('</div>');
+                previewWindow.document.write('</body>');
+                previewWindow.document.write('</html>');
+            } else {
+                previewWindow.document.write('<!DOCTYPE html>');
+                previewWindow.document.write('<html lang="ko">');
+                previewWindow.document.write('<head>');
+                previewWindow.document.write('<meta charset="UTF-8">');
+                previewWindow.document.write('<meta name="viewport" content="width=device-width, initial-scale=1.0">');
+                previewWindow.document.write('<title>미리보기 (기본모드)</title>');
+                previewWindow.document.write('<style>body{font-family:"Malgun Gothic","맑은 고딕",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:2rem;line-height:1.6;background:#f8fafc}pre{white-space:pre-wrap;word-wrap:break-word;background:#f1f5f9;padding:1rem;border-radius:8px;border:1px solid #e2e8f0}.container{max-width:1200px;margin:0 auto}</style>');
+                previewWindow.document.write('</head>');
+                previewWindow.document.write('<body>');
+                previewWindow.document.write('<div class="container">');
+                previewWindow.document.write('<h2>기본모드 미리보기</h2>');
+                previewWindow.document.write('<p><small>※ 이 모드에서는 HTML 태그가 텍스트로 표시됩니다.</small></p>');
+                previewWindow.document.write('<hr style="margin: 1rem 0;">');
+                previewWindow.document.write('<pre>' + content.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</pre>');
+                previewWindow.document.write('</div>');
+                previewWindow.document.write('</body>');
+                previewWindow.document.write('</html>');
+            }
+            
+            previewWindow.document.close();
+        });
+
+        // 저장 기능 (disabled 상태에서도 동작)
+        saveBtn.addEventListener('click', async function(e) {
+            // disabled 상태라면 강제로 활성화
+            if (saveBtn.disabled) {
+                saveBtn.disabled = false;
+                console.log('저장 버튼 강제 활성화됨');
+            }
+            
+            const content = contentEditor.value;
+            console.log('저장할 내용:', content.substring(0, 100) + '...');
+            console.log('현재 페이지:', currentPage);
+            
+            if (!currentPage) {
+                showStatusMessage('error', '저장할 페이지를 선택해주세요.');
+                console.error('currentPage가 설정되지 않음');
+                return;
+            }
+
+            if (!content || content.trim().length === 0) {
+                showStatusMessage('error', '저장할 내용이 없습니다.');
+                console.error('content가 비어있음');
+                return;
+            }
+
+            try {
+                saveBtn.disabled = true;
+                saveBtn.textContent = '저장 중...';
+                
+                // 로컬/배포 환경 모두 API 호출
+                let shouldCallAPI = true;
+                if (shouldCallAPI) {
+                    let apiEndpoint = '';
+                    if (currentPage === 'API 키 발급 가이드') {
+                        apiEndpoint = '/api/guide/api-key';
+                    } else if (currentPage === '사용법 가이드') {
+                        apiEndpoint = '/api/guide/user-guide';
+                    } else {
+                        throw new Error('알 수 없는 페이지입니다: ' + currentPage);
+                    }
+
+                    console.log('API 호출:', `${API_BASE_URL}${apiEndpoint}`);
+                    console.log('전송할 데이터 크기:', content.length, 'bytes');
+
+                    const response = await fetch(`${API_BASE_URL}${apiEndpoint}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ content })
+                    });
+
+                    console.log('서버 응답 상태:', response.status, response.statusText);
+                    const result = await response.json();
+                    console.log('서버 응답 결과:', result);
+
+                    if (!response.ok) {
+                        throw new Error(result.error || '서버 저장에 실패했습니다.');
+                    }
+                }
+                
+                // 로컬 스토리지에 저장 (로컬/배포 환경 공통)
+                const saveKey = `adminContent_${currentPage.replace(/[^\w]/g, '_')}`;
+                localStorage.setItem(saveKey, content);
+                localStorage.setItem('adminContentMode', currentMode);
+                localStorage.setItem('adminCurrentPage', currentPage);
+                
+                // 성공 메시지
+                if (API_BASE_URL) {
+                    showSuccessModal(`✅ ${currentPage} 페이지가 로컬 서버와 브라우저에 저장되었습니다!`);
+                } else {
+                    showSuccessModal(`✅ ${currentPage} 페이지가 브라우저에 저장되었습니다!\n\n⚠️ 실제 웹사이트에 반영하려면:\n1. 아래 내용을 복사하세요\n2. 해당 React 컴포넌트 파일을 직접 수정하세요\n3. Git 커밋/푸시하여 배포하세요`);
+                }
+            } catch (error) {
+                console.error('저장 오류:', error);
+                
+                // 오류 발생 시 로컬에만 저장
+                try {
+                    const saveKey = `adminContent_${currentPage.replace(/[^\w]/g, '_')}`;
+                    localStorage.setItem(saveKey, content);
+                    localStorage.setItem('adminContentMode', currentMode);
+                    localStorage.setItem('adminCurrentPage', currentPage);
+                    showStatusMessage('warning', `⚠️ 브라우저에만 저장되었습니다.\n\n오류: ${error.message}\n\n실제 웹사이트에 반영하려면 React 컴포넌트 파일을 직접 수정하고 배포해주세요.`);
+                } catch (localError) {
+                    showStatusMessage('error', '저장 중 오류가 발생했습니다: ' + error.message);
+                }
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.textContent = '💾 저장';
+            }
+        });
+
+        // 저장된 내용 불러오기
+        async function loadSavedContent() {
+            try {
+                const savedPage = localStorage.getItem('adminCurrentPage');
+                const savedMode = localStorage.getItem('adminContentMode') || 'basic';
+                
+                if (savedPage) {
+                    // 저장된 페이지가 있으면 해당 페이지 선택
+                    pageSelect.value = savedPage;
+                    currentPage = savedPage;
+                    await loadPageContent(savedPage);
+                } else {
+                    // 기본 모드로 저장된 내용 불러오기
+                    const savedContent = localStorage.getItem(`adminContent_${savedMode}`) || '';
+                    contentEditor.value = savedContent;
+                }
+                
+                switchMode(savedMode);
+                
+                // 기본모드인 경우 미리보기 초기화
+                if (savedMode === 'basic') {
+                    updateHtmlPreview();
+                }
+                
+                if (contentEditor.value) {
+                    showStatusMessage('success', '저장된 내용을 불러왔습니다.');
+                }
+                
+                // 저장된 페이지가 있으면 저장 버튼 활성화
+                if (currentPage && saveBtn) {
+                    saveBtn.disabled = false;
+                }
+            } catch (error) {
+                console.error('저장된 내용을 불러오는 중 오류가 발생했습니다:', error);
+            }
+        }
+
+        // 페이지 내용을 서버에서 불러오기
+        async function loadPageContent(pageName) {
+            const saveKey = `adminContent_${pageName.replace(/[^\w]/g, '_')}`;
+            
+            try {
+                // 로컬 환경인 경우에만 API 호출
+                if (API_BASE_URL) {
+                    let apiEndpoint = '';
+                    if (pageName === 'API 키 발급 가이드') {
+                        apiEndpoint = '/api/guide/api-key';
+                    } else if (pageName === '사용법 가이드') {
+                        apiEndpoint = '/api/guide/user-guide';
+                    } else {
+                        throw new Error('알 수 없는 페이지입니다.');
+                    }
+
+                    const response = await fetch(`${API_BASE_URL}${apiEndpoint}`);
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        contentEditor.value = result.content;
+                        
+                        // 로컬에도 저장
+                        localStorage.setItem(saveKey, result.content);
+                        
+                        // 저장 버튼 활성화
+                        if (saveBtn) {
+                            saveBtn.disabled = false;
+                        }
+                        
+                        // 미리보기 업데이트
+                        updateHtmlPreview();
+                        return;
+                    } else {
+                        throw new Error(result.error || '페이지 내용을 불러올 수 없습니다.');
+                    }
+                }
+                
+                // 배포 환경: localStorage에서 직접 로드
+                const localContent = localStorage.getItem(saveKey);
+                
+                if (localContent) {
+                    contentEditor.value = localContent;
+                    console.log(`✅ ${pageName} 로컬 저장본 로드됨 (${localContent.length} bytes)`);
+                    
+                    // 저장 버튼 활성화
+                    if (saveBtn) {
+                        saveBtn.disabled = false;
+                    }
+                    
+                    // 미리보기 업데이트
+                    updateHtmlPreview();
+                } else {
+                    // 저장된 내용이 없으면 기본 템플릿 제공
+                    contentEditor.value = getDefaultTemplate(pageName);
+                    console.log(`ℹ️ ${pageName} 기본 템플릿 로드됨`);
+                    
+                    // 저장 버튼 활성화
+                    if (saveBtn) {
+                        saveBtn.disabled = false;
+                    }
+                    
+                    // 미리보기 업데이트
+                    updateHtmlPreview();
+                }
+            } catch (error) {
+                console.error('페이지 로드 오류:', error);
+                
+                // 오류 발생 시 로컬에서 시도
+                const localContent = localStorage.getItem(saveKey);
+                
+                if (localContent) {
+                    contentEditor.value = localContent;
+                    showStatusMessage('warning', `⚠️ 로컬 저장본을 불러왔습니다: ${error.message}`);
+                    
+                    // 저장 버튼 활성화
+                    if (saveBtn) {
+                        saveBtn.disabled = false;
+                    }
+                    
+                    // 미리보기 업데이트
+                    updateHtmlPreview();
+                } else {
+                    contentEditor.value = getDefaultTemplate(pageName);
+                    showStatusMessage('warning', `기본 템플릿을 로드했습니다. 오류: ${error.message}`);
+                    
+                    // 저장 버튼 활성화
+                    if (saveBtn) {
+                        saveBtn.disabled = false;
+                    }
+                    
+                    // 미리보기 업데이트
+                    updateHtmlPreview();
+                }
+            }
+        }
+
+        // 기본 템플릿 가져오기
+        function getDefaultTemplate(pageName) {
+            if (pageName === 'API 키 발급 가이드') {
+                return `<!-- 네비게이션 -->
+<nav class="bg-white shadow-lg">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="flex justify-between items-center py-4">
+            <h1 class="text-2xl font-bold text-gray-800">📝 API 키 발급 가이드</h1>
+        </div>
+    </div>
+</nav>
+
+<!-- 메인 콘텐츠 -->
+<main class="max-w-4xl mx-auto px-4 py-8">
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold mb-4">여기에 내용을 작성하세요</h2>
+        <p>API 키 발급 가이드 내용을 입력하세요.</p>
+    </div>
+</main>`;
+            } else if (pageName === '사용법 가이드') {
+                return `<!-- 네비게이션 -->
+<nav class="bg-white shadow-lg">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="flex justify-between items-center py-4">
+            <h1 class="text-2xl font-bold text-gray-800">📖 사용법 가이드</h1>
+        </div>
+    </div>
+</nav>
+
+<!-- 메인 콘텐츠 -->
+<main class="max-w-4xl mx-auto px-4 py-8">
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold mb-4">여기에 내용을 작성하세요</h2>
+        <p>사용법 가이드 내용을 입력하세요.</p>
+    </div>
+</main>`;
+            }
+            return '<p>페이지를 선택하세요.</p>';
+        }
+
+        // 상태 메시지 표시
+        function showStatusMessage(type, message) {
+            statusMessage.textContent = message;
+            statusMessage.className = `status-message status-${type}`;
+            statusMessage.style.display = 'block';
+            
+            setTimeout(() => {
+                statusMessage.style.display = 'none';
+            }, 3000);
+        }
+
+        // 성공 모달 표시
+        function showSuccessModal(message) {
+            successMessage.textContent = message;
+            successModal.classList.add('show');
+            
+            // 3초 후 자동으로 모달 닫기
+            setTimeout(() => {
+                hideSuccessModal();
+            }, 3000);
+            
+            // 모달 외부 클릭 시 닫기
+            successModal.addEventListener('click', function(e) {
+                if (e.target === successModal) {
+                    hideSuccessModal();
+                }
+            });
+        }
+
+        // 성공 모달 닫기
+        function hideSuccessModal() {
+            successModal.classList.remove('show');
+        }
+
+        // 성공 모달 확인 버튼 이벤트 (즉시 닫기)
+        successOkBtn.addEventListener('click', hideSuccessModal);
+
+        // 페이지 로드 시 로그인 상태 확인
+        window.addEventListener('load', function() {
+            console.log('페이지 로드됨');
+            
+            // 저장 버튼 강제 활성화 (DOM 로드 후)
+            setTimeout(function() {
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    console.log('DOM 로드 후 저장 버튼 활성화');
+                }
+            }, 100);
+            
+            // 로그인 상태 확인
+            if (sessionStorage.getItem('adminLoggedIn') === 'true') {
+                isLoggedIn = true;
+                showAdminPanel();
+                
+                // 로그인된 상태에서 저장 버튼 다시 활성화
+                setTimeout(function() {
+                    if (saveBtn) {
+                        saveBtn.disabled = false;
+                        console.log('로그인 후 저장 버튼 활성화');
+                    }
+                }, 200);
+            }
+            
+            // 콘텐츠 에디터 입력 이벤트 추가
+            if (contentEditor) {
+                contentEditor.addEventListener('input', function() {
+                    if (saveBtn) {
+                        saveBtn.disabled = false;
+                    }
+                });
+            }
+            
+            // 페이지 선택 시 저장 버튼 활성화
+            if (pageSelect) {
+                pageSelect.addEventListener('change', function() {
+                    if (saveBtn && this.value) {
+                        saveBtn.disabled = false;
+                    }
+                });
+            }
+        });
+
+        // 이미지 업로드 모달 외부 클릭 시 닫기
+        imageUpload.addEventListener('click', function(e) {
+            if (e.target === imageUpload) {
+                imageUpload.style.display = 'none';
+                imageFile.value = '';
+            }
+        });
+
+        // 키보드 단축키
+        document.addEventListener('keydown', function(e) {
+            if (!isLoggedIn) return;
+            
+            // Ctrl+S: 저장
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                saveBtn.click();
+            }
+            
+            // Ctrl+P: 미리보기
+            if (e.ctrlKey && e.key === 'p') {
+                e.preventDefault();
+                previewBtn.click();
+            }
+        });
+    </script>
+</body>
+</html>

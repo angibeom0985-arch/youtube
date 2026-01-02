@@ -1,0 +1,7 @@
+<!-- 유튜브 영상 분석 AI 파비콘 SVG -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" rx="6" fill="#FF0000"/>
+  <rect x="8" y="10" width="16" height="12" rx="2" fill="#FFFFFF"/>
+  <path d="M 14 13 L 14 19 L 19 16 Z" fill="#FF0000"/>
+  <text x="16" y="28" font-family="Arial, sans-serif" font-size="8" font-weight="bold" text-anchor="middle" fill="#FFFFFF">AI</text>
+</svg>
