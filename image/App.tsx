@@ -1410,7 +1410,7 @@ const App: React.FC<ImageAppProps> = ({
 
             <section className="bg-gray-800 p-6 rounded-xl shadow-2xl border-2 border-purple-500">
               <h2 className="text-2xl font-bold mb-4 text-purple-400 flex items-center">
-                <span className="mr-2">2️⃣</span>
+                <span className="mr-2">1️⃣</span>
                 페르소나 생성
               </h2>
               <div className="mb-4">
@@ -2068,7 +2068,7 @@ const App: React.FC<ImageAppProps> = ({
             {/* 3단계는 항상 표시 */}
             <section className="bg-gray-800 p-6 rounded-xl shadow-2xl border-2 border-green-500">
               <h2 className="text-2xl font-bold mb-4 text-green-400 flex items-center">
-                <span className="mr-2">3️⃣</span>
+                <span className="mr-2">2️⃣</span>
                 영상 소스 생성
               </h2>
               <div className="mb-4">
@@ -2337,7 +2337,7 @@ const App: React.FC<ImageAppProps> = ({
             {/* 4단계: 카메라 앵글 확장 */}
             <section className="bg-gray-800 p-6 rounded-xl shadow-2xl border-2 border-orange-500">
               <h2 className="text-2xl font-bold mb-4 text-orange-400 flex items-center">
-                <span className="mr-2">4️⃣</span>
+                <span className="mr-2">3️⃣</span>
                 사진 구도 확장 (최대 6가지 앵글)
               </h2>
               <p className="text-orange-200 text-sm mb-4">
