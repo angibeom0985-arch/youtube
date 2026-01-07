@@ -837,7 +837,6 @@ const App: React.FC = () => {
 
   const handleAnalyze = useCallback(async () => {
     if (abuseDecision?.label === "abusive") {
-      setError("Free usage is blocked due to abuse detection.");
       return;
     }
     if (!transcript) {
@@ -944,11 +943,9 @@ const App: React.FC = () => {
 
   const handleGenerate = useCallback(async () => {
     if (abuseDecision?.label === "abusive") {
-      setError("Free usage is blocked due to abuse detection.");
       return;
     }
     if (abuseDecision?.label === "suspicious") {
-      setError("Usage is limited due to risk detection. Planning is disabled.");
       return;
     }
     if (!analysisResult || !newKeyword) {
@@ -1091,11 +1088,9 @@ const App: React.FC = () => {
   // 챕터별 대본 생성 핸들러
   const handleGenerateChapterScript = useCallback(async (chapterId: string) => {
     if (abuseDecision?.label === "abusive") {
-      setError("Free usage is blocked due to abuse detection.");
       return;
     }
     if (abuseDecision?.label === "suspicious") {
-      setError("Usage is limited due to risk detection. Chapter generation is disabled.");
       return;
     }
     if (!newPlan || !newPlan.chapters || !newPlan.characters) {
