@@ -8,6 +8,7 @@ import {
   generateChapterOutline,
   generateChapterScript,
 } from "./_lib/chapterService";
+import { enforceAbusePolicy } from "./_lib/abuseGuard";
 
 type RateEntry = {
   count: number;
@@ -98,6 +99,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (!action || !payload) {
     res.status(400).send("invalid_request");
+    return;
+  }
+
+  const guard = await enforceAbusePolicy(req, action);
+  if (!guard.allowed) {
+    res.status(guard.status || 403).send(guard.reason || "abuse_blocked");
     return;
   }
 

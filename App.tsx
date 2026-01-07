@@ -50,6 +50,7 @@ import SidebarAds from "./components/SidebarAds";
 import { highlightImportantText } from "./utils/textHighlight.tsx";
 import { useNavigate } from "react-router-dom";
 import { fetchTranscript } from "./services/transcriptService";
+import { evaluateAbuseRisk, type AbuseDecision } from "./services/abuseService";
 
 const defaultCategories = [
   "썰 채널",
@@ -156,6 +157,7 @@ const App: React.FC = () => {
 
   const [youtubeUrl, setYoutubeUrl] = useState<string>("");
   const [transcript, setTranscript] = useState<string>("");
+  const [abuseDecision, setAbuseDecision] = useState<AbuseDecision | null>(null);
   const [newKeyword, setNewKeyword] = useState<string>("");
   const [userIdeaKeyword, setUserIdeaKeyword] = useState<string>("");
   const [appliedIdeaKeyword, setAppliedIdeaKeyword] = useState<string>("");
@@ -379,6 +381,30 @@ const App: React.FC = () => {
 
     restoreData();
   }, []); // 최초 한 번만 실행
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const runAbuseCheck = async () => {
+      try {
+        const decision = await evaluateAbuseRisk();
+        if (!cancelled) {
+          setAbuseDecision(decision);
+        }
+      } catch (error) {
+        console.error("Abuse check failed:", error);
+        if (!cancelled) {
+          setAbuseDecision({ label: "suspicious", reason: "check_failed" });
+        }
+      }
+    };
+
+    runAbuseCheck();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // 유튜브 URL 입력 시 자동으로 자막(대본) 가져오기
   useEffect(() => {
@@ -810,6 +836,10 @@ const App: React.FC = () => {
   };
 
   const handleAnalyze = useCallback(async () => {
+    if (abuseDecision?.label === "abusive") {
+      setError("Free usage is blocked due to abuse detection.");
+      return;
+    }
     if (!transcript) {
       setError("분석할 스크립트를 입력해주세요.");
       return;
@@ -850,7 +880,7 @@ const App: React.FC = () => {
     } finally {
       setIsAnalyzing(false);
     }
-  }, [transcript, selectedCategory, videoDetails, apiKey, appliedIdeaKeyword]);
+  }, [transcript, selectedCategory, videoDetails, apiKey, appliedIdeaKeyword, abuseDecision]);
 
   const handleRefreshIdeas = useCallback(async () => {
     if (!analysisResult || !apiKey) return;
@@ -913,6 +943,14 @@ const App: React.FC = () => {
   }, [analysisResult, selectedCategory, apiKey]);
 
   const handleGenerate = useCallback(async () => {
+    if (abuseDecision?.label === "abusive") {
+      setError("Free usage is blocked due to abuse detection.");
+      return;
+    }
+    if (abuseDecision?.label === "suspicious") {
+      setError("Usage is limited due to risk detection. Planning is disabled.");
+      return;
+    }
     if (!analysisResult || !newKeyword) {
       setError("분석 결과와 새로운 키워드가 모두 필요합니다.");
       return;
@@ -1048,10 +1086,18 @@ const App: React.FC = () => {
     } finally {
       setIsGenerating(false);
     }
-  }, [analysisResult, newKeyword, customLength, selectedCategory, apiKey, selectedVlogType, scriptStyle]);
+  }, [analysisResult, newKeyword, customLength, selectedCategory, apiKey, selectedVlogType, scriptStyle, abuseDecision]);
 
   // 챕터별 대본 생성 핸들러
   const handleGenerateChapterScript = useCallback(async (chapterId: string) => {
+    if (abuseDecision?.label === "abusive") {
+      setError("Free usage is blocked due to abuse detection.");
+      return;
+    }
+    if (abuseDecision?.label === "suspicious") {
+      setError("Usage is limited due to risk detection. Chapter generation is disabled.");
+      return;
+    }
     if (!newPlan || !newPlan.chapters || !newPlan.characters) {
       const errorMsg = "챕터 대본 생성에 필요한 정보가 없습니다.";
       setError(errorMsg);
@@ -1196,7 +1242,7 @@ const App: React.FC = () => {
         return { ...prev, chapters: updatedChapters };
       });
     }
-  }, [apiKey, newPlan, newKeyword, selectedCategory, scriptStyle]);
+  }, [apiKey, newPlan, newKeyword, selectedCategory, scriptStyle, abuseDecision]);
 
   // --- Text Formatting Helpers for Download ---
   const formatKeywordsToText = (keywords: string[]): string =>
@@ -1386,6 +1432,14 @@ const App: React.FC = () => {
             </div>
           </nav>
         </header>
+
+        {abuseDecision && abuseDecision.label !== "normal" && (
+          <div className="mb-6 rounded-lg border border-yellow-700 bg-yellow-900/30 p-4 text-sm text-yellow-100">
+            {abuseDecision.label === "suspicious"
+              ? "Usage is limited due to risk detection. Planning features are disabled."
+              : "Free usage is blocked due to abuse detection."}
+          </div>
+        )}
 
         <main>
           {/* --- INPUT SECTION --- */}
