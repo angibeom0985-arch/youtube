@@ -4,9 +4,9 @@ import { supabaseAdmin } from "./supabase.js";
 
 const HASH_SALT = process.env.ABUSE_HASH_SALT || "local_dev_salt";
 
-const DAILY_LIMIT = 5;
-const PER_MINUTE_LIMIT = 3;
-const SUSPICIOUS_DAILY_LIMIT = 1;
+const DAILY_LIMIT = 20;
+const PER_MINUTE_LIMIT = 6;
+const SUSPICIOUS_DAILY_LIMIT = 3;
 
 const DAILY_WINDOW_MS = 24 * 60 * 60 * 1000;
 const MINUTE_WINDOW_MS = 60 * 1000;
