@@ -41,14 +41,12 @@ import type {
 import ResultCard from "./components/ResultCard";
 import KeywordPill from "./components/KeywordPill";
 import Loader from "./components/Loader";
-import ApiKeyModal from "./components/ApiKeyModal";
 import AdSense from "./components/AdSense";
 import Footer from "./components/Footer";
 import AdBlockDetector from "./components/AdBlockDetector";
 import AdBlockWarningModal from "./components/AdBlockWarningModal";
 import FloatingAnchorAd from "./components/FloatingAnchorAd";
 import SidebarAds from "./components/SidebarAds";
-import { getStoredApiKey, saveApiKey } from "./utils/apiKeyStorage";
 import { highlightImportantText } from "./utils/textHighlight.tsx";
 import { useNavigate } from "react-router-dom";
 import { fetchTranscript } from "./services/transcriptService";
@@ -225,9 +223,7 @@ const App: React.FC = () => {
     new Map<string, string>()
   );
 
-  // API 키 관리
-  const [apiKey, setApiKey] = useState<string | null>(null);
-  const [showApiKeyModal, setShowApiKeyModal] = useState<boolean>(false);
+  const apiKey = "server";
 
   // 애드블럭 감지
   const [adBlockDetected, setAdBlockDetected] = useState<boolean>(false);
@@ -260,14 +256,6 @@ const App: React.FC = () => {
       });
     }
   };
-
-  // API 키 로드
-  useEffect(() => {
-    const storedKey = getStoredApiKey();
-    if (storedKey) {
-      setApiKey(storedKey);
-    }
-  }, []);
 
   // 카테고리 순서 저장
   useEffect(() => {
@@ -483,9 +471,6 @@ const App: React.FC = () => {
   // 강력한 복사/드래그/우클릭 방지 시스템
   useEffect(() => {
     // API 키 모달이 열려있으면 선택 해제 기능 비활성화
-    if (showApiKeyModal) {
-      return;
-    }
     // 다층 방어 함수들
     const preventAction = (e: Event) => {
       // API 키 모달, 유튜브 URL 입력, 대본 입력, 새 아이디어 입력, 새 제목 입력 내부는 허용
@@ -746,7 +731,7 @@ const App: React.FC = () => {
       (document.body.style as any).msUserSelect = "";
       (document.body.style as any).MozUserSelect = "";
     };
-  }, [showApiKeyModal]);
+  }, []);
 
   const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newUrl = e.target.value;
@@ -794,25 +779,6 @@ const App: React.FC = () => {
     alert("✅ 모든 내용이 초기화되었습니다!");
   };
 
-  const handleSaveApiKey = async (key: string) => {
-    saveApiKey(key);
-    setApiKey(key);
-    setShowApiKeyModal(false);
-    alert("✅ API 키가 성공적으로 설정되었습니다!");
-  };
-
-  const handleDeleteApiKey = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    const confirmed = window.confirm(
-      "API 키 연결을 해제하시겠습니까?\n다시 사용하려면 API 키를 재입력해야 합니다."
-    );
-    if (confirmed) {
-      localStorage.removeItem("gemini_api_key");
-      setApiKey(null);
-      alert("✅ API 키가 삭제되었습니다. 다시 API 키를 입력해주세요.");
-    }
-  };
-
   // 저장된 데이터 초기화
   const handleClearData = () => {
     const confirmed = window.confirm(
@@ -844,11 +810,6 @@ const App: React.FC = () => {
   };
 
   const handleAnalyze = useCallback(async () => {
-    if (!apiKey) {
-      setShowApiKeyModal(true);
-      setError("API 키를 먼저 설정해주세요.");
-      return;
-    }
     if (!transcript) {
       setError("분석할 스크립트를 입력해주세요.");
       return;
@@ -952,11 +913,6 @@ const App: React.FC = () => {
   }, [analysisResult, selectedCategory, apiKey]);
 
   const handleGenerate = useCallback(async () => {
-    if (!apiKey) {
-      setShowApiKeyModal(true);
-      setError("API 키를 먼저 설정해주세요.");
-      return;
-    }
     if (!analysisResult || !newKeyword) {
       setError("분석 결과와 새로운 키워드가 모두 필요합니다.");
       return;
@@ -1043,9 +999,9 @@ const App: React.FC = () => {
       // 오류 원인 분석
       userMessage += "📋 오류 원인:\n";
       if (e.message?.includes("API_KEY") || e.message?.includes("api key") || e.message?.includes("401")) {
-        userMessage += "• API 키가 유효하지 않거나 만료되었습니다\n\n";
+        userMessage += "• 서버 인증 오류가 발생했습니다\n\n";
       } else if (e.message?.includes("quota") || e.message?.includes("limit")) {
-        userMessage += "• API 사용량 한도를 초과했습니다\n\n";
+        userMessage += "• 요청 한도가 초과되었습니다\n\n";
       } else if (e.message?.includes("network") || e.message?.includes("fetch")) {
         userMessage += "• 네트워크 연결에 문제가 있습니다\n\n";
       } else if (e.message?.includes("timeout")) {
@@ -1057,7 +1013,7 @@ const App: React.FC = () => {
       // 사용자 해결 방법
       userMessage += "💡 해결 방법:\n";
       userMessage += "1. 페이지를 새로고침(F5)하고 다시 시도해주세요\n";
-      userMessage += "2. API 키가 올바르게 설정되었는지 확인해주세요\n";
+      userMessage += "2. 잠시 후 다시 시도해주세요\n";
       userMessage += "3. 인터넷 연결 상태를 확인해주세요\n";
       userMessage += "4. 브라우저 캐시를 지우고 다시 시도해주세요\n";
       userMessage += "5. 잠시 후 다시 시도해주세요 (서버 과부하 가능성)\n\n";
@@ -1096,7 +1052,7 @@ const App: React.FC = () => {
 
   // 챕터별 대본 생성 핸들러
   const handleGenerateChapterScript = useCallback(async (chapterId: string) => {
-    if (!apiKey || !newPlan || !newPlan.chapters || !newPlan.characters) {
+    if (!newPlan || !newPlan.chapters || !newPlan.characters) {
       const errorMsg = "챕터 대본 생성에 필요한 정보가 없습니다.";
       setError(errorMsg);
       alert(errorMsg);
@@ -1199,9 +1155,9 @@ const App: React.FC = () => {
       // 오류 원인 분석
       userMessage += "📋 오류 원인:\n";
       if (e.message?.includes("API_KEY") || e.message?.includes("api key") || e.message?.includes("401")) {
-        userMessage += "• API 키가 유효하지 않거나 만료되었습니다\n\n";
+        userMessage += "• 서버 인증 오류가 발생했습니다\n\n";
       } else if (e.message?.includes("quota") || e.message?.includes("limit")) {
-        userMessage += "• API 사용량 한도를 초과했습니다\n\n";
+        userMessage += "• 요청 한도가 초과되었습니다\n\n";
       } else if (e.message?.includes("network") || e.message?.includes("fetch")) {
         userMessage += "• 네트워크 연결에 문제가 있습니다\n\n";
       } else if (e.message?.includes("timeout")) {
@@ -1213,7 +1169,7 @@ const App: React.FC = () => {
       // 해결 방법
       userMessage += "💡 해결 방법:\n";
       userMessage += "1. 페이지를 새로고침하고 다시 시도해주세요\n";
-      userMessage += "2. API 키를 확인해주세요\n";
+      userMessage += "2. 잠시 후 다시 시도해주세요\n";
       userMessage += "3. 인터넷 연결을 확인해주세요\n";
       userMessage += "4. 다른 챕터부터 생성해보세요\n";
       userMessage += "5. 영상 길이를 짧게 설정해보세요\n\n";
@@ -1392,13 +1348,6 @@ const App: React.FC = () => {
       {/* 애드블럭 경고 모달 */}
       <AdBlockWarningModal isOpen={adBlockDetected} />
 
-      <ApiKeyModal
-        isOpen={showApiKeyModal}
-        onClose={() => setShowApiKeyModal(false)}
-        onSave={handleSaveApiKey}
-        currentApiKey={apiKey}
-      />
-
       {/* 애드블럭 감지 시 컨텐츠 흐림 처리 */}
       <div
         className={`max-w-4xl mx-auto ${
@@ -1420,68 +1369,22 @@ const App: React.FC = () => {
             >
               📖 사용법
             </a>
-            <a
-              href="/api-guide"
-              className="px-4 py-2 bg-gradient-to-br from-blue-600 to-blue-800 hover:from-blue-500 hover:to-blue-700 text-white rounded-lg transition-all border border-blue-500/50 text-sm font-medium shadow-lg shadow-blue-500/30"
-            >
-              🗝️ API 키 발급 방법
-            </a>
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => setShowApiKeyModal(true)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all text-sm font-medium shadow-lg ${
-                  apiKey
-                    ? "bg-gradient-to-br from-green-600 to-green-800 hover:from-green-500 hover:to-green-700 border border-green-500/50 shadow-green-500/30"
-                    : "bg-gradient-to-br from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 border border-red-500/50 shadow-red-500/30 animate-pulse"
-                } text-white`}
-              >
-                {apiKey ? (
-                  <>
-                    <span className="flex items-center gap-1.5">
-                      <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-                      <span>⚙️ API 키 설정됨</span>
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <span className="flex items-center gap-1.5">
-                      <span className="w-2 h-2 bg-red-400 rounded-full"></span>
-                      <span>⚙️ API 키 입력 필요</span>
-                    </span>
-                  </>
-                )}
-              </button>
-              {apiKey && (
-                <button
-                  onClick={handleDeleteApiKey}
-                  className="p-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors shadow-lg"
-                  title="API 키 삭제"
-                >
-                  <FiTrash2 size={16} />
-                </button>
-              )}
+              <span className="px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700 text-sm text-neutral-200">
+                ?? API ?? ?
+              </span>
               {(analysisResult || newPlan || suggestedIdeas.length > 0) && (
                 <button
                   onClick={handleClearData}
                   className="flex items-center gap-2 px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-white rounded-lg transition-colors shadow-lg text-sm font-medium"
-                  title="저장된 분석 결과 및 기획안 삭제"
+                  title="??? ?? ?? ? ??? ???"
                 >
                   <FiTrash2 size={14} />
-                  <span>데이터 초기화</span>
+                  <span>??? ???</span>
                 </button>
               )}
             </div>
           </nav>
-
-          {!apiKey && (
-            <div className="mt-4 p-3 bg-red-900/30 border border-red-500/50 rounded-lg text-center">
-              <p className="text-red-300 text-sm font-medium">
-                ⚠️ AI 분석 기능을 사용하려면 먼저{" "}
-                <span className="font-bold text-red-200">API 키를 입력</span>
-                해주세요!
-              </p>
-            </div>
-          )}
         </header>
 
         <main>
