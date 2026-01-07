@@ -1,4 +1,5 @@
 ﻿import React, { useState, useCallback, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { compressImage, canStoreInLocalStorage } from "./utils/imageCompression";
 import AspectRatioSelector from "./components/AspectRatioSelector";
 import Spinner from "./components/Spinner";
