@@ -55,6 +55,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
+  if (!supabaseAdmin) {
+    res.status(503).send("supabase_unavailable");
+    return;
+  }
+
   const body = parseBody(req);
   if (!body?.client) {
     res.status(400).send("missing_client");

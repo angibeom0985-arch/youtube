@@ -19,6 +19,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
+  if (!supabaseAdmin) {
+    res.status(503).send("supabase_unavailable");
+    return;
+  }
+
   const limitParam = typeof req.query.limit === "string" ? Number(req.query.limit) : 100;
   const limit = Number.isFinite(limitParam) ? Math.min(Math.max(limitParam, 1), 500) : 100;
   const label = normalizeLabel(req.query.label);

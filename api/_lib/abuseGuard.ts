@@ -26,11 +26,18 @@ const BLOCKED_ACTIONS = new Set([
   "generateChapterScript",
 ]);
 
-const fetchLatestRisk = async (ipHash: string | null, fingerprintHash: string | null) => {
+const fetchLatestRisk = async (
+  client: typeof supabaseAdmin,
+  ipHash: string | null,
+  fingerprintHash: string | null
+) => {
+  if (!client) {
+    return null;
+  }
   const candidates: Array<{ risk_label: string | null; created_at: string }> = [];
 
   if (ipHash) {
-    const { data } = await supabaseAdmin
+    const { data } = await client
       .from("abuse_events")
       .select("risk_label, created_at")
       .eq("ip_hash", ipHash)
@@ -41,7 +48,7 @@ const fetchLatestRisk = async (ipHash: string | null, fingerprintHash: string | 
   }
 
   if (fingerprintHash) {
-    const { data } = await supabaseAdmin
+    const { data } = await client
       .from("abuse_events")
       .select("risk_label, created_at")
       .eq("fingerprint_hash", fingerprintHash)
@@ -61,6 +68,11 @@ export const enforceAbusePolicy = async (
   action: string,
   clientFingerprint?: string | null
 ) => {
+  if (!supabaseAdmin) {
+    return { allowed: true };
+  }
+
+  const client = supabaseAdmin;
   const ip = getClientIp(req);
   const ipHash = hashValue(ip);
   const fingerprintHash = hashValue(clientFingerprint || null);
@@ -71,7 +83,7 @@ export const enforceAbusePolicy = async (
 
   let label: string | null = null;
   try {
-    label = await fetchLatestRisk(ipHash, fingerprintHash);
+    label = await fetchLatestRisk(client, ipHash, fingerprintHash);
   } catch (error) {
     console.error("Abuse policy lookup failed", error);
     return { allowed: true };

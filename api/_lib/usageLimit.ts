@@ -33,11 +33,18 @@ const getCount = async (query: any): Promise<number> => {
   return count || 0;
 };
 
-const fetchLatestRisk = async (ipHash: string | null, fingerprintHash: string | null) => {
+const fetchLatestRisk = async (
+  client: typeof supabaseAdmin,
+  ipHash: string | null,
+  fingerprintHash: string | null
+) => {
+  if (!client) {
+    return null;
+  }
   const candidates: Array<{ risk_label: string | null; created_at: string }> = [];
 
   if (ipHash) {
-    const { data } = await supabaseAdmin
+    const { data } = await client
       .from("abuse_events")
       .select("risk_label, created_at")
       .eq("ip_hash", ipHash)
@@ -48,7 +55,7 @@ const fetchLatestRisk = async (ipHash: string | null, fingerprintHash: string | 
   }
 
   if (fingerprintHash) {
-    const { data } = await supabaseAdmin
+    const { data } = await client
       .from("abuse_events")
       .select("risk_label, created_at")
       .eq("fingerprint_hash", fingerprintHash)
@@ -75,6 +82,11 @@ export const enforceUsageLimit = async (
   req: VercelRequest,
   clientFingerprint?: string | null
 ): Promise<UsageLimitResult> => {
+  if (!supabaseAdmin) {
+    return { allowed: true, limits: { daily: DAILY_LIMIT, perMinute: PER_MINUTE_LIMIT } };
+  }
+
+  const client = supabaseAdmin;
   const ip = getClientIp(req);
   const ipHash = hashValue(ip);
   const fingerprintHash = hashValue(clientFingerprint || null);
@@ -85,7 +97,7 @@ export const enforceUsageLimit = async (
 
   let label: string | null = null;
   try {
-    label = await fetchLatestRisk(ipHash, fingerprintHash);
+    label = await fetchLatestRisk(client, ipHash, fingerprintHash);
   } catch (error) {
     console.error("Usage limit risk lookup failed", error);
     return { allowed: true, limits: { daily: DAILY_LIMIT, perMinute: PER_MINUTE_LIMIT } };
@@ -102,11 +114,11 @@ export const enforceUsageLimit = async (
   const dailySince = new Date(now - DAILY_WINDOW_MS).toISOString();
   const minuteSince = new Date(now - MINUTE_WINDOW_MS).toISOString();
 
-  let dailyQuery = supabaseAdmin
+  let dailyQuery = client
     .from("gemini_usage")
     .select("id", { count: "exact", head: true })
     .gte("created_at", dailySince);
-  let minuteQuery = supabaseAdmin
+  let minuteQuery = client
     .from("gemini_usage")
     .select("id", { count: "exact", head: true })
     .gte("created_at", minuteSince);
@@ -151,6 +163,11 @@ export const recordUsageEvent = async (
   action: string,
   clientFingerprint?: string | null
 ) => {
+  if (!supabaseAdmin) {
+    return;
+  }
+
+  const client = supabaseAdmin;
   const ip = getClientIp(req);
   const ipHash = hashValue(ip);
   const fingerprintHash = hashValue(clientFingerprint || null);
@@ -165,7 +182,7 @@ export const recordUsageEvent = async (
     user_agent: userAgent,
   };
 
-  const { error } = await supabaseAdmin.from("gemini_usage").insert(payload);
+  const { error } = await client.from("gemini_usage").insert(payload);
   if (error) {
     console.error("Failed to store usage event", error);
   }
