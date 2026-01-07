@@ -28,7 +28,7 @@ root.render(
         <Route path="/guide" element={<GuidePage />} />
         <Route path="/api-guide" element={<ApiGuidePage />} />
         <Route path="/admin" element={<AdminPage />} />
-        <Route path="/debug" element={<Navigate to="/debug/script" replace />} />
+        <Route path="/debug" element={<DebugPage mode="script" />} />
         <Route path="/debug/script" element={<DebugPage mode="script" />} />
         <Route path="/debug/image/*" element={<DebugPage mode="image" />} />
         <Route path="/download-progress" element={<DownloadProgressPage />} />
