@@ -2182,12 +2182,13 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                                           alert("다운로드할 대본이 없습니다.");
                                           return;
                                         }
-                                        navigate("/download", {
-                                          state: {
-                                            title: `chapter-${index + 1}-script`,
-                                            content: text,
-                                          },
-                                        });
+                                        const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+                                        const url = URL.createObjectURL(blob);
+                                        const a = document.createElement("a");
+                                        a.href = url;
+                                        a.download = `chapter-${index + 1}-script.txt`;
+                                        a.click();
+                                        URL.revokeObjectURL(url);
                                       }}
                                       className="flex-1 px-4 py-2.5 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-semibold rounded-lg transition-all duration-200 shadow-lg flex items-center justify-center gap-2"
                                     >
@@ -2212,12 +2213,13 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                                           alert("이미지 프롬프트가 없습니다.");
                                           return;
                                         }
-                                        navigate("/download", {
-                                          state: {
-                                            title: `chapter-${index + 1}-image-prompts`,
-                                            imagePrompts: text,
-                                          },
-                                        });
+                                        const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+                                        const url = URL.createObjectURL(blob);
+                                        const a = document.createElement("a");
+                                        a.href = url;
+                                        a.download = `chapter-${index + 1}-image-prompts.txt`;
+                                        a.click();
+                                        URL.revokeObjectURL(url);
                                       }}
                                       className="flex-1 px-4 py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white font-semibold rounded-lg transition-all duration-200 shadow-lg flex items-center justify-center gap-2"
                                     >
