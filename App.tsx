@@ -262,9 +262,6 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
   // 카테고리 순서 저장
   
   useEffect(() => {
-    if (allowDevtools) {
-      return;
-    }
     const fetchVideoDetails = async () => {
       const trimmedUrl = youtubeUrl.trim();
       if (!trimmedUrl) {
