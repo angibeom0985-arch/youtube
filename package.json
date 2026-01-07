@@ -30,6 +30,7 @@
     "youtubei.js": "^9.1.0"
   },
   "devDependencies": {
+    "@vercel/node": "^3.2.24",
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
     "autoprefixer": "^10.4.21",

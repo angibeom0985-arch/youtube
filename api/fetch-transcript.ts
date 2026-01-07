@@ -59,7 +59,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const yt = await getClient();
     const info = await yt.getInfo(videoId);
-    const tracks = info?.captions?.tracks;
+    const captions = (info as any)?.captions;
+    const tracks = captions?.tracks as any[] | undefined;
 
     if (!tracks || tracks.length === 0) {
       res.status(404).send('이 영상에는 사용 가능한 대본(자막)이 없습니다.');
