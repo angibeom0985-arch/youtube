@@ -44,7 +44,14 @@ const DebugPage: React.FC = () => {
       });
 
       if (!response.ok) {
-        setError("Invalid credentials.");
+        const message = await response.text();
+        if (response.status === 401) {
+          setError("Invalid credentials.");
+        } else {
+          setError(
+            message || "Server error. Check ADMIN_* env vars and redeploy."
+          );
+        }
         setLoading(false);
         return;
       }
