@@ -429,12 +429,8 @@ const App: React.FC = () => {
         const result = await fetchTranscript(trimmed);
         setTranscript(result.text.trim());
         lastFetchedUrlRef.current = trimmed;
-        setError(null);
       } catch (error: any) {
         console.error("Transcript auto-fetch failed:", error);
-        setError(
-          error?.message || "대본을 불러오지 못했습니다. 수동으로 입력해주세요."
-        );
       } finally {
         setIsFetchingTranscript(false);
       }
