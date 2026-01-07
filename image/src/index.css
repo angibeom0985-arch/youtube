@@ -9,6 +9,19 @@
   }
 }
 
+@layer base {
+  :root {
+    --tone-image-purple: #9333ea;
+    --tone-image-green: #16a34a;
+    --tone-image-orange: #ea580c;
+    --tone-image-blue: #2563eb;
+    --tone-script-red: #d90000;
+    --tone-script-red-bright: #ff2b2b;
+    --tone-script-red-strong: #ff0000;
+    --tone-image-indigo: #4f46e5;
+  }
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;
