@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import App from './App';
 import ImageApp from './image/App';
+import ImageErrorBoundary from './image/components/ErrorBoundary';
 import HomePage from './pages/HomePage.tsx';
 import GuidePage from './pages/GuidePage.tsx';
 import ApiGuidePage from './pages/ApiGuidePage.tsx';
@@ -32,7 +33,14 @@ root.render(
         <Route path="/debug/image/*" element={<DebugPage mode="image" />} />
         <Route path="/download-progress" element={<DownloadProgressPage />} />
         <Route path="/download" element={<DownloadPage />} />
-        <Route path="/image/*" element={<ImageApp basePath="/image" />} />
+        <Route
+          path="/image/*"
+          element={
+            <ImageErrorBoundary>
+              <ImageApp basePath="/image" />
+            </ImageErrorBoundary>
+          }
+        />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>

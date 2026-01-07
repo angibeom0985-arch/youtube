@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import App from "../App";
 import ImageApp from "../image/App";
+import ImageErrorBoundary from "../image/components/ErrorBoundary";
 import { FiEye, FiEyeOff, FiHome } from "react-icons/fi";
 
 type LoginState = "checking" | "loggedOut" | "loggedIn";
@@ -141,7 +142,9 @@ const DebugPage: React.FC<DebugPageProps> = ({ mode }) => {
   }
 
   return mode === "image" ? (
-    <ImageApp basePath="/debug/image" />
+    <ImageErrorBoundary>
+      <ImageApp basePath="/debug/image" />
+    </ImageErrorBoundary>
   ) : (
     <App allowDevtools />
   );

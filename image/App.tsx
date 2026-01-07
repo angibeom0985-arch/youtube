@@ -242,8 +242,16 @@ const App: React.FC<ImageAppProps> = ({
     } catch (e) {
       console.error("❌ 작업 데이터 불러오기 실패:", e);
       // 손상된 데이터 삭제
-      localStorage.removeItem("youtube_image_work_data");
-      sessionStorage.removeItem("youtube_image_work_data");
+      try {
+        localStorage.removeItem("youtube_image_work_data");
+      } catch (storageError) {
+        console.error("? localStorage ?? ??:", storageError);
+      }
+      try {
+        sessionStorage.removeItem("youtube_image_work_data");
+      } catch (storageError) {
+        console.error("? sessionStorage ?? ??:", storageError);
+      }
       alert("⚠️ 저장된 데이터가 손상되어 불러올 수 없습니다.\n새로 시작해주세요.");
     }
   }, []);
