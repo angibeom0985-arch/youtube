@@ -7,13 +7,13 @@ const HomePage: React.FC = () => {
       <div className="mx-auto flex min-h-screen max-w-5xl flex-col items-center justify-center px-6 py-16">
         <div className="text-center">
           <p className="text-sm uppercase tracking-[0.35em] text-red-400">
-            Youtube Studio Tools
+            유튜브 스튜디오 도구
           </p>
           <h1 className="mt-4 text-4xl font-black sm:text-5xl">
-            Choose Your Workflow
+            원하는 기능을 선택하세요
           </h1>
           <p className="mt-4 text-base text-neutral-300 sm:text-lg">
-            Start with script writing or jump straight to image generation.
+            대본 생성부터 시작하거나 이미지 생성으로 바로 이동할 수 있습니다.
           </p>
         </div>
 
@@ -25,19 +25,19 @@ const HomePage: React.FC = () => {
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-xs uppercase tracking-[0.3em] text-red-300">
-                  Script
+                  대본
                 </p>
                 <h2 className="mt-2 text-2xl font-bold">
-                  Script Writing
+                  대본 생성
                 </h2>
                 <p className="mt-3 text-sm text-neutral-300">
-                  Generate plans, outlines, and full scripts.
+                  기획, 개요, 전체 대본까지 생성합니다.
                 </p>
               </div>
               <div className="text-2xl font-bold text-red-200">S</div>
             </div>
             <div className="mt-6 text-sm font-semibold text-red-200">
-              Open Script Studio -&gt;
+              대본 생성 시작하기 -&gt;
             </div>
           </Link>
 
@@ -48,25 +48,25 @@ const HomePage: React.FC = () => {
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-xs uppercase tracking-[0.3em] text-emerald-300">
-                  Image
+                  이미지
                 </p>
                 <h2 className="mt-2 text-2xl font-bold">
-                  Image Generation
+                  이미지 생성
                 </h2>
                 <p className="mt-3 text-sm text-neutral-300">
-                  Create visuals and storyboards for your scripts.
+                  대본에 맞는 이미지와 스토리보드를 제작합니다.
                 </p>
               </div>
               <div className="text-2xl font-bold text-emerald-200">I</div>
             </div>
             <div className="mt-6 text-sm font-semibold text-emerald-200">
-              Open Image Studio -&gt;
+              이미지 생성 시작하기 -&gt;
             </div>
           </Link>
         </div>
 
         <div className="mt-12 text-xs text-neutral-500">
-          Tip: You can always switch between tools from the results screen.
+          안내: 결과 화면에서도 언제든 다른 기능으로 이동할 수 있습니다.
         </div>
       </div>
     </div>

@@ -91,6 +91,30 @@ const characterColors = [
   "text-orange-400",
 ];
 
+const getStoredString = (key: string, fallback = "") => {
+  const value = localStorage.getItem(key);
+  return value !== null ? value : fallback;
+};
+
+const getStoredJson = <T,>(key: string, fallback: T): T => {
+  const value = localStorage.getItem(key);
+  if (!value) return fallback;
+  try {
+    return JSON.parse(value) as T;
+  } catch (error) {
+    return fallback;
+  }
+};
+
+const setStoredJson = (key: string, value: unknown) => {
+  if (value === null || value === undefined) {
+    localStorage.removeItem(key);
+    return;
+  }
+  localStorage.setItem(key, JSON.stringify(value));
+};
+
+
 // SortableItem 컴포넌트
 interface SortableItemProps {
   id: string;
@@ -147,60 +171,38 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
   const navigate = useNavigate();
   // 카테고리 순서 관리
   const [categories, setCategories] = useState<string[]>(() => {
-    const saved = localStorage.getItem("categoriesOrder");
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error("Failed to restore categories order:", e);
-      }
-    }
-    return defaultCategories;
+    return getStoredJson("categoriesOrder", defaultCategories);
   });
 
-  const [youtubeUrl, setYoutubeUrl] = useState<string>("");
-  const [transcript, setTranscript] = useState<string>("");
+  const [youtubeUrl, setYoutubeUrl] = useState<string>(() =>
+    getStoredString("youtubeUrl")
+  );
+  const [transcript, setTranscript] = useState<string>(() =>
+    getStoredString("transcript")
+  );
   const [abuseDecision, setAbuseDecision] = useState<AbuseDecision | null>(null);
-  const [newKeyword, setNewKeyword] = useState<string>("");
-  const [userIdeaKeyword, setUserIdeaKeyword] = useState<string>("");
-  const [appliedIdeaKeyword, setAppliedIdeaKeyword] = useState<string>("");
+  const [newKeyword, setNewKeyword] = useState<string>(() =>
+    getStoredString("newKeyword")
+  );
+  const [userIdeaKeyword, setUserIdeaKeyword] = useState<string>(() =>
+    getStoredString("userIdeaKeyword")
+  );
+  const [appliedIdeaKeyword, setAppliedIdeaKeyword] = useState<string>(() =>
+    getStoredString("appliedIdeaKeyword")
+  );
 
   // localStorage에서 저장된 데이터 복원
-  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(() => {
-    const saved = localStorage.getItem("analysisResult");
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error("Failed to restore analysis result:", e);
-      }
-    }
-    return null;
-  });
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(() =>
+    getStoredJson("analysisResult", null)
+  );
   
-  const [newPlan, setNewPlan] = useState<NewPlan | null>(() => {
-    const saved = localStorage.getItem("newPlan");
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error("Failed to restore new plan:", e);
-      }
-    }
-    return null;
-  });
+  const [newPlan, setNewPlan] = useState<NewPlan | null>(() =>
+    getStoredJson("newPlan", null)
+  );
   
-  const [suggestedIdeas, setSuggestedIdeas] = useState<string[]>(() => {
-    const saved = localStorage.getItem("suggestedIdeas");
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error("Failed to restore suggested ideas:", e);
-      }
-    }
-    return [];
-  });
+  const [suggestedIdeas, setSuggestedIdeas] = useState<string[]>(() =>
+    getStoredJson("suggestedIdeas", [])
+  );
 
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
@@ -209,16 +211,24 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
   // API 키 검증 로직 제거됨
   const [error, setError] = useState<string | null>(null);
 
-  const [selectedCategory, setSelectedCategory] = useState<string>(
-    categories[0]
+  const [selectedCategory, setSelectedCategory] = useState<string>(() =>
+    getStoredString("selectedCategory", categories[0])
   );
-  const [selectedVlogType, setSelectedVlogType] = useState<string>(
-    vlogTypes[0]
+  const [selectedVlogType, setSelectedVlogType] = useState<string>(() =>
+    getStoredString("selectedVlogType", vlogTypes[0])
   );
-  const [contentType, setContentType] = useState<string>("롱폼");
-  const [lengthMode, setLengthMode] = useState<string>("8분");
-  const [customLength, setCustomLength] = useState<string>("8분");
-  const [scriptStyle, setScriptStyle] = useState<string>("대화 버전"); // "대화 버전" | "나레이션 버전"
+  const [contentType, setContentType] = useState<string>(() =>
+    getStoredString("contentType", "??")
+  );
+  const [lengthMode, setLengthMode] = useState<string>(() =>
+    getStoredString("lengthMode", "8?")
+  );
+  const [customLength, setCustomLength] = useState<string>(() =>
+    getStoredString("customLength", "8?")
+  );
+  const [scriptStyle, setScriptStyle] = useState<string>(() =>
+    getStoredString("scriptStyle", "?? ??")
+  ); // "대화 버전" | "나레이션 버전"
 
   const [videoDetails, setVideoDetails] = useState<VideoDetails | null>(null);
   const [characterColorMap, setCharacterColorMap] = useState(
@@ -307,6 +317,104 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
       setCharacterColorMap(newMap);
     }
   }, [newPlan]);
+
+  useEffect(() => {
+    if (youtubeUrl) {
+      localStorage.setItem("youtubeUrl", youtubeUrl);
+    } else {
+      localStorage.removeItem("youtubeUrl");
+    }
+  }, [youtubeUrl]);
+
+  useEffect(() => {
+    if (transcript) {
+      localStorage.setItem("transcript", transcript);
+    } else {
+      localStorage.removeItem("transcript");
+    }
+  }, [transcript]);
+
+  useEffect(() => {
+    if (newKeyword) {
+      localStorage.setItem("newKeyword", newKeyword);
+    } else {
+      localStorage.removeItem("newKeyword");
+    }
+  }, [newKeyword]);
+
+  useEffect(() => {
+    if (userIdeaKeyword) {
+      localStorage.setItem("userIdeaKeyword", userIdeaKeyword);
+    } else {
+      localStorage.removeItem("userIdeaKeyword");
+    }
+  }, [userIdeaKeyword]);
+
+  useEffect(() => {
+    if (appliedIdeaKeyword) {
+      localStorage.setItem("appliedIdeaKeyword", appliedIdeaKeyword);
+    } else {
+      localStorage.removeItem("appliedIdeaKeyword");
+    }
+  }, [appliedIdeaKeyword]);
+
+  useEffect(() => {
+    setStoredJson("analysisResult", analysisResult);
+  }, [analysisResult]);
+
+  useEffect(() => {
+    setStoredJson("newPlan", newPlan);
+  }, [newPlan]);
+
+  useEffect(() => {
+    if (suggestedIdeas.length) {
+      setStoredJson("suggestedIdeas", suggestedIdeas);
+    } else {
+      localStorage.removeItem("suggestedIdeas");
+    }
+  }, [suggestedIdeas]);
+
+  useEffect(() => {
+    setStoredJson("categoriesOrder", categories);
+  }, [categories]);
+
+
+  useEffect(() => {
+    if (selectedCategory) {
+      localStorage.setItem("selectedCategory", selectedCategory);
+    }
+  }, [selectedCategory]);
+
+  useEffect(() => {
+    if (selectedVlogType) {
+      localStorage.setItem("selectedVlogType", selectedVlogType);
+    }
+  }, [selectedVlogType]);
+
+  useEffect(() => {
+    if (contentType) {
+      localStorage.setItem("contentType", contentType);
+    }
+  }, [contentType]);
+
+  useEffect(() => {
+    if (lengthMode) {
+      localStorage.setItem("lengthMode", lengthMode);
+    }
+  }, [lengthMode]);
+
+  useEffect(() => {
+    if (customLength) {
+      localStorage.setItem("customLength", customLength);
+    }
+  }, [customLength]);
+
+  useEffect(() => {
+    if (scriptStyle) {
+      localStorage.setItem("scriptStyle", scriptStyle);
+    }
+  }, [scriptStyle]);
+
 
   // 강력한 복사/드래그/우클릭 방지 시스템
   useEffect(() => {
@@ -607,6 +715,21 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
     setError(null);
 
     // localStorage 초기화
+    // localStorage ???
+    localStorage.removeItem("analysisResult");
+    localStorage.removeItem("newPlan");
+    localStorage.removeItem("suggestedIdeas");
+    localStorage.removeItem("youtubeUrl");
+    localStorage.removeItem("transcript");
+    localStorage.removeItem("newKeyword");
+    localStorage.removeItem("userIdeaKeyword");
+    localStorage.removeItem("appliedIdeaKeyword");
+    localStorage.removeItem("selectedCategory");
+    localStorage.removeItem("selectedVlogType");
+    localStorage.removeItem("contentType");
+    localStorage.removeItem("lengthMode");
+    localStorage.removeItem("customLength");
+    localStorage.removeItem("scriptStyle");
     localStorage.removeItem("lastAnalysisResult");
     localStorage.removeItem("lastAnalysisTimestamp");
     localStorage.removeItem("lastNewPlan");
@@ -615,7 +738,6 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
     localStorage.removeItem("lastTranscript");
     localStorage.removeItem("lastYoutubeUrl");
     localStorage.removeItem("lastNewKeyword");
-
     alert("✅ 모든 내용이 초기화되었습니다!");
   };
 
@@ -628,6 +750,17 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
       localStorage.removeItem("analysisResult");
       localStorage.removeItem("newPlan");
       localStorage.removeItem("suggestedIdeas");
+      localStorage.removeItem("youtubeUrl");
+      localStorage.removeItem("transcript");
+      localStorage.removeItem("newKeyword");
+      localStorage.removeItem("userIdeaKeyword");
+      localStorage.removeItem("appliedIdeaKeyword");
+      localStorage.removeItem("selectedCategory");
+      localStorage.removeItem("selectedVlogType");
+      localStorage.removeItem("contentType");
+      localStorage.removeItem("lengthMode");
+      localStorage.removeItem("customLength");
+      localStorage.removeItem("scriptStyle");
       localStorage.removeItem("lastAnalysisTimestamp");
       localStorage.removeItem("lastPlanTimestamp");
       localStorage.removeItem("lastTranscript");
@@ -637,7 +770,6 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
       localStorage.removeItem("lastNewPlan");
       localStorage.removeItem("lastSuggestedIdeas");
       localStorage.removeItem("lastNewPlanTimestamp");
-      
       setAnalysisResult(null);
       setNewPlan(null);
       setSuggestedIdeas([]);
