@@ -1,30 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import JSZip from "jszip";
-import {
-  Character,
-  VideoSourceImage,
-  AspectRatio,
-  ImageStyle,
-  CharacterStyle,
-  BackgroundStyle,
-  PhotoComposition,
-  CameraAngleImage,
-  CameraAngle,
-} from "./types";
-import * as geminiService from "./services/geminiService";
-import { testApiKey } from "./services/apiTest";
-import {
-  detectUnsafeWords,
-  replaceUnsafeWords,
-  isTextSafe,
-} from "./utils/contentSafety";
-import {
-  saveApiKey,
-  loadApiKey,
-  clearApiKey,
-  isRememberMeEnabled,
-} from "./utils/apiKeyStorage";
+﻿import React, { useState, useCallback, useEffect } from "react";
 import { compressImage, canStoreInLocalStorage } from "./utils/imageCompression";
 import AspectRatioSelector from "./components/AspectRatioSelector";
 import Spinner from "./components/Spinner";
@@ -32,14 +6,13 @@ import CharacterCard from "./components/CharacterCard";
 import StoryboardImage from "./components/StoryboardImage";
 import Slider from "./components/Slider";
 import MetaTags from "./components/MetaTags";
-import ApiKeyGuide from "./components/ApiKeyGuide";
 import UserGuide from "./components/UserGuide";
 import AdBanner from "./components/AdBanner";
 import FloatingBottomAd from "./components/FloatingBottomAd";
 import SideFloatingAd from "./components/SideFloatingAd";
 import AdBlockDetector from "./components/AdBlockDetector";
 
-type ImageAppView = "main" | "api-guide" | "user-guide" | "image-prompt";
+type ImageAppView = "main" | "user-guide" | "image-prompt";
 
 interface ImageAppProps {
   basePath?: string;
@@ -57,8 +30,7 @@ const App: React.FC<ImageAppProps> = ({
     ((location.state as { script?: string } | null)?.script) || "";
   const normalizedBasePath =
     basePath && basePath !== "/" ? basePath.replace(/\/$/, "") : "";
-  const [apiKey, setApiKey] = useState<string>("");
-  const [rememberApiKey, setRememberApiKey] = useState<boolean>(true);
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY || "";
   const [imageStyle, setImageStyle] = useState<"realistic" | "animation">(
     "realistic"
   ); // 기존 이미지 스타일 (실사/애니메이션)
@@ -121,11 +93,6 @@ const App: React.FC<ImageAppProps> = ({
         : path;
 
     if (
-      relativePath === "/api-guide" ||
-      (relativePath.includes("api") && relativePath.includes("가이드"))
-    ) {
-      setCurrentView("api-guide");
-    } else if (
       relativePath === "/user-guide" ||
       (relativePath.includes("사용법") && relativePath.includes("가이드"))
     ) {
@@ -141,28 +108,17 @@ const App: React.FC<ImageAppProps> = ({
     (view: ImageAppView) => {
       setCurrentView(view);
       const suffix =
-        view === "api-guide"
-          ? "/api-guide"
-          : view === "user-guide"
-            ? "/user-guide"
-            : view === "image-prompt"
-              ? "/image-prompt"
-              : "";
+        view === "user-guide"
+          ? "/user-guide"
+          : view === "image-prompt"
+            ? "/image-prompt"
+            : "";
       const targetPath =
         ((normalizedBasePath || "") + suffix) || "/";
       navigate(targetPath, { replace: true });
     },
     [navigate, normalizedBasePath]
   );
-
-  // 컴포넌트 마운트 시 저장된 API 키 로딩
-  useEffect(() => {
-    const savedApiKey = loadApiKey();
-    if (savedApiKey) {
-      setApiKey(savedApiKey);
-      setRememberApiKey(isRememberMeEnabled());
-    }
-  }, []);
 
   // 컴포넌트 마운트 시 저장된 작업 데이터 불러오기 (localStorage 우선, 없으면 sessionStorage)
   useEffect(() => {
@@ -772,861 +728,6 @@ const App: React.FC<ImageAppProps> = ({
     };
   }, []);
 
-  // API 키 변경 시 자동 저장
-  const handleApiKeyChange = useCallback(
-    (newApiKey: string) => {
-      setApiKey(newApiKey);
-      if (newApiKey.trim()) {
-        saveApiKey(newApiKey, rememberApiKey);
-      }
-    },
-    [rememberApiKey]
-  );
-
-  // 실시간 콘텐츠 안전성 검사 - 페르소나와 영상소스 독립적으로 체크
-  useEffect(() => {
-    const checkContent = () => {
-      // 두 입력 모두 체크하되, 둘 중 하나만 있어도 경고 표시
-      const personaUnsafe = personaInput.trim() ? detectUnsafeWords(personaInput) : [];
-      const videoUnsafe = videoSourceScript.trim() ? detectUnsafeWords(videoSourceScript) : [];
-      
-      const allUnsafeWords = [...new Set([...personaUnsafe, ...videoUnsafe])];
-
-      if (allUnsafeWords.length > 0) {
-        const textToCheck = [personaInput, videoSourceScript].filter(t => t.trim()).join(" ");
-        const { replacements } = replaceUnsafeWords(textToCheck);
-        setContentWarning({ unsafeWords: allUnsafeWords, replacements });
-        setHasContentWarning(true);
-        setIsContentWarningAcknowledged(false);
-      } else {
-        setContentWarning(null);
-        setHasContentWarning(false);
-        setIsContentWarningAcknowledged(false);
-      }
-    };
-
-    const debounceTimer = setTimeout(checkContent, 300);
-    return () => clearTimeout(debounceTimer);
-  }, [personaInput, videoSourceScript]);
-
-  // Remember Me 설정 변경
-  const handleRememberMeChange = useCallback(
-    (remember: boolean) => {
-      setRememberApiKey(remember);
-      if (apiKey.trim()) {
-        saveApiKey(apiKey, remember);
-      }
-    },
-    [apiKey]
-  );
-
-  // API 키 삭제
-  const handleClearApiKey = useCallback(() => {
-    clearApiKey();
-    setApiKey("");
-    setRememberApiKey(true);
-  }, []);
-
-  // 참조 이미지 업로드 핸들러
-  const handleReferenceImageUpload = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
-      if (!file) return;
-
-      // 파일 타입 검증
-      if (!file.type.startsWith("image/")) {
-        setError("이미지 파일만 업로드할 수 있습니다.");
-        return;
-      }
-
-      // 파일 크기 검증 (최대 10MB)
-      const maxSize = 10 * 1024 * 1024; // 10MB
-      if (file.size > maxSize) {
-        setError("이미지 파일 크기는 10MB를 초과할 수 없습니다.");
-        return;
-      }
-
-      // 허용된 이미지 포맷 검증
-      const allowedTypes = [
-        "image/jpeg",
-        "image/jpg",
-        "image/png",
-        "image/webp",
-      ];
-      if (!allowedTypes.includes(file.type)) {
-        setError("지원되는 이미지 형식: JPG, JPEG, PNG, WEBP");
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        const base64Data = result.split(",")[1]; // data:image/jpeg;base64, 부분 제거
-        setReferenceImage(base64Data);
-        setError(null); // 성공 시 에러 초기화
-      };
-      reader.onerror = () => {
-        setError("이미지 파일을 읽는 중 오류가 발생했습니다.");
-      };
-      reader.readAsDataURL(file);
-    },
-    []
-  );
-
-  // 참조 이미지 삭제 핸들러
-  const handleRemoveReferenceImage = useCallback(() => {
-    setReferenceImage(null);
-  }, []);
-
-  // 카메라 앵글용 이미지 업로드 핸들러
-  const handleCameraAngleImageUpload = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
-      if (!file) return;
-
-      // 파일 타입 검증
-      if (!file.type.startsWith("image/")) {
-        setCameraAngleError("이미지 파일만 업로드할 수 있습니다.");
-        return;
-      }
-
-      // 파일 크기 검증 (최대 10MB)
-      const maxSize = 10 * 1024 * 1024;
-      if (file.size > maxSize) {
-        setCameraAngleError("이미지 파일 크기는 10MB를 초과할 수 없습니다.");
-        return;
-      }
-
-      // 허용된 이미지 포맷 검증
-      const allowedTypes = [
-        "image/jpeg",
-        "image/jpg",
-        "image/png",
-        "image/webp",
-      ];
-      if (!allowedTypes.includes(file.type)) {
-        setCameraAngleError("지원되는 이미지 형식: JPG, JPEG, PNG, WEBP");
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        setCameraAngleSourceImage(result); // data URL 전체 저장
-        setCameraAngleError(null);
-      };
-      reader.onerror = () => {
-        setCameraAngleError("이미지 파일을 읽는 중 오류가 발생했습니다.");
-      };
-      reader.readAsDataURL(file);
-    },
-    []
-  );
-
-  // 카메라 앵글 생성 핸들러
-  const handleGenerateCameraAngles = useCallback(async () => {
-    if (!apiKey.trim()) {
-      setCameraAngleError("Google Gemini API 키를 입력해주세요.");
-      return;
-    }
-    if (!cameraAngleSourceImage) {
-      setCameraAngleError("변환할 이미지를 업로드해주세요.");
-      return;
-    }
-    if (selectedCameraAngles.length === 0) {
-      setCameraAngleError("생성할 앵글을 최소 1개 이상 선택해주세요.");
-      return;
-    }
-
-    setIsLoadingCameraAngles(true);
-    setCameraAngleError(null);
-    setCameraAngles([]);
-    setCameraAngleProgress("시작 중...");
-
-    try {
-      const generatedAngles = await geminiService.generateCameraAngles(
-        cameraAngleSourceImage,
-        selectedCameraAngles,
-        apiKey,
-        aspectRatio,
-        (message, current, total) => {
-          setCameraAngleProgress(`${message} (${current}/${total})`);
-        }
-      );
-
-      setCameraAngles(generatedAngles);
-
-      // 생성 완료 시 즉시 저장
-      console.log('✅ 카메라 앵글 생성 완료 - 즉시 저장 실행');
-      setTimeout(() => saveDataToStorage(true), 100);
-
-      const successCount = generatedAngles.filter(
-        a => a.image && a.image.trim() !== ""
-      ).length;
-      const totalSelected = selectedCameraAngles.length;
-
-      if (successCount === 0) {
-        setCameraAngleError(
-          "모든 카메라 앵글 생성에 실패했습니다. 잠시 후 다시 시도해주세요."
-        );
-      } else if (successCount < totalSelected) {
-        setCameraAngleError(
-          `⚠️ ${successCount}/${totalSelected}개 앵글 생성 완료\n\n일부 앵글 생성에 실패했습니다. 다시 시도해주세요.`
-        );
-      }
-    } catch (e) {
-      console.error("카메라 앵글 생성 오류:", e);
-      let errorMessage = "카메라 앵글 생성 중 오류가 발생했습니다.";
-
-      if (e instanceof Error) {
-        if (e.message.includes("❌") || e.message.includes("💡")) {
-          errorMessage = e.message;
-        } else {
-          const message = e.message.toLowerCase();
-          if (message.includes("quota") || message.includes("limit") || message.includes("사용량")) {
-            errorMessage =
-              "❌ API 사용량 한도 초과\n\n💡 해결 방법:\n1. 5-10분 후 재시도\n2. Google Cloud Console에서 할당량 확인";
-          } else if (message.includes("network") || message.includes("네트워크")) {
-            errorMessage =
-              "❌ 네트워크 오류\n\n💡 해결 방법:\n1. 인터넷 연결 확인\n2. 잠시 후 재시도";
-          } else {
-            errorMessage = `❌ 오류 발생\n\n상세: ${e.message}\n\n💡 잠시 후 재시도해주세요.`;
-          }
-        }
-      }
-
-      setCameraAngleError(errorMessage);
-    } finally {
-      setIsLoadingCameraAngles(false);
-    }
-  }, [cameraAngleSourceImage, apiKey, aspectRatio]);
-
-  // 콘텐츠 안전성 검사 및 자동 교체 함수
-  const checkAndReplaceContent = useCallback((text: string) => {
-    const unsafeWords = detectUnsafeWords(text);
-    if (unsafeWords.length > 0) {
-      const { replacedText, replacements } = replaceUnsafeWords(text);
-      setContentWarning({ unsafeWords, replacements });
-      return replacedText;
-    }
-    setContentWarning(null);
-    return text;
-  }, []);
-
-  // 안전한 단어로 자동 교체 버튼 핸들러
-  const handleAutoReplace = useCallback(() => {
-    if (contentWarning) {
-      const { replacedText: replacedPersona } =
-        replaceUnsafeWords(personaInput);
-      const { replacedText: replacedScript } =
-        replaceUnsafeWords(videoSourceScript);
-      setPersonaInput(replacedPersona);
-      setVideoSourceScript(replacedScript);
-      setContentWarning(null);
-      setHasContentWarning(false);
-      setIsContentWarningAcknowledged(true);
-    }
-  }, [personaInput, videoSourceScript, contentWarning]);
-
-  // 콘텐츠 경고 확인 핸들러
-  const handleAcknowledgeWarning = useCallback(() => {
-    setIsContentWarningAcknowledged(true);
-  }, []);
-
-  const handleGeneratePersonas = useCallback(async () => {
-    if (!apiKey.trim()) {
-      setPersonaError("Google Gemini API 키를 입력해주세요.");
-      return;
-    }
-    if (!personaInput.trim()) {
-      setPersonaError("캐릭터 설명 또는 대본을 입력해주세요.");
-      return;
-    }
-
-    // 원본 텍스트를 그대로 사용 (사용자가 입력한 대본 유지)
-    console.log("🔍 페르소나 생성 시작 - 입력 텍스트:", personaInput);
-    const safeInput = personaInput; // 원본 유지
-
-    setIsLoadingCharacters(true);
-    setPersonaError(null);
-    setCharacters([]);
-    setLoadingProgress("API 키 확인 중...");
-
-    try {
-      // Step 1: API 키 테스트
-      const testResult = await testApiKey(apiKey);
-
-      if (!testResult.success) {
-        setPersonaError(`API 키 테스트 실패: ${testResult.message}`);
-        setIsLoadingCharacters(false);
-        setLoadingProgress("");
-        return;
-      }
-
-      // Step 2: 캐릭터 생성 (페르소나용 참조 이미지 포함)
-      setLoadingProgress("캐릭터 생성 시작...");
-      const generatedCharacters = await geminiService.generateCharacters(
-        safeInput,
-        apiKey,
-        imageStyle,
-        aspectRatio,
-        personaStyle,
-        customStyle,
-        photoComposition,
-        customPrompt,
-        characterStyle,
-        backgroundStyle,
-        customCharacterStyle,
-        customBackgroundStyle,
-        personaReferenceImage, // 페르소나용 참조 이미지 전달
-        (progress) => setLoadingProgress(progress) // 진행 상황 콜백
-      );
-      if (generatedCharacters.length === 0) {
-        setPersonaError(
-          "캐릭터 생성에 실패했습니다. 다른 캐릭터 설명으로 다시 시도해보세요."
-        );
-      } else {
-        setCharacters(generatedCharacters);
-
-        // 생성 완료 시 즉시 저장
-        console.log('✅ 페르소나 생성 완료 - 즉시 저장 실행');
-        setTimeout(() => saveDataToStorage(true), 100);
-
-        // 교체 정보가 있는지 확인
-        const hasReplacements = generatedCharacters.some((char) =>
-          char.description.includes("⚠️ 알림:")
-        );
-
-        if (hasReplacements) {
-          // 교체가 있었던 경우 - 성공 메시지 (녹색)
-          setPersonaError(
-            `✅ ${generatedCharacters.length}개 캐릭터가 성공적으로 생성되었습니다.\n일부 단어가 안전한 표현으로 자동 교체되었습니다. 각 캐릭터 설명을 확인해주세요.`
-          );
-        }
-        // 교체 없이 모두 성공한 경우는 에러 메시지 표시 안 함 (personaError를 null로 유지)
-      }
-    } catch (e) {
-      console.error("캐릭터 생성 오류:", e);
-      let errorMessage = "캐릭터 생성 중 오류가 발생했습니다.";
-
-      if (e instanceof Error) {
-        // geminiService에서 이미 상세한 에러 메시지를 만들었으면 그대로 사용
-        if (e.message.includes("❌") || e.message.includes("💡")) {
-          errorMessage = e.message;
-        } else {
-          const message = e.message.toLowerCase();
-          if (
-            message.includes("content policy") ||
-            message.includes("policy restrictions") ||
-            message.includes("정책")
-          ) {
-            errorMessage =
-              "❌ 콘텐츠 정책 위반으로 이미지 생성이 실패했습니다.\n\n💡 해결 방법:\n1. 폭력적, 선정적 표현 제거\n2. 중립적이고 긍정적인 표현으로 변경\n3. 구체적인 신체 묘사 대신 성격/역할 중심으로 작성";
-          } else if (message.includes("api") && message.includes("key")) {
-            errorMessage =
-              "❌ API 키 오류입니다.\n\n💡 해결 방법:\n1. Google AI Studio에서 API 키 확인\n2. API 키를 정확히 복사했는지 확인\n3. API 키가 활성화되어 있는지 확인";
-          } else if (
-            message.includes("quota") ||
-            message.includes("limit") ||
-            message.includes("rate") ||
-            message.includes("사용량")
-          ) {
-            errorMessage =
-              "❌ API 사용량 한도에 도달했습니다.\n\n💡 해결 방법:\n1. 5-10분 후 다시 시도\n2. 캐릭터 수를 1-3개로 줄이기\n3. Google Cloud Console에서 할당량 확인";
-          } else if (message.includes("network") || message.includes("fetch") || message.includes("네트워크")) {
-            errorMessage =
-              "❌ 네트워크 오류가 발생했습니다.\n\n💡 해결 방법:\n1. 인터넷 연결 상태 확인\n2. 방화벽/보안 프로그램 확인\n3. 다른 네트워크로 변경 후 재시도";
-          } else {
-            errorMessage = `❌ 오류 발생\n\n상세 내용: ${e.message}\n\n💡 해결 방법:\n1. 입력 내용 확인\n2. API 키 확인\n3. 잠시 후 재시도`;
-          }
-        }
-      } else if (typeof e === "string") {
-        errorMessage = e;
-      }
-
-      setPersonaError(errorMessage);
-    } finally {
-      setIsLoadingCharacters(false);
-      setLoadingProgress("");
-    }
-  }, [
-    personaInput,
-    apiKey,
-    imageStyle,
-    aspectRatio,
-    personaStyle,
-    customStyle,
-    photoComposition,
-    customPrompt,
-    personaReferenceImage,
-    characterStyle,
-    backgroundStyle,
-    customCharacterStyle,
-    customBackgroundStyle,
-  ]);
-
-  const handleRegenerateCharacter = useCallback(
-    async (
-      characterId: string,
-      description: string,
-      name: string,
-      customPrompt?: string
-    ) => {
-      if (!apiKey.trim()) {
-        setPersonaError("Google Gemini API 키를 입력해주세요.");
-        return;
-      }
-      try {
-        // 커스텀 프롬프트가 있으면 description에 추가
-        const enhancedDescription = customPrompt
-          ? `${description}. Additional style: ${customPrompt}`
-          : description;
-
-        const newImage = await geminiService.regenerateCharacterImage(
-          enhancedDescription,
-          name,
-          apiKey,
-          imageStyle,
-          aspectRatio,
-          personaStyle
-        );
-        setCharacters((prev) =>
-          prev.map((char) =>
-            char.id === characterId ? { ...char, image: newImage } : char
-          )
-        );
-      } catch (e) {
-        console.error("캐릭터 재생성 오류:", e);
-        const errorMessage =
-          e instanceof Error
-            ? `캐릭터 이미지 재생성 실패: ${e.message}`
-            : "캐릭터 이미지 재생성에 실패했습니다.";
-        setPersonaError(errorMessage);
-      }
-    },
-    [apiKey, imageStyle, aspectRatio, personaStyle]
-  );
-
-  const handleGenerateVideoSource = useCallback(async () => {
-    if (!apiKey.trim()) {
-      setError("Google Gemini API 키를 입력해주세요.");
-      return;
-    }
-    if (!videoSourceScript.trim()) {
-      setError("영상 소스 생성을 위한 대본을 입력해주세요.");
-      return;
-    }
-
-    // 콘텐츠 안전성 검사 및 자동 교체
-    console.log("🔍 영상 소스 - 검사 시작:", videoSourceScript);
-    const unsafeWords = detectUnsafeWords(videoSourceScript);
-    console.log("⚠️ 영상 소스 - 감지된 위험 단어:", unsafeWords);
-
-    let safeScript = videoSourceScript;
-
-    if (unsafeWords.length > 0) {
-      const { replacedText, replacements } =
-        replaceUnsafeWords(videoSourceScript);
-      safeScript = replacedText;
-
-      console.log("✅ 영상 소스 - 교체 완료:", replacements);
-      console.log("📝 영상 소스 - 교체 후 텍스트:", safeScript);
-
-      // 사용자에게 교체 내역 알림
-      const replacementList = replacements
-        .map((r) => `  • "${r.original}" → "${r.replacement}"`)
-        .join("\n");
-
-      const alertMessage = `🔄 안전한 이미지 생성을 위해 다음 단어를 자동으로 교체했습니다:\n\n${replacementList}\n\n이제 안전한 텍스트로 영상 소스를 생성합니다.`;
-
-      console.log("🔔 영상 소스 - 알림 표시:", alertMessage);
-      alert(alertMessage);
-
-      // 입력 필드도 안전한 텍스트로 업데이트
-      setVideoSourceScript(safeScript);
-    } else {
-      console.log("✅ 영상 소스 - 안전한 단어만 사용되었습니다.");
-    }
-
-    // 이미지 개수 제한 - 자동 조정 (함수 중단하지 않음)
-    const limitedImageCount = Math.min(imageCount, 20);
-    if (imageCount > 20) {
-      setImageCount(20);
-      // 경고는 표시하지만 생성은 계속 진행
-      console.warn("이미지 개수가 20개로 자동 조정되었습니다.");
-    }
-
-    setIsLoadingVideoSource(true);
-    setError(null);
-    setVideoSource([]);
-    setLoadingProgress("영상 이미지 생성 준비 중...");
-
-    try {
-      // 안전한 스크립트로 생성
-      const generatedVideoSource = await geminiService.generateStoryboard(
-        safeScript,
-        characters,
-        limitedImageCount,
-        apiKey,
-        imageStyle,
-        subtitleEnabled,
-        referenceImage,
-        aspectRatio,
-        (progress) => setLoadingProgress(progress) // 진행 상황 콜백
-      );
-
-      // 모든 이미지 포함 (실패한 이미지도 빈 카드로 표시)
-      setVideoSource(generatedVideoSource);
-      
-      // 생성 완료 시 즉시 저장
-      console.log('✅ 영상 소스 생성 완료 - 즉시 저장 실행');
-      setTimeout(() => saveDataToStorage(true), 100);
-      
-      const successfulImages = generatedVideoSource.filter(
-        (item) => item.image && item.image.trim() !== ""
-      );
-      const failedCount = generatedVideoSource.length - successfulImages.length;
-
-      if (failedCount > 0) {
-        // 실패한 장면들의 오류 원인 분석
-        const failedScenes = generatedVideoSource.filter(
-          (item) => !item.image || item.image.trim() === ""
-        );
-        
-        // 실패한 장면 번호와 설명 추출
-        const failedSceneDetails = failedScenes.map((scene, idx) => {
-          const sceneNumber = generatedVideoSource.indexOf(scene) + 1;
-          return `${sceneNumber}번: ${scene.sceneDescription.substring(0, 50)}...`;
-        }).join('\n');
-        
-        const policyFailures = failedScenes.filter(s => 
-          s.sceneDescription.includes("정책") || s.sceneDescription.includes("policy")
-        ).length;
-        const quotaFailures = failedScenes.filter(s => 
-          s.sceneDescription.includes("사용량") || s.sceneDescription.includes("429") || s.sceneDescription.includes("quota")
-        ).length;
-        const networkFailures = failedScenes.filter(s => 
-          s.sceneDescription.includes("네트워크") || s.sceneDescription.includes("network")
-        ).length;
-        const otherFailures = failedCount - policyFailures - quotaFailures - networkFailures;
-        
-        let warningMsg = `⚠️ ${successfulImages.length}/${generatedVideoSource.length}개 이미지 생성 완료\n\n`;
-        warningMsg += `❌ ${failedCount}개 실패한 장면:\n${failedSceneDetails}\n\n`;
-        
-        warningMsg += `📋 실패 원인:\n`;
-        if (policyFailures > 0) {
-          warningMsg += `• 콘텐츠 정책 위반: ${policyFailures}개\n`;
-        }
-        if (quotaFailures > 0) {
-          warningMsg += `• API 속도 제한 (429): ${quotaFailures}개\n`;
-        }
-        if (networkFailures > 0) {
-          warningMsg += `• 네트워크 오류: ${networkFailures}개\n`;
-        }
-        if (otherFailures > 0) {
-          warningMsg += `• 기타 오류: ${otherFailures}개\n`;
-        }
-        
-        warningMsg += `\n💡 해결 방법:\n`;
-        if (policyFailures > 0) {
-          warningMsg += "• 정책 위반: 해당 장면 설명을 중립적으로 수정\n";
-        }
-        if (quotaFailures > 0) {
-          warningMsg += "• 속도 제한: 1-2분 후 재시도 (유료 사용자도 분당 제한 있음)\n";
-        }
-        if (networkFailures > 0) {
-          warningMsg += "• 네트워크: 인터넷 연결 확인\n";
-        }
-        
-        warningMsg += "\n✨ 실패한 장면은 아래 카드에서 개별 재생성 가능합니다.";
-        
-        setError(warningMsg);
-      } else if (successfulImages.length === 0) {
-        setError(
-          "❌ 모든 이미지 생성 실패\n\n💡 해결 방법:\n1. API 키 확인\n2. 대본 내용 수정 (정책 위반 표현 제거)\n3. 5-10분 후 재시도\n4. 이미지 개수를 3-5개로 줄이기"
-        );
-      }
-    } catch (e) {
-      console.error("영상 소스 생성 오류:", e);
-      let errorMessage = "영상 소스 생성 중 오류가 발생했습니다.";
-
-      if (e instanceof Error) {
-        const message = e.message.toLowerCase();
-        if (message.includes("api") && message.includes("key")) {
-          errorMessage =
-            "❌ API 키 오류\n\n💡 해결 방법:\n1. Google AI Studio에서 API 키 확인\n2. API 키를 정확히 입력했는지 확인\n3. API 키가 활성화되어 있는지 확인";
-        } else if (
-          message.includes("quota") ||
-          message.includes("limit") ||
-          message.includes("rate") ||
-          message.includes("사용량")
-        ) {
-          errorMessage =
-            "❌ API 사용량 한도 초과\n\n💡 해결 방법:\n1. 5-10분 후 재시도\n2. 이미지 개수를 3-5개로 줄이기\n3. Google Cloud Console에서 할당량 확인\n4. 필요시 요금제 업그레이드";
-        } else if (message.includes("network") || message.includes("fetch") || message.includes("네트워크")) {
-          errorMessage =
-            "❌ 네트워크 오류\n\n💡 해결 방법:\n1. 인터넷 연결 상태 확인\n2. 방화벽/보안 프로그램 확인\n3. 다른 네트워크로 변경\n4. VPN 사용 시 해제 후 재시도";
-        } else if (message.includes("정책") || message.includes("policy")) {
-          errorMessage =
-            "❌ 콘텐츠 정책 위반\n\n💡 해결 방법:\n1. 대본에서 폭력적/선정적 표현 제거\n2. 중립적이고 긍정적인 내용으로 수정\n3. 구체적인 묘사보다 상황/감정 중심으로 작성";
-        } else {
-          errorMessage = `❌ 오류 발생\n\n상세 내용: ${e.message}\n\n💡 해결 방법:\n1. 대본 내용 확인\n2. API 키 확인\n3. 잠시 후 재시도\n4. 이미지 개수 줄이기`;
-        }
-      } else if (typeof e === "string") {
-        errorMessage = e;
-      }
-
-      setError(errorMessage);
-    } finally {
-      setIsLoadingVideoSource(false);
-      setLoadingProgress("");
-    }
-  }, [
-    videoSourceScript,
-    characters,
-    imageCount,
-    apiKey,
-    imageStyle,
-    subtitleEnabled,
-    referenceImage,
-    aspectRatio,
-  ]);
-
-  const handleRegenerateVideoSourceImage = useCallback(
-    async (videoSourceItemId: string, customPrompt?: string) => {
-      if (!apiKey.trim()) {
-        setError("Google Gemini API 키를 입력해주세요.");
-        return;
-      }
-      const itemToRegenerate = videoSource.find(
-        (item) => item.id === videoSourceItemId
-      );
-      if (!itemToRegenerate) {
-        console.error("재생성할 항목을 찾을 수 없습니다:", videoSourceItemId);
-        setError("재생성할 이미지를 찾을 수 없습니다.");
-        return;
-      }
-
-      console.log(`🔄 영상 소스 재생성 시작 - ID: ${videoSourceItemId}`);
-      setError(null); // 이전 에러 초기화
-
-      try {
-        // 커스텀 프롬프트가 있으면 장면 설명에 추가
-        const enhancedDescription = customPrompt
-          ? `${itemToRegenerate.sceneDescription}. Additional style: ${customPrompt}`
-          : itemToRegenerate.sceneDescription;
-
-        console.log(`📝 재생성 프롬프트: ${enhancedDescription}`);
-
-        const newImage = await geminiService.regenerateStoryboardImage(
-          enhancedDescription,
-          characters,
-          apiKey,
-          imageStyle,
-          subtitleEnabled,
-          referenceImage,
-          aspectRatio
-        );
-
-        console.log(`✅ 영상 소스 재생성 성공 - ID: ${videoSourceItemId}`);
-        
-        setVideoSource((prev) => {
-          const updated = prev.map((item) =>
-            item.id === videoSourceItemId ? { ...item, image: newImage } : item
-          );
-          // 재생성 후 즉시 저장
-          console.log('💾 재생성된 영상 소스 저장 중...');
-          setTimeout(() => saveDataToStorage(true), 100);
-          return updated;
-        });
-      } catch (e: any) {
-        console.error("❌ 영상 소스 재생성 오류:", e);
-        
-        let errorMessage = "영상 소스 이미지 재생성에 실패했습니다.";
-        
-        if (e.message) {
-          // API 에러 메시지 파싱
-          if (e.message.includes("INTERNAL") || e.message.includes("500")) {
-            errorMessage = `⚠️ Gemini API 서버 오류가 발생했습니다.\n\n잠시 후(10초) 다시 시도해주세요.\n\n오류 상세: ${e.message}`;
-          } else if (e.message.includes("RATE_LIMIT") || e.message.includes("429")) {
-            errorMessage = `⏳ API 요청 한도를 초과했습니다.\n\n1분 후 다시 시도해주세요.`;
-          } else {
-            errorMessage = `영상 소스 재생성 실패: ${e.message}`;
-          }
-        }
-        
-        setError(errorMessage);
-        
-        // 실패한 이미지는 상태를 유지
-        setVideoSource((prev) =>
-          prev.map((item) =>
-            item.id === videoSourceItemId
-              ? { ...item, sceneDescription: `${item.sceneDescription}\n\n⚠️ 재생성 실패: ${e.message || "알 수 없는 오류"}` }
-              : item
-          )
-        );
-      }
-    },
-    [
-      videoSource,
-      characters,
-      apiKey,
-      imageStyle,
-      subtitleEnabled,
-      referenceImage,
-      aspectRatio,
-      saveDataToStorage,
-    ]
-  );
-
-  // 모든 작업 데이터 초기화
-  const handleResetAll = useCallback(() => {
-    const confirmReset = window.confirm(
-      "⚠️ 모든 작업 데이터가 삭제됩니다.\n\n생성된 페르소나, 영상 소스, 카메라 앵글, 입력 내용이 모두 초기화됩니다.\n\n정말 초기화하시겠습니까?"
-    );
-
-    if (confirmReset) {
-      // 상태 초기화
-      setCharacters([]);
-      setVideoSource([]);
-      setPersonaInput("");
-      setVideoSourceScript("");
-      setPersonaReferenceImage(null);
-      setReferenceImage(null);
-      setImageStyle("realistic");
-      setPersonaStyle("?? ???");
-      setCustomCharacterStyle("");
-      setCustomBackgroundStyle("");
-      setCustomStyle("");
-      setPhotoComposition("??");
-      setSelectedCameraAngles([
-        "Front View",
-        "Right Side View",
-        "Left Side View",
-        "Back View",
-        "Full Body",
-        "Close-up Face",
-      ]);
-      setCharacterStyle("실사 극대화");
-      setBackgroundStyle("모던");
-      setAspectRatio("16:9");
-      setImageCount(5);
-      setSubtitleEnabled(false);
-      setCustomPrompt("");
-      setError(null);
-      setPersonaError(null);
-      setContentWarning(null);
-      setIsContentWarningAcknowledged(false);
-      setHasContentWarning(false);
-      // 카메라 앵글 초기화 추가
-      setCameraAngleSourceImage(null);
-      setCameraAngles([]);
-      setCameraAngleError(null);
-      setCameraAngleProgress("");
-
-      // localStorage + sessionStorage 데이터 완전히 삭제
-      localStorage.removeItem("youtube_image_work_data");
-      sessionStorage.removeItem("youtube_image_work_data");
-      console.log("모든 작업 데이터가 초기화되었습니다. (localStorage + sessionStorage)");
-
-      // 성공 알림
-      window.alert("✅ 초기화 완료!\n\n새로운 작업을 시작할 수 있습니다.");
-    }
-  }, []);
-
-  // 이미지를 새창으로 열기
-  const openImageInNewWindow = (imageData: string, title: string = "이미지 보기") => {
-    const imageWindow = window.open(
-      "",
-      "imageViewer",
-      "width=800,height=600,resizable=yes,scrollbars=yes"
-    );
-    
-    if (imageWindow) {
-      imageWindow.document.write(`
-        <!DOCTYPE html>
-        <html lang="ko">
-        <head>
-          <meta charset="UTF-8">
-          <title>${title}</title>
-          <style>
-            body {
-              margin: 0;
-              padding: 0;
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              justify-content: center;
-              min-height: 100vh;
-              background: #1a1a1a;
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            }
-            .container {
-              width: 100%;
-              height: 100vh;
-              display: flex;
-              flex-direction: column;
-            }
-            .toolbar {
-              background: #2a2a2a;
-              padding: 10px 20px;
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-              border-bottom: 2px solid #444;
-            }
-            .toolbar h2 {
-              color: #fff;
-              margin: 0;
-              font-size: 1.2rem;
-            }
-            .toolbar button {
-              background: #667eea;
-              color: white;
-              border: none;
-              padding: 8px 16px;
-              border-radius: 6px;
-              cursor: pointer;
-              font-weight: 600;
-              transition: all 0.2s;
-            }
-            .toolbar button:hover {
-              background: #5568d3;
-              transform: scale(1.05);
-            }
-            .image-container {
-              flex: 1;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              padding: 20px;
-              overflow: auto;
-            }
-            img {
-              max-width: 100%;
-              max-height: 100%;
-              object-fit: contain;
-              border-radius: 8px;
-              box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="toolbar">
-              <h2>${title}</h2>
-              <button onclick="window.close()">✕ 닫기</button>
-            </div>
-            <div class="image-container">
-              <img src="${imageData}" alt="${title}" />
-            </div>
-          </div>
-        </body>
-        </html>
-      `);
-    }
-  };
-
   const handleDownloadAllImages = useCallback(async () => {
     if (videoSource.length === 0) return;
 
@@ -1643,7 +744,7 @@ const App: React.FC<ImageAppProps> = ({
         const safeDescription = item.sceneDescription
           .replace(/[^a-zA-Z0-9ㄱ-ㅎㅏ-ㅣ가-힣]/g, "_")
           .substring(0, 30);
-        const fileName = `scene_${index + 1}_${safeDescription}.jpg`;
+        const fileName = `장면_${index + 1}_${safeDescription}.jpg`;
         
         try {
           // Base64를 Blob으로 변환
@@ -1728,23 +829,6 @@ const App: React.FC<ImageAppProps> = ({
   }, [videoSource]);
 
   // 라우팅 처리
-  if (currentView === "api-guide") {
-    return (
-      <>
-        <MetaTags
-          title="API 발급 가이드 - 유튜브 롱폼 이미지 생성기"
-          description="Google Gemini API 키 발급 방법을 단계별로 안내합니다. 무료로 유튜브 콘텐츠용 AI 이미지를 생성하세요."
-          url="https://youtube.money-hotissue.com/image/api-guide"
-          image="/api-guide-preview.png"
-          type="article"
-        />
-        <ApiKeyGuide
-          onBack={() => navigateToView("main")}
-        />
-      </>
-    );
-  }
-
   if (currentView === "user-guide") {
     return (
       <>
@@ -1757,11 +841,6 @@ const App: React.FC<ImageAppProps> = ({
         />
         <UserGuide
           onBack={() => navigateToView("main")}
-          onNavigate={(view) => {
-            if (view === "api-guide") {
-              navigateToView("api-guide");
-            }
-          }}
         />
       </>
     );
@@ -1808,12 +887,6 @@ const App: React.FC<ImageAppProps> = ({
             {/* 네비게이션 링크 */}
             <div className="flex justify-center mt-4 space-x-4">
               <button
-                onClick={() => navigateToView("api-guide")}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-medium transition-colors"
-              >
-                📚 API 키 발급 가이드
-              </button>
-              <button
                 onClick={() => navigateToView("user-guide")}
                 className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-sm font-medium transition-colors"
               >
@@ -1823,139 +896,6 @@ const App: React.FC<ImageAppProps> = ({
           </header>
 
           <main className="space-y-6">
-            <section className="bg-gray-800 p-6 rounded-xl shadow-2xl border-2 border-blue-500">
-              <h2 className="text-2xl font-bold mb-4 text-blue-400 flex items-center">
-                <span className="mr-2">1️⃣</span>
-                API 키 입력
-              </h2>
-              <div className="space-y-4">
-                <div className="flex gap-4">
-                  <input
-                    type="password"
-                    value={apiKey}
-                    onChange={(e) => setApiKey(e.target.value)}
-                    placeholder="Google Gemini API 키를 입력하세요..."
-                    className="flex-1 p-4 bg-gray-900 border-2 border-blue-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-                  />
-                  <button
-                    onClick={async () => {
-                      handleApiKeyChange(apiKey);
-                      if (apiKey.trim()) {
-                        try {
-                          const testResult = await testApiKey(apiKey);
-                          if (testResult.success) {
-                            alert('✅ API 키가 정상적으로 등록되었습니다!\n\n' + testResult.message);
-                          } else {
-                            alert('❌ API 키 테스트 실패\n\n' + testResult.message);
-                          }
-                        } catch (error) {
-                          alert('❌ API 키 확인 중 오류가 발생했습니다.');
-                        }
-                      }
-                    }}
-                    disabled={!apiKey.trim()}
-                    className={`px-6 py-4 rounded-lg text-sm font-bold transition-colors ${
-                      apiKey.trim()
-                        ? "bg-blue-600 hover:bg-blue-700 text-white"
-                        : "bg-gray-600 text-gray-400 cursor-not-allowed"
-                    }`}
-                  >
-                    ✅ 확인
-                  </button>
-                  <button
-                    onClick={() => navigateToView("api-guide")}
-                    className="px-4 py-4 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-medium transition-colors flex items-center"
-                  >
-                    📚 발급 방법
-                  </button>
-                </div>
-
-                {/* 통합 안내 섹션 */}
-                <div className="bg-blue-900/20 border border-blue-600/30 rounded-lg p-4 space-y-3">
-                  {/* API 키 기억하기 */}
-                  <div className="flex items-center justify-between pb-3 border-b border-blue-600/30">
-                    <label className="flex items-center text-gray-300">
-                      <input
-                        type="checkbox"
-                        checked={rememberApiKey}
-                        onChange={(e) =>
-                          handleRememberMeChange(e.target.checked)
-                        }
-                        className="mr-2 w-4 h-4 text-blue-600 bg-gray-900 border-gray-600 rounded focus:ring-blue-500"
-                      />
-                      <span className="text-sm">
-                        <strong className="text-blue-400">
-                          ✅ API 키 기억하기
-                        </strong>
-                        <span className="text-gray-400 text-xs ml-1 block">
-                          {rememberApiKey
-                            ? "브라우저에 암호화 저장됨"
-                            : "탭 닫으면 삭제됨"}
-                        </span>
-                      </span>
-                    </label>
-
-                    {apiKey && (
-                      <button
-                        onClick={handleClearApiKey}
-                        className="text-red-400 hover:text-red-300 text-sm underline"
-                      >
-                        저장된 키 삭제
-                      </button>
-                    )}
-                  </div>
-
-                  {/* 보안 안내 */}
-                  <div className="flex items-start space-x-2 pb-3 border-b border-blue-600/30">
-                    <span className="text-amber-500 text-lg flex-shrink-0">
-                      🔒
-                    </span>
-                    <div className="text-sm space-y-1">
-                      <p className="text-amber-400 font-semibold">보안 안내</p>
-                      <p className="text-gray-300 text-xs leading-relaxed">
-                        • API 키는{" "}
-                        {rememberApiKey
-                          ? "암호화되어 브라우저에만"
-                          : "현재 세션에만"}{" "}
-                        저장되며, 외부 서버로 전송되지 않습니다
-                        <br />
-                        • 공용 컴퓨터를 사용하는 경우 "기억하기"를 체크하지
-                        마세요
-                        <br />• API 키가 유출된 경우 즉시 Google AI Studio에서
-                        재발급 받으세요
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* API 비용 안내 */}
-                  <div className="flex items-start space-x-2">
-                    <span className="text-blue-500 text-lg flex-shrink-0">
-                      💰
-                    </span>
-                    <div className="text-sm space-y-1">
-                      <p className="text-blue-400 font-semibold">
-                        API 비용 안내
-                      </p>
-                      <p className="text-gray-300 text-xs leading-relaxed">
-                        • Gemini API 무료 등급에서 이미지 생성 기능 제공
-                        <br />•{" "}
-                        <span className="text-blue-400 font-semibold">
-                          분당 15회 요청
-                        </span>{" "}
-                        제한만 있고, 결제나 비용 발생 없음
-                        <br />• 분당 요청 수만 지키면{" "}
-                        <span className="text-blue-400 font-semibold">
-                          무료
-                        </span>
-                        로 사용 가능
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* 광고 1: API 키와 페르소나 생성 사이 */}
             <AdBanner />
 
             <section className="bg-gray-800 p-6 rounded-xl shadow-2xl border-2 border-purple-500">
@@ -3061,7 +2001,7 @@ const App: React.FC<ImageAppProps> = ({
 
                   {!apiKey && (
                     <p className="text-yellow-400 text-sm mt-2">
-                      ⚠️ API ?를 먼저 입력해주세요
+                      ⚠️ 서버 API 키가 설정되지 않았습니다. 관리자에게 문의해주세요.
                     </p>
                   )}
                 </>
@@ -3239,7 +2179,7 @@ const App: React.FC<ImageAppProps> = ({
                                 if ('showSaveFilePicker' in window) {
                                   try {
                                     const handle = await (window as any).showSaveFilePicker({
-                                      suggestedName: `???-??-${angleImg.angle}.jpg`,
+                                      suggestedName: `카메라-앵글-${angleImg.angleName}.jpg`,
                                       types: [
                                         {
                                           description: '이미지 파일',
@@ -3262,7 +2202,7 @@ const App: React.FC<ImageAppProps> = ({
                                   // 폴백: 기존 다운로드 방식
                                   const link = document.createElement('a');
                                   link.href = URL.createObjectURL(blob);
-                                  link.download = `???-??-${angleImg.angle}.jpg`;
+                                  link.download = `카메라-앵글-${angleImg.angleName}.jpg`;
                                   document.body.appendChild(link);
                                   link.click();
                                   document.body.removeChild(link);
@@ -3323,8 +2263,7 @@ const App: React.FC<ImageAppProps> = ({
               <div className="text-center space-y-4">
                 {/* 저작권 표시 */}
                 <p className="text-gray-500 text-sm">
-                  © {new Date().getFullYear()} 유튜브 롱폼 이미지 생성기. All
-                  rights reserved.
+                  © {new Date().getFullYear()} 유튜브 롱폼 이미지 생성기. 모든 권리 보유.
                 </p>
               </div>
             </div>
@@ -3358,3 +2297,6 @@ const App: React.FC<ImageAppProps> = ({
 };
 
 export default App;
+
+
+

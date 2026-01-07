@@ -2,10 +2,9 @@ import React from 'react';
 
 interface UserGuideProps {
     onBack?: () => void;
-    onNavigate?: (view: 'api-guide') => void;
 }
 
-const UserGuide: React.FC<UserGuideProps> = ({ onBack, onNavigate }) => {
+const UserGuide: React.FC<UserGuideProps> = ({ onBack }) => {
     return (
         <div className="min-h-screen bg-gray-50">
             <div className="max-w-4xl mx-auto py-8 px-4">
@@ -40,58 +39,11 @@ const UserGuide: React.FC<UserGuideProps> = ({ onBack, onNavigate }) => {
                     </div>
                 </div>
 
-                {/* 1단계: API 키 설정 */}
-                <div className="max-w-4xl mx-auto">
-                    <div className="bg-white rounded-lg p-6 shadow-md mb-8 border-l-4 border-blue-500 mt-8">
-                        <div className="flex items-center mb-6">
-                            <div className="bg-gradient-to-br from-blue-600 to-blue-800 text-white rounded-full w-8 h-8 flex items-center justify-center text-lg font-bold mr-4">1</div>
-                            <h2 className="text-2xl font-semibold text-gray-900">API 키 설정</h2>
-                        </div>
-                        
-                        <div className="space-y-4">
-                            <p className="text-gray-700 leading-relaxed">
-                                유튜브 이미지 생성기를 사용하기 위해서는 먼저 <strong>Google Gemini API 키</strong>가 필요합니다.
-                            </p>
-                            
-                            <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
-                                <h4 className="font-semibold text-blue-800 mb-2">API 키 입력 방법:</h4>
-                                <ol className="text-blue-800 text-sm space-y-1 list-decimal list-inside">
-                                    <li>메인 페이지의 "1️⃣ API 키 입력" 섹션 찾기</li>
-                                    <li>비밀번호 입력 필드에 Google Gemini API 키 입력</li>
-                                    <li>"API 키 기억하기" 체크박스 선택 (권장)</li>
-                                    <li>"📚 API 키 발급 가이드" 버튼으로 키 발급 방법 확인 가능</li>
-                                </ol>
-                            </div>
-                            
-                            <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
-                                <p className="text-yellow-800 text-sm">
-                                    💡 <strong>보안 팁:</strong> API 키는 암호화되어 저장되며 외부 서버로 전송되지 않습니다. 공용 컴퓨터에서는 "기억하기"를 해제하세요.
-                                </p>
-                            </div>
-                            
-                            {/* API 키 발급 가이드 버튼 */}
-                            <div className="text-center mt-6">
-                                <button
-                                    onClick={() => onNavigate?.('api-guide')}
-                                    className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
-                                >
-                                    <span className="mr-2">🔑</span>
-                                    API 키 발급 가이드 보기
-                                    <span className="ml-2">→</span>
-                                </button>
-                                <p className="text-gray-500 text-sm mt-2">
-                                    Google Gemini API 키를 발급받는 방법을 단계별로 안내합니다
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* 2단계: 이미지 스타일 및 비율 선택 */}
+                {/* 1단계: 이미지 스타일 및 비율 선택 */}
                 <div className="max-w-4xl mx-auto">
                     <div className="bg-white rounded-lg p-6 shadow-md mb-8 border-l-4 border-purple-500">
                         <div className="flex items-center mb-6">
-                            <div className="bg-gradient-to-br from-purple-600 to-purple-800 text-white rounded-full w-8 h-8 flex items-center justify-center text-lg font-bold mr-4">2</div>
+                            <div className="bg-gradient-to-br from-purple-600 to-purple-800 text-white rounded-full w-8 h-8 flex items-center justify-center text-lg font-bold mr-4">1</div>
                             <h2 className="text-2xl font-semibold text-gray-900">스타일 및 비율 설정</h2>
                         </div>
                         
@@ -131,11 +83,11 @@ const UserGuide: React.FC<UserGuideProps> = ({ onBack, onNavigate }) => {
                     </div>
                 </div>
 
-                {/* 3단계: 페르소나 생성 */}
+                {/* 2단계: 페르소나 생성 */}
                 <div className="max-w-4xl mx-auto">
                     <div className="bg-white rounded-lg p-6 shadow-md mb-8 border-l-4 border-green-500 mt-8">
                         <div className="flex items-center mb-6">
-                            <div className="bg-gradient-to-br from-green-600 to-green-800 text-white rounded-full w-8 h-8 flex items-center justify-center text-lg font-bold mr-4">3</div>
+                            <div className="bg-gradient-to-br from-green-600 to-green-800 text-white rounded-full w-8 h-8 flex items-center justify-center text-lg font-bold mr-4">2</div>
                             <h2 className="text-2xl font-semibold text-gray-900">페르소나 생성</h2>
                         </div>
                         
@@ -173,11 +125,11 @@ const UserGuide: React.FC<UserGuideProps> = ({ onBack, onNavigate }) => {
                     </div>
                 </div>
 
-                {/* 4단계: 영상 소스 생성 */}
+                {/* 3단계: 영상 소스 생성 */}
                 <div className="max-w-4xl mx-auto">
                     <div className="bg-white rounded-lg p-6 shadow-md mb-8 border-l-4 border-indigo-500">
                         <div className="flex items-center mb-6">
-                            <div className="bg-gradient-to-br from-indigo-600 to-indigo-800 text-white rounded-full w-8 h-8 flex items-center justify-center text-lg font-bold mr-4">4</div>
+                            <div className="bg-gradient-to-br from-indigo-600 to-indigo-800 text-white rounded-full w-8 h-8 flex items-center justify-center text-lg font-bold mr-4">3</div>
                             <h2 className="text-2xl font-semibold text-gray-900">영상 소스 생성</h2>
                         </div>
                         
@@ -212,11 +164,11 @@ const UserGuide: React.FC<UserGuideProps> = ({ onBack, onNavigate }) => {
                     </div>
                 </div>
 
-                {/* 5단계: 결과 활용 */}
+                {/* 4단계: 결과 활용 */}
                 <div className="max-w-4xl mx-auto">
                     <div className="bg-white rounded-lg p-6 shadow-md mb-8 border-l-4 border-orange-500 mt-8">
                         <div className="flex items-center mb-6">
-                            <div className="bg-gradient-to-br from-orange-600 to-orange-800 text-white rounded-full w-8 h-8 flex items-center justify-center text-lg font-bold mr-4">5</div>
+                            <div className="bg-gradient-to-br from-orange-600 to-orange-800 text-white rounded-full w-8 h-8 flex items-center justify-center text-lg font-bold mr-4">4</div>
                             <h2 className="text-2xl font-semibold text-gray-900">결과 활용 및 다운로드</h2>
                         </div>
                         

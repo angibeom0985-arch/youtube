@@ -115,15 +115,15 @@ const formatErrorMessage = (error: any, context: string = ""): string => {
   if (errorMessage.includes("API_KEY_INVALID") || errorMessage.includes("invalid API key") || errorCode === 401) {
     userMessage = "❌ API 키가 올바르지 않습니다.";
     solutions = [
-      "1. Google AI Studio에서 새 API 키를 발급받아주세요.",
-      "2. 화면 상단의 API 키 입력란에 올바른 키를 입력해주세요.",
-      "3. API 키에 공백이나 특수문자가 잘못 포함되지 않았는지 확인해주세요."
+      "1. 관리자에게 문의하여 서버 API 키 설정을 확인해주세요.",
+      "2. 잠시 후 다시 시도해주세요.",
+      "3. 문제가 계속되면 관리자에게 문의해주세요."
     ];
   } else if (errorMessage.includes("QUOTA_EXCEEDED") || errorMessage.includes("quota") || errorCode === 429) {
     userMessage = "❌ API 사용량이 초과되었습니다.";
     solutions = [
-      "1. Google AI Studio에서 현재 할당량을 확인해주세요.",
-      "2. 할당량이 리셋될 때까지 기다리거나 새 API 키를 발급받아주세요.",
+      "1. 잠시 후 다시 시도해주세요.",
+      "2. 반복되면 관리자에게 문의해 사용량/할당량을 확인해주세요.",
       "3. 한 번에 너무 많은 이미지를 생성하지 않도록 주의해주세요."
     ];
   } else if (errorMessage.includes("RATE_LIMIT") || errorMessage.includes("rate limit")) {
@@ -173,7 +173,7 @@ const formatErrorMessage = (error: any, context: string = ""): string => {
     solutions = [
       "1. 다시 시도해주세요.",
       "2. 다른 스타일이나 설정으로 시도해보세요.",
-      "3. 문제가 계속되면 API 키를 재확인해주세요."
+      "3. 문제가 계속되면 관리자에게 문의해주세요."
     ];
   }
 
@@ -205,7 +205,7 @@ const getGoogleAI = (apiKey?: string) => {
   const key = apiKey || process.env.API_KEY || process.env.GEMINI_API_KEY;
   if (!key) {
     throw new Error(
-      "❌ API 키가 설정되지 않았습니다.\n\n💡 해결 방법:\n1. Google AI Studio(aistudio.google.com)에 접속하세요.\n2. 왼쪽 메뉴에서 'API ? ??'를 클릭하세요.\n3. API 키를 복사하여 화면 상단 입력란에 붙여넣으세요."
+      "❌ 서버 API 키가 설정되지 않았습니다.\n\n💡 해결 방법:\n1. 관리자에게 문의해 서버 API 키 설정을 확인해주세요."
     );
   }
   return new GoogleGenAI({ apiKey: key });
@@ -916,7 +916,7 @@ export const generateCharacters = async (
         errorMsg.includes("Invalid API key")
       ) {
         throw new Error(
-          "❌ 올바르지 않은 API 키입니다.\n\n💡 해결 방법:\n1. Google AI Studio(aistudio.google.com)에서 새로운 API 키를 생성해주세요.\n2. API 키를 정확히 복사했는지 확인해주세요."
+          "❌ 서버 API 키 설정에 문제가 있습니다.\n\n💡 해결 방법:\n1. 관리자에게 문의해 서버 API 키 설정을 확인해주세요.\n2. 잠시 후 다시 시도해주세요."
         );
       } else if (
         errorMsg.includes("billed users") ||
@@ -924,14 +924,14 @@ export const generateCharacters = async (
         errorMsg.includes("Imagen API is only accessible")
       ) {
         throw new Error(
-          "❌ 이미지 생성 API는 결제 정보를 등록한 계정만 사용 가능합니다.\n\n💡 해결 방법:\n1. Google Cloud Console(console.cloud.google.com)에 접속\n2. 결제 정보 등록 (카드 등록, 무료 한도 내에서는 과금 안됨)\n3. Imagen API 활성화\n4. 새 API 키 발급 후 입력\n\n💡 참고: 무료 tier에서도 결제 정보만 등록하면 사용 가능합니다."
+          "❌ 이미지 생성 API는 결제 정보를 등록한 계정만 사용 가능합니다.\n\n💡 해결 방법:\n1. Google Cloud Console(console.cloud.google.com)에 접속\n2. 결제 정보 등록 (카드 등록, 무료 한도 내에서는 과금 안됨)\n3. Imagen API 활성화\n4. 관리자에게 문의해 서버 설정을 확인해주세요.\n\n💡 참고: 무료 tier에서도 결제 정보만 등록하면 사용 가능합니다."
         );
       } else if (
         errorMsg.includes("PERMISSION_DENIED") ||
         errorMsg.includes("permission")
       ) {
         throw new Error(
-          "❌ API 키 권한이 없습니다.\n\n💡 해결 방법:\n1. Google AI Studio에서 Imagen API를 활성화해주세요.\n2. 새로운 API 키를 발급받아주세요."
+          "❌ 서버 API 키 권한이 없습니다.\n\n💡 해결 방법:\n1. 관리자에게 문의해 Imagen API 권한을 확인해주세요.\n2. 잠시 후 다시 시도해주세요."
         );
       } else if (
         errorMsg.includes("QUOTA_EXCEEDED") ||
