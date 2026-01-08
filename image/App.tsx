@@ -942,7 +942,7 @@ const App: React.FC<ImageAppProps> = ({
         e instanceof Error
           ? e.message
           : "페르소나 생성 중 오류가 발생했습니다.";
-      setPersonaError(message.startsWith('❌') or message.startsWith('✅') ? message : `❌ ${message}`);
+      setPersonaError(message.startsWith('❌') || message.startsWith('✅') ? message : `❌ ${message}`);
     } finally {
       setIsLoadingCharacters(false);
       setLoadingProgress("");
@@ -1001,7 +1001,7 @@ const App: React.FC<ImageAppProps> = ({
         console.error("[개발자용] 페르소나 재생성 오류:", e);
         const message =
           e instanceof Error ? e.message : "페르소나 재생성에 실패했습니다.";
-        setPersonaError(message.startsWith('❌') or message.startsWith('✅') ? message : `❌ ${message}`);
+        setPersonaError(message.startsWith('❌') || message.startsWith('✅') ? message : `❌ ${message}`);
       }
     },
     [apiKey, imageStyle, aspectRatio, personaStyle, saveDataToStorage]
@@ -1053,7 +1053,7 @@ const App: React.FC<ImageAppProps> = ({
         e instanceof Error
           ? e.message
           : "영상 소스 생성 중 오류가 발생했습니다.";
-      setError(message.startsWith('❌') or message.startsWith('✅') ? message : `❌ ${message}`);
+      setError(message.startsWith('❌') || message.startsWith('✅') ? message : `❌ ${message}`);
     } finally {
       setIsLoadingVideoSource(false);
       setLoadingProgress("");
@@ -1105,7 +1105,7 @@ const App: React.FC<ImageAppProps> = ({
         console.error("[개발자용] 영상 소스 재생성 오류:", e);
         const message =
           e instanceof Error ? e.message : "영상 소스 재생성에 실패했습니다.";
-        setError(message.startsWith('❌') or message.startsWith('✅') ? message : `❌ ${message}`);
+        setError(message.startsWith('❌') || message.startsWith('✅') ? message : `❌ ${message}`);
       }
     },
     [
