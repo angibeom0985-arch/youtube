@@ -3,14 +3,14 @@ import {
   analyzeTranscript,
   generateIdeas,
   generateNewPlan,
-} from "../../YOUTUBE/lib/geminiService.js";
+} from "../_lib/geminiService.js";
 import { 
   analyzeIntent, 
   generateScriptOutline, 
   generateChapters 
-} from "../../YOUTUBE/lib/chapterService.js";
-import { enforceAbusePolicy } from "../../YOUTUBE/lib/abuseGuard.js";
-import { enforceUsageLimit, recordUsageEvent } from "../../YOUTUBE/lib/usageLimit.js";
+} from "../_lib/chapterService.js";
+import { enforceAbusePolicy } from "../_lib/abuseGuard.js";
+import { enforceUsageLimit, recordUsageEvent } from "../_lib/usageLimit.js";
 
 type RateEntry = {
   count: number;
