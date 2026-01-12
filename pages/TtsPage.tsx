@@ -52,6 +52,7 @@ const TtsPage: React.FC = () => {
   const [audioSrc, setAudioSrc] = useState(() => getStoredString(STORAGE_KEYS.audio));
   const [error, setError] = useState(() => getStoredString(STORAGE_KEYS.error));
   const [isGenerating, setIsGenerating] = useState(false);
+  const [progressStep, setProgressStep] = useState(""); // preparing, requesting, processing
   const [copyStatus, setCopyStatus] = useState("");
 
 
@@ -70,6 +71,7 @@ const TtsPage: React.FC = () => {
     setAudioSrc("");
     setError("");
     setCopyStatus("");
+    setProgressStep("");
   };
 
   const handleGenerate = async () => {
@@ -79,9 +81,14 @@ const TtsPage: React.FC = () => {
     }
 
     setIsGenerating(true);
+    setProgressStep("preparing");
     setError("");
 
     try {
+      // 1. 준비 단계 (시각적 피드백을 위한 짧은 지연)
+      await new Promise((resolve) => setTimeout(resolve, 600));
+      
+      setProgressStep("requesting");
       const response = await fetch("/api/tts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -93,32 +100,79 @@ const TtsPage: React.FC = () => {
         }),
       });
 
+      setProgressStep("processing");
       const payload = await response.json().catch(() => null);
+
       if (!response.ok) {
-        const message =
-          payload?.message || "TTS 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.";
-        setError(message);
-        setAudioSrc("");
-        setCopyStatus("");
-        return;
+        // 에러 메시지 구성
+        let errorReason = "알 수 없는 오류가 발생했습니다.";
+        let solution = "잠시 후 다시 시도해주세요.";
+        
+        if (response.status === 401 || response.status === 403) {
+           errorReason = "Google Cloud API 키 인증에 실패했습니다.";
+           solution = "1. Google Cloud Console에서 API 키가 올바른지 확인하세요.\n2. 해당 프로젝트에서 Text-to-Speech API가 '사용 설정(Enable)' 되어 있는지 확인하세요.";
+        } else if (response.status === 429) {
+           errorReason = "API 요청 한도를 초과했습니다.";
+           solution = "잠시 기다렸다가 다시 시도해주세요.";
+        } else if (response.status === 500) {
+           errorReason = "서버 내부 오류 또는 Google Cloud API 설정 문제입니다.";
+           solution = "Google Cloud Console에서 Text-to-Speech API가 활성화되어 있는지 다시 한 번 확인해주세요.";
+        }
+
+        const devMessage = payload?.message || "No detail provided";
+        
+        const formattedError = `🚨 TTS 생성 오류 발생\n\n` +
+          `━━━━━━━━━━━━━━━━━━━━━━\n` +
+          `📋 오류 원인:\n• ${errorReason}\n\n` +
+          `💡 해결 방법:\n${solution}\n\n` +
+          `🔧 개발자 전달 정보:\n` +
+          `• 상태 코드: ${response.status}\n` +
+          `• 상세 메시지: ${devMessage}\n` +
+          `• 오류 시각: ${new Date().toLocaleString()}\n` +
+          `━━━━━━━━━━━━━━━━━━━━━━`;
+
+        throw new Error(formattedError);
       }
 
       if (!payload?.audioContent) {
-        setError("오디오 응답을 받지 못했습니다. 다시 시도해 주세요.");
-        setAudioSrc("");
-        setCopyStatus("");
-        return;
+        throw new Error(
+          `🚨 오디오 데이터 누락\n\n` +
+          `━━━━━━━━━━━━━━━━━━━━━━\n` +
+          `📋 오류 원인:\n• 서버 응답에 오디오 데이터가 포함되지 않았습니다.\n\n` +
+          `💡 해결 방법:\n다시 시도해주세요.\n\n` +
+          `🔧 개발자 전달 정보:\n• payload.audioContent is null\n` +
+          `━━━━━━━━━━━━━━━━━━━━━━`
+        );
       }
 
+      await new Promise((resolve) => setTimeout(resolve, 500)); // 완료 느낌 주기
       setAudioSrc(`data:audio/mp3;base64,${payload.audioContent}`);
       setCopyStatus("");
-    } catch (err) {
+      setProgressStep("completed");
+
+    } catch (err: any) {
       console.error("TTS 요청 실패:", err);
-      setError("요청 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+      // 이미 포맷팅된 에러인지 확인
+      const msg = err.message || "알 수 없는 오류";
+      if (msg.startsWith("🚨")) {
+        setError(msg);
+      } else {
+        // 일반 에러 포맷팅
+        const formattedError = `🚨 시스템 오류 발생\n\n` +
+          `━━━━━━━━━━━━━━━━━━━━━━\n` +
+          `📋 오류 원인:\n• 네트워크 문제이거나 브라우저 오류일 수 있습니다.\n\n` +
+          `💡 해결 방법:\n인터넷 연결을 확인하고 페이지를 새로고침하세요.\n\n` +
+          `🔧 개발자 전달 정보:\n` +
+          `• 오류 내용: ${msg}\n` +
+          `• 오류 시각: ${new Date().toLocaleString()}\n` +
+          `━━━━━━━━━━━━━━━━━━━━━━`;
+        setError(formattedError);
+      }
       setAudioSrc("");
       setCopyStatus("");
     } finally {
       setIsGenerating(false);
+      // 성공/실패 후 잠시 뒤에 스텝 초기화는 하지 않음 (상태 보여주기 위함) 또는 필요시 추가
     }
   };
 
@@ -231,8 +285,28 @@ const TtsPage: React.FC = () => {
                 disabled={isGenerating}
                 className="mt-2 w-full rounded-lg bg-emerald-500 px-4 py-3 text-sm font-bold text-white shadow-[0_0_18px_rgba(16,185,129,0.25)] transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-70"
               >
-                {isGenerating ? "음성 생성 중..." : "TTS 생성하기"}
+                {isGenerating ? "처리 중입니다..." : "TTS 생성하기"}
               </button>
+
+              {/* 진행 상태 표시바 */}
+              {isGenerating && (
+                <div className="mt-4 rounded-lg bg-emerald-950/40 p-3 border border-emerald-500/20">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3 text-sm text-emerald-100/90">
+                      <div className={`h-2 w-2 rounded-full transition-colors ${progressStep === 'preparing' || progressStep === 'requesting' || progressStep === 'processing' ? 'bg-emerald-400 animate-pulse' : 'bg-emerald-800'}`} />
+                      <span className={progressStep === 'preparing' ? 'font-bold text-emerald-300' : ''}>1. 텍스트 분석 및 준비</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm text-emerald-100/90">
+                      <div className={`h-2 w-2 rounded-full transition-colors ${progressStep === 'requesting' || progressStep === 'processing' ? 'bg-emerald-400 animate-pulse' : 'bg-emerald-800'}`} />
+                      <span className={progressStep === 'requesting' ? 'font-bold text-emerald-300' : ''}>2. Google 서버 요청 중</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm text-emerald-100/90">
+                      <div className={`h-2 w-2 rounded-full transition-colors ${progressStep === 'processing' ? 'bg-emerald-400 animate-pulse' : 'bg-emerald-800'}`} />
+                      <span className={progressStep === 'processing' ? 'font-bold text-emerald-300' : ''}>3. 오디오 데이터 변환 중</span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
