@@ -45,3 +45,5 @@ lerna-debug.log*
 .vercel
 
 gen-lang-client-*.json
+google-credentials.json
+**/google-credentials.json
