@@ -5,9 +5,8 @@ import {
   generateNewPlan,
 } from "../_lib/geminiService.js";
 import { 
-  analyzeIntent, 
-  generateScriptOutline, 
-  generateChapters 
+  generateChapterOutline, 
+  generateChapterScript 
 } from "../_lib/chapterService.js";
 import { enforceAbusePolicy } from "../_lib/abuseGuard.js";
 import { enforceUsageLimit, recordUsageEvent } from "../_lib/usageLimit.js";
