@@ -56,8 +56,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
      const candidates = [
         path.resolve(process.cwd(), jsonFileName),
         path.resolve(process.cwd(), "youtube", jsonFileName), // 만약 상위 폴더에서 실행 중일 경우
+        path.resolve(process.cwd(), "misc", jsonFileName),    // misc 폴더로 이동됨
+        path.resolve(process.cwd(), "youtube", "misc", jsonFileName),
         path.resolve(process.cwd(), "..", jsonFileName),      // 만약 api 폴더 내부라고 인식될 경우
-        path.join("C:\\KB\\Website\\Youtube\\youtube", jsonFileName) // 절대 경로 하드코딩 (최후의 수단, 디버깅용)
+        path.join("C:\\KB\\Website\\Youtube\\youtube\\misc", jsonFileName) // 절대 경로 하드코딩
      ];
 
      console.log("[api/tts DEBUG] Searching for credential file in candidates:", candidates);
