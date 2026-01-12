@@ -1,11 +1,11 @@
 
 import React from 'react';
-import './src/index.css';
+import './index.css';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import App from './App';
-import ImageApp from './image/App';
-import ImageErrorBoundary from './image/components/ErrorBoundary';
+import ImageApp from '../image/App';
+import ImageErrorBoundary from '../image/components/ErrorBoundary';
 import HomePage from './pages/HomePage.tsx';
 import GuidePage from './pages/GuidePage.tsx';
 import ApiGuidePage from './pages/ApiGuidePage.tsx';
