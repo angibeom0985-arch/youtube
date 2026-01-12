@@ -40,7 +40,7 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
     <div className="min-h-screen bg-black text-white">
       <div className="mx-auto flex min-h-screen max-w-6xl flex-col items-center justify-center px-6 py-16">
         <div className="text-center">
-          <p className="text-5xl font-black tracking-[0.08em] text-[color:var(--tone-script-orange-strong)] sm:text-6xl lg:text-7xl">
+          <p className="text-5xl font-black tracking-[0.08em] text-[color:var(--tone-brand-red,#ff0000)] sm:text-6xl lg:text-7xl">
             유튜브 팩토리
           </p>
           <h1 className="mt-6 text-3xl font-bold sm:text-4xl">
