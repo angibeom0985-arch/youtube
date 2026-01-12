@@ -13,9 +13,9 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
   const ttsPath = `${normalizedBasePath}/tts` || "/tts";
 
   const benchmarkingCardStyle = {
-    borderColor: "var(--tone-image-purple, #a855f7)",
+    borderColor: "var(--tone-image-purple)",
     background:
-      "linear-gradient(135deg, rgba(168, 85, 247, 0.38), rgba(168, 85, 247, 0.16) 48%, transparent 100%)",
+      "linear-gradient(135deg, rgba(var(--tone-image-purple-rgb), 0.38), rgba(var(--tone-image-purple-rgb), 0.16) 48%, transparent 100%)",
   } as React.CSSProperties;
 
   const scriptCardStyle = {
@@ -70,7 +70,7 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
             <div className="mt-6 text-sm font-semibold">
               <span
                 className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold text-black"
-                style={{ backgroundColor: "var(--tone-image-purple, #a855f7)" }}
+                style={{ backgroundColor: "var(--tone-image-purple)" }}
               >
                 모멘텀 분석 시작하기 -&gt;
               </span>
