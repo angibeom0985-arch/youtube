@@ -43,3 +43,5 @@ lerna-debug.log*
 .vercel
 
 .vercel
+
+gen-lang-client-*.json
