@@ -1,169 +1,281 @@
-# ?�� ?�튜�??�상 분석 AI - ?�상 ?�상??비�???1�?만에 ?�헤치다
+# 유튜브 영상 제작 AI - 성공 영상의 비밀을 1분에 파헤치다
 
-> "?�공???�튜버들?� ?��? ?�고 ?�습?�다. ?�신�?모르�??�을 �?.."
+> "성공한 유튜버들은 무엇을 알고 있습니까? 당신도 모르고 있을 뿐.."
 
-조회??100�? 구독????��? ???�상 ?�이 ?�닙?�다.  
-AI가 분석???�상 ?�상??공식??지�?바로 무료�??�인?�세??
+조회수 100만 구독자 1천명인 영상 아이 아닙니다.  
+AI가 분석한 성공 영상의 공식을 지금 바로 무료로 받아가세요.
 
-?�� 지�?바로 ?�작: https://youtube.money-hotissue.com
-
----
-
-## ?�� ???�면 ?�해???�유
-
-### 1️⃣ ?�간???�이??- 1�?분석?�로 10?�간 ?�약
-- ??과거: ?�공 ?�상 분석?�느???�루 종일 ?�비
-- ???�재: AI가 1�?만에 ?�심�??�쏙 ?�리
-- ?�� ?�약 ?�간: 분석 10?�간 ??기획 1�?= 9?�간 59�??�약
-
-### 2️⃣ ?�패 비용 ?�로 - 기획 ?�계?�서 ?�공�??�측
-- ?�� ?�패???�상 1�?= 촬영�?+ ?�집�?+ ?�간 = 최소 50만원 ?�실
-- ?�� AI ?�측?�로 ?�전 검�?= ?�패 ?�률 70% 감소
-- ?�� ?�간 ?�약: ?�패 ?�상 5�?방�? = 250만원 ?�상
-
-### 3️⃣ 무료?�데 ?�료�?기능 - 구독�?0??- ?�� ?�른 AI ?? ??3~5만원 (??36~60만원)
-- ?�� ?�리 ?�비?? ?�전 무료 (Google API 무료 ?�급 ?�용)
-- ?�� ?�공 가�? ??60만원 ?�당 무료 ?�용
-
-### 4️⃣ ?�본까지 ?�성 - 촬영 준�??�료
-- ?�� ??채널: 캐릭?�별 ?��?+ ?�?�라??+ ?��?지 ?�롬?�트
-- ?�️ ?��??�성 ?�간: 8?�간 ??1�?- ?�� 바로 촬영 ?�어가?�요!
+**▶️ 지금 바로 시작: https://youtube.money-hotissue.com**
 
 ---
 
-## �??�런 분들?� ?�수?�니??
-??초보 ?�튜�?- "?�떤 컨셉?�로 ?�작?�야 ?��? 모르겠어??  
-???�체�??�튜�?- "조회?��? ???��??? 뭐�? 문제?�까??"  
-??기획??마�???- "?�라?�언?�에�??�이??기반 기획?�을 ?�시?�야 ?�요"  
-???�상 ?�작??- "?�러 ?�라?�언?�에�?빠른 기획?�이 ?�요?�요"  
-??1???�리?�이??- "모든 �??�자 ?�느???�간??부족해??
+## 🎯 주요 기능
+
+### 1. 모멘텀 헌터 (NEW!)
+- 🔍 잠재력 높은 유튜브 영상 빠른 검색
+- 📊 채널 규모, 조회 속도, 콘텐츠 길이 분석
+- 🎯 구독자 대비 모멘텀이 높은 영상 발굴
+- 💡 니치 시장 발견 및 트렌드 분석
+
+### 2. 대본 생성
+- 📝 성공 영상 대본 자동 분석
+- 💡 AI 기반 새로운 기획안 생성
+- 🎬 챕터별 상세 대본 작성
+- 🎭 캐릭터별 대사 분리
+
+### 3. 이미지 생성
+- 🖼️ 대본 기반 이미지 프롬프트
+- 🎨 스토리보드 제작 도구
+- 🎯 장면별 최적화 이미지
+
+### 4. TTS 생성
+- 🎤 대본을 음성으로 자동 변환
+- 🔊 다양한 음성 스타일 지원
+- ⚡ 빠른 나레이션 제작
 
 ---
 
-## ?�� ?�심 기능 (?��? 무료!)
+## 🚀 빠른 시작
 
-### ��??�상 ?�상 DNA 분석
-- ?�� ?�심 ?�워??추출 - ?�고리즘??좋아?�는 ?�어 ?�동 감�?
-- ?�� 기획 ?�도 분석 - 목표 ?�청?? ?�심 메시지, 가�??�공 방식
-- �?조회???�측 - ?�공 ?�률�??�상 조회???��??�이??- ?�� ?��?구조 ?��? - ?�선 ?�기 ??몰입 ???�동 ?�도 ?�턴
+### 사용자 (일반)
+1. https://youtube.money-hotissue.com 접속
+2. 원하는 기능 선택
+3. 바로 시작!
 
-### ???�만???�상 ?��??�동 ?�성
-- ?�� 배역�??��?- ?�레?�터, 주인�? 친구 ??캐릭???�동 배치
-- ???�?�라???�공 - �??�?�마???�상 ?�간 ?�시 [00:15], [01:30]
-- ?�� AI ?��?지 ?�롬?�트 - DALL-E, Midjourney???�문 ?�롬?�트 ?�동 ?�성
-- ?�� 5가지 ?�이?�어 - AI가 추천?�는 ?�상 가??주제
+**무료 사용 가능** - 카드 등록 필요 없음
 
-### ?�� 보너?? 추�? ?�작 ?�구
-?��??�성 ??바로 ?�결?�는 ?�전 무료 AI ?�구:
-- ?�� ?�폼/롱폼 ?��?지 ?�성 - ?�네?? ?�면 ?��?지 1분컷
-- ?�� AI ?�악 가???�성 - 배경?�악 가??1�??�성
-- ?�� AI ?�악 ?�네??- ?�릭 ?�도 ?�네???�동 ?�작
+### 개발자 (로컬 환경)
 
----
+#### 1. 저장소 클론
+```bash
+git clone https://github.com/angibeom0985-arch/youtube.git
+cd youtube
+npm install
+```
 
-## �??�제 ?�용??반응
+#### 2. API 키 설정 (필수)
+```bash
+# .env.local 파일 생성
+cp .env.example .env.local
+```
 
-> "3개월�?조회??3?�리?�?�데, ???�로 분석?�고 ?�상 ?�렸?�니 첫날 5�?조회??찍었?�요!"  
-> - 20?� 초보 ?�튜�?
-> "?�라?�언??미팅 ?�날 급하�?기획??만들?�야 ?�는??1?�간 만에 ?�성?�습?�다."  
-> - ?�상 ?�작??PD
+**.env.local 파일 내용:**
+```bash
+# 필수 API 키
+GEMINI_API_KEY=your_gemini_api_key_here
+YOUTUBE_API_KEY=your_youtube_api_key_here
 
-> "매번 ?��??�느??머리 ?�팠?�데, ?�제 AI가 초안 만들?�주???�집�??�면 ?�요."  
-> - 1???�리?�이??
----
+# 선택 (어뷰징 감지)
+GROQ_API_KEY=your_groq_api_key_here
 
-## ?�� ??지�??�작?�야 ?�는가?
+# 선택 (사용량 추적)
+SUPABASE_URL=your_supabase_url
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_key
+```
 
-### ??기회??창�? 짧습?�다
-- ?�� AI 분석 ?�구 ?�장 급성??�?(2024??기�? ??300% ?�장)
-- �?경쟁?�들?� ?��? AI ?�구 ?�용 �?- ????���???��?�록 경쟁?�서 ?�처집니??
-### ?�� 무료 + 무제??= ?�작 ?�벽 ?�로
-- ?�� ?�용카드 ?�록 불필??- ?�� ?�메???�집 ?�음
-- ?�� 개인?�보 ?�??????(API ?�만 브라?��????�??
-- ?? 30�?만에 바로 ?�작
+**📖 API 키 발급 가이드:**
+- [⚡ 빠른 시작 (5분)](docs/API_KEYS_QUICKSTART.md)
+- [📚 상세 문서](docs/API_KEYS_GUIDE.md)
+- [📊 사용 현황](README_API_KEYS.md)
 
-### ?�� 리스???�로, 리턴 무한?�
-- ?�을 �? ?�음 (?�간 1�?
-- ?�을 �? ?�상 ?�상 기획 + ?��?+ ?�공 ?�측
-- ?�자 ?��??�익�? 무한?�
+#### 3. 개발 서버 실행
+```bash
+npm run dev
+```
+브라우저에서 http://localhost:5173 열기
 
----
-
-## ?�� 지�?바로 ?�작?�면?
-
-### ??즉시 ?�득
-1. ?�공 ?�상 분석 결과 (?�운로드 가??
-2. 맞춤???�상 기획??(분당 15개까지 무료)
-3. ?�성???��?+ ?�?�라??+ ?��?지 ?�롬?�트
-4. AI ?��?지/?�악 ?�작 ?�구 ?�결
-
-### ?�� 지??채널
-- ?�� [?�용�?가?�드](https://youtube.money-hotissue.com/guide)
-- ?�� [API ??발급 방법](https://youtube.money-hotissue.com/api-guide)
-- ?�� GitHub Issues (버그 ?�보/기능 ?�청)
+#### 4. 프로덕션 빌드
+```bash
+npm run build
+npm run preview
+```
 
 ---
 
-## ?�� 마�?�?경고
+## 📋 API 키 요약
 
-"지�????�간?�도 ?�신??경쟁?�는 AI�??�상??기획?�고 ?�습?�다."
+| API 키 | 필수 여부 | 용도 | 발급처 |
+|--------|----------|------|--------|
+| GEMINI_API_KEY | ✅ 필수 | 대본 생성, 분석 | [Google AI Studio](https://aistudio.google.com/app/apikey) |
+| YOUTUBE_API_KEY | ✅ 필수 | 모멘텀 헌터 | [Google Cloud Console](https://console.cloud.google.com/) |
+| GROQ_API_KEY | ⚪ 선택 | 어뷰징 감지 | [Groq Console](https://console.groq.com/) |
+| SUPABASE_* | ⚪ 선택 | 사용량 추적 | [Supabase](https://supabase.com/) |
 
-- ?�� ???�면: 10?�간 분석 + ?�패 ?�험 + 기회비용 ?�실
-- ?�� ?�면: 1�?분석 + ?�공 ?�측 + ?�성???��?
-?�택?� ?�신??몫입?�다. ?��?�??�택?��? ?�는 것도 ?�택?�니??
-
----
-
-## ?�� 지�?바로 ?�작?�세??
-### ?�� [youtube.money-hotissue.com](https://youtube.money-hotissue.com)
-
-30�??�에 ?�상 ?�상 기획???�작?????�습?�다.  
-?�용카드 ?�음. ?�메???�음. ?�직 ?�공�??�을 �?
+**최소 요구사항:** GEMINI_API_KEY + YOUTUBE_API_KEY 만 있으면 모든 기본 기능 사용 가능!
 
 ---
 
-## ?�� 기술 ?�택 (개발?�용)
+## 🛠️ 기술 스택
 
-## 기술 ?�택
+### Frontend
+- **React 19** - 최신 UI 라이브러리
+- **TypeScript** - 타입 안정성
+- **Vite** - 고속 빌드 도구
+- **Tailwind CSS** - 유틸리티 우선 CSS
+- **React Router** - 클라이언트 라우팅
 
-- React 19
-- TypeScript
-- Vite
-- React Router
-- Google Gemini API
-- Tailwind CSS
-- Monaco Editor
+### Backend (Serverless)
+- **Vercel Functions** - 서버리스 API
+- **Google Gemini API** - AI 대본 생성
+- **YouTube Data API v3** - 영상 검색/분석
+- **Groq API** - AI 어뷰징 감지
+- **Supabase** - 데이터베이스
 
-## 로컬 ?�행
+### 개발 도구
+- **Monaco Editor** - 코드 편집
+- **ESLint + Prettier** - 코드 품질
+- **Git** - 버전 관리
 
-?�수 ?�항: Node.js
+---
 
-1. ?�존???�치:
-   ```bash
-   npm install
-   ```
+## 📦 프로젝트 구조
 
-2. 개발 ?�버 ?�행:
-   ```bash
-   npm run dev
-   ```
+```
+youtube/
+├── api/                      # Vercel 서버리스 함수
+│   ├── gemini.ts            # 대본 생성 API
+│   ├── benchmarking/        # 모멘텀 헌터 API
+│   │   └── search.ts
+│   └── _lib/                # 공통 라이브러리
+│       ├── groq.ts          # 어뷰징 감지
+│       └── supabase.ts      # DB 연결
+├── src/
+│   ├── pages/               # 페이지 컴포넌트
+│   │   ├── HomePage.tsx
+│   │   ├── BenchmarkingPage.tsx
+│   │   ├── TtsPage.tsx
+│   │   └── ...
+│   ├── components/          # 재사용 컴포넌트
+│   ├── services/            # API 서비스
+│   └── utils/               # 유틸리티 함수
+├── docs/                    # 문서
+│   ├── API_KEYS_QUICKSTART.md
+│   ├── API_KEYS_GUIDE.md
+│   └── DEPLOYMENT.md
+├── .env.example             # 환경변수 템플릿
+└── README_API_KEYS.md       # API 키 사용 현황
+```
 
-3. ?�로?�션 빌드:
-   ```bash
-   npm run build
-   ```
+---
 
-## ?�경 ?�정
+## 🌐 Vercel 배포
 
-- Google Gemini API ?�는 ?�사?�트?�서 직접 ?�력 가??- API ?�는 브라?��? localStorage???�전?�게 ?�?�됨
+### 자동 배포 (권장)
+1. GitHub에 코드 푸시
+2. [Vercel](https://vercel.com)에서 프로젝트 import
+3. 환경변수 설정:
+   - `GEMINI_API_KEY`
+   - `YOUTUBE_API_KEY`
+   - 기타 선택 변수
+4. Deploy 버튼 클릭
+5. 완료!
 
-## Vercel 배포
+### 수동 배포
+```bash
+npm install -g vercel
+vercel --prod
+```
 
-1. GitHub ?�?�소??코드 ?�시
-2. Vercel?�서 ?�로?�트 import
-3. ?�동 배포 ?�료
-4. 커스?� ?�메???�결 (youtube.money-hotissue.com)
+**📖 상세 가이드:** [배포 문서](docs/DEPLOYMENT.md)
 
-## ?�이?�스
+---
 
-MIT License
+## 💰 비용 안내
+
+### 무료 범위
+- **Gemini API**: 15 requests/minute (무료)
+- **YouTube API**: 10,000 units/day (무료)
+- **Vercel 호스팅**: Hobby 플랜 무료
+
+### 예상 사용량
+- 대본 생성 1회: ~10,000 characters ≈ $0.0025
+- 모멘텀 헌터 1회: ~200 units (하루 10,000 중)
+- **일 100회 사용 가능** (무료 범위 내)
+
+### 비용 초과 시
+- Gemini API: $0.00025 per 1K characters
+- YouTube API: 할당량 증가 요청 또는 유료 전환
+
+---
+
+## 🔒 보안
+
+### API 키 보호
+- ✅ 모든 API 키는 서버사이드에서만 사용
+- ✅ `.env.local`은 Git에 커밋되지 않음
+- ✅ 클라이언트 코드에 노출 없음
+
+### 데이터 프라이버시
+- ✅ 사용자 데이터는 브라우저 localStorage에만 저장
+- ✅ 서버에 개인정보 저장 없음
+- ✅ 쿠키 사용 없음 (관리자 페이지 제외)
+
+---
+
+## 🐛 문제 해결
+
+### "GEMINI_API_KEY가 필요합니다"
+1. `.env.local` 파일에 키가 있는지 확인
+2. 개발 서버 재시작
+3. [API 키 가이드](docs/API_KEYS_QUICKSTART.md) 참고
+
+### "YOUTUBE_API_KEY가 필요합니다"
+1. YouTube Data API v3 활성화 확인
+2. API 키 제한 설정 확인
+3. 할당량 초과 여부 확인
+
+### "Quota exceeded"
+- Gemini: 속도 제한 (15 RPM) 대기
+- YouTube: 일일 할당량 (10,000 units) 대기 또는 증가 요청
+
+**📖 더 많은 문제 해결:** [API 키 가이드](docs/API_KEYS_GUIDE.md#문제-해결)
+
+---
+
+## 📚 문서
+
+- [⚡ API 키 빠른 설정 (5분)](docs/API_KEYS_QUICKSTART.md)
+- [📖 API 키 상세 가이드](docs/API_KEYS_GUIDE.md)
+- [📊 API 사용 현황 정리](README_API_KEYS.md)
+- [🚀 배포 가이드](docs/DEPLOYMENT.md)
+- [🔧 관리자 가이드](docs/ADMIN_GUIDE.md)
+
+---
+
+## 🤝 기여
+
+버그 리포트, 기능 제안, Pull Request 환영합니다!
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+---
+
+## 📞 지원
+
+- 📧 이메일: support@money-hotissue.com
+- 🐛 버그 리포트: [GitHub Issues](https://github.com/angibeom0985-arch/youtube/issues)
+- 📖 사용 가이드: https://youtube.money-hotissue.com/guide
+
+---
+
+## 📄 라이선스
+
+MIT License - 자유롭게 사용하세요!
+
+---
+
+## 🌟 지금 바로 시작하세요!
+
+**▶️ https://youtube.money-hotissue.com**
+
+30초 안에 영상 기획을 시작할 수 있습니다.  
+카드 등록 없음. 이메일 없음. 오직 성공만을 위한 AI 도구.
+
+---
+
+**만든 이:** [@angibeom0985-arch](https://github.com/angibeom0985-arch)  
+**별점 주시면 감사하겠습니다!** ⭐
