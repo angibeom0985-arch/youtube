@@ -16,6 +16,8 @@ export default defineConfig(({ mode }) => {
         }
       },
       build: {
+        outDir: '../dist',
+        emptyOutDir: true,
         charset: 'utf8',
         rollupOptions: {
           output: {

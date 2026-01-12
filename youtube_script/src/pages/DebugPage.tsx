@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import App from "../App";
-import ImageApp from "../image/App";
-import ImageErrorBoundary from "../image/components/ErrorBoundary";
+import ImageApp from "../../youtube_image/ui/App";
+import ImageErrorBoundary from "../../youtube_image/ui/components/ErrorBoundary";
 import { FiEye, FiEyeOff, FiHome } from "react-icons/fi";
 
 type LoginState = "checking" | "loggedOut" | "loggedIn";

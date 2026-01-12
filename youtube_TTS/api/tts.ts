@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { TextToSpeechClient } from "@google-cloud/text-to-speech";
-import { enforceUsageLimit, recordUsageEvent } from "./_lib/usageLimit.js";
+import { enforceUsageLimit, recordUsageEvent } from "../../YOUTUBE/lib/usageLimit.js";
 import path from "path";
 import fs from "fs";
 

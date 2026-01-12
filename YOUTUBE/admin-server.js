@@ -20,12 +20,12 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, '..', 'youtube_script', 'public')));
 
 // API 키 발급 가이드 내용 가져오기
 app.get('/api/guide/api-key', async (req, res) => {
     try {
-        const componentPath = path.join(__dirname, 'components', 'ApiKeyGuide.tsx');
+        const componentPath = path.join(__dirname, '..', 'youtube_script', 'src', 'components', 'ApiKeyGuide.tsx');
         const componentContent = await fs.readFile(componentPath, 'utf-8');
         
         // JSX return 문에서 div 내용 추출
@@ -54,7 +54,7 @@ app.post('/api/guide/api-key', async (req, res) => {
         }
 
         // React 컴포넌트 파일 경로
-        const componentPath = path.join(__dirname, 'components', 'ApiKeyGuide.tsx');
+        const componentPath = path.join(__dirname, '..', 'youtube_script', 'src', 'components', 'ApiKeyGuide.tsx');
         console.log('저장할 컴포넌트 경로:', componentPath);
         
         // React 컴포넌트 파일 읽기
@@ -103,7 +103,7 @@ export default ApiKeyGuide;`;
         console.log('🔨 React 앱을 빌드하는 중...');
         try {
             const { stdout, stderr } = await execPromise('npm run build', {
-                cwd: __dirname,
+                cwd: path.join(__dirname, '..'),
                 maxBuffer: 1024 * 1024 * 10 // 10MB 버퍼
             });
             console.log('✅ 빌드 완료:', stdout);
@@ -141,7 +141,7 @@ app.post('/api/guide/user-guide', async (req, res) => {
         }
 
         // React 컴포넌트 파일 경로
-        const componentPath = path.join(__dirname, 'components', 'UserGuide.tsx');
+        const componentPath = path.join(__dirname, '..', 'youtube_script', 'src', 'components', 'UserGuide.tsx');
         console.log('저장할 컴포넌트 경로:', componentPath);
         
         // React 컴포넌트 파일 읽기
@@ -190,7 +190,7 @@ export default UserGuide;`;
         console.log('🔨 React 앱을 빌드하는 중...');
         try {
             const { stdout, stderr } = await execPromise('npm run build', {
-                cwd: __dirname,
+                cwd: path.join(__dirname, '..'),
                 maxBuffer: 1024 * 1024 * 10 // 10MB 버퍼
             });
             console.log('✅ 빌드 완료:', stdout);
@@ -218,7 +218,7 @@ export default UserGuide;`;
 // 사용법 가이드 내용 가져오기
 app.get('/api/guide/user-guide', async (req, res) => {
     try {
-        const componentPath = path.join(__dirname, 'components', 'UserGuide.tsx');
+        const componentPath = path.join(__dirname, '..', 'youtube_script', 'src', 'components', 'UserGuide.tsx');
         const componentContent = await fs.readFile(componentPath, 'utf-8');
         
         // JSX return 문에서 div 내용 추출
@@ -242,7 +242,7 @@ app.post('/api/upload-image', async (req, res) => {
             return res.status(400).json({ error: '파일명과 데이터가 필요합니다.' });
         }
 
-        const imagePath = path.join(__dirname, 'public', filename);
+        const imagePath = path.join(__dirname, '..', 'youtube_script', 'public', filename);
         const base64Data = data.replace(/^data:image\/\w+;base64,/, '');
         await fs.writeFile(imagePath, base64Data, 'base64');
         
@@ -257,7 +257,7 @@ app.post('/api/upload-image', async (req, res) => {
 // 파일 목록 가져오기
 app.get('/api/files', async (req, res) => {
     try {
-        const publicDir = path.join(__dirname, 'public');
+        const publicDir = path.join(__dirname, '..', 'youtube_script', 'public');
         const files = await fs.readdir(publicDir);
         const imageFiles = files.filter(file => 
             /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(file)

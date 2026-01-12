@@ -1,5 +1,23 @@
 {
+  "functions": {
+    "youtube_script/api/*.ts": { "maxDuration": 30 },
+    "youtube_image/api/*.js": { "maxDuration": 30 },
+    "youtube_TTS/api/*.ts": { "maxDuration": 30 },
+    "YOUTUBE/abuse/*.ts": { "maxDuration": 30 },
+    "YOUTUBE/admin/*.ts": { "maxDuration": 30 }
+  },
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/api/fetch-transcript", "destination": "/youtube_script/api/fetch-transcript.ts" },
+    { "source": "/api/gemini", "destination": "/youtube_script/api/gemini.ts" },
+    { "source": "/api/upload-image", "destination": "/youtube_image/api/upload-image.js" },
+    { "source": "/api/tts", "destination": "/youtube_TTS/api/tts.ts" },
+    { "source": "/api/abuse/check", "destination": "/YOUTUBE/abuse/check.ts" },
+    { "source": "/api/admin/login", "destination": "/YOUTUBE/admin/login.ts" },
+    { "source": "/api/admin/logout", "destination": "/YOUTUBE/admin/logout.ts" },
+    { "source": "/api/admin/abuse", "destination": "/YOUTUBE/admin/abuse.ts" },
+    { "source": "/api/guide/api-key", "destination": "/YOUTUBE/guide/api-key.js" },
+    { "source": "/api/guide/user-guide", "destination": "/YOUTUBE/guide/user-guide.js" },
+    { "source": "/admin", "destination": "/admin.html" },
+    { "source": "/(.*)", "destination": "/youtube_script/index.html" }
   ]
 }
