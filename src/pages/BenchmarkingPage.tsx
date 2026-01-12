@@ -101,7 +101,7 @@ const BenchmarkingPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <div className="mx-auto max-w-7xl px-6 py-8">
+      <div className="mx-auto max-w-4xl px-6 py-8">
         {/* Header */}
         <div className="mb-8">
           <Link to="/" className="inline-flex items-center text-purple-400 hover:text-purple-300 mb-4">
