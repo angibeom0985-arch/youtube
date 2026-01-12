@@ -34,7 +34,7 @@ root.render(
         <Route path="/script" element={<App />} />
         <Route path="/guide" element={<GuidePage />} />
         <Route path="/script/guide" element={<ScriptGuidePage />} />
-        <Route path="/imgae/guide" element={<ImageGuidePage />} />
+        <Route path="/image/guide" element={<ImageGuidePage />} />
         <Route path="/tts/guide" element={<TtsGuidePage />} />
         <Route path="/api-guide" element={<ApiGuidePage />} />
         <Route path="/admin" element={<AdminPage />} />

@@ -15,7 +15,7 @@
     { "source": "/api/guide/api-key", "destination": "/api/YOUTUBE/guide/api-key.js" },
     { "source": "/api/guide/user-guide", "destination": "/api/YOUTUBE/guide/user-guide.js" },
     { "source": "/api/benchmarking/search", "destination": "/api/youtube_script/benchmarking/search.ts" },
-    { "source": "/admin", "destination": "/dist/admin.html" },
-    { "source": "/(.*)", "destination": "/dist/index.html" }
+    { "source": "/admin", "destination": "/admin.html" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
