@@ -1,7 +1,7 @@
 {
-  "name": "??? ???? ??",
-  "short_name": "??? ??",
-  "description": "Google Gemini AI ?? ??? ???? ??",
+  "name": "유튜브 팩토리 대본 제작",
+  "short_name": "유튜브 팩토리",
+  "description": "Google Gemini AI 기반 유튜브 대본 제작 도구",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#667eea",

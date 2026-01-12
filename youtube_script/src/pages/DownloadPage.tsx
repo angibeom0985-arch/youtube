@@ -216,10 +216,9 @@ const DownloadPage: React.FC = () => {
                 onChange={(e) => setIncludeTimestamp(e.target.checked)}
                 className="w-5 h-5 rounded border-2 border-red-500 bg-transparent checked:bg-red-600 checked:border-red-600 cursor-pointer accent-red-600"
               />
-              <span className="text-sm text-neutral-200">
-                ???? ??
-              </span>
-            </label>
+                                <span className="text-sm text-neutral-200">
+                                  타임스탬프 포함
+                                </span>            </label>
           )}
           </div>
         </div>

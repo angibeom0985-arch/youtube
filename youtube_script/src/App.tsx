@@ -220,16 +220,16 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
     getStoredString("selectedVlogType", vlogTypes[0])
   );
   const [contentType, setContentType] = useState<string>(() =>
-    getStoredString("contentType", "??")
+    getStoredString("contentType", "롱폼")
   );
   const [lengthMode, setLengthMode] = useState<string>(() =>
-    getStoredString("lengthMode", "8?")
+    getStoredString("lengthMode", "8분")
   );
   const [customLength, setCustomLength] = useState<string>(() =>
-    getStoredString("customLength", "8?")
+    getStoredString("customLength", "8분")
   );
   const [scriptStyle, setScriptStyle] = useState<string>(() =>
-    getStoredString("scriptStyle", "?? ??")
+    getStoredString("scriptStyle", "대화 버전")
   ); // "대화 버전" | "나레이션 버전"
 
   const [videoDetails, setVideoDetails] = useState<VideoDetails | null>(null);
@@ -750,7 +750,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
     setError(null);
 
     // localStorage 초기화
-    // localStorage ???
+    // localStorage 초기화
     localStorage.removeItem("analysisResult");
     localStorage.removeItem("newPlan");
     localStorage.removeItem("suggestedIdeas");
@@ -1393,15 +1393,14 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
             </a>
             <div className="flex items-center gap-2">
               {(analysisResult || newPlan || suggestedIdeas.length > 0) && (
-                <button
-                  onClick={handleClearData}
-                  className="flex items-center gap-2 px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-white rounded-lg transition-colors shadow-lg text-sm font-medium"
-                  title="??? ?? ?? ? ??? ???"
-                >
-                  <FiTrash2 size={14} />
-                  <span>??? ???</span>
-                </button>
-              )}
+                            <button
+                              onClick={handleClearData}
+                              className="flex items-center gap-2 px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-white rounded-lg transition-colors shadow-lg text-sm font-medium"
+                              title="분석 결과 및 저장 데이터 삭제"
+                            >
+                              <FiTrash2 size={14} />
+                              <span>데이터 삭제</span>
+                            </button>              )}
             </div>
           </nav>
         </header>

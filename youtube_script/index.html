@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
@@ -73,9 +73,9 @@
       }
     </script>
 
-    <!-- 강력??복사/?�래�?방�? CSS -->
+    <!-- 강력한 복사/드래그 방지 CSS -->
     <style>
-      /* ?�용???�력 ?�드??- 최우???�위 */
+      /* 허용된 입력 필드 - 최우선 순위 */
       .api-key-modal input,
       .api-key-modal textarea,
       .api-key-modal input[type="text"],
@@ -131,13 +131,13 @@
         user-drag: none !important;
       }
 
-      /* 중복 ?�거??- ?�의 ?�합???�언 ?�용 */
+      /* 중복 제거 - 하위 통합 선언 적용 */
 
       body {
         -webkit-touch-callout: none !important;
       }
 
-      /* ?�쇄 방�? */
+      /* 인쇄 방지 */
       @media print {
         body {
           display: none !important;
@@ -145,9 +145,9 @@
       }
     </style>
 
-    <!-- 추�? 보안 ?�크립트 -->
+    <!-- 추가 보안 스크립트 -->
     <script>
-        // 즉시 ?�행?�는 보안 코드
+        // 즉시 실행되는 보안 코드
       (function () {
         "use strict";
 
@@ -155,7 +155,7 @@
           return;
         }
 
-        // ?�력 ?�드 ?�인 ?�퍼 ?�수
+        // 입력 필드 확인 헬퍼 함수
         function isAllowedInput(target) {
           if (!target || !target.closest) return false;
           return (
@@ -170,7 +170,7 @@
           );
         }
 
-        // ?�클�?방�? (?�용???�력 ?�드 ?�외)
+        // 우클릭 방지 (허용된 입력 필드 제외)
         document.addEventListener(
           "contextmenu",
           function (e) {
@@ -183,7 +183,7 @@
           false
         );
 
-        // ?�래�?방�? (?�용???�력 ?�드 ?�외)
+        // 드래그 방지 (허용된 입력 필드 제외)
         document.addEventListener(
           "dragstart",
           function (e) {
@@ -196,7 +196,7 @@
           false
         );
 
-        // ?�택 방�? (?�용???�력 ?�드 ?�외)
+        // 선택 방지 (허용된 입력 필드 제외)
         document.addEventListener(
           "selectstart",
           function (e) {
@@ -209,7 +209,7 @@
           false
         );
 
-        // 복사 방�? (?�용???�력 ?�드 ?�외)
+        // 복사 방지 (허용된 입력 필드 제외)
         document.addEventListener(
           "copy",
           function (e) {
@@ -225,7 +225,7 @@
           false
         );
 
-        // ?�라?�기 방�? (?�용???�력 ?�드 ?�외)
+        // 잘라내기 방지 (허용된 입력 필드 제외)
         document.addEventListener(
           "cut",
           function (e) {
@@ -241,7 +241,7 @@
           false
         );
 
-        // 붙여?�기 방�? (?�용???�력 ?�드 ?�외)
+        // 붙여넣기 방지 (허용된 입력 필드 제외)
         document.addEventListener(
           "paste",
           function (e) {
@@ -254,29 +254,29 @@
           false
         );
 
-        // ?�보???�축??방�?
+        // 키보드 단축키 방지
         document.addEventListener(
           "keydown",
           function (e) {
             // F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+S, Ctrl+U, Ctrl+S, Ctrl+P, PrintScreen, Win+Shift+S
-            // ?�캡�?ALCapture) ?�축??Ctrl+Shift+C/W/D/A/S/F
+            // 알캡처(ALCapture) 단축키 Ctrl+Shift+C/W/D/A/S/F
             if (
               e.keyCode === 123 ||
               e.keyCode === 44 || // PrintScreen
               (e.ctrlKey && e.shiftKey && e.keyCode === 73) || // Ctrl+Shift+I
               (e.ctrlKey && e.shiftKey && e.keyCode === 74) || // Ctrl+Shift+J
-              (e.ctrlKey && e.shiftKey && e.keyCode === 67) || // Ctrl+Shift+C (?�캡�?직접 ?�작 캡처)
-              (e.ctrlKey && e.shiftKey && e.keyCode === 87) || // Ctrl+Shift+W (?�캡�?�?캡처)
-              (e.ctrlKey && e.shiftKey && e.keyCode === 68) || // Ctrl+Shift+D (?�캡�??�일?�역 캡처)
-              (e.ctrlKey && e.shiftKey && e.keyCode === 65) || // Ctrl+Shift+A (?�캡�??�체캡처)
-              (e.ctrlKey && e.shiftKey && e.keyCode === 83) || // Ctrl+Shift+S (?�캡�??�크�?캡처)
-              (e.ctrlKey && e.shiftKey && e.keyCode === 70) || // Ctrl+Shift+F (?�캡�?지?�사?�즈 캡처)
-              (e.metaKey && e.shiftKey && e.keyCode === 83) || // Win+Shift+S (Windows ?�크린샷 ?�구)
+              (e.ctrlKey && e.shiftKey && e.keyCode === 67) || // Ctrl+Shift+C (알캡처 직접 시작 캡처)
+              (e.ctrlKey && e.shiftKey && e.keyCode === 87) || // Ctrl+Shift+W (알캡처 창 캡처)
+              (e.ctrlKey && e.shiftKey && e.keyCode === 68) || // Ctrl+Shift+D (알캡처 단위영역 캡처)
+              (e.ctrlKey && e.shiftKey && e.keyCode === 65) || // Ctrl+Shift+A (알캡처 전체캡처)
+              (e.ctrlKey && e.shiftKey && e.keyCode === 83) || // Ctrl+Shift+S (알캡처 스크롤 캡처)
+              (e.ctrlKey && e.shiftKey && e.keyCode === 70) || // Ctrl+Shift+F (알캡처 지정사이즈 캡처)
+              (e.metaKey && e.shiftKey && e.keyCode === 83) || // Win+Shift+S (Windows 스크린샷 도구)
               (e.ctrlKey && e.keyCode === 85) || // Ctrl+U
-              (e.ctrlKey && e.keyCode === 83) || // Ctrl+S (?�이지 ?�??
+              (e.ctrlKey && e.keyCode === 83) || // Ctrl+S (페이지 저장)
               (e.ctrlKey && e.keyCode === 80)
             ) {
-              // Ctrl+P (?�쇄)
+              // Ctrl+P (인쇄)
               e.preventDefault();
               e.stopPropagation();
               return false;
@@ -292,7 +292,7 @@
                 e.keyCode === 90)
             ) {
               var target = e.target;
-              // API ??모달, ?�튜�?URL, ?��??�력, ???�이?�어, ???�목 ?�력창�? 모두 ?�용
+              // API 키 모달, 유튜브 URL, 대본 입력, 새 아이디어, 새 제목 입력창은 모두 허용
               if (
                 target.closest &&
                 (target.closest(".api-key-modal") ||
@@ -304,7 +304,7 @@
               ) {
                 return;
               }
-              // ?�반 INPUT/TEXTAREA???�용
+              // 일반 INPUT/TEXTAREA는 허용
               if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") {
                 return;
               }
@@ -316,19 +316,19 @@
           true
         );
 
-        // ?�쇄 차단
+        // 인쇄 차단
         window.addEventListener(
           "beforeprint",
           function (e) {
             e.preventDefault();
             e.stopPropagation();
-            alert("???�이지???�쇄?????�습?�다.");
+            alert("이 페이지는 인쇄할 수 없습니다.");
             return false;
           },
           true
         );
 
-        // Print Screen ??추�? 감�?
+        // Print Screen 키 추가 감지
         document.addEventListener(
           "keyup",
           function (e) {
@@ -340,7 +340,7 @@
           true
         );
 
-        // DevTools 감�?
+        // DevTools 감지
         var devtools = { open: false };
         var threshold = 160;
 
@@ -354,10 +354,10 @@
           }
         }, 1000);
 
-        // Selection 감시 (API ??모달, ?�튜�?URL ?�력, ?��??�력, ???�이?�어 ?�력, ???�목 ?�력 ?�외)
+        // Selection 감시 (API 키 모달, 유튜브 URL 입력, 대본 입력, 새 아이디어 입력, 새 제목 입력 제외)
         setInterval(function () {
           try {
-            // API ??모달, ?�튜�?URL ?�력, ?��??�력, ???�이?�어 ?�력, ???�목 ?�력???�려?�으�?건너??
+            // API 키 모달, 유튜브 URL 입력, 대본 입력, 새 아이디어 입력, 새 제목 입력이 열려있으면 건너뜀
             var modal = document.querySelector(".api-key-modal");
             var youtubeInput = document.querySelector(".youtube-url-input");
             var transcriptInput = document.querySelector(".transcript-input");
@@ -382,14 +382,14 @@
               return;
             }
 
-            // ?�택???�소가 API ??모달, ?�튜�?URL ?�력, ?��??�력, ???�이?�어 ?�력, ???�목 ?�력 ?�력창인지 ?�인
+            // 선택된 요소가 API 키 모달, 유튜브 URL 입력, 대본 입력, 새 아이디어 입력, 새 제목 입력 입력창인지 확인
             if (selection.rangeCount > 0) {
               var range = selection.getRangeAt(0);
               var container = range.commonAncestorContainer;
               var element =
                 container.nodeType === 1 ? container : container.parentElement;
 
-              // input?�나 textarea??무조�??�용
+              // input이나 textarea는 무조건 허용
               if (
                 element &&
                 (element.tagName === "INPUT" || element.tagName === "TEXTAREA")
@@ -397,7 +397,7 @@
                 return;
               }
 
-              // API ??모달, ?�튜�?URL ?�력, ?��??�력, ???�이?�어 ?�력, ???�목 ?�력 ?��????�용
+              // API 키 모달, 유튜브 URL 입력, 대본 입력, 새 아이디어 입력, 새 제목 입력 등은 허용
               if (
                 element &&
                 element.closest &&
@@ -414,7 +414,7 @@
 
             selection.removeAllRanges();
           } catch (e) {
-            // ?�러 발생 ???�택 ?�거 ?�함
+            // 에러 발생 시 선택 제거 포함
           }
         }, 100);
       })();
@@ -426,9 +426,3 @@
     <script type="module" src="/src/index.tsx"></script>
   </body>
 </html>
-
-
-
-
-
-
