@@ -227,21 +227,20 @@ const StoryboardImage: React.FC<StoryboardImageProps> = ({
         </>
       ) : (
         <>
-          {/* 실패한 이미지 표시 */}
-          <div className="w-full aspect-video bg-red-900/30 border-2 border-red-600 flex flex-col items-center justify-center p-4">
-            <div className="text-6xl mb-4">❌</div>
-            <div className="text-red-400 text-center font-bold mb-2">생성 실패</div>
-            <div className="text-red-300 text-xs text-center mb-4 line-clamp-3">
-              {item.sceneDescription}
-            </div>
-            {isRegenerating ? (
-              <Spinner />
-            ) : (
-              <button
-                onClick={handleRegenerateClick}
-                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
-              >
-                <RefreshIcon className="w-4 h-4" />
+                          {/* 실패한 이미지 표시 */}
+                          <div className="w-full aspect-video bg-orange-900/30 border-2 border-orange-600 flex flex-col items-center justify-center p-4">
+                            <div className="text-6xl mb-4">❌</div>
+                            <div className="text-orange-400 text-center font-bold mb-2">생성 실패</div>
+                            <div className="text-orange-300 text-xs text-center mb-4 line-clamp-3">
+                              {item.sceneDescription}
+                            </div>
+                            {isRegenerating ? (
+                              <Spinner />
+                            ) : (
+                              <button
+                                onClick={handleRegenerateClick}
+                                className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors flex items-center gap-2"
+                              >                <RefreshIcon className="w-4 h-4" />
                 <span>재생성</span>
               </button>
             )}

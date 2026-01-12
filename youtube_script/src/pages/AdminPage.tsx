@@ -125,12 +125,11 @@ const AdminPage: React.FC = () => {
       <div className="min-h-screen bg-[#121212] text-white flex items-center justify-center p-4">
         <div className="w-full max-w-md bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-8">
           <h1 className="text-2xl font-bold mb-6">Admin Login</h1>
-          {error && (
-            <div className="mb-4 rounded-lg border border-red-600 bg-red-950/60 p-3 text-sm text-red-200">
-              {error}
-            </div>
-          )}
-          <form className="space-y-4" onSubmit={handleLogin}>
+                  {error && (
+                    <div className="mb-4 rounded-lg border border-orange-600 bg-orange-950/60 p-3 text-sm text-orange-200">
+                      {error}
+                    </div>
+                  )}          <form className="space-y-4" onSubmit={handleLogin}>
             <div>
               <label className="block text-sm mb-1">Username</label>
               <input
@@ -153,7 +152,7 @@ const AdminPage: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-lg bg-red-600 py-2 font-semibold hover:bg-red-700 disabled:opacity-50"
+              className="w-full rounded-lg bg-orange-600 py-2 font-semibold hover:bg-orange-700 disabled:opacity-50"
             >
               {loading ? "Signing in..." : "Sign in"}
             </button>
@@ -186,22 +185,20 @@ const AdminPage: React.FC = () => {
               <FiRefreshCw size={16} />
               Refresh
             </button>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm"
-            >
-              <FiLogOut size={16} />
+                          <button
+                            onClick={handleLogout}
+                            className="flex items-center gap-2 rounded-lg bg-orange-600 px-4 py-2 text-sm"
+                          >              <FiLogOut size={16} />
               Logout
             </button>
           </div>
         </header>
 
-        {error && (
-          <div className="rounded-lg border border-red-600 bg-red-950/60 p-3 text-sm text-red-200">
-            {error}
-          </div>
-        )}
-
+              {error && (
+                <div className="rounded-lg border border-orange-600 bg-orange-950/60 p-3 text-sm text-orange-200">
+                  {error}
+                </div>
+              )}
         <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {Object.entries(data?.summary || {}).map(([label, count]) => (
             <div key={label} className="rounded-lg border border-[#2A2A2A] bg-[#1A1A1A] p-4">

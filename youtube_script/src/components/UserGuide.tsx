@@ -196,11 +196,10 @@ const UserGuide: React.FC<UserGuideProps> = ({ onBack, onNavigate }) => {
                                         <h5 className="font-medium text-green-800">📝 자막 ON</h5>
                                         <p className="text-green-700 text-xs mt-1">한국어 자막이 포함된 이미지 생성</p>
                                     </div>
-                                    <div className="bg-red-50 border border-red-200 p-3 rounded-lg">
-                                        <h5 className="font-medium text-red-800">🚫 자막 OFF</h5>
-                                        <p className="text-red-700 text-xs mt-1">자막 없는 깔끔한 이미지</p>
-                                    </div>
-                                </div>
+                                                        <div className="bg-orange-50 border border-orange-200 p-3 rounded-lg">
+                                                          <h5 className="font-medium text-orange-800">🚫 자막 OFF</h5>
+                                                          <p className="text-orange-700 text-xs mt-1">자막 없는 깔끔한 이미지</p>
+                                                        </div>                                </div>
                                 
                                 <h4 className="font-semibold text-gray-800">🎨 일관성 유지 (선택사항)</h4>
                                 <p className="text-gray-600 text-sm">참조 이미지를 업로드하면 해당 스타일과 일관성을 유지하며 영상 소스를 생성합니다.</p>
@@ -282,30 +281,28 @@ const UserGuide: React.FC<UserGuideProps> = ({ onBack, onNavigate }) => {
 
                 {/* 문제 해결 - 콘텐츠와 동일한 너비 */}
                 <div className="max-w-4xl mx-auto">
-                    <div className="bg-red-50 border-l-4 border-red-500 p-6 mb-8 rounded-r-lg mt-8">
-                        <h3 className="text-lg font-semibold text-red-800 mb-4">🛠️ 문제 해결</h3>
-                        <div className="space-y-4">
-                            <div>
-                                <h4 className="font-medium text-red-800">이미지 생성이 실패해요</h4>
-                                <ul className="text-red-700 text-sm mt-2 space-y-1 list-disc list-inside">
-                                    <li>API 키가 올바르게 입력되었는지 확인</li>
+                              <div className="bg-orange-50 border-l-4 border-orange-500 p-6 mb-8 rounded-r-lg mt-8">
+                                <h3 className="text-lg font-semibold text-orange-800 mb-4">🛠️ 문제 해결</h3>
+                                <div className="space-y-4">
+                                  <div>
+                                    <h4 className="font-medium text-orange-800">이미지 생성이 실패해요</h4>
+                                    <ul className="text-orange-700 text-sm mt-2 space-y-1 list-disc list-inside">                                    <li>API 키가 올바르게 입력되었는지 확인</li>
                                     <li>콘텐츠 정책에 위반되는 내용이 없는지 검토</li>
                                     <li>대본을 더 일반적이고 긍정적인 내용으로 수정</li>
                                     <li>이미지 생성 수량을 줄여서 재시도</li>
                                 </ul>
                             </div>
-                            <div>
-                                <h4 className="font-medium text-red-800">캐릭터가 일관되지 않아요</h4>
-                                <ul className="text-red-700 text-sm mt-2 space-y-1 list-disc list-inside">
+              <div>
+                <h4 className="font-medium text-orange-800">캐릭터가 일관되지 않아요</h4>
+                <ul className="text-orange-700 text-sm mt-2 space-y-1 list-disc list-inside">
                                     <li>페르소나 생성 시 더 구체적인 외모 묘사 추가</li>
                                     <li>참조 이미지를 업로드하여 스타일 일관성 향상</li>
                                     <li>같은 설정(스타일, 비율)으로 생성</li>
                                 </ul>
                             </div>
-                            <div>
-                                <h4 className="font-medium text-red-800">API 사용량이 초과되었어요</h4>
-                                <ul className="text-red-700 text-sm mt-2 space-y-1 list-disc list-inside">
-                                    <li>Google AI Studio에서 사용량 확인</li>
+                                          <div>
+                                            <h4 className="font-medium text-orange-800">API 사용량이 초과되었어요</h4>
+                                            <ul className="text-orange-700 text-sm mt-2 space-y-1 list-disc list-inside">                                    <li>Google AI Studio에서 사용량 확인</li>
                                     <li>일정 시간 후 재시도</li>
                                     <li>이미지 생성 개수를 줄여서 사용</li>
                                 </ul>

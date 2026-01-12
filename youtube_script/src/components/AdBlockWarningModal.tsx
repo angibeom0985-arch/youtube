@@ -13,12 +13,12 @@ const AdBlockWarningModal: React.FC<AdBlockWarningModalProps> = ({ isOpen }) => 
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[9999] p-4">
-      <div className="bg-gradient-to-br from-red-900 to-red-950 border-4 border-red-500 rounded-2xl p-8 max-w-2xl w-full shadow-2xl animate-pulse">
+      <div className="bg-gradient-to-br from-zinc-900 to-black border-4 border-orange-500 rounded-2xl p-8 max-w-2xl w-full shadow-2xl shadow-orange-500/20">
         <div className="text-center">
           {/* 경고 아이콘 */}
           <div className="mb-6">
             <svg 
-              className="w-24 h-24 mx-auto text-red-500" 
+              className="w-24 h-24 mx-auto text-orange-500" 
               fill="none" 
               stroke="currentColor" 
               viewBox="0 0 24 24"
@@ -39,21 +39,21 @@ const AdBlockWarningModal: React.FC<AdBlockWarningModalProps> = ({ isOpen }) => 
 
           {/* 설명 */}
           <div className="text-white space-y-4 mb-8">
-            <p className="text-xl font-semibold text-red-300">
+            <p className="text-xl font-semibold text-orange-300">
               광고 차단 프로그램(AdBlock)이 활성화되어 있습니다.
             </p>
             <p className="text-lg">
-              이 서비스는 <span className="text-yellow-300 font-bold">완전 무료</span>로 제공되며,<br />
+              이 서비스는 <span className="text-orange-300 font-bold">완전 무료</span>로 제공되며,<br />
               광고 수익으로 운영됩니다.
             </p>
-            <div className="bg-red-800 bg-opacity-50 rounded-lg p-4 mt-4">
-              <p className="text-lg font-semibold text-yellow-300">
+            <div className="bg-orange-500/10 rounded-lg p-4 mt-4">
+              <p className="text-lg font-semibold text-orange-400">
                 💡 서비스를 이용하시려면
               </p>
               <ol className="text-left mt-3 space-y-2 text-white">
-                <li>1️⃣ 브라우저의 광고 차단 프로그램을 <span className="text-red-300 font-bold">비활성화</span>해주세요</li>
-                <li>2️⃣ 또는 이 사이트를 광고 차단 <span className="text-green-300 font-bold">예외 목록</span>에 추가해주세요</li>
-                <li>3️⃣ 설정 후 아래 버튼을 클릭하여 <span className="text-blue-300 font-bold">새로고침</span>해주세요</li>
+                <li>1️⃣ 브라우저의 광고 차단 프로그램을 <span className="text-orange-400 font-bold">비활성화</span>해주세요</li>
+                <li>2️⃣ 또는 이 사이트를 광고 차단 <span className="text-orange-400 font-bold">예외 목록</span>에 추가해주세요</li>
+                <li>3️⃣ 설정 후 아래 버튼을 클릭하여 <span className="text-orange-400 font-bold">새로고침</span>해주세요</li>
               </ol>
             </div>
           </div>
@@ -66,7 +66,7 @@ const AdBlockWarningModal: React.FC<AdBlockWarningModalProps> = ({ isOpen }) => 
           {/* 새로고침 버튼 */}
           <button
             onClick={handleReload}
-            className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-4 px-8 rounded-xl text-xl transition-all duration-300 transform hover:scale-105 shadow-lg"
+            className="bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-400 hover:to-amber-500 text-white font-bold py-4 px-8 rounded-xl text-xl transition-all duration-300 transform hover:scale-105 shadow-lg shadow-orange-500/30"
           >
             🔄 광고 차단 해제 후 새로고침
           </button>

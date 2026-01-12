@@ -86,12 +86,11 @@ const DebugPage: React.FC<DebugPageProps> = ({ mode }) => {
       <div className="min-h-screen bg-[#121212] text-white flex items-center justify-center p-4">
         <div className="w-full max-w-md bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-8">
           <h1 className="text-2xl font-bold mb-6">Debug Login</h1>
-          {error && (
-            <div className="mb-4 rounded-lg border border-red-600 bg-red-950/60 p-3 text-sm text-red-200">
-              {error}
-            </div>
-          )}
-          <form className="space-y-4" onSubmit={handleLogin}>
+                  {error && (
+                    <div className="mb-4 rounded-lg border border-orange-600 bg-orange-950/60 p-3 text-sm text-orange-200">
+                      {error}
+                    </div>
+                  )}          <form className="space-y-4" onSubmit={handleLogin}>
             <div>
               <label className="block text-sm mb-1">Username</label>
               <input
@@ -124,7 +123,7 @@ const DebugPage: React.FC<DebugPageProps> = ({ mode }) => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-lg bg-red-600 py-2 font-semibold hover:bg-red-700 disabled:opacity-50"
+              className="w-full rounded-lg bg-orange-600 py-2 font-semibold hover:bg-orange-700 disabled:opacity-50"
             >
               {loading ? "Signing in..." : "Sign in"}
             </button>

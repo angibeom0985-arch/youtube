@@ -312,22 +312,22 @@ const TtsPage: React.FC = () => {
         </div>
 
         {error && (
-          <div className="mt-6 rounded-xl border border-red-500/60 bg-red-950/50 p-4 text-sm text-red-100">
+          <div className="mt-6 rounded-xl border border-orange-500/60 bg-orange-950/50 p-4 text-sm text-orange-100">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <span className="text-sm font-semibold text-red-100">오류 메시지</span>
+              <span className="text-sm font-semibold text-orange-100">오류 메시지</span>
               <button
                 type="button"
                 onClick={handleCopyError}
-                className="rounded-full border border-red-400/60 bg-red-500/20 px-3 py-1 text-xs font-semibold text-red-100 transition hover:border-red-300 hover:bg-red-500/30"
+                className="rounded-full border border-orange-400/60 bg-orange-500/20 px-3 py-1 text-xs font-semibold text-orange-100 transition hover:border-orange-300 hover:bg-orange-500/30"
               >
                 복사
               </button>
             </div>
-            <pre className="mt-3 whitespace-pre-wrap break-words text-sm text-red-100">
+            <pre className="mt-3 whitespace-pre-wrap break-words text-sm text-orange-100">
               {error}
             </pre>
             {copyStatus && (
-              <p className="mt-3 text-xs text-red-100/80">{copyStatus}</p>
+              <p className="mt-3 text-xs text-orange-100/80">{copyStatus}</p>
             )}
           </div>
         )}

@@ -32,7 +32,7 @@ const ScriptGuidePage: React.FC = () => {
             <FiHome size={18} />
             <span>대본 생성으로 돌아가기</span>
           </a>
-          <h1 className="text-4xl sm:text-5xl font-extrabold bg-gradient-to-r from-[#FF6A00] to-[#FF2B2B] bg-clip-text text-transparent">
+          <h1 className="text-4xl sm:text-5xl font-extrabold bg-gradient-to-r from-orange-500 to-orange-400 bg-clip-text text-transparent">
             대본 생성 사용법
           </h1>
           <p className="mt-3 text-neutral-300">

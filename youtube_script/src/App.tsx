@@ -84,12 +84,12 @@ const vlogTypes = [
   "요리",
 ];
 const characterColors = [
-  "text-red-400",
-  "text-cyan-400",
-  "text-green-400",
-  "text-yellow-400",
-  "text-purple-400",
   "text-orange-400",
+  "text-amber-400",
+  "text-orange-500",
+  "text-yellow-500",
+  "text-orange-600",
+  "text-amber-600",
 ];
 
 const getStoredString = (key: string, fallback = "") => {
@@ -153,7 +153,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
       onClick={onClick}
       className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
         isSelected
-          ? "bg-gradient-to-br from-[#D90000] to-[#FF2B2B] text-white shadow-[0_0_10px_rgba(255,43,43,0.5)]"
+          ? "bg-gradient-to-br from-orange-600 to-orange-500 text-white shadow-[0_0_10px_rgba(249,115,22,0.5)]"
           : "bg-[#2A2A2A] hover:bg-zinc-700 text-neutral-200"
       }`}
       {...attributes}
@@ -1363,7 +1363,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
       : "떡상할 제목을 입력하세요";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-950 via-black to-orange-900 text-white font-sans p-4 sm:p-8 pb-32">
+    <div className="min-h-screen bg-black text-white font-sans p-4 sm:p-8 pb-32">
       {/* 애드블럭 감지 */}
       <AdBlockDetector onAdBlockDetected={handleAdBlockDetected} />
 
@@ -1377,7 +1377,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
         }`}
       >
         <header className="text-center mb-10">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold bg-gradient-to-r from-[#FF0000] to-[#FF2B2B] bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(255,0,0,0.6)] mb-4">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold bg-gradient-to-r from-orange-500 to-amber-400 bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(249,115,22,0.6)] mb-4">
             유튜브 떡상 대본의 비밀 파헤치기+모방
           </h1>
           <p className="text-neutral-300 mb-4">
@@ -1387,7 +1387,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
           <nav className="flex justify-center gap-3 flex-wrap">
             <a
               href="/script/guide"
-              className="px-4 py-2 bg-gradient-to-br from-purple-600 to-purple-800 hover:from-purple-500 hover:to-purple-700 text-white rounded-lg transition-all border border-purple-500/50 text-sm font-medium shadow-lg shadow-purple-500/30"
+              className="px-4 py-2 bg-gradient-to-br from-orange-500 to-amber-600 hover:from-orange-400 hover:to-amber-500 text-white rounded-lg transition-all border border-orange-400/50 text-sm font-medium shadow-lg shadow-orange-500/30"
             >
               📖 사용법
             </a>
@@ -1398,7 +1398,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                               className="flex items-center gap-2 px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-white rounded-lg transition-colors shadow-lg text-sm font-medium"
                               title="분석 결과 및 저장 데이터 삭제"
                             >
-                              <FiTrash2 size={14} />
+                              <FiTrash2 size={14} className="text-orange-400" />
                               <span>데이터 삭제</span>
                             </button>              )}
             </div>
@@ -1423,7 +1423,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                     value={youtubeUrl}
                     onChange={handleUrlChange}
                     placeholder="https://www.youtube.com/watch?v=..."
-                    className="w-full bg-[#121212] border border-[#2A2A2A] rounded-md p-2 text-neutral-200 focus:ring-2 focus:ring-red-500 focus:border-red-500 transition"
+                    className="w-full bg-[#121212] border border-[#2A2A2A] rounded-md p-2 text-neutral-200 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition"
                     style={
                       {
                         userSelect: "text",
@@ -1433,13 +1433,13 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                   />
                   {isFetchingDetails && (
                     <div className="absolute inset-y-0 right-3 flex items-center pr-1">
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-red-500"></div>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-orange-500"></div>
                     </div>
                   )}
                 </div>
               ) : (
                 <div className="relative group mt-2">
-                  <div className="border border-[#2A2A2A] rounded-lg overflow-hidden bg-zinc-900/50 focus-within:ring-2 focus-within:ring-red-500">
+                  <div className="border border-[#2A2A2A] rounded-lg overflow-hidden bg-zinc-900/50 focus-within:ring-2 focus-within:ring-orange-500">
                     <a
                       href={youtubeUrl}
                       className="block hover:opacity-90 transition-opacity focus:outline-none"
@@ -1491,7 +1491,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
               <button
                 onClick={handleFetchTranscript}
                 disabled={!youtubeUrl.trim() || isFetchingTranscript}
-                className="px-4 py-2 bg-gradient-to-br from-[#D90000] to-[#FF2B2B] text-white font-semibold rounded-md hover:from-[#D90000]/90 hover:to-[#FF2B2B]/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                className="px-4 py-2 bg-gradient-to-br from-orange-600 to-orange-500 text-white font-semibold rounded-md hover:from-orange-500 hover:to-orange-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
               >
                 {isFetchingTranscript ? "대본 추출 중..." : "대본 추출"}
               </button>
@@ -1568,7 +1568,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                       onClick={() => setSelectedVlogType(vlogType)}
                       className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
                         selectedVlogType === vlogType
-                          ? "bg-gradient-to-br from-[#D90000] to-[#FF2B2B] text-white shadow-[0_0_10px_rgba(255,43,43,0.5)]"
+                          ? "bg-gradient-to-br from-orange-600 to-orange-500 text-white shadow-[0_0_10px_rgba(249,115,22,0.5)]"
                           : "bg-[#2A2A2A] hover:bg-zinc-700 text-neutral-200"
                       }`}
                     >
@@ -1593,7 +1593,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                       onClick={() => setContentType(type)}
                       className={`px-3 py-1 text-sm font-medium rounded-md transition-all duration-200 ${
                         contentType === type
-                          ? "bg-gradient-to-br from-[#D90000] to-[#FF2B2B] text-white"
+                          ? "bg-gradient-to-br from-orange-600 to-orange-500 text-white"
                           : "bg-[#2A2A2A] hover:bg-zinc-700 text-neutral-200"
                       }`}
                     >
@@ -1609,7 +1609,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                   value={transcript}
                   onChange={(e) => setTranscript(e.target.value)}
                   placeholder="여기에 스크립트를 붙여넣어 주세요."
-                  className="w-full bg-[#121212] border border-[#2A2A2A] rounded-md p-2 text-neutral-200 focus:ring-2 focus:ring-red-500 focus:border-red-500 transition"
+                  className="w-full bg-[#121212] border border-[#2A2A2A] rounded-md p-2 text-neutral-200 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition"
                   style={
                     {
                       userSelect: "text",
@@ -1618,13 +1618,13 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                   }
                 />
                 {error && (
-                  <div className="bg-red-900/50 border-2 border-red-500 text-red-100 p-5 rounded-xl mt-3 shadow-[0_0_20px_rgba(220,38,38,0.3)]">
+                  <div className="bg-zinc-900/90 border-2 border-orange-500 text-orange-100 p-5 rounded-xl mt-3 shadow-[0_0_20px_rgba(234,88,12,0.2)]">
                     <div className="flex items-center gap-2 font-bold text-xl mb-3">
                       <span className="text-2xl">🚨</span>
                       <span>오류 발생</span>
                     </div>
-                    <div className="bg-red-950/80 rounded-lg p-4 mb-3">
-                      <pre className="whitespace-pre-wrap overflow-auto max-h-96 font-mono text-sm text-red-200 leading-relaxed">
+                    <div className="bg-black/40 rounded-lg p-4 mb-3">
+                      <pre className="whitespace-pre-wrap overflow-auto max-h-96 font-mono text-sm text-orange-200 leading-relaxed">
                         {error}
                       </pre>
                     </div>
@@ -1633,7 +1633,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                         navigator.clipboard.writeText(error);
                         alert("오류 메시지가 복사되었습니다. 개발자에게 전달해주세요.");
                       }}
-                      className="w-full bg-red-700 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+                      className="w-full bg-orange-600 hover:bg-orange-500 text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -1647,7 +1647,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
             <button
               onClick={handleAnalyze}
               disabled={isAnalyzing || !transcript}
-              className="w-full mt-4 bg-gradient-to-br from-[#D90000] to-[#FF2B2B] text-white font-bold py-3 px-4 rounded-lg hover:from-[#D90000]/90 hover:to-[#FF2B2B]/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105"
+              className="w-full mt-4 bg-gradient-to-br from-orange-600 to-orange-500 text-white font-bold py-3 px-4 rounded-lg hover:from-orange-500 hover:to-orange-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105"
             >
               {isAnalyzing ? "분석 중..." : "떡상 이유 분석하기"}
             </button>
@@ -1656,17 +1656,17 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
             {isAnalyzing && (
               <div className="mt-4 bg-gradient-to-br from-[#1a1a1a] to-[#2a2a2a] border border-[#3a3a3a] rounded-lg p-6">
                 <div className="flex items-center justify-center mb-4">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF2B2B]"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
                 </div>
                 <div className="space-y-3">
                   <div className="flex items-center space-x-3">
-                    <div className={`w-2 h-2 rounded-full ${isAnalyzing ? 'bg-[#FF2B2B] animate-pulse' : 'bg-gray-600'}`}></div>
+                    <div className={`w-2 h-2 rounded-full ${isAnalyzing ? 'bg-orange-500 animate-pulse' : 'bg-gray-600'}`}></div>
                     <span className="text-sm text-neutral-300">
                       {isGeneratingIdeas ? '✓ 스크립트 분석 완료' : '📊 스크립트 분석 중...'}
                     </span>
                   </div>
                   <div className="flex items-center space-x-3">
-                    <div className={`w-2 h-2 rounded-full ${isGeneratingIdeas ? 'bg-[#FF2B2B] animate-pulse' : 'bg-gray-600'}`}></div>
+                    <div className={`w-2 h-2 rounded-full ${isGeneratingIdeas ? 'bg-orange-500 animate-pulse' : 'bg-gray-600'}`}></div>
                     <span className={`text-sm ${isGeneratingIdeas ? 'text-neutral-300' : 'text-gray-500'}`}>
                       {isGeneratingIdeas ? '💡 새로운 아이디어 생성 중...' : '새로운 아이디어 대기 중'}
                     </span>
@@ -1732,11 +1732,11 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                         key={index}
                         className="bg-zinc-900 p-4 rounded-lg border border-[#2A2A2A]"
                       >
-                        <h3 className="font-bold text-red-500 mb-2">
+                        <h3 className="font-bold text-orange-500 mb-2">
                           {item.title}
                         </h3>
                         <div
-                          className="prose prose-invert max-w-none prose-p:text-white prose-strong:text-red-500"
+                          className="prose prose-invert max-w-none prose-p:text-white prose-strong:text-orange-500"
                           dangerouslySetInnerHTML={{
                             __html: highlightImportantText(
                               item.description.replace(/\*\*/g, "")
@@ -1763,11 +1763,11 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                         key={index}
                         className="bg-zinc-900 p-4 rounded-lg border border-[#2A2A2A]"
                       >
-                        <h3 className="font-bold text-red-500 mb-2">
+                        <h3 className="font-bold text-orange-500 mb-2">
                           {item.title}
                         </h3>
                         <div
-                          className="prose prose-invert max-w-none prose-p:text-white prose-strong:text-red-500"
+                          className="prose prose-invert max-w-none prose-p:text-white prose-strong:text-orange-500"
                           dangerouslySetInnerHTML={{
                             __html: highlightImportantText(
                               item.description.replace(/\*\*/g, "")
@@ -1796,11 +1796,11 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                             key={index}
                             className="bg-zinc-900 p-4 rounded-lg border border-[#2A2A2A]"
                           >
-                            <h3 className="font-bold text-lg text-red-500 mb-3">
+                            <h3 className="font-bold text-lg text-orange-500 mb-3">
                               {stage.stage}
                             </h3>
                             <div
-                              className="prose prose-invert max-w-none prose-p:text-white prose-strong:text-red-500 mb-4"
+                              className="prose prose-invert max-w-none prose-p:text-white prose-strong:text-orange-500 mb-4"
                               dangerouslySetInnerHTML={{
                                 __html: highlightImportantText(
                                   stage.purpose.replace(/\*\*/g, "")
@@ -1814,7 +1814,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                                     key={qIndex}
                                     className="text-base flex items-start"
                                   >
-                                    <span className="font-mono text-red-500 mr-3 w-16 text-right flex-shrink-0">
+                                    <span className="font-mono text-orange-500 mr-3 w-16 text-right flex-shrink-0">
                                       [{quote.timestamp}]
                                     </span>
                                     <span>"{quote.text}"</span>
@@ -1867,7 +1867,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                       }}
                       className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
                         lengthMode === option
-                          ? "bg-gradient-to-br from-[#D90000] to-[#FF2B2B] text-white shadow-[0_0_10px_rgba(255,43,43,0.5)]"
+                          ? "bg-gradient-to-br from-orange-600 to-orange-500 text-white shadow-[0_0_10px_rgba(249,115,22,0.5)]"
                           : "bg-[#2A2A2A] hover:bg-zinc-700 text-neutral-200"
                       }`}
                     >
@@ -1882,7 +1882,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                     }}
                     className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
                       lengthMode === "custom"
-                        ? "bg-gradient-to-br from-[#D90000] to-[#FF2B2B] text-white shadow-[0_0_10px_rgba(255,43,43,0.5)]"
+                        ? "bg-gradient-to-br from-orange-600 to-orange-500 text-white shadow-[0_0_10px_rgba(249,115,22,0.5)]"
                         : "bg-[#2A2A2A] hover:bg-zinc-700 text-neutral-200"
                     }`}
                   >
@@ -1897,7 +1897,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                       value={customLength}
                       onChange={(e) => setCustomLength(e.target.value)}
                       placeholder="예: 1시간 30분, 45분, 2시간"
-                      className="w-full bg-[#121212] border border-[#2A2A2A] rounded-md p-3 text-neutral-200 focus:ring-2 focus:ring-red-500 focus:border-red-500 transition"
+                      className="w-full bg-[#121212] border border-[#2A2A2A] rounded-md p-3 text-neutral-200 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition"
                       autoFocus
                     />
                   </div>
@@ -1914,7 +1914,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                     onClick={() => setScriptStyle("대화 버전")}
                     className={`flex-1 px-4 py-3 text-sm font-medium rounded-md transition-all duration-200 ${
                       scriptStyle === "대화 버전"
-                        ? "bg-gradient-to-br from-[#D90000] to-[#FF2B2B] text-white shadow-[0_0_10px_rgba(255,43,43,0.5)]"
+                        ? "bg-gradient-to-br from-orange-600 to-orange-500 text-white shadow-[0_0_10px_rgba(249,115,22,0.5)]"
                         : "bg-[#2A2A2A] hover:bg-zinc-700 text-neutral-200"
                     }`}
                   >
@@ -1927,7 +1927,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                     onClick={() => setScriptStyle("나레이션 버전")}
                     className={`flex-1 px-4 py-3 text-sm font-medium rounded-md transition-all duration-200 ${
                       scriptStyle === "나레이션 버전"
-                        ? "bg-gradient-to-br from-[#D90000] to-[#FF2B2B] text-white shadow-[0_0_10px_rgba(255,43,43,0.5)]"
+                        ? "bg-gradient-to-br from-orange-600 to-orange-500 text-white shadow-[0_0_10px_rgba(249,115,22,0.5)]"
                         : "bg-[#2A2A2A] hover:bg-zinc-700 text-neutral-200"
                     }`}
                   >
@@ -1947,7 +1947,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                   <button
                     onClick={handleRefreshIdeas}
                     disabled={isGeneratingIdeas || !analysisResult}
-                    className="text-sm font-medium text-red-500 hover:text-red-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="text-sm font-medium text-orange-500 hover:text-orange-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     새로고침
                   </button>
@@ -1964,7 +1964,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                         }
                       }}
                       placeholder="원하는 키워드 입력 (선택사항) - 예: 다이어트, 여행, 게임"
-                      className="flex-1 bg-[#121212] border border-[#2A2A2A] rounded-md p-2 text-sm text-neutral-200 focus:ring-2 focus:ring-red-500 focus:border-red-500 transition new-idea-input"
+                      className="flex-1 bg-[#121212] border border-[#2A2A2A] rounded-md p-2 text-sm text-neutral-200 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition new-idea-input"
                       style={
                         {
                           userSelect: "text",
@@ -1981,7 +1981,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                     <button
                       onClick={handleApplyIdeaKeyword}
                       disabled={isGeneratingIdeas || !analysisResult || !userIdeaKeyword.trim()}
-                      className="px-4 py-2 text-sm font-medium bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                      className="px-4 py-2 text-sm font-medium bg-orange-600 hover:bg-orange-500 text-white rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                     >
                       적용
                     </button>
@@ -1998,7 +1998,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                   <p className="text-xs text-neutral-400 mt-1">
                     💡 특정 키워드를 입력하고 '적용' 버튼을 누르면 해당 키워드를 포함한 아이디어가 생성됩니다.
                     {appliedIdeaKeyword && (
-                      <span className="text-red-400 font-medium">
+                      <span className="text-orange-400 font-medium">
                         {" "}현재 적용된 키워드: "{appliedIdeaKeyword}"
                       </span>
                     )}
@@ -2042,7 +2042,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                   value={newKeyword}
                   onChange={(e) => setNewKeyword(e.target.value)}
                   placeholder={newKeywordPlaceholder}
-                  className="w-full bg-[#121212] border border-[#2A2A2A] rounded-md p-3 text-neutral-200 focus:ring-2 focus:ring-red-500 focus:border-red-500 transition"
+                  className="w-full bg-[#121212] border border-[#2A2A2A] rounded-md p-3 text-neutral-200 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition"
                   style={
                     {
                       userSelect: "text",
@@ -2058,8 +2058,8 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                 />
               </div>
               {(!analysisResult || !newKeyword) && (
-                <div className="mb-4 p-4 bg-yellow-900/30 border border-yellow-500/50 rounded-lg">
-                  <p className="text-yellow-300 text-sm">
+                <div className="mb-4 p-4 bg-orange-500/10 border border-orange-500/50 rounded-lg">
+                  <p className="text-orange-300 text-sm">
                     ⚠️ {!analysisResult ? "먼저 영상을 분석해주세요." : "새로운 떡상 제목을 입력해주세요."}
                   </p>
                 </div>
@@ -2067,20 +2067,20 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
               <button
                 onClick={handleGenerate}
                 disabled={isGenerating || !newKeyword || !analysisResult}
-                className="w-full bg-gradient-to-br from-[#D90000] to-[#FF2B2B] text-white font-bold py-3 px-6 rounded-lg hover:from-[#D90000]/90 hover:to-[#FF2B2B]/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105"
+                className="w-full bg-gradient-to-br from-orange-600 to-orange-500 text-white font-bold py-3 px-6 rounded-lg hover:from-orange-500 hover:to-orange-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105"
               >
                 {isGenerating ? "생성 중..." : "기획안 생성"}
               </button>
 
               {/* 기획안 생성 오류 표시 */}
               {error && !isAnalyzing && !isGenerating && (
-                <div className="mt-4 bg-red-900/50 border-2 border-red-500 text-red-100 p-5 rounded-xl shadow-[0_0_20px_rgba(220,38,38,0.3)]">
+                <div className="mt-4 bg-zinc-900/90 border-2 border-orange-500 text-orange-100 p-5 rounded-xl shadow-[0_0_20px_rgba(234,88,12,0.2)]">
                   <div className="flex items-center gap-2 font-bold text-xl mb-3">
                     <span className="text-2xl">🚨</span>
                     <span>기획안 생성 실패</span>
                   </div>
-                  <div className="bg-red-950/80 rounded-lg p-4 mb-3">
-                    <pre className="whitespace-pre-wrap overflow-auto max-h-96 font-mono text-sm text-red-200 leading-relaxed">
+                  <div className="bg-black/40 rounded-lg p-4 mb-3">
+                    <pre className="whitespace-pre-wrap overflow-auto max-h-96 font-mono text-sm text-orange-200 leading-relaxed">
                       {error}
                     </pre>
                   </div>
@@ -2090,7 +2090,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                         navigator.clipboard.writeText(error);
                         alert("오류 메시지가 복사되었습니다. 개발자에게 전달해주세요.");
                       }}
-                      className="flex-1 bg-red-700 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+                      className="flex-1 bg-orange-600 hover:bg-orange-500 text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -2111,23 +2111,23 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
               {isGenerating && (
                 <div className="mt-4 bg-gradient-to-br from-[#1a1a1a] to-[#2a2a2a] border border-[#3a3a3a] rounded-lg p-6">
                   <div className="flex items-center justify-center mb-4">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF2B2B]"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
                   </div>
                   <div className="space-y-3">
                     <div className="flex items-center space-x-3">
-                      <div className="w-2 h-2 rounded-full bg-[#FF2B2B] animate-pulse"></div>
+                      <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></div>
                       <span className="text-sm text-neutral-300">
                         📝 새로운 영상 기획 의도 생성 중...
                       </span>
                     </div>
                     <div className="flex items-center space-x-3">
-                      <div className="w-2 h-2 rounded-full bg-[#FF2B2B] animate-pulse"></div>
+                      <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></div>
                       <span className="text-sm text-neutral-300">
                         🎬 대본 구조 설계 중...
                       </span>
                     </div>
                     <div className="flex items-center space-x-3">
-                      <div className="w-2 h-2 rounded-full bg-[#FF2B2B] animate-pulse"></div>
+                      <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></div>
                       <span className="text-sm text-neutral-300">
                         ✍️ 완성된 대본 작성 중...
                       </span>
@@ -2162,11 +2162,11 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                         key={index}
                         className="bg-zinc-900 p-4 rounded-lg border border-[#2A2A2A]"
                       >
-                        <h3 className="font-bold text-red-500 mb-2">
+                        <h3 className="font-bold text-orange-500 mb-2">
                           {item.title}
                         </h3>
                         <div
-                          className="prose prose-invert max-w-none prose-p:text-white prose-strong:text-red-500"
+                          className="prose prose-invert max-w-none prose-p:text-white prose-strong:text-orange-500"
                           dangerouslySetInnerHTML={{
                             __html: highlightImportantText(
                               item.description.replace(/\*\*/g, "")
@@ -2195,7 +2195,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                     <div className="flex justify-end mb-4">
                       <button
                         onClick={handleSendToImageGenerator}
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold shadow-md hover:from-purple-500 hover:to-indigo-500 transition"
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-orange-600 to-orange-500 text-white font-semibold shadow-md hover:from-orange-500 hover:to-orange-400 transition"
                       >
                         🎨 이미지 생성기로 보내기
                       </button>
@@ -2203,7 +2203,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                     <div className="space-y-8">
                       {/* 1. 등장인물 */}
                       <div>
-                        <h3 className="text-2xl font-bold text-red-500 mb-4">
+                        <h3 className="text-2xl font-bold text-orange-500 mb-4">
                           등장인물
                         </h3>
                         <div className="flex flex-wrap gap-3 p-5 bg-zinc-900 rounded-lg border border-[#2A2A2A]">
@@ -2225,7 +2225,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
 
                       {/* 2. 각 챕터별 */}
                       <div>
-                        <h3 className="text-2xl font-bold text-red-500 mb-4">
+                        <h3 className="text-2xl font-bold text-orange-500 mb-4">
                           각 챕터별
                         </h3>
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
@@ -2244,11 +2244,11 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                                 disabled={!canGenerate || chapter.isGenerating}
                                 className={`p-4 rounded-lg border-2 transition-all text-left ${
                                   chapter.script
-                                    ? 'bg-green-900/20 border-green-500/50 cursor-default'
+                                    ? 'bg-orange-500/10 border-orange-500/50 cursor-default'
                                     : chapter.isGenerating
-                                    ? 'bg-blue-900/20 border-blue-500/50 cursor-wait'
+                                    ? 'bg-orange-500/10 border-orange-500/50 cursor-wait'
                                     : canGenerate
-                                    ? 'bg-zinc-900 border-zinc-700 hover:border-blue-500 cursor-pointer'
+                                    ? 'bg-zinc-900 border-zinc-700 hover:border-orange-500 cursor-pointer'
                                     : 'bg-zinc-900/50 border-zinc-800 cursor-not-allowed opacity-50'
                                 }`}
                               >
@@ -2257,12 +2257,12 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                                     {index + 1}
                                   </span>
                                   {chapter.script && (
-                                    <svg className="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <svg className="h-5 w-5 text-orange-400" fill="currentColor" viewBox="0 0 20 20">
                                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                     </svg>
                                   )}
                                   {chapter.isGenerating && (
-                                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
+                                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-orange-500"></div>
                                   )}
                                 </div>
                                 <p className="text-sm text-neutral-300 line-clamp-2">
@@ -2285,11 +2285,11 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                                     <h4 className="text-xl font-bold text-white mb-1">
                                       챕터 {index + 1}: {chapter.title}
                                     </h4>
-                                    <p className="text-sm text-purple-400">
+                                    <p className="text-sm text-orange-400">
                                       예상 소요 시간: {chapter.estimatedDuration}
                                     </p>
                                   </div>
-                                  <div className="flex items-center gap-2 px-3 py-1 bg-green-900/30 text-green-400 rounded-full border border-green-500/50 text-sm">
+                                  <div className="flex items-center gap-2 px-3 py-1 bg-orange-500/10 text-orange-400 rounded-full border border-orange-500/50 text-sm">
                                     <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
                                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                     </svg>
@@ -2308,7 +2308,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                       {/* 3. 대본 내용 - 생성된 챕터만 표시 */}
                       {newPlan.chapters.some(ch => ch.script) && (
                         <div>
-                          <h3 className="text-2xl font-bold text-red-500 mb-4">
+                          <h3 className="text-2xl font-bold text-orange-500 mb-4">
                             대본 내용
                           </h3>
                           <div className="space-y-6">
@@ -2317,7 +2317,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                               
                               return (
                                 <div key={chapter.id} className="p-6 bg-zinc-900 rounded-lg border border-[#2A2A2A]">
-                                  <h4 className="text-lg font-bold text-cyan-400 mb-4">
+                                  <h4 className="text-lg font-bold text-orange-400 mb-4">
                                     챕터 {index + 1}: {chapter.title}
                                   </h4>
                                   <div className="space-y-4 max-h-[500px] overflow-y-auto p-4 bg-black/30 rounded-lg">
@@ -2325,7 +2325,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                                       <div key={scriptIndex}>
                                         <div className="flex items-start gap-4">
                                           <div className="w-28 flex-shrink-0 pt-1">
-                                            <span className={`font-bold text-sm ${characterColorMap.get(item.character) || "text-red-500"}`}>
+                                            <span className={`font-bold text-sm ${characterColorMap.get(item.character) || "text-orange-500"}`}>
                                               {item.character}
                                             </span>
                                             {item.timestamp && (
@@ -2369,7 +2369,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                                         a.click();
                                         URL.revokeObjectURL(url);
                                       }}
-                                      className="flex-1 px-4 py-2.5 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-semibold rounded-lg transition-all duration-200 shadow-lg flex items-center justify-center gap-2"
+                                      className="flex-1 px-4 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-semibold rounded-lg transition-all duration-200 shadow-lg flex items-center justify-center gap-2"
                                     >
                                       <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -2400,7 +2400,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                                         a.click();
                                         URL.revokeObjectURL(url);
                                       }}
-                                      className="flex-1 px-4 py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white font-semibold rounded-lg transition-all duration-200 shadow-lg flex items-center justify-center gap-2"
+                                      className="flex-1 px-4 py-2.5 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-semibold rounded-lg transition-all duration-200 shadow-lg flex items-center justify-center gap-2"
                                     >
                                       <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -2414,7 +2414,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                                     <div className="mt-4 pt-4 border-t border-zinc-700">
                                       <button
                                         onClick={() => handleGenerateChapterScript(newPlan.chapters[index + 1].id)}
-                                        className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-semibold rounded-lg transition-all duration-200 shadow-lg flex items-center justify-center gap-2"
+                                        className="w-full px-4 py-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-semibold rounded-lg transition-all duration-200 shadow-lg flex items-center justify-center gap-2"
                                       >
                                         <span>챕터 {index + 2} 대본 생성하기</span>
                                         <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2444,7 +2444,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                   >
                     <div className="space-y-6">
                       <div>
-                        <h3 className="text-lg font-semibold text-red-500 mb-3">
+                        <h3 className="text-lg font-semibold text-orange-500 mb-3">
                           등장인물
                         </h3>
                         <div className="flex flex-wrap gap-2 p-4 bg-zinc-900 rounded-lg border border-[#2A2A2A]">
@@ -2464,7 +2464,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                         </div>
                       </div>
                       <div>
-                        <h3 className="text-lg font-semibold text-red-500 mb-3">
+                        <h3 className="text-lg font-semibold text-orange-500 mb-3">
                           대본 내용
                         </h3>
                         <div className="space-y-4 max-h-[600px] overflow-y-auto p-4 bg-zinc-900 rounded-lg border border-[#2A2A2A]">
@@ -2475,7 +2475,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                                   <span
                                     className={`font-bold text-sm ${
                                       characterColorMap.get(item.character) ||
-                                      "text-red-500"
+                                      "text-orange-500"
                                     }`}
                                   >
                                     {item.character}
@@ -2514,7 +2514,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
 
                 {/* 다른 사이트 소개 섹션 */}
                 {(newPlan.scriptWithCharacters || newPlan.chapters) && (
-                  <div className="mt-8 bg-gradient-to-br from-purple-900/30 via-pink-900/30 to-blue-900/30 border-2 border-purple-500/50 rounded-xl p-8">
+                  <div className="mt-8 bg-zinc-900/50 border-2 border-orange-500/50 rounded-xl p-8 shadow-[0_0_20px_rgba(234,88,12,0.1)]">
                     <div className="text-center mb-6">
                       <h3 className="text-2xl font-bold text-white mb-2">
                         🎬 더 많은 영상 제작 도구가 필요하신가요?
@@ -2526,7 +2526,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                     <div className="grid md:grid-cols-2 gap-4">
                       <a
                         href="https://youtube.money-hotissue.com/image"
-                        className="bg-gradient-to-br from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white font-bold py-6 px-8 rounded-lg transition-all duration-300 transform hover:scale-105 text-center shadow-lg"
+                        className="bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-bold py-6 px-8 rounded-lg transition-all duration-300 transform hover:scale-105 text-center shadow-lg"
                       >
                         <div className="text-4xl mb-3">📹</div>
                         <div className="text-xl font-bold">숏폼/롱폼 영상 소스 무제한 생성</div>
@@ -2534,7 +2534,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                       </a>
                       <a
                         href="https://aimusic.money-hotissue.com/"
-                        className="bg-gradient-to-br from-orange-600 to-orange-700 hover:from-orange-500 hover:to-orange-600 text-white font-bold py-6 px-8 rounded-lg transition-all duration-300 transform hover:scale-105 text-center shadow-lg"
+                        className="bg-gradient-to-br from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-bold py-6 px-8 rounded-lg transition-all duration-300 transform hover:scale-105 text-center shadow-lg"
                       >
                         <div className="text-4xl mb-3">🔥</div>
                         <div className="text-xl font-bold">AI 음악 가사+썸네일 1초 완성</div>
@@ -2557,14 +2557,14 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                             key={index}
                             className="bg-zinc-900 p-4 rounded-lg border border-[#2A2A2A]"
                           >
-                            <h3 className="font-bold text-red-500 mb-2">
+                            <h3 className="font-bold text-orange-500 mb-2">
                               {stage.stage}
                             </h3>
 
                             <p className="text-sm text-neutral-200 mb-3">
                               {stage.purpose}
                             </p>
-                            <div className="prose prose-invert max-w-none prose-p:text-white prose-strong:text-red-500 prose-strong:underline prose-strong:decoration-red-500/70 prose-strong:underline-offset-4">
+                            <div className="prose prose-invert max-w-none prose-p:text-white prose-strong:text-orange-500 prose-strong:underline prose-strong:decoration-orange-500/70 prose-strong:underline-offset-4">
                               <ReactMarkdown remarkPlugins={[remarkGfm]}>
                                 {stage.details}
                               </ReactMarkdown>
@@ -2597,7 +2597,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
       {(analysisResult || newPlan || transcript || youtubeUrl) && (
         <button
           onClick={handleReset}
-          className="fixed bottom-24 right-6 bg-red-600 hover:bg-red-700 text-white px-5 py-3 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 flex items-center gap-2 font-semibold z-50 border-2 border-red-400"
+          className="fixed bottom-24 right-6 bg-orange-600 hover:bg-orange-500 text-white px-5 py-3 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 flex items-center gap-2 font-semibold z-50 border-2 border-orange-400"
           title="모든 내용 초기화"
         >
           <svg

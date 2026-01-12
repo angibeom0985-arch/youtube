@@ -46,7 +46,7 @@ const DownloadModal: React.FC<DownloadModalProps> = ({
       />
 
       {/* 모달 컨텐츠 */}
-      <div className="relative bg-[#1A1A1A] border-2 border-red-500/50 rounded-2xl p-8 max-w-lg w-full mx-4 shadow-[0_0_30px_rgba(217,0,0,0.3)]">
+      <div className="relative bg-[#1A1A1A] border-2 border-orange-500/50 rounded-2xl p-8 max-w-lg w-full mx-4 shadow-[0_0_30px_rgba(249,115,22,0.3)]">
         {/* 닫기 버튼 */}
         <button
           onClick={onClose}
@@ -92,8 +92,8 @@ const DownloadModal: React.FC<DownloadModalProps> = ({
                 onClick={() => setDownloadType(option.value as "script" | "imagePrompts" | "both")}
                 className={`p-4 rounded-lg border-2 transition-all ${
                   downloadType === option.value
-                    ? "bg-gradient-to-br from-[#D90000] to-[#FF2B2B] border-red-500 text-white shadow-[0_0_15px_rgba(255,43,43,0.5)]"
-                    : "bg-[#2A2A2A] border-[#3A3A3A] text-neutral-300 hover:border-red-500/50"
+                    ? "bg-gradient-to-br from-orange-600 to-orange-500 border-orange-500 text-white shadow-[0_0_15px_rgba(249,115,22,0.5)]"
+                    : "bg-[#2A2A2A] border-[#3A3A3A] text-neutral-300 hover:border-orange-500/50"
                 }`}
               >
                 <div className="text-2xl mb-1">{option.icon}</div>
@@ -119,8 +119,8 @@ const DownloadModal: React.FC<DownloadModalProps> = ({
                 onClick={() => setFormat(option.value as "txt" | "md" | "pdf")}
                 className={`p-4 rounded-lg border-2 transition-all ${
                   format === option.value
-                    ? "bg-gradient-to-br from-[#D90000] to-[#FF2B2B] border-red-500 text-white shadow-[0_0_15px_rgba(255,43,43,0.5)]"
-                    : "bg-[#2A2A2A] border-[#3A3A3A] text-neutral-300 hover:border-red-500/50"
+                    ? "bg-gradient-to-br from-orange-600 to-orange-500 border-orange-500 text-white shadow-[0_0_15px_rgba(249,115,22,0.5)]"
+                    : "bg-[#2A2A2A] border-[#3A3A3A] text-neutral-300 hover:border-orange-500/50"
                 }`}
               >
                 <div className="text-2xl mb-1">{option.icon}</div>
@@ -141,7 +141,7 @@ const DownloadModal: React.FC<DownloadModalProps> = ({
                 type="checkbox"
                 checked={includeMetadata}
                 onChange={(e) => setIncludeMetadata(e.target.checked)}
-                className="w-5 h-5 rounded border-2 border-neutral-500 bg-[#121212] checked:bg-red-600 checked:border-red-600 focus:ring-2 focus:ring-red-500 focus:ring-offset-0 transition-colors cursor-pointer"
+                className="w-5 h-5 rounded border-2 border-neutral-500 bg-[#121212] checked:bg-orange-600 checked:border-orange-600 focus:ring-2 focus:ring-orange-500 focus:ring-offset-0 transition-colors cursor-pointer"
               />
               <span className="ml-3 text-neutral-200">
                 메타데이터 (카테고리, 길이 등)
@@ -152,7 +152,7 @@ const DownloadModal: React.FC<DownloadModalProps> = ({
                 type="checkbox"
                 checked={includeTimestamp}
                 onChange={(e) => setIncludeTimestamp(e.target.checked)}
-                className="w-5 h-5 rounded border-2 border-neutral-500 bg-[#121212] checked:bg-red-600 checked:border-red-600 focus:ring-2 focus:ring-red-500 focus:ring-offset-0 transition-colors cursor-pointer"
+                className="w-5 h-5 rounded border-2 border-neutral-500 bg-[#121212] checked:bg-orange-600 checked:border-orange-600 focus:ring-2 focus:ring-orange-500 focus:ring-offset-0 transition-colors cursor-pointer"
               />
               <span className="ml-3 text-neutral-200">
                 생성 시간 및 날짜
@@ -183,7 +183,7 @@ const DownloadModal: React.FC<DownloadModalProps> = ({
           </button>
           <button
             onClick={handleDownload}
-            className="flex-1 py-3 px-4 rounded-lg bg-gradient-to-br from-[#D90000] to-[#FF2B2B] text-white font-bold shadow-[0_0_20px_rgba(255,43,43,0.5)] hover:shadow-[0_0_30px_rgba(255,43,43,0.7)] transition-all transform hover:scale-[1.02]"
+            className="flex-1 py-3 px-4 rounded-lg bg-gradient-to-br from-orange-600 to-orange-500 text-white font-bold shadow-[0_0_20px_rgba(249,115,22,0.5)] hover:shadow-[0_0_30px_rgba(249,115,22,0.7)] transition-all transform hover:scale-[1.02]"
           >
             💾 다운로드
           </button>

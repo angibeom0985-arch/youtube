@@ -351,8 +351,8 @@ const BenchmarkingPage: React.FC = () => {
 
         {/* Error State */}
         {error && (
-          <div className="bg-red-900/20 border-2 border-red-500/30 rounded-xl p-6 mb-10 text-center">
-            <p className="text-red-400 font-bold">❌ {error}</p>
+          <div className="bg-orange-900/20 border-2 border-orange-500/30 rounded-xl p-6 mb-10 text-center">
+            <p className="text-orange-400 font-bold">❌ {error}</p>
           </div>
         )}
 
@@ -412,7 +412,7 @@ const BenchmarkingPage: React.FC = () => {
                       href={video.link}
                       target="_blank"
                       rel="noreferrer"
-                      className="flex items-center justify-center gap-2 w-full py-3 bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white font-bold rounded-xl border border-red-600/30 transition-all"
+                      className="flex items-center justify-center gap-2 w-full py-3 bg-orange-600/10 hover:bg-orange-600 text-orange-500 hover:text-white font-bold rounded-xl border border-orange-600/30 transition-all"
                     >
                       <FiExternalLink />
                       영상 자세히 보기
@@ -461,7 +461,7 @@ const BenchmarkingPage: React.FC = () => {
                           </span>
                         </td>
                         <td className="px-6 py-4">
-                          <a href={video.link} target="_blank" rel="noreferrer" className="text-red-500 hover:text-red-400">
+                          <a href={video.link} target="_blank" rel="noreferrer" className="text-orange-500 hover:text-orange-400">
                             <FiExternalLink size={18} />
                           </a>
                         </td>

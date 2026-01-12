@@ -325,13 +325,12 @@ const ApiKeyGuide: React.FC<ApiKeyGuideProps> = ({ onBack }) => {
                   복사
                 </button>
               </div>
-              <div className="bg-red-50 border-l-4 border-red-500 p-4">
-                <p className="text-red-800">
-                  ⚠️ <strong>중요:</strong> API 키는 한 번만 표시되므로 반드시
-                  복사하여 안전한 곳에 저장하세요.
-                </p>
-              </div>
-            </div>
+                              <div className="bg-orange-50 border-l-4 border-orange-500 p-4">
+                                <p className="text-orange-800">
+                                  ⚠️ <strong>중요:</strong> API 키는 한 번만 표시되므로 반드시
+                                  복사하여 안전한 곳에 저장하세요.
+                                </p>
+                              </div>            </div>
           </div>
 
           {/* 6단계 */}
@@ -406,9 +405,8 @@ const ApiKeyGuide: React.FC<ApiKeyGuideProps> = ({ onBack }) => {
                   </strong>
                 </p>
               </div>
-              <div className="bg-red-50 p-4 rounded-lg">
-                <p className="text-red-800">
-                  ❌{" "}
+                                      <div className="bg-orange-50 p-4 rounded-lg">
+                                        <p className="text-orange-800">                  ❌{" "}
                   <strong>
                     '결제 설정'한다고 해서, 바로 결제되는 거 아니니 안심하세요.
                   </strong>

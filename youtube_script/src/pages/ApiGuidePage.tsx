@@ -32,7 +32,7 @@ const ApiGuidePage: React.FC = () => {
             <FiHome size={20} />
             <span>홈으로 돌아가기</span>
           </a>
-          <h1 className="text-4xl sm:text-5xl font-extrabold bg-gradient-to-r from-[#FF0000] to-[#FF2B2B] bg-clip-text text-transparent mb-4">
+          <h1 className="text-4xl sm:text-5xl font-extrabold bg-gradient-to-r from-orange-500 to-orange-400 bg-clip-text text-transparent mb-4">
             Google Gemini API 키 발급 가이드
           </h1>
           <p className="text-neutral-300">유튜브 영상 분석 AI를 사용하기 위해 필요한 Google Gemini API 키를 발급받는 방법을 단계별로 안내드립니다.</p>
@@ -67,7 +67,7 @@ const ApiGuidePage: React.FC = () => {
           {/* 1단계: Google AI Studio 접속 */}
           <section className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6">
             <div className="flex items-center gap-3 mb-4">
-              <span className="flex items-center justify-center w-10 h-10 rounded-full bg-red-600 text-white font-bold text-lg">1</span>
+              <span className="flex items-center justify-center w-10 h-10 rounded-full bg-orange-600 text-white font-bold text-lg">1</span>
               <h2 className="text-2xl font-bold text-white">Google AI Studio 접속</h2>
             </div>
             <div className="mb-4">
@@ -92,7 +92,7 @@ const ApiGuidePage: React.FC = () => {
           {/* 2단계: 프로젝트 만들기 1 */}
           <section className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6">
             <div className="flex items-center gap-3 mb-4">
-              <span className="flex items-center justify-center w-10 h-10 rounded-full bg-red-600 text-white font-bold text-lg">2</span>
+              <span className="flex items-center justify-center w-10 h-10 rounded-full bg-orange-600 text-white font-bold text-lg">2</span>
               <h2 className="text-2xl font-bold text-white">프로젝트 만들기 1</h2>
             </div>
             <div className="mb-4">
@@ -113,7 +113,7 @@ const ApiGuidePage: React.FC = () => {
           {/* 3단계: 프로젝트 만들기 2 */}
           <section className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6">
             <div className="flex items-center gap-3 mb-4">
-              <span className="flex items-center justify-center w-10 h-10 rounded-full bg-red-600 text-white font-bold text-lg">3</span>
+              <span className="flex items-center justify-center w-10 h-10 rounded-full bg-orange-600 text-white font-bold text-lg">3</span>
               <h2 className="text-2xl font-bold text-white">프로젝트 만들기 2</h2>
             </div>
             <div className="mb-4">
@@ -129,7 +129,7 @@ const ApiGuidePage: React.FC = () => {
           {/* 4단계: 새 키 생성 */}
           <section className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6">
             <div className="flex items-center gap-3 mb-4">
-              <span className="flex items-center justify-center w-10 h-10 rounded-full bg-red-600 text-white font-bold text-lg">4</span>
+              <span className="flex items-center justify-center w-10 h-10 rounded-full bg-orange-600 text-white font-bold text-lg">4</span>
               <h2 className="text-2xl font-bold text-white">새 키 생성</h2>
             </div>
             <div className="mb-4">
@@ -150,7 +150,7 @@ const ApiGuidePage: React.FC = () => {
           {/* 5단계: API 키 생성 완료 및 복사 */}
           <section className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6">
             <div className="flex items-center gap-3 mb-4">
-              <span className="flex items-center justify-center w-10 h-10 rounded-full bg-red-600 text-white font-bold text-lg">5</span>
+              <span className="flex items-center justify-center w-10 h-10 rounded-full bg-orange-600 text-white font-bold text-lg">5</span>
               <h2 className="text-2xl font-bold text-white">API 키 생성 완료 및 복사</h2>
             </div>
             <div className="mb-4">
@@ -173,7 +173,7 @@ const ApiGuidePage: React.FC = () => {
           {/* 6단계: 유튜브 영상 분석 AI에 API 키 입력 */}
           <section className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6">
             <div className="flex items-center gap-3 mb-4">
-              <span className="flex items-center justify-center w-10 h-10 rounded-full bg-red-600 text-white font-bold text-lg">6</span>
+              <span className="flex items-center justify-center w-10 h-10 rounded-full bg-orange-600 text-white font-bold text-lg">6</span>
               <h2 className="text-2xl font-bold text-white">유튜브 영상 분석 AI에 API 키 입력</h2>
             </div>
             <div className="mb-4">
@@ -194,7 +194,7 @@ const ApiGuidePage: React.FC = () => {
           {/* 7단계: 결제 설정 */}
           <section className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6">
             <div className="flex items-center gap-3 mb-4">
-              <span className="flex items-center justify-center w-10 h-10 rounded-full bg-red-600 text-white font-bold text-lg">7</span>
+              <span className="flex items-center justify-center w-10 h-10 rounded-full bg-orange-600 text-white font-bold text-lg">7</span>
               <h2 className="text-2xl font-bold text-white">'결제 설정'</h2>
             </div>
             <div className="mb-4">
@@ -205,8 +205,8 @@ const ApiGuidePage: React.FC = () => {
                 <div className="bg-green-900/20 border border-green-700/50 rounded-lg p-3">
                   <p className="text-green-300 text-sm">✅ '결제 설정'까지 마쳐야, API를 사용할 수 있습니다.</p>
                 </div>
-                <div className="bg-red-900/20 border border-red-700/50 rounded-lg p-3">
-                  <p className="text-red-300 text-sm">❌ '결제 설정'한다고 해서, 바로 결제되는 거 아니니 안심하세요.</p>
+                <div className="bg-orange-900/20 border border-orange-700/50 rounded-lg p-3">
+                  <p className="text-orange-300 text-sm">❌ '결제 설정'한다고 해서, 바로 결제되는 거 아니니 안심하세요.</p>
                 </div>
               </div>
             </div>
@@ -215,7 +215,7 @@ const ApiGuidePage: React.FC = () => {
           {/* 8단계: 결제 설정 페이지 */}
           <section className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6">
             <div className="flex items-center gap-3 mb-4">
-              <span className="flex items-center justify-center w-10 h-10 rounded-full bg-red-600 text-white font-bold text-lg">8</span>
+              <span className="flex items-center justify-center w-10 h-10 rounded-full bg-orange-600 text-white font-bold text-lg">8</span>
               <h2 className="text-2xl font-bold text-white">결제 설정 페이지</h2>
             </div>
             <div className="mb-4">
@@ -233,13 +233,12 @@ const ApiGuidePage: React.FC = () => {
                 <li>📝 새로운 영상 기획안 생성</li>
               </ul>
               <div className="text-center pt-4">
-                <a
-                  href="/"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-br from-[#D90000] to-[#FF2B2B] text-white font-bold rounded-lg hover:from-[#D90000]/90 hover:to-[#FF2B2B]/90 transition-all"
-                >
-                  🚀 이제 분석기 사용하기 →
-                </a>
-              </div>
+                            <a
+                              href="/"
+                              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-br from-orange-600 to-orange-500 text-white font-bold rounded-lg hover:from-orange-500 hover:to-orange-400 transition-all"
+                            >
+                              🚀 이제 분석기 사용하기 →
+                            </a>              </div>
             </div>
           </section>
 
@@ -247,7 +246,7 @@ const ApiGuidePage: React.FC = () => {
 
           {/* FAQ 섹션 */}
           <section className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6">
-            <h2 className="text-2xl font-bold text-red-500 mb-6">자주 묻는 질문 (FAQ)</h2>
+            <h2 className="text-2xl font-bold text-orange-500 mb-6">자주 묻는 질문 (FAQ)</h2>
             <div className="space-y-6 text-neutral-300">
               <div className="border-b border-[#2A2A2A] pb-4">
                 <h3 className="font-bold text-white text-lg mb-2">Q: API 키가 작동하지 않아요</h3>
@@ -268,7 +267,7 @@ const ApiGuidePage: React.FC = () => {
 
           {/* 관련 문서 */}
           <section className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6">
-            <h2 className="text-2xl font-bold text-red-500 mb-4">📚 관련 문서</h2>
+            <h2 className="text-2xl font-bold text-orange-500 mb-4">📚 관련 문서</h2>
             <div className="space-y-3 text-neutral-300">
               <a
                 href="https://ai.google.dev/gemini-api/docs/rate-limits?hl=ko#free-tier"
@@ -319,14 +318,13 @@ const ApiGuidePage: React.FC = () => {
             >
               📖 전체 사용법 보기
             </a>
-            <a
-              href="/"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-br from-[#D90000] to-[#FF2B2B] text-white font-bold rounded-lg hover:from-[#D90000]/90 hover:to-[#FF2B2B]/90 transition-all"
-            >
-              <FiHome size={20} />
-              분석기로 돌아가기
-            </a>
-          </div>
+                      <a
+                        href="/"
+                        className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-br from-orange-600 to-orange-500 text-white font-bold rounded-lg hover:from-orange-500 hover:to-orange-400 transition-all"
+                      >
+                        <FiHome size={20} />
+                        분석기로 돌아가기
+                      </a>          </div>
 
           {/* 푸터 */}
           <div className="text-center text-neutral-500 text-sm border-t border-[#2A2A2A] pt-8">

@@ -56,11 +56,11 @@ const ResultCard: React.FC<ResultCardProps> = ({
       }`}
     >
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold text-red-500">{title}</h2>
+        <h2 className="text-2xl font-bold text-orange-500">{title}</h2>
         <div className="flex gap-2">
           <button
             onClick={handleDownloadClick}
-            className="group relative px-6 py-3 bg-gradient-to-br from-[#D90000] to-[#FF2B2B] text-white font-bold rounded-lg shadow-[0_0_20px_rgba(255,43,43,0.5)] hover:shadow-[0_0_30px_rgba(255,43,43,0.8)] transition-all transform hover:scale-[1.05] hover:-translate-y-0.5 active:scale-[0.98]"
+            className="group relative px-6 py-3 bg-gradient-to-br from-orange-600 to-orange-500 text-white font-bold rounded-lg shadow-[0_0_20px_rgba(249,115,22,0.5)] hover:shadow-[0_0_30px_rgba(249,115,22,0.8)] transition-all transform hover:scale-[1.05] hover:-translate-y-0.5 active:scale-[0.98]"
             title="다운로드 옵션 설정"
           >
             <span className="flex items-center gap-2">

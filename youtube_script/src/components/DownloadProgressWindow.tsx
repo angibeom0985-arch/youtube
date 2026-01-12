@@ -57,9 +57,9 @@ const DownloadProgressWindow: React.FC<DownloadProgressWindowProps> = ({
     <div className="min-h-screen bg-gradient-to-br from-[#0A0A0A] via-[#1A1A1A] to-[#0A0A0A] flex items-center justify-center p-4">
       <div className="max-w-md w-full">
         {/* 메인 카드 */}
-        <div className="bg-[#1A1A1A] border-2 border-red-500/50 rounded-2xl p-8 shadow-[0_0_50px_rgba(217,0,0,0.3)] relative overflow-hidden">
+        <div className="bg-[#1A1A1A] border-2 border-orange-500/50 rounded-2xl p-8 shadow-[0_0_50px_rgba(249,115,22,0.3)] relative overflow-hidden">
           {/* 배경 애니메이션 */}
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-500/10 to-transparent animate-shimmer" />
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-orange-500/10 to-transparent animate-shimmer" />
 
           {/* 컨텐츠 */}
           <div className="relative z-10">
@@ -67,11 +67,10 @@ const DownloadProgressWindow: React.FC<DownloadProgressWindowProps> = ({
             <div className="flex justify-center mb-6">
               {status === "downloading" ? (
                 <div className="relative">
-                  <div className="w-24 h-24 border-4 border-red-500/30 rounded-full" />
-                  <div className="absolute inset-0 w-24 h-24 border-4 border-transparent border-t-red-500 rounded-full animate-spin" />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <svg
-                      className="w-12 h-12 text-red-500"
+                                      <div className="w-24 h-24 border-4 border-orange-500/30 rounded-full" />
+                                      <div className="absolute inset-0 w-24 h-24 border-4 border-transparent border-t-orange-500 rounded-full animate-spin" />                    <div className="absolute inset-0 flex items-center justify-center">
+                      <svg
+                        className="w-12 h-12 text-orange-500"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -143,10 +142,9 @@ const DownloadProgressWindow: React.FC<DownloadProgressWindowProps> = ({
             {/* 프로그레스 바 */}
             {status === "downloading" && (
               <div className="mt-6">
-                <div className="w-full h-2 bg-neutral-800 rounded-full overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-red-500 to-red-600 animate-progress" />
-                </div>
-              </div>
+                                  <div className="w-full h-2 bg-neutral-800 rounded-full overflow-hidden">
+                                    <div className="h-full bg-gradient-to-r from-orange-500 to-orange-600 animate-progress" />
+                                  </div>              </div>
             )}
 
             {/* 닫기 버튼 (완료 후) */}
