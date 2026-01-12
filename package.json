@@ -27,11 +27,12 @@
     "react-markdown": "^9.0.1",
     "react-router-dom": "^7.9.3",
     "remark-gfm": "^4.0.0",
+    "youtube-transcript": "^1.2.1",
     "youtubei.js": "^9.1.0"
   },
   "devDependencies": {
-    "@vercel/node": "^3.2.24",
     "@types/node": "^22.14.0",
+    "@vercel/node": "^3.2.24",
     "@vitejs/plugin-react": "^5.0.0",
     "autoprefixer": "^10.4.21",
     "concurrently": "^9.2.1",

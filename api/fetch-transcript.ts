@@ -1,14 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { Innertube } from 'youtubei.js';
-
-let ytPromise: Promise<Innertube> | null = null;
-
-const getClient = () => {
-  if (!ytPromise) {
-    ytPromise = Innertube.create({});
-  }
-  return ytPromise;
-};
+import { YoutubeTranscript } from 'youtube-transcript';
 
 const extractVideoId = (url: string): string | null => {
   const patterns = [
@@ -20,17 +11,6 @@ const extractVideoId = (url: string): string | null => {
     if (match && match[1]) return match[1];
   }
   return null;
-};
-
-const parseCaptionEvents = (events: any[]): string => {
-  if (!events || !Array.isArray(events)) return '';
-  return events
-    .map((event) => {
-      if (!event?.segs) return '';
-      return event.segs.map((s: any) => s.utf8 || '').join('').trim();
-    })
-    .filter(Boolean)
-    .join('\n');
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -57,34 +37,74 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return;
     }
 
-    const yt = await getClient();
-    const info = await yt.getInfo(videoId);
-    const captions = (info as any)?.captions;
-    const tracks = captions?.tracks as any[] | undefined;
+    // 전략: 한국어 -> 영어 -> 기본값 순으로 시도
+    let transcriptItems = null;
+    let usedLanguage = '';
 
-    if (!tracks || tracks.length === 0) {
-      res.status(404).send('이 영상에는 사용 가능한 대본(자막)이 없습니다.');
+    // 1. 한국어 시도
+    try {
+      transcriptItems = await YoutubeTranscript.fetchTranscript(videoId, {
+        lang: 'ko',
+      });
+      usedLanguage = 'ko';
+    } catch (e) {
+      // 한국어 실패 시 무시하고 다음 단계로
+      // console.log('Korean transcript not found, trying English...');
+    }
+
+    // 2. 한국어가 없으면 영어 시도
+    if (!transcriptItems) {
+      try {
+        transcriptItems = await YoutubeTranscript.fetchTranscript(videoId, {
+          lang: 'en',
+        });
+        usedLanguage = 'en';
+      } catch (e) {
+        // 영어도 실패 시 무시
+        // console.log('English transcript not found, trying default...');
+      }
+    }
+
+    // 3. 영어도 없으면 기본값(언어 지정 없이) 시도
+    // youtube-transcript는 언어를 지정하지 않으면 가능한 자막 목록을 가져오거나 기본 자막을 가져옴
+    // fetchTranscript(videoId)만 호출하면 기본적으로 캡션 트랙 중 하나를 가져옴
+    if (!transcriptItems) {
+      try {
+        // 옵션 없이 호출하면 라이브러리가 알아서 가장 적절한(또는 첫 번째) 자막을 가져옴
+        transcriptItems = await YoutubeTranscript.fetchTranscript(videoId);
+        usedLanguage = 'default';
+      } catch (e) {
+        console.error('[fetch-transcript] All attempts failed:', e);
+        res.status(404).send('이 영상에서 자막을 추출할 수 없습니다. (자막이 없거나 비공개일 수 있습니다)');
+        return;
+      }
+    }
+
+    if (!transcriptItems || transcriptItems.length === 0) {
+      res.status(404).send('자막 데이터가 비어 있습니다.');
       return;
     }
 
-    // 한국어 우선, 없으면 기본 자막
-    const preferred =
-      tracks.find((t: any) => (t.language_code || '').startsWith('ko')) || tracks[0];
+    // 텍스트 합치기
+    const fullText = transcriptItems
+      .map((item) => item.text)
+      .join(' ')
+      // HTML 엔티티 디코딩 (간단한 처리)
+      .replace(/&amp;/g, '&')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      // 불필요한 공백 정리
+      .replace(/\s+/g, ' ')
+      .trim();
 
-    const captionRes = await yt.session.http.fetch(preferred.url);
-    if (!captionRes.ok) {
-      res.status(502).send('자막을 불러오는 데 실패했습니다.');
-      return;
-    }
-    const captionJson = await captionRes.json();
-    const transcriptText = parseCaptionEvents(captionJson?.events || []);
+    res.status(200).json({ 
+      text: fullText,
+      language: usedLanguage,
+      videoId: videoId
+    });
 
-    if (!transcriptText.trim()) {
-      res.status(404).send('자막을 읽을 수 없습니다.');
-      return;
-    }
-
-    res.status(200).json({ text: transcriptText });
   } catch (error: any) {
     console.error('[fetch-transcript] error:', error);
     res
