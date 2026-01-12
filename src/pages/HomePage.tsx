@@ -7,9 +7,16 @@ interface HomePageProps {
 
 const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
   const normalizedBasePath = basePath && basePath != "/" ? basePath.replace(/\/$/, "") : "";
+  const benchmarkingPath = `${normalizedBasePath}/benchmarking` || "/benchmarking";
   const scriptPath = `${normalizedBasePath}/script` || "/script";
   const imagePath = `${normalizedBasePath}/image` || "/image";
   const ttsPath = `${normalizedBasePath}/tts` || "/tts";
+
+  const benchmarkingCardStyle = {
+    borderColor: "var(--tone-image-purple, #a855f7)",
+    background:
+      "linear-gradient(135deg, rgba(168, 85, 247, 0.38), rgba(168, 85, 247, 0.16) 48%, transparent 100%)",
+  } as React.CSSProperties;
 
   const scriptCardStyle = {
     borderColor: "var(--tone-image-orange)",
@@ -44,7 +51,32 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
           </p>
         </div>
 
-        <div className="mt-12 grid w-full gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-12 grid w-full gap-6 sm:grid-cols-2">
+          <Link
+            to={benchmarkingPath}
+            style={benchmarkingCardStyle}
+            className="group rounded-2xl border p-6 transition duration-300 hover:-translate-y-1"
+          >
+            <div className="flex items-start justify-between">
+              <div>
+                <h2 className="mt-2 text-2xl font-bold">
+                  모멘텀 헌터
+                </h2>
+                <p className="mt-3 text-sm text-slate-100/80">
+                  잠재력 높은 유튜브 영상을 빠르게 찾아드립니다. 채널 규모, 조회 속도를 함께 분석합니다.
+                </p>
+              </div>
+            </div>
+            <div className="mt-6 text-sm font-semibold">
+              <span
+                className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold text-black"
+                style={{ backgroundColor: "var(--tone-image-purple, #a855f7)" }}
+              >
+                모멘텀 분석 시작하기 -&gt;
+              </span>
+            </div>
+          </Link>
+
           <Link
             to={scriptPath}
             style={scriptCardStyle}

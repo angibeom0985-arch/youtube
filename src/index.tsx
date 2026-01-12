@@ -17,6 +17,7 @@ import DebugPage from './pages/DebugPage.tsx';
 import DownloadProgressPage from './pages/DownloadProgressPage.tsx';
 import DownloadPage from './pages/DownloadPage.tsx';
 import TtsPage from './pages/TtsPage.tsx';
+import BenchmarkingPage from './pages/BenchmarkingPage.tsx';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -29,6 +30,7 @@ root.render(
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/benchmarking" element={<BenchmarkingPage />} />
         <Route path="/script" element={<App />} />
         <Route path="/guide" element={<GuidePage />} />
         <Route path="/script/guide" element={<ScriptGuidePage />} />
