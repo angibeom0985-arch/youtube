@@ -45,16 +45,34 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // 2. 현재 디렉토리(api/)의 상위 디렉토리(루트)에서 파일 찾기
   let keyFilename = process.env.GOOGLE_APPLICATION_CREDENTIALS;
   
+  // Debugging logs
+  console.log("[api/tts DEBUG] Current CWD:", process.cwd());
+  console.log("[api/tts DEBUG] Initial GOOGLE_APPLICATION_CREDENTIALS:", keyFilename);
+
   if (!keyFilename || !fs.existsSync(keyFilename)) {
-     // 로컬 개발 환경용 기본 경로 (프로젝트 루트)
-     const defaultPath = path.resolve(process.cwd(), "gen-lang-client-0953948384-8ebab0d26ad1.json");
-     if (fs.existsSync(defaultPath)) {
-       keyFilename = defaultPath;
+     const jsonFileName = "gen-lang-client-0953948384-8ebab0d26ad1.json";
+     
+     // 후보 경로들 확인
+     const candidates = [
+        path.resolve(process.cwd(), jsonFileName),
+        path.resolve(process.cwd(), "youtube", jsonFileName), // 만약 상위 폴더에서 실행 중일 경우
+        path.resolve(process.cwd(), "..", jsonFileName),      // 만약 api 폴더 내부라고 인식될 경우
+        path.join("C:\\KB\\Website\\Youtube\\youtube", jsonFileName) // 절대 경로 하드코딩 (최후의 수단, 디버깅용)
+     ];
+
+     console.log("[api/tts DEBUG] Searching for credential file in candidates:", candidates);
+
+     for (const candidate of candidates) {
+        if (fs.existsSync(candidate)) {
+            console.log("[api/tts DEBUG] Found credential file at:", candidate);
+            keyFilename = candidate;
+            break;
+        }
      }
   }
 
   if (!keyFilename || !fs.existsSync(keyFilename)) {
-    console.error("[api/tts] Credential file not found.");
+    console.error("[api/tts] Credential file not found. Search failed.");
     res.status(500).json({ message: "server_configuration_error: missing_credentials" });
     return;
   }
