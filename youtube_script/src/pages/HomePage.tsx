@@ -19,21 +19,21 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
   } as React.CSSProperties;
 
   const scriptCardStyle = {
-    borderColor: "var(--tone-image-orange)",
+    borderColor: "var(--tone-image-orange, #ea580c)",
     background:
-      "linear-gradient(135deg, rgba(var(--tone-image-orange-rgb),0.38), rgba(var(--tone-image-orange-rgb),0.16) 48%, transparent 100%)",
+      "linear-gradient(135deg, rgba(234, 88, 12, 0.38), rgba(234, 88, 12, 0.16) 48%, transparent 100%)",
   } as React.CSSProperties;
 
   const imageCardStyle = {
-    borderColor: "var(--tone-image-blue)",
+    borderColor: "var(--tone-image-blue, #2563eb)",
     background:
-      "linear-gradient(135deg, rgba(var(--tone-image-blue-rgb),0.35), rgba(var(--tone-image-blue-rgb),0.14) 48%, transparent 100%)",
+      "linear-gradient(135deg, rgba(37, 99, 235, 0.35), rgba(37, 99, 235, 0.14) 48%, transparent 100%)",
   } as React.CSSProperties;
 
   const ttsCardStyle = {
-    borderColor: "var(--tone-image-green)",
+    borderColor: "var(--tone-image-green, #16a34a)",
     background:
-      "linear-gradient(135deg, rgba(var(--tone-image-green-rgb),0.32), rgba(var(--tone-image-green-rgb),0.12) 48%, transparent 100%)",
+      "linear-gradient(135deg, rgba(22, 163, 74, 0.32), rgba(22, 163, 74, 0.12) 48%, transparent 100%)",
   } as React.CSSProperties;
 
   return (
@@ -95,7 +95,7 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
             <div className="mt-6 text-sm font-semibold">
               <span
                 className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold text-black"
-                style={{ backgroundColor: "var(--tone-image-orange)" }}
+                style={{ backgroundColor: "var(--tone-image-orange, #ea580c)" }}
               >
                 대본 생성 시작하기 -&gt;
               </span>
@@ -120,7 +120,7 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
             <div className="mt-6 text-sm font-semibold">
               <span
                 className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold text-black"
-                style={{ backgroundColor: "var(--tone-image-blue)" }}
+                style={{ backgroundColor: "var(--tone-image-blue, #2563eb)" }}
               >
                 이미지 생성 시작하기 -&gt;
               </span>
@@ -145,7 +145,7 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
             <div className="mt-6 text-sm font-semibold">
               <span
                 className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold text-black"
-                style={{ backgroundColor: "var(--tone-image-green)" }}
+                style={{ backgroundColor: "var(--tone-image-green, #16a34a)" }}
               >
                 TTS 생성 시작하기 -&gt;
               </span>
