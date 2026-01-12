@@ -14,7 +14,8 @@
     { "source": "/api/admin/abuse", "destination": "/api/YOUTUBE/admin/abuse.ts" },
     { "source": "/api/guide/api-key", "destination": "/api/YOUTUBE/guide/api-key.js" },
     { "source": "/api/guide/user-guide", "destination": "/api/YOUTUBE/guide/user-guide.js" },
-    { "source": "/admin", "destination": "/youtube_script/public/admin.html" },
-    { "source": "/(.*)", "destination": "/youtube_script/index.html" }
+    { "source": "/api/benchmarking/search", "destination": "/api/youtube_script/benchmarking/search.ts" },
+    { "source": "/admin", "destination": "/dist/admin.html" },
+    { "source": "/(.*)", "destination": "/dist/index.html" }
   ]
 }
