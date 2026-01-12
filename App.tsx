@@ -430,7 +430,8 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
         target?.closest(".youtube-url-input") ||
         target?.closest(".transcript-input") ||
         target?.closest(".user-idea-keyword-input") ||
-        target?.closest(".new-title-input")
+        target?.closest(".new-title-input") ||
+        target?.closest(".tts-text-input")
       ) {
         return;
       }
@@ -447,7 +448,8 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
         target?.closest(".youtube-url-input") ||
         target?.closest(".transcript-input") ||
         target?.closest(".user-idea-keyword-input") ||
-        target?.closest(".new-title-input")
+        target?.closest(".new-title-input") ||
+        target?.closest(".tts-text-input")
       ) {
         return;
       }
@@ -465,7 +467,8 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
         target?.closest(".youtube-url-input") ||
         target?.closest(".transcript-input") ||
         target?.closest(".user-idea-keyword-input") ||
-        target?.closest(".new-title-input")
+        target?.closest(".new-title-input") ||
+        target?.closest(".tts-text-input")
       ) {
         return;
       }
@@ -482,7 +485,8 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
         target?.closest(".youtube-url-input") ||
         target?.closest(".transcript-input") ||
         target?.closest(".user-idea-keyword-input") ||
-        target?.closest(".new-title-input")
+        target?.closest(".new-title-input") ||
+        target?.closest(".tts-text-input")
       ) {
         return;
       }
@@ -498,7 +502,8 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
         target?.closest(".youtube-url-input") ||
         target?.closest(".transcript-input") ||
         target?.closest(".user-idea-keyword-input") ||
-        target?.closest(".new-title-input")
+        target?.closest(".new-title-input") ||
+        target?.closest(".tts-text-input")
       ) {
         return;
       }
@@ -522,7 +527,8 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
         target?.closest(".youtube-url-input") ||
         target?.closest(".transcript-input") ||
         target?.closest(".user-idea-keyword-input") ||
-        target?.closest(".new-title-input")
+        target?.closest(".new-title-input") ||
+        target?.closest(".tts-text-input")
       ) {
         return;
       }
@@ -593,12 +599,14 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
       const transcriptInput = document.querySelector(".transcript-input");
       const userIdeaInput = document.querySelector(".user-idea-keyword-input");
       const newTitleInput = document.querySelector(".new-title-input");
+      const ttsInput = document.querySelector(".tts-text-input");
       if (
         !modal &&
         !youtubeInput &&
         !transcriptInput &&
         !userIdeaInput &&
-        !newTitleInput
+        !newTitleInput &&
+        !ttsInput
       ) {
         disableTextSelection();
       }
@@ -612,12 +620,14 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
       const transcriptInput = document.querySelector(".transcript-input");
       const userIdeaInput = document.querySelector(".user-idea-keyword-input");
       const newTitleInput = document.querySelector(".new-title-input");
+      const ttsInput = document.querySelector(".tts-text-input");
       if (
         modal ||
         youtubeInput ||
         transcriptInput ||
         userIdeaInput ||
-        newTitleInput
+        newTitleInput ||
+        ttsInput
       ) {
         return;
       }
@@ -637,7 +647,8 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
               element?.closest(".youtube-url-input") ||
               element?.closest(".transcript-input") ||
               element?.closest(".user-idea-keyword-input") ||
-              element?.closest(".new-title-input")
+              element?.closest(".new-title-input") ||
+              element?.closest(".tts-text-input")
             ) {
               return;
             }

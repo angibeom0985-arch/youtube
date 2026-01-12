@@ -175,7 +175,7 @@ const TtsPage: React.FC = () => {
                   onChange={(event) => setText(event.target.value)}
                   placeholder="예) 여러분 안녕하세요. 오늘은..."
                   rows={8}
-                  className="mt-2 w-full resize-y rounded-lg border border-emerald-500/30 bg-emerald-950/50 px-3 py-2 text-sm text-white placeholder:text-emerald-200/60 focus:border-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-400/30"
+                  className="mt-2 w-full resize-y rounded-lg border border-emerald-500/30 bg-emerald-950/50 px-3 py-2 text-sm text-white placeholder:text-emerald-200/60 focus:border-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-400/30 tts-text-input"
                 />
               </div>
             </div>
