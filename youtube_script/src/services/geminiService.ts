@@ -1,5 +1,6 @@
 import type { AnalysisResult, NewPlan } from "../types";
 import { getClientFingerprint } from "./abuseService";
+import { supabase } from "./supabase";
 
 type GeminiAction =
   | "analyzeTranscript"
@@ -28,6 +29,10 @@ const toUserMessage = (raw: string): string => {
   if (!text || lower.includes("server_error")) {
     return "요청 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
   }
+  // 크레딧 부족 에러 메시지 처리
+  if (lower.includes("크레딧이 부족합니다")) {
+    return raw; // 서버에서 보낸 메시지 그대로 표시
+  }
 
   return text;
 };
@@ -41,9 +46,20 @@ const callGemini = async <T>(action: GeminiAction, payload: Record<string, unkno
     clientPayload = undefined;
   }
 
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+
+  const headers: Record<string, string> = { 
+    "Content-Type": "application/json" 
+  };
+  
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
   const response = await fetch("/api/gemini", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify({ action, payload, client: clientPayload }),
   });
 

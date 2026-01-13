@@ -1,5 +1,5 @@
 ﻿import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../services/supabase";
 import type { User } from "@supabase/supabase-js";
 
@@ -9,6 +9,7 @@ interface HomePageProps {
 
 const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
   const [user, setUser] = useState<User | null>(null);
+  const navigate = useNavigate();
   const normalizedBasePath = basePath && basePath != "/" ? basePath.replace(/\/$/, "") : "";
   const benchmarkingPath = `${normalizedBasePath}/benchmarking` || "/benchmarking";
   const scriptPath = `${normalizedBasePath}/script` || "/script";
@@ -45,6 +46,17 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
     await supabase.auth.signOut();
   };
 
+  const handleNavigation = (e: React.MouseEvent, path: string) => {
+    e.preventDefault();
+    if (!user) {
+      if (confirm("로그인이 필요한 서비스입니다.\n지금 무료 회원가입하고 크레딧을 받아보세요!\n\n로그인 페이지로 이동할까요?")) {
+        handleAuth();
+      }
+    } else {
+      navigate(path);
+    }
+  };
+
   const benchmarkingCardStyle = {
     borderColor: "var(--tone-image-purple, #a855f7)",
     background:
@@ -71,7 +83,7 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
 
   return (
     <div className="min-h-screen bg-black text-white relative">
-      <div className="absolute top-0 right-0 p-6 flex gap-3 z-10">
+      <div className="absolute top-0 right-0 p-6 flex gap-3 z-10 items-center">
         {user ? (
           <div className="flex items-center gap-4 bg-white/5 backdrop-blur-sm px-4 py-2 rounded-full border border-white/10">
             <span className="text-sm text-slate-300">{user.email}</span>
@@ -83,7 +95,10 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
             </button>
           </div>
         ) : (
-          <>
+          <div className="flex items-center gap-3">
+             <span className="hidden sm:inline-block text-xs font-bold text-yellow-400 animate-pulse bg-yellow-400/10 px-2 py-1 rounded border border-yellow-400/20">
+              🎁 가입 시 무료 크레딧 제공!
+            </span>
             <button
               onClick={handleAuth}
               className="px-4 py-2 text-sm font-semibold text-slate-300 hover:text-white transition-colors"
@@ -96,7 +111,7 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
             >
               회원가입
             </button>
-          </>
+          </div>
         )}
       </div>
 
@@ -114,18 +129,19 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
         </div>
 
         <div className="mt-12 grid w-full gap-6 sm:grid-cols-2">
-          <Link
-            to={benchmarkingPath}
+          <a
+            href={benchmarkingPath}
+            onClick={(e) => handleNavigation(e, benchmarkingPath)}
             style={benchmarkingCardStyle}
-            className="group rounded-2xl border p-6 transition duration-300 hover:-translate-y-1"
+            className="group rounded-2xl border p-6 transition duration-300 hover:-translate-y-1 cursor-pointer"
           >
             <div className="flex items-start justify-between">
               <div>
                 <h2 className="mt-2 text-2xl font-bold">
-                  모멘텀 헌터
+                  벤치마킹 영상 발굴
                 </h2>
                 <p className="mt-3 text-sm text-slate-100/80">
-                  잠재력 높은 유튜브 영상을 빠르게 찾아드립니다. 채널 규모, 조회 속도를 함께 분석합니다.
+                  벤치마킹할 만한 잠재력 높은 유튜브 영상을 빠르게 찾아드립니다. 채널 규모 대비 조회 효율을 분석합니다.
                 </p>
               </div>
             </div>
@@ -134,15 +150,16 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
                 className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold text-black"
                 style={{ backgroundColor: "var(--tone-image-purple, #a855f7)" }}
               >
-                모멘텀 분석 시작하기 -&gt;
+                영상 발굴 시작하기 -&gt;
               </span>
             </div>
-          </Link>
+          </a>
 
-          <Link
-            to={scriptPath}
+          <a
+            href={scriptPath}
+            onClick={(e) => handleNavigation(e, scriptPath)}
             style={scriptCardStyle}
-            className="group rounded-2xl border p-6 transition duration-300 hover:-translate-y-1"
+            className="group rounded-2xl border p-6 transition duration-300 hover:-translate-y-1 cursor-pointer"
           >
             <div className="flex items-start justify-between">
               <div>
@@ -162,12 +179,13 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
                 대본 생성 시작하기 -&gt;
               </span>
             </div>
-          </Link>
+          </a>
 
-          <Link
-            to={imagePath}
+          <a
+            href={imagePath}
+            onClick={(e) => handleNavigation(e, imagePath)}
             style={imageCardStyle}
-            className="group rounded-2xl border p-6 transition duration-300 hover:-translate-y-1"
+            className="group rounded-2xl border p-6 transition duration-300 hover:-translate-y-1 cursor-pointer"
           >
             <div className="flex items-start justify-between">
               <div>
@@ -187,12 +205,13 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
                 이미지 생성 시작하기 -&gt;
               </span>
             </div>
-          </Link>
+          </a>
 
-          <Link
-            to={ttsPath}
+          <a
+            href={ttsPath}
+            onClick={(e) => handleNavigation(e, ttsPath)}
             style={ttsCardStyle}
-            className="group rounded-2xl border p-6 transition duration-300 hover:-translate-y-1"
+            className="group rounded-2xl border p-6 transition duration-300 hover:-translate-y-1 cursor-pointer"
           >
             <div className="flex items-start justify-between">
               <div>
@@ -212,7 +231,7 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
                 TTS 생성 시작하기 -&gt;
               </span>
             </div>
-          </Link>
+          </a>
         </div>
 
         <div className="mt-12 text-xs text-slate-400/80">

@@ -165,7 +165,7 @@ const BenchmarkingPage: React.FC = () => {
               ← 홈으로 돌아가기
             </Link>
             <h1 className="text-4xl font-black bg-gradient-to-r from-white via-purple-200 to-purple-500 bg-clip-text text-transparent">
-              유튜브 모멘텀 헌터
+              벤치마킹 영상 발굴
             </h1>
           </div>
           
@@ -279,16 +279,16 @@ const BenchmarkingPage: React.FC = () => {
               {/* Momentum Info */}
               <div className="bg-purple-900/10 border border-purple-500/20 rounded-2xl p-6 flex flex-col justify-center">
                 <h3 className="text-purple-400 font-bold mb-4 flex items-center gap-2 text-lg">
-                  💡 모멘텀 분석이란?
+                  💡 벤치마킹 수치란?
                 </h3>
                 <div className="space-y-4 text-sm text-slate-300">
                   <p className="leading-relaxed">
-                    구독자 수 대비 조회수가 얼마나 높은지를 측정합니다. <br />
+                    구독자 수 대비 조회수가 얼마나 높은지를 측정하여 벤치마킹 효율을 계산합니다. <br />
                     <span className="text-white font-bold">1:1 비율(1배)</span>이 평균적인 성과라면, <br />
-                    <span className="text-purple-400 font-bold">10배 이상의 모멘텀</span>은 폭발적인 잠재력을 의미합니다.
+                    <span className="text-purple-400 font-bold">10배 이상의 수치</span>는 폭발적인 잠재력을 의미합니다.
                   </p>
                   <div className="p-3 bg-black/40 rounded-lg border border-purple-500/10">
-                    <p className="text-xs text-slate-400">기준: 구독자 1만 / 조회수 10만 = 10배 모멘텀</p>
+                    <p className="text-xs text-slate-400">기준: 구독자 1만 / 조회수 10만 = 10배 효율</p>
                   </div>
                 </div>
               </div>
@@ -297,14 +297,19 @@ const BenchmarkingPage: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 rounded-xl font-black transition-all text-xl shadow-[0_0_30px_rgba(147,51,234,0.3)] hover:shadow-[0_0_40px_rgba(147,51,234,0.5)] transform hover:-translate-y-1 active:scale-95"
+              className="w-full py-5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 rounded-xl font-black transition-all text-xl shadow-[0_0_30px_rgba(147,51,234,0.3)] hover:shadow-[0_0_40px_rgba(147,51,234,0.5)] transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2"
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-3">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
-                  유튜브 엔진 스캔 중...
+                  유튜브 엔진 분석 중...
                 </span>
-              ) : "시장 기회 발굴하기"}
+              ) : (
+                <>
+                  <span>벤치마킹 영상 검색</span>
+                  <span className="bg-white/20 text-white text-sm px-2 py-1 rounded-full font-bold">5 ⚡</span>
+                </>
+              )}
             </button>
           </form>
         </div>

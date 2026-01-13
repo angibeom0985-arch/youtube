@@ -1400,7 +1400,7 @@ const App: React.FC<ImageAppProps> = ({
                 onClick={() => navigateToView("user-guide")}
                 className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-sm font-medium transition-colors"
               >
-                [FIXED] 사용법 가이드
+                사용법
               </button>
             </div>
           </header>

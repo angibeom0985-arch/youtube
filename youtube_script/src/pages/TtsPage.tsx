@@ -369,29 +369,25 @@ const TtsPage: React.FC = () => {
             </div>
 
             {/* Action Button */}
-            <button
-              onClick={handleGenerate}
-              disabled={isGenerating || !text.trim()}
-              className={`w-full py-4 rounded-xl font-bold text-lg shadow-lg transition-all flex items-center justify-center gap-2
-                ${isGenerating 
-                  ? 'bg-slate-700 text-slate-400 cursor-not-allowed' 
-                  : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-emerald-900/20 hover:shadow-emerald-900/40 hover:-translate-y-0.5'
-                }`}
-            >
-              {isGenerating ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                  {progressStep === 'analyzing' && '감정 분석 중...'}
-                  {progressStep === 'preparing' && '준비 중...'}
-                  {progressStep === 'requesting' && '음성 생성 요청 중...'}
-                  {progressStep === 'processing' && '변환 중...'}
-                </>
-              ) : (
-                <>
-                  <FiMic /> 음성 생성하기
-                </>
-              )}
-            </button>
+              <button
+                type="button"
+                onClick={handleGenerate}
+                disabled={isGenerating || !text.trim()}
+                className={`w-full rounded-lg bg-emerald-500 px-4 py-3 text-sm font-bold text-white shadow-[0_0_18px_rgba(16,185,129,0.25)] transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-70 flex items-center justify-center gap-2`}
+              >
+                {isGenerating ? (
+                  "처리 중입니다..."
+                ) : (
+                  <>
+                    <span>TTS 생성하기</span>
+                    {text.trim() && (
+                      <span className="bg-emerald-700/50 px-2 py-0.5 rounded text-xs font-normal">
+                        예상 {Math.ceil(text.trim().length / 10)} ⚡
+                      </span>
+                    )}
+                  </>
+                )}
+              </button>
 
             {/* Error Message */}
             {error && (

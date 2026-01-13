@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { TextToSpeechClient } from "@google-cloud/text-to-speech";
 import { enforceUsageLimit, recordUsageEvent } from "../_lib/usageLimit.js";
+import { checkAndDeductCredits, CREDIT_COSTS } from "../_lib/creditService.js";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
@@ -42,6 +43,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (!text && !ssml) {
     res.status(400).json({ message: "missing_fields" });
+    return;
+  }
+
+  // Calculate Cost
+  const charCount = text ? text.length : ssml.length;
+  const cost = Math.ceil(charCount * CREDIT_COSTS.TTS_CHAR);
+
+  // Check and Deduct Credits (Enforces Login)
+  const creditResult = await checkAndDeductCredits(req, res, cost);
+  if (!creditResult.allowed) {
+    res.status(creditResult.status || 402).json({ 
+      message: creditResult.message || "Credits required",
+      error: "credit_limit"
+    });
     return;
   }
 

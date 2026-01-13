@@ -1461,9 +1461,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                     <FiLogOut size={14} />
                   </button>
                 </div>
-              ) : (
-                <Login />
-              )}
+              ) : null}
             </div>
           </nav>
         </header>

@@ -11,6 +11,7 @@ import {
 } from "../_lib/chapterService.js";
 import { enforceAbusePolicy } from "../_lib/abuseGuard.js";
 import { enforceUsageLimit, recordUsageEvent } from "../_lib/usageLimit.js";
+import { checkAndDeductCredits, CREDIT_COSTS } from "../_lib/creditService.js";
 
 type RateEntry = {
   count: number;
@@ -103,6 +104,41 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (!action || !payload) {
     res.status(400).send("invalid_request");
+    return;
+  }
+
+  // 1. Determine Cost based on Action
+  let cost = 0;
+  switch (action) {
+    case "analyzeTranscript":
+      cost = CREDIT_COSTS.ANALYSIS;
+      break;
+    case "generateIdeas":
+      cost = CREDIT_COSTS.IDEATION;
+      break;
+    case "generateNewPlan":
+      cost = CREDIT_COSTS.SCRIPT_PLAN;
+      break;
+    case "generateChapterOutline":
+      cost = CREDIT_COSTS.SCRIPT_OUTLINE;
+      break;
+    case "generateChapterScript":
+      cost = CREDIT_COSTS.SCRIPT_CHUNK;
+      break;
+    case "generateSsml":
+      cost = CREDIT_COSTS.ANALYSIS; // Low cost
+      break;
+    default:
+      cost = 1; // Default low cost
+  }
+
+  // 2. Check and Deduct Credits (Enforces Login)
+  const creditResult = await checkAndDeductCredits(req, res, cost);
+  if (!creditResult.allowed) {
+    res.status(creditResult.status || 402).json({ 
+      message: creditResult.message || "Credits required",
+      error: "credit_limit" 
+    });
     return;
   }
 
