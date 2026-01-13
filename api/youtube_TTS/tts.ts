@@ -32,6 +32,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const text = typeof body?.text === "string" ? body.text.trim() : "";
+  const ssml = typeof body?.ssml === "string" ? body.ssml.trim() : "";
   const voice = typeof body?.voice === "string" ? body.voice : "ko-KR-Standard-A";
   const speakingRate =
     typeof body?.speakingRate === "number" ? body.speakingRate : 1;
@@ -39,7 +40,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const clientFingerprint =
     typeof body?.client?.fingerprint === "string" ? body.client.fingerprint : null;
 
-  if (!text) {
+  if (!text && !ssml) {
     res.status(400).json({ message: "missing_fields" });
     return;
   }
@@ -99,8 +100,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const client = new TextToSpeechClient(clientOptions);
 
+    const input = ssml ? { ssml } : { text };
+
     const request = {
-      input: { text },
+      input,
       voice: { languageCode, name: voice },
       audioConfig: {
         audioEncoding: "MP3" as const,

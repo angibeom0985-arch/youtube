@@ -3,6 +3,7 @@ import {
   analyzeTranscript,
   generateIdeas,
   generateNewPlan,
+  generateSsml,
 } from "../_lib/geminiService.js";
 import { 
   generateChapterOutline, 
@@ -218,6 +219,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           scriptStyle
         );
         res.status(200).json({ script: result });
+        return;
+      }
+      case "generateSsml": {
+        const text = payload.text as string;
+        const prompt = payload.prompt as string;
+        if (!text) {
+          res.status(400).send("missing_fields");
+          return;
+        }
+        const result = await generateSsml(text, prompt || "", apiKey);
+        res.status(200).json(result);
         return;
       }
       default:

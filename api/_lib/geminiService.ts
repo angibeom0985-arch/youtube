@@ -879,3 +879,41 @@ ${analysisString}
     throw new Error(userMessage);
   }
 };
+
+const ssmlSchema = {
+  type: Type.OBJECT,
+  properties: {
+    ssml: { type: Type.STRING, description: "The generated SSML string." },
+  },
+  required: ["ssml"],
+};
+
+export const generateSsml = async (
+  text: string,
+  prompt: string,
+  apiKey: string
+): Promise<{ ssml: string }> => {
+  try {
+    const ai = createAI(apiKey);
+    
+    const context = prompt 
+      ? `다음 텍스트를 Google Cloud Text-to-Speech에서 사용할 수 있는 SSML(Speech Synthesis Markup Language) 형식으로 변환해주세요. \n\n**연기 지시사항(Acting Instruction):** "${prompt}"\n\n이 지시사항에 맞춰 <prosody>, <break>, <emphasis>, <say-as> 태그를 적절히 사용하여 감정과 리듬을 표현하세요.`
+      : `다음 텍스트를 Google Cloud Text-to-Speech에서 사용할 수 있는 SSML 형식으로 변환해주세요. 텍스트의 문맥을 분석하여 가장 자연스러운 호흡과 강조를 위해 <break>, <prosody> 태그를 적절히 추가하세요. 별도의 연기 지시가 없다면 자연스러운 낭독 톤을 유지하세요.`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: `${context}\n\n텍스트:\n${text}`,
+      config: {
+        systemInstruction: "당신은 SSML 전문가입니다. 주어진 텍스트를 Google Cloud TTS 호환 SSML로 변환합니다. \n1. 반드시 <speak> 태그로 감싸야 합니다.\n2. 텍스트 내용은 변경하지 마세요 (태그만 추가).\n3. <prosody rate='...' pitch='...'>, <break time='...'>, <emphasis> 태그를 적극 활용하여 지시된 감정을 표현하세요.\n4. rate는 'slow', 'medium', 'fast' 또는 'x-slow', 'x-fast' 등을 사용하세요.\n5. pitch는 'low', 'medium', 'high' 등을 사용하세요.",
+        responseMimeType: "application/json",
+        responseSchema: ssmlSchema,
+      },
+    });
+
+    const jsonText = response.text.trim();
+    return JSON.parse(jsonText) as { ssml: string };
+  } catch (error: any) {
+    console.error("Error generating SSML:", error);
+    throw new Error("SSML 생성 중 오류가 발생했습니다: " + (error.message || "Unknown error"));
+  }
+};

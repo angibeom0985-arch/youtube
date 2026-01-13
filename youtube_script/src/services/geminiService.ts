@@ -6,7 +6,8 @@ type GeminiAction =
   | "generateIdeas"
   | "generateNewPlan"
   | "generateChapterOutline"
-  | "generateChapterScript";
+  | "generateChapterScript"
+  | "generateSsml";
 
 const toUserMessage = (raw: string): string => {
   const text = (raw || "").trim();
@@ -96,4 +97,16 @@ export const generateNewPlan = async (
     category,
     vlogType,
   });
+};
+
+export const generateSsml = async (
+  text: string,
+  prompt: string,
+  _apiKey: string
+): Promise<string> => {
+  const data = await callGemini<{ ssml: string }>("generateSsml", {
+    text,
+    prompt,
+  });
+  return data.ssml;
 };
