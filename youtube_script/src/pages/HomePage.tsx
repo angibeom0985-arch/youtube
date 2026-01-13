@@ -1,16 +1,49 @@
-﻿import React from "react";
+﻿import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { supabase } from "../services/supabase";
+import type { User } from "@supabase/supabase-js";
 
 interface HomePageProps {
   basePath?: string;
 }
 
 const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
+  const [user, setUser] = useState<User | null>(null);
   const normalizedBasePath = basePath && basePath != "/" ? basePath.replace(/\/$/, "") : "";
   const benchmarkingPath = `${normalizedBasePath}/benchmarking` || "/benchmarking";
   const scriptPath = `${normalizedBasePath}/script` || "/script";
   const imagePath = `${normalizedBasePath}/image` || "/image";
   const ttsPath = `${normalizedBasePath}/tts` || "/tts";
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleAuth = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        queryParams: {
+          access_type: "offline",
+          prompt: "consent",
+        },
+      },
+    });
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+  };
 
   const benchmarkingCardStyle = {
     borderColor: "var(--tone-image-purple, #a855f7)",
@@ -37,7 +70,36 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
   } as React.CSSProperties;
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-black text-white relative">
+      <div className="absolute top-0 right-0 p-6 flex gap-3 z-10">
+        {user ? (
+          <div className="flex items-center gap-4 bg-white/5 backdrop-blur-sm px-4 py-2 rounded-full border border-white/10">
+            <span className="text-sm text-slate-300">{user.email}</span>
+            <button
+              onClick={handleLogout}
+              className="text-xs font-semibold text-slate-400 hover:text-white transition-colors"
+            >
+              로그아웃
+            </button>
+          </div>
+        ) : (
+          <>
+            <button
+              onClick={handleAuth}
+              className="px-4 py-2 text-sm font-semibold text-slate-300 hover:text-white transition-colors"
+            >
+              로그인
+            </button>
+            <button
+              onClick={handleAuth}
+              className="px-4 py-2 text-sm font-semibold bg-white text-black rounded-full hover:bg-slate-200 transition-colors"
+            >
+              회원가입
+            </button>
+          </>
+        )}
+      </div>
+
       <div className="mx-auto flex min-h-screen max-w-6xl flex-col items-center justify-center px-6 py-16">
         <div className="text-center">
           <p className="text-5xl font-black tracking-[0.08em] text-[color:var(--tone-brand-red,#ff0000)] sm:text-6xl lg:text-7xl">
