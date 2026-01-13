@@ -84,23 +84,28 @@ export const checkAndDeductCredits = async (
   if (!profile) {
     // [IP 중복 가입 체크]
     // 같은 IP로 이미 가입된 다른 계정이 있는지 확인
-    let initialCredits = 100; // 기본 지급량
-    
     if (clientIp) {
         const { data: existingIpProfiles, error: ipCheckError } = await supabaseAdmin
             .from("profiles")
-            .select("id")
+            .select("id, email")
             .eq("signup_ip", clientIp)
             .neq("id", userId)
             .limit(1);
         
         if (!ipCheckError && existingIpProfiles && existingIpProfiles.length > 0) {
-            // 중복 IP 발견: 초기 크레딧을 지급하지 않음
-            initialCredits = 0;
-            console.log(`Duplicate IP detected (${clientIp}). Denying initial credits for user ${userId}`);
+            // 중복 IP 발견: 아예 서비스 이용 차단
+            console.log(`Abuse detected: Duplicate IP (${clientIp}). User ${userId} blocked.`);
+            return { 
+                allowed: false, 
+                currentCredits: 0, 
+                cost, 
+                message: "죄송합니다. IP당 하나의 계정만 초기 크레딧을 받을 수 있습니다. 기존에 가입한 계정으로 로그인해주세요.", 
+                status: 403 
+            };
         }
     }
 
+    const initialCredits = 100; // 신규 가입자 기본 지급량
     const { error: insertError } = await supabaseAdmin
       .from("profiles")
       .insert({ 
