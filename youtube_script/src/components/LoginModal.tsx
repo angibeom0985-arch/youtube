@@ -38,25 +38,25 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
             </svg>
           </div>
 
-          <h2 className="text-2xl font-bold text-white mb-2">
+          <h2 className="text-xl font-bold text-white mb-3">
             로그인이 필요합니다
           </h2>
           
-          <p className="text-slate-300 mb-6 leading-relaxed">
+          <p className="text-lg text-slate-300 mb-8 leading-relaxed">
             원활한 서비스 이용을 위해 로그인이 필요합니다.<br/>
-            <span className="text-yellow-400 font-semibold">지금 가입하면 무료 크레딧을 드려요! 🎁</span>
+            <span className="text-yellow-400 font-black">지금 가입하면 100 크레딧을 드려요! 🎁</span>
           </p>
 
           {/* Login Button */}
           <button
             onClick={onLogin}
-            className="w-full flex items-center justify-center gap-3 bg-white hover:bg-slate-100 text-slate-900 font-bold py-3.5 px-4 rounded-xl transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+            className="w-full flex items-center justify-center gap-3 bg-white hover:bg-slate-100 text-slate-900 font-black py-4 px-6 rounded-xl transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 text-lg"
           >
             <FcGoogle size={24} />
             <span>Google로 시작하기</span>
           </button>
 
-          <p className="mt-4 text-xs text-slate-500">
+          <p className="mt-6 text-sm text-slate-500 font-medium">
             로그인 시 이용약관 및 개인정보처리방침에 동의하게 됩니다.
           </p>
         </div>
