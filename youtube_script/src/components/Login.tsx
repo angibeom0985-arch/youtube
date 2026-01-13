@@ -9,9 +9,11 @@ interface LoginProps {
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const handleGoogleLogin = async () => {
     try {
+      const redirectTo = window.location.origin;
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
+          redirectTo,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',

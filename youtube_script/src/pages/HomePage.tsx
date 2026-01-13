@@ -2,6 +2,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../services/supabase";
 import type { User } from "@supabase/supabase-js";
+import LoginModal from "../components/LoginModal";
 
 interface HomePageProps {
   basePath?: string;
@@ -9,6 +10,7 @@ interface HomePageProps {
 
 const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const navigate = useNavigate();
   const normalizedBasePath = basePath && basePath != "/" ? basePath.replace(/\/$/, "") : "";
   const benchmarkingPath = `${normalizedBasePath}/benchmarking` || "/benchmarking";
@@ -31,9 +33,13 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
   }, []);
 
   const handleAuth = async () => {
+    // 현재 접속한 도메인을 기준으로 리다이렉트 URL 설정
+    const redirectTo = window.location.origin;
+    
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
+        redirectTo,
         queryParams: {
           access_type: "offline",
           prompt: "consent",
@@ -49,9 +55,7 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
   const handleNavigation = (e: React.MouseEvent, path: string) => {
     e.preventDefault();
     if (!user) {
-      if (confirm("로그인이 필요한 서비스입니다.\n지금 무료 회원가입하고 크레딧을 받아보세요!\n\n로그인 페이지로 이동할까요?")) {
-        handleAuth();
-      }
+      setIsLoginModalOpen(true);
     } else {
       navigate(path);
     }
@@ -238,6 +242,12 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
           안내: 결과 화면에서도 언제든 다른 기능으로 이동할 수 있습니다.
         </div>
       </div>
+
+      <LoginModal 
+        isOpen={isLoginModalOpen} 
+        onClose={() => setIsLoginModalOpen(false)} 
+        onLogin={handleAuth} 
+      />
     </div>
   );
 };
