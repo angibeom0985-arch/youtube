@@ -25,6 +25,17 @@ export interface CreditCheckResult {
   userId?: string;
 }
 
+const getClientIp = (req: VercelRequest): string | null => {
+  const forwarded = req.headers["x-forwarded-for"];
+  if (typeof forwarded === "string" && forwarded.length > 0) {
+    return forwarded.split(",")[0].trim();
+  }
+  if (Array.isArray(forwarded) && forwarded.length > 0) {
+    return forwarded[0].trim();
+  }
+  return req.socket?.remoteAddress || null;
+};
+
 /**
  * 사용자 ID를 추출하고 크레딧을 확인/차감하는 미들웨어 함수
  */
@@ -52,11 +63,12 @@ export const checkAndDeductCredits = async (
   }
 
   const userId = user.id;
+  const clientIp = getClientIp(req);
 
   // 2. 프로필(크레딧) 조회
   const { data: profile, error: profileError } = await supabaseAdmin
     .from("profiles")
-    .select("credits, last_reset_date")
+    .select("credits, last_reset_date, signup_ip")
     .eq("id", userId)
     .single();
 
@@ -66,18 +78,47 @@ export const checkAndDeductCredits = async (
   }
 
   // 프로필이 없으면 생성 (가입 트리거가 실패했을 경우 대비)
-  let currentCredits = profile?.credits ?? 100;
+  let currentCredits = profile?.credits ?? 0;
   let lastReset = profile?.last_reset_date;
   
   if (!profile) {
+    // [IP 중복 가입 체크]
+    // 같은 IP로 이미 가입된 다른 계정이 있는지 확인
+    let initialCredits = 100; // 기본 지급량
+    
+    if (clientIp) {
+        const { data: existingIpProfiles, error: ipCheckError } = await supabaseAdmin
+            .from("profiles")
+            .select("id")
+            .eq("signup_ip", clientIp)
+            .neq("id", userId)
+            .limit(1);
+        
+        if (!ipCheckError && existingIpProfiles && existingIpProfiles.length > 0) {
+            // 중복 IP 발견: 초기 크레딧을 지급하지 않음
+            initialCredits = 0;
+            console.log(`Duplicate IP detected (${clientIp}). Denying initial credits for user ${userId}`);
+        }
+    }
+
     const { error: insertError } = await supabaseAdmin
       .from("profiles")
-      .insert({ id: userId, email: user.email, credits: 100, last_reset_date: new Date().toISOString() });
+      .insert({ 
+        id: userId, 
+        email: user.email, 
+        credits: initialCredits, 
+        last_reset_date: new Date().toISOString(),
+        signup_ip: clientIp 
+      });
     
     if (insertError) {
         console.error("Profile creation error:", insertError);
     }
+    currentCredits = initialCredits;
     lastReset = new Date().toISOString();
+  } else if (!profile.signup_ip && clientIp) {
+    // 기록된 IP가 없으면 현재 IP 기록 (하위 호환성)
+    await supabaseAdmin.from("profiles").update({ signup_ip: clientIp }).eq("id", userId);
   }
 
   // 3. 일일 리셋 로직 (Daily Floor Reset)

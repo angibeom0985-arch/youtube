@@ -105,15 +105,15 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
             </span>
             <button
               onClick={handleAuth}
-              className="px-4 py-2 text-sm font-semibold text-slate-300 hover:text-white transition-colors"
+              className="px-5 py-2.5 text-sm font-bold text-white border border-white/20 rounded-full hover:bg-white/10 hover:border-white/40 transition-all active:scale-95"
             >
               로그인
             </button>
             <button
               onClick={handleAuth}
-              className="px-4 py-2 text-sm font-semibold bg-white text-black rounded-full hover:bg-slate-200 transition-colors"
+              className="px-6 py-2.5 text-sm font-black bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full hover:from-blue-500 hover:to-indigo-500 transition-all shadow-lg shadow-blue-900/20 active:scale-95 border border-blue-400/30"
             >
-              회원가입
+              지금 회원가입
             </button>
           </div>
         )}
