@@ -127,9 +127,6 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
           <h1 className="mt-6 text-3xl font-bold sm:text-4xl">
             원하는 기능을 선택하세요
           </h1>
-          <p className="mt-4 text-base text-slate-200/80 sm:text-lg">
-            대본 생성부터 시작하거나 이미지·TTS 생성으로 바로 이동할 수 있습니다.
-          </p>
         </div>
 
         <div className="mt-12 grid w-full gap-6 sm:grid-cols-2">
