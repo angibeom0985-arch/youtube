@@ -30,33 +30,33 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
           <FiX size={32} />
         </button>
 
-        <div className="p-12 md:p-20 text-center">
+        <div className="p-12 md:p-16 text-center">
           {/* Icon / Illustration */}
-          <div className="mx-auto mb-10 w-24 h-24 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-[2rem] flex items-center justify-center shadow-2xl shadow-indigo-500/40">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="mx-auto mb-8 w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-[1.5rem] flex items-center justify-center shadow-2xl shadow-indigo-500/40">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
           </div>
 
-          <h2 className="text-4xl md:text-5xl font-black text-white mb-6 tracking-tight">
+          <h2 className="text-3xl md:text-4xl font-black text-white mb-4 tracking-tight whitespace-nowrap">
             로그인이 필요합니다
           </h2>
           
-          <p className="text-xl md:text-2xl text-slate-300 mb-12 leading-relaxed">
-            원활한 서비스 이용을 위해 로그인이 필요합니다.<br/>
-            <span className="text-yellow-400 font-black mt-2 inline-block">지금 가입하면 100 크레딧을 즉시 드려요! 🎁</span>
-          </p>
+          <div className="text-lg md:text-xl text-slate-300 mb-10 leading-relaxed">
+            <p className="whitespace-nowrap">원활한 서비스 이용을 위해 로그인이 필요합니다.</p>
+            <p className="text-yellow-400 font-black mt-1 whitespace-nowrap">지금 가입하면 100 크레딧을 즉시 드려요! 🎁</p>
+          </div>
 
           {/* Login Button */}
           <button
             onClick={onLogin}
-            className="w-full flex items-center justify-center gap-4 bg-white hover:bg-slate-100 text-slate-900 font-black py-6 px-10 rounded-2xl transition-all shadow-2xl hover:shadow-white/10 hover:-translate-y-1 text-2xl md:text-3xl"
+            className="w-full flex items-center justify-center gap-4 bg-white hover:bg-slate-100 text-slate-900 font-black py-5 px-10 rounded-2xl transition-all shadow-2xl hover:shadow-white/10 hover:-translate-y-1 text-xl md:text-2xl"
           >
-            <FcGoogle size={40} />
-            <span>Google로 1초만에 시작하기</span>
+            <FcGoogle size={32} />
+            <span className="whitespace-nowrap">Google로 1초만에 시작하기</span>
           </button>
 
-          <p className="mt-10 text-base text-slate-500 font-medium">
+          <p className="mt-8 text-sm text-slate-500 font-medium">
             로그인 시 이용약관 및 개인정보처리방침에 동의하게 됩니다.
           </p>
         </div>
