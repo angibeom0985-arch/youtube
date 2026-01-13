@@ -95,9 +95,9 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
             </button>
           </div>
         ) : (
-          <div className="flex items-center gap-3">
-             <span className="hidden sm:inline-block text-xs font-bold text-yellow-400 animate-pulse bg-yellow-400/10 px-2 py-1 rounded border border-yellow-400/20">
-              🎁 가입 시 무료 크레딧 제공!
+          <div className="flex items-center gap-4">
+             <span className="hidden sm:inline-block text-sm md:text-base font-black text-yellow-400 animate-bounce bg-yellow-400/20 px-4 py-1.5 rounded-full border-2 border-yellow-400/30 shadow-[0_0_15px_rgba(250,204,21,0.3)]">
+              🎁 신규 가입 시 무료 크레딧 제공!
             </span>
             <button
               onClick={handleAuth}

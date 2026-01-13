@@ -32,9 +32,9 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   };
 
   return (
-    <div className="flex flex-col items-center gap-2">
-      <span className="text-xs text-blue-500 font-bold animate-pulse">
-        ✨ 신규 가입 시 무료 크레딧 제공!
+    <div className="flex flex-col items-center gap-3">
+      <span className="text-sm font-black text-blue-600 animate-bounce bg-blue-50 px-3 py-1 rounded-full border border-blue-200 shadow-sm">
+        ✨ 지금 가입하고 무료 크레딧 받기
       </span>
       <button
         onClick={handleGoogleLogin}
