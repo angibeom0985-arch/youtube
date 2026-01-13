@@ -149,9 +149,9 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
                 </p>
               </div>
             </div>
-            <div className="mt-6 text-sm font-semibold">
+            <div className="mt-8 flex justify-end">
               <span
-                className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold text-black"
+                className="inline-flex items-center rounded-full px-4 py-1.5 text-sm font-black text-white shadow-sm"
                 style={{ backgroundColor: "var(--tone-image-purple, #a855f7)" }}
               >
                 영상 발굴 시작하기 -&gt;
@@ -175,9 +175,9 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
                 </p>
               </div>
             </div>
-            <div className="mt-6 text-sm font-semibold">
+            <div className="mt-8 flex justify-end">
               <span
-                className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold text-black"
+                className="inline-flex items-center rounded-full px-4 py-1.5 text-sm font-black text-white shadow-sm"
                 style={{ backgroundColor: "var(--tone-image-orange, #ea580c)" }}
               >
                 대본 생성 시작하기 -&gt;
@@ -201,9 +201,9 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
                 </p>
               </div>
             </div>
-            <div className="mt-6 text-sm font-semibold">
+            <div className="mt-8 flex justify-end">
               <span
-                className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold text-black"
+                className="inline-flex items-center rounded-full px-4 py-1.5 text-sm font-black text-white shadow-sm"
                 style={{ backgroundColor: "var(--tone-image-blue, #2563eb)" }}
               >
                 이미지 생성 시작하기 -&gt;
@@ -227,9 +227,9 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
                 </p>
               </div>
             </div>
-            <div className="mt-6 text-sm font-semibold">
+            <div className="mt-8 flex justify-end">
               <span
-                className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold text-black"
+                className="inline-flex items-center rounded-full px-4 py-1.5 text-sm font-black text-white shadow-sm"
                 style={{ backgroundColor: "var(--tone-image-green, #16a34a)" }}
               >
                 TTS 생성 시작하기 -&gt;
