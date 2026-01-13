@@ -38,10 +38,9 @@ root.render(
         <Route path="/tts/guide" element={<TtsGuidePage />} />
         <Route path="/api-guide" element={<ApiGuidePage />} />
         <Route path="/admin" element={<AdminPage />} />
-        <Route path="/debug" element={<Navigate to="/" replace />} />
-        <Route path="/debug/" element={<Navigate to="/" replace />} />
-        <Route path="/debug/script" element={<Navigate to="/script" replace />} />
-        <Route path="/debug/image/*" element={<Navigate to="/image" replace />} />
+        <Route path="/debug" element={<DebugPage mode="script" />} />
+        <Route path="/debug/script" element={<DebugPage mode="script" />} />
+        <Route path="/debug/image/*" element={<DebugPage mode="image" />} />
         <Route path="/debug/tts" element={<Navigate to="/tts" replace />} />
         <Route path="/download-progress" element={<DownloadProgressPage />} />
         <Route path="/download" element={<DownloadPage />} />
