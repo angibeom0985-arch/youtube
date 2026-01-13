@@ -1,7 +1,10 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { FiSettings, FiTrash2 } from "react-icons/fi";
+import { FiSettings, FiTrash2, FiLogOut, FiUser } from "react-icons/fi";
+import { supabase } from "./services/supabase";
+import Login from "./components/Login";
+import type { User } from "@supabase/supabase-js";
 import {
   DndContext,
   closestCenter,
@@ -170,6 +173,31 @@ type AppProps = {
 
 const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
   const navigate = useNavigate();
+  
+  // Auth state
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    // Check active session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+  };
+
   // 카테고리 순서 관리
   const [categories, setCategories] = useState<string[]>(() => {
     return getStoredJson("categoriesOrder", defaultCategories);
@@ -1363,7 +1391,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
       : "떡상할 제목을 입력하세요";
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans p-4 sm:p-8 pb-32">
+    <div className="min-h-screen bg-gradient-to-br from-black via-zinc-950 to-orange-950/30 text-white font-sans p-4 sm:p-8 pb-32">
       {/* 애드블럭 감지 */}
       <AdBlockDetector onAdBlockDetected={handleAdBlockDetected} />
 
@@ -1401,6 +1429,41 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                               <FiTrash2 size={14} className="text-orange-400" />
                               <span>데이터 삭제</span>
                             </button>              )}
+            </div>
+            
+            <div className="flex items-center gap-2 ml-2">
+              {user ? (
+                <div className="flex items-center gap-2 bg-zinc-800 rounded-lg p-1 pr-3 border border-zinc-700 shadow-lg">
+                  {user.user_metadata.avatar_url ? (
+                    <img 
+                      src={user.user_metadata.avatar_url} 
+                      alt="Profile" 
+                      className="w-8 h-8 rounded-full border border-zinc-600"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-zinc-600 flex items-center justify-center">
+                      <FiUser className="text-zinc-300" />
+                    </div>
+                  )}
+                  <div className="flex flex-col text-left">
+                    <span className="text-xs font-bold text-white max-w-[100px] truncate leading-tight">
+                      {user.user_metadata.full_name || user.email?.split('@')[0]}
+                    </span>
+                    <span className="text-[10px] text-zinc-400 truncate max-w-[100px]">
+                      {user.email}
+                    </span>
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="ml-1 p-1.5 hover:bg-zinc-700 rounded-md text-zinc-400 hover:text-red-400 transition-colors"
+                    title="로그아웃"
+                  >
+                    <FiLogOut size={14} />
+                  </button>
+                </div>
+              ) : (
+                <Login />
+              )}
             </div>
           </nav>
         </header>
