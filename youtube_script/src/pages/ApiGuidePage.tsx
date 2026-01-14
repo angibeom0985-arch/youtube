@@ -1,9 +1,25 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FiHome, FiExternalLink } from 'react-icons/fi';
 import AdSense from '../components/AdSense';
+import { supabase } from '../services/supabase';
+import type { User } from '@supabase/supabase-js';
+import UserCreditSidebar from '../components/UserCreditSidebar';
 
 const ApiGuidePage: React.FC = () => {
+  const [user, setUser] = useState<User | null>(null);
+
   useEffect(() => {
+    // 사용자 세션 확인
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
     // 페이지 제목 설정
     document.title = 'API 키 발급 가이드 - 유튜브 영상 분석 AI';
     
@@ -22,6 +38,8 @@ const ApiGuidePage: React.FC = () => {
     updateMetaTag('og:description', '무료 Google Gemini API 키 발급 방법을 8단계로 쉽게 알려드립니다. 신용카드 등록 없이 바로 시작!');
     updateMetaTag('og:image', 'https://youtube.money-hotissue.com/og-image-api-guide.png');
     updateMetaTag('og:url', 'https://youtube.money-hotissue.com/api-guide');
+
+    return () => subscription.unsubscribe();
   }, []);
 
   return (
@@ -332,6 +350,9 @@ const ApiGuidePage: React.FC = () => {
           </div>
         </main>
       </div>
+
+      {/* 사용자 크레딧 사이드바 */}
+      <UserCreditSidebar user={user} />
     </div>
   );
 };

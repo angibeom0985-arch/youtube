@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../services/supabase";
 import type { User } from "@supabase/supabase-js";
 import LoginModal from "../components/LoginModal";
+import UserCreditSidebar from "../components/UserCreditSidebar";
 
 interface HomePageProps {
   basePath?: string;
@@ -19,6 +20,11 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
   const ttsPath = `${normalizedBasePath}/tts` || "/tts";
 
   useEffect(() => {
+    // URL에서 해시(#) 제거
+    if (window.location.hash) {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
     });
@@ -99,22 +105,24 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
             </button>
           </div>
         ) : (
-          <div className="flex items-center gap-6">
-             <span className="hidden lg:inline-block text-lg font-black text-yellow-400 animate-bounce bg-yellow-400/20 px-6 py-2.5 rounded-full border-2 border-yellow-400/30 shadow-[0_0_20px_rgba(250,204,21,0.4)]">
+          <div className="flex flex-col items-end gap-3">
+            <div className="flex items-center gap-6">
+              <button
+                onClick={handleAuth}
+                className="px-8 py-4 text-lg font-black text-white border-2 border-white/20 rounded-2xl hover:bg-white/10 hover:border-white/40 transition-all active:scale-95"
+              >
+                로그인
+              </button>
+              <button
+                onClick={handleAuth}
+                className="px-8 py-4 text-lg font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white rounded-2xl hover:from-blue-500 hover:via-indigo-500 hover:to-purple-500 transition-all shadow-[0_0_30px_rgba(37,99,235,0.4)] hover:shadow-[0_0_40px_rgba(37,99,235,0.6)] transform hover:-translate-y-1 active:scale-95 border border-white/20"
+              >
+                지금 무료 회원가입
+              </button>
+            </div>
+            <span className="hidden lg:inline-block text-lg font-black text-yellow-400 animate-bounce bg-yellow-400/20 px-6 py-2.5 rounded-full border-2 border-yellow-400/30 shadow-[0_0_20px_rgba(250,204,21,0.4)]">
               🎁 신규 가입 시 100 크레딧 즉시 지급!
             </span>
-            <button
-              onClick={handleAuth}
-              className="px-8 py-4 text-lg font-black text-white border-2 border-white/20 rounded-2xl hover:bg-white/10 hover:border-white/40 transition-all active:scale-95"
-            >
-              로그인
-            </button>
-            <button
-              onClick={handleAuth}
-              className="px-8 py-4 text-lg font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white rounded-2xl hover:from-blue-500 hover:via-indigo-500 hover:to-purple-500 transition-all shadow-[0_0_30px_rgba(37,99,235,0.4)] hover:shadow-[0_0_40px_rgba(37,99,235,0.6)] transform hover:-translate-y-1 active:scale-95 border border-white/20"
-            >
-              지금 무료 회원가입
-            </button>
           </div>
         )}
       </div>
@@ -245,6 +253,9 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
         onClose={() => setIsLoginModalOpen(false)} 
         onLogin={handleAuth} 
       />
+      
+      {/* 사용자 크레딧 사이드바 */}
+      <UserCreditSidebar user={user} />
     </div>
   );
 };

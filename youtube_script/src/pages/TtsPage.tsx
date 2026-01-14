@@ -4,6 +4,7 @@ import { generateSsml } from "../services/geminiService";
 import { FiPlay, FiPause, FiMic, FiSliders, FiCpu, FiUser, FiInfo, FiLogOut } from "react-icons/fi";
 import { supabase } from "../services/supabase";
 import type { User } from "@supabase/supabase-js";
+import UserCreditSidebar from "../components/UserCreditSidebar";
 
 const STORAGE_KEYS = {
   text: "tts_text",
@@ -475,6 +476,9 @@ const TtsPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* 사용자 크레딧 사이드바 */}
+      <UserCreditSidebar user={user} />
     </div>
   );
 };

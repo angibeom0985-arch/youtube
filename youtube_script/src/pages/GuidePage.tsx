@@ -1,8 +1,24 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { FiHome } from "react-icons/fi";
+import { supabase } from "../services/supabase";
+import type { User } from "@supabase/supabase-js";
+import UserCreditSidebar from "../components/UserCreditSidebar";
 
 const GuidePage: React.FC = () => {
+  const [user, setUser] = useState<User | null>(null);
+
   useEffect(() => {
+    // 사용자 세션 확인
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
     document.title = "사용법 - 유튜브 영상 제작 AI";
 
     const updateMetaTag = (property: string, content: string) => {
@@ -22,6 +38,8 @@ const GuidePage: React.FC = () => {
     );
     updateMetaTag("og:image", "https://youtube.money-hotissue.com/og-image-guide.png");
     updateMetaTag("og:url", "https://youtube.money-hotissue.com/guide");
+
+    return () => subscription.unsubscribe();
   }, []);
 
   return (
@@ -81,6 +99,9 @@ const GuidePage: React.FC = () => {
           </section>
         </main>
       </div>
+
+      {/* 사용자 크레딧 사이드바 */}
+      <UserCreditSidebar user={user} />
     </div>
   );
 };

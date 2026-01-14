@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { FiLayout, FiList, FiDownload, FiSettings, FiExternalLink, FiSearch, FiUser, FiLogOut } from "react-icons/fi";
 import { supabase } from "../services/supabase";
 import type { User } from "@supabase/supabase-js";
+import UserCreditSidebar from "../components/UserCreditSidebar";
 
 interface DateOption {
   label: string;
@@ -542,6 +543,9 @@ const BenchmarkingPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* 사용자 크레딧 사이드바 */}
+      <UserCreditSidebar user={user} />
     </div>
   );
 };
