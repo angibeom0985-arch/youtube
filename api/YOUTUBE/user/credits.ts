@@ -40,8 +40,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .single();
 
     // 프로필이 없으면 생성 (회원가입 시 트리거가 작동하지 않은 경우 대비)
-    if (profileError && profileError.code === 'PGRST116') {
-      console.log('프로필 없음. 새로 생성...');
+    if (profileError && (profileError as any).code === 'PGRST116') {
+      console.log('프로필 없음. 새로 생성...', { userId: user.id, email: user.email });
       const { data: newProfile, error: insertError } = await supabaseAdmin
         .from("profiles")
         .insert({
@@ -56,9 +56,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       if (insertError) {
         console.error("Profile creation error:", insertError);
-        return res.status(500).json({ error: "프로필 생성 중 오류가 발생했습니다." });
+        return res.status(500).json({ 
+          error: "프로필 생성 중 오류가 발생했습니다.",
+          details: insertError.message 
+        });
       }
 
+      console.log('새 프로필 생성 완료:', { userId: user.id, credits: 100 });
       return res.status(200).json({
         credits: 100,
         userId: user.id,
@@ -70,7 +74,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (profileError) {
       console.error("Profile fetch error:", profileError);
-      return res.status(500).json({ error: "크레딧 정보를 불러올 수 없습니다." });
+      return res.status(500).json({ 
+        error: "크레딧 정보를 불러올 수 없습니다.",
+        details: profileError.message 
+      });
     }
 
     // 초기 크레딧 기간 확인
