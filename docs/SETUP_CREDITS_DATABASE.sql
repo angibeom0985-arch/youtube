@@ -24,16 +24,29 @@ ADD COLUMN IF NOT EXISTS signup_ip TEXT;
 -- 4. 신규 사용자 프로필 자동 생성 함수
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
+DECLARE
+  user_ip TEXT;
 BEGIN
-  INSERT INTO public.profiles (id, email, credits, last_reset_date, initial_credits_expiry)
+  -- 신규 사용자 프로필 생성
+  INSERT INTO public.profiles (id, email, credits, last_reset_date, initial_credits_expiry, signup_ip)
   VALUES (
     NEW.id,
     NEW.email,
     100,  -- 초기 크레딧
     NOW(),
-    NOW() + INTERVAL '3 days'  -- 3일 유효기간
+    NOW() + INTERVAL '3 days',  -- 3일 유효기간
+    NULL  -- IP는 첫 API 호출 시 설정
   )
-  ON CONFLICT (id) DO NOTHING;
+  ON CONFLICT (id) DO UPDATE SET
+    credits = CASE 
+      WHEN profiles.credits IS NULL THEN 100
+      ELSE profiles.credits
+    END,
+    initial_credits_expiry = CASE
+      WHEN profiles.initial_credits_expiry IS NULL THEN NOW() + INTERVAL '3 days'
+      ELSE profiles.initial_credits_expiry
+    END;
+  
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

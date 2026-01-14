@@ -39,6 +39,35 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .eq("id", user.id)
       .single();
 
+    // 프로필이 없으면 생성 (회원가입 시 트리거가 작동하지 않은 경우 대비)
+    if (profileError && profileError.code === 'PGRST116') {
+      console.log('프로필 없음. 새로 생성...');
+      const { data: newProfile, error: insertError } = await supabaseAdmin
+        .from("profiles")
+        .insert({
+          id: user.id,
+          email: user.email,
+          credits: 100,
+          last_reset_date: new Date().toISOString(),
+          initial_credits_expiry: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+        })
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error("Profile creation error:", insertError);
+        return res.status(500).json({ error: "프로필 생성 중 오류가 발생했습니다." });
+      }
+
+      return res.status(200).json({
+        credits: 100,
+        userId: user.id,
+        isInInitialPeriod: true,
+        daysRemaining: 3,
+        initialExpiryDate: newProfile.initial_credits_expiry
+      });
+    }
+
     if (profileError) {
       console.error("Profile fetch error:", profileError);
       return res.status(500).json({ error: "크레딧 정보를 불러올 수 없습니다." });
