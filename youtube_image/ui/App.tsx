@@ -92,7 +92,6 @@ const App: React.FC<ImageAppProps> = ({
   const [isContentWarningAcknowledged, setIsContentWarningAcknowledged] =
     useState<boolean>(false);
   const [hasContentWarning, setHasContentWarning] = useState<boolean>(false);
-  const [hoveredStyle, setHoveredStyle] = useState<string | null>(null); // 호버된 스타일
   
   // 카메라 앵글 기능 관련 state
   const [cameraAngleSourceImage, setCameraAngleSourceImage] = useState<string | null>(null);
@@ -1223,7 +1222,6 @@ const App: React.FC<ImageAppProps> = ({
     setContentWarning(null);
     setHasContentWarning(false);
     setIsContentWarningAcknowledged(false);
-    setHoveredStyle(null);
     setCameraAngleSourceImage(null);
     setSelectedCameraAngles([
       "Front View",
@@ -1486,57 +1484,28 @@ const App: React.FC<ImageAppProps> = ({
                         };
 
                       return (
-                        <div key={style} className="relative group">
+                        <div key={style} className="relative">
                           <button
                             onClick={() => setCharacterStyle(style)}
-                            onMouseEnter={() =>
-                              setHoveredStyle(`character-${style}`)
-                            }
-                            onMouseLeave={() => setHoveredStyle(null)}
-                            className={`w-full py-2 px-3 rounded-lg font-medium text-sm transition-all duration-200 ${
+                            className={`relative w-full h-32 rounded-lg font-medium text-sm transition-all duration-200 overflow-hidden group ${
                               characterStyle === style
-                                ? "bg-blue-600 text-white shadow-lg scale-105"
-                                : "bg-gray-700 text-gray-300 hover:bg-gray-600 hover:scale-105"
+                                ? "ring-4 ring-blue-500 shadow-2xl scale-105"
+                                : "hover:scale-105 hover:ring-2 hover:ring-blue-400"
                             }`}
+                            style={{
+                              backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/${style}.png')`,
+                              backgroundSize: 'cover',
+                              backgroundPosition: 'center'
+                            }}
                           >
-                            {style}
-                          </button>
-                          {hoveredStyle === `character-${style}` && (
-                            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 z-50">
-                              <div className="bg-gray-900 rounded-lg shadow-2xl border border-blue-500/50 overflow-hidden" style={{ minWidth: '500px' }}>
-                                <div className="p-3">
-                                  <div className="text-blue-200 font-medium text-sm mb-2 text-center">
-                                    {style} 미리보기
-                                  </div>
-                                  <img
-                                    src={`/${style}.png`}
-                                    alt={`${style} 스타일 미리보기`}
-                                    className="w-full h-auto object-contain rounded"
-                                    style={{ maxHeight: '400px', minHeight: '300px' }}
-                                    onError={(e) => {
-                                      const target =
-                                        e.target as HTMLImageElement;
-                                      target.style.display = "none";
-                                      const parent = target.parentElement;
-                                      if (parent) {
-                                        const fallback =
-                                          document.createElement("div");
-                                        fallback.className =
-                                          "w-full bg-gray-800 rounded flex items-center justify-center text-blue-300 text-sm text-center p-4";
-                                        fallback.style.minHeight = "300px";
-                                        fallback.textContent =
-                                          styleDescriptions[style];
-                                        parent.appendChild(fallback);
-                                      }
-                                    }}
-                                  />
-                                  <div className="text-gray-300 text-xs mt-2 text-center px-2">
-                                    {styleDescriptions[style]}
-                                  </div>
-                                </div>
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+                            <div className="relative h-full flex flex-col justify-end p-3">
+                              <div className="text-white font-bold text-base mb-1">{style}</div>
+                              <div className="text-gray-200 text-xs leading-tight">
+                                {styleDescriptions[style]}
                               </div>
                             </div>
-                          )}
+                          </button>
                         </div>
                       );
                     })}
@@ -1613,59 +1582,28 @@ const App: React.FC<ImageAppProps> = ({
                         };
 
                       return (
-                        <div key={style} className="relative group">
+                        <div key={style} className="relative">
                           <button
                             onClick={() => setBackgroundStyle(style)}
-                            onMouseEnter={() =>
-                              setHoveredStyle(`background-${style}`)
-                            }
-                            onMouseLeave={() => setHoveredStyle(null)}
-                            className={`w-full py-2 px-3 rounded-lg font-medium text-sm transition-all duration-200 ${
+                            className={`relative w-full h-32 rounded-lg font-medium text-sm transition-all duration-200 overflow-hidden group ${
                               backgroundStyle === style
-                                ? "bg-blue-600 text-white shadow-lg scale-105"
-                                : "bg-gray-700 text-gray-300 hover:bg-gray-600 hover:scale-105"
+                                ? "ring-4 ring-blue-500 shadow-2xl scale-105"
+                                : "hover:scale-105 hover:ring-2 hover:ring-blue-400"
                             }`}
+                            style={{
+                              backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/${style === "AI" ? "ai" : style}.png')`,
+                              backgroundSize: 'cover',
+                              backgroundPosition: 'center'
+                            }}
                           >
-                            {style}
-                          </button>
-                          {hoveredStyle === `background-${style}` && (
-                            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 z-50">
-                              <div className="bg-gray-900 rounded-lg shadow-2xl border border-blue-500/50 overflow-hidden" style={{ minWidth: '500px' }}>
-                                <div className="p-3">
-                                  <div className="text-blue-200 font-medium text-sm mb-2 text-center">
-                                    {style} 미리보기
-                                  </div>
-                                  <img
-                                    src={`/${
-                                      style === "AI" ? "ai" : style
-                                    }.png`}
-                                    alt={`${style} 스타일 미리보기`}
-                                    className="w-full h-auto object-contain rounded"
-                                    style={{ maxHeight: '400px', minHeight: '300px' }}
-                                    onError={(e) => {
-                                      const target =
-                                        e.target as HTMLImageElement;
-                                      target.style.display = "none";
-                                      const parent = target.parentElement;
-                                      if (parent) {
-                                        const fallback =
-                                          document.createElement("div");
-                                        fallback.className =
-                                          "w-full bg-gray-800 rounded flex items-center justify-center text-blue-300 text-sm text-center p-4";
-                                        fallback.style.minHeight = "300px";
-                                        fallback.textContent =
-                                          styleDescriptions[style];
-                                        parent.appendChild(fallback);
-                                      }
-                                    }}
-                                  />
-                                  <div className="text-gray-300 text-xs mt-2 text-center px-2">
-                                    {styleDescriptions[style]}
-                                  </div>
-                                </div>
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+                            <div className="relative h-full flex flex-col justify-end p-3">
+                              <div className="text-white font-bold text-base mb-1">{style}</div>
+                              <div className="text-gray-200 text-xs leading-tight">
+                                {styleDescriptions[style]}
                               </div>
                             </div>
-                          )}
+                          </button>
                         </div>
                       );
                     })}
