@@ -16,7 +16,7 @@ export const CREDIT_COSTS = {
 // 크레딧 설정
 const INITIAL_CREDITS = 100;        // 신규 가입자 초기 크레딧
 const INITIAL_PERIOD_DAYS = 3;      // 초기 크레딧 사용 기한 (3일)
-const DAILY_FREE_CREDITS = 30;      // 3일 이후 일일 무료 크레딧
+const DAILY_FREE_CREDITS = 20;      // 3일 이후 일일 무료 크레딧
 
 export interface CreditCheckResult {
   allowed: boolean;

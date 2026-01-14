@@ -182,12 +182,12 @@ const UserCreditSidebar: React.FC<UserCreditSidebarProps> = ({ user }) => {
                   <span className="text-green-400 text-sm font-bold">{daysRemaining}일</span>
                 </div>
                 <p className="text-neutral-400 text-[10px] mt-2">
-                  기간 만료 후 매일 30 크레딧이 자동 충전됩니다.
+                  기간 만료 후 매일 20 크레딧이 자동 충전됩니다.
                 </p>
               </div>
             ) : (
               <div className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 rounded-lg p-4 text-xs border border-amber-500/30">
-                <p className="text-amber-400 font-semibold text-sm">🎁 매일 30 크레딧 무료 충전!</p>
+                <p className="text-amber-400 font-semibold text-sm">🎁 매일 20 크레딧 무료 충전!</p>
               </div>
             )}
           </div>
