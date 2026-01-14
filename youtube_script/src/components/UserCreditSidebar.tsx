@@ -10,6 +10,8 @@ interface UserCreditSidebarProps {
 const UserCreditSidebar: React.FC<UserCreditSidebarProps> = ({ user }) => {
   const [credits, setCredits] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isInInitialPeriod, setIsInInitialPeriod] = useState(false);
+  const [daysRemaining, setDaysRemaining] = useState(0);
 
   const fetchCredits = async () => {
     if (!user) return;
@@ -43,6 +45,8 @@ const UserCreditSidebar: React.FC<UserCreditSidebarProps> = ({ user }) => {
 
       const data = await response.json();
       setCredits(data.credits ?? 0);
+      setIsInInitialPeriod(data.isInInitialPeriod ?? false);
+      setDaysRemaining(data.daysRemaining ?? 0);
     } catch (error) {
       console.error('크레딧 조회 실패:', error);
       setCredits(0);
@@ -151,12 +155,28 @@ const UserCreditSidebar: React.FC<UserCreditSidebarProps> = ({ user }) => {
                 </div>
               </div>
             </div>
-
-            {/* 일일 무료 크레딧 안내 */}
-            <div className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 rounded-lg p-4 text-xs border border-amber-500/30">
-              <p className="text-amber-400 font-semibold mb-2 text-sm">🎁 매일 무료 충전!</p>
-              <p className="text-neutral-300 text-xs leading-relaxed">
-                매일 30 크레딧이 자동으로 충전됩니다.
+{isInInitialPeriod ? (
+              <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-lg p-4 text-xs border border-green-500/30">
+                <p className="text-green-400 font-semibold mb-2 text-sm">🎉 초기 크레딧 기간!</p>
+                <p className="text-neutral-300 text-xs leading-relaxed mb-2">
+                  회원가입 축하합니다! 100 크레딧을 사용하실 수 있습니다.
+                </p>
+                <div className="flex items-center justify-between bg-green-500/10 rounded px-3 py-2 mt-2">
+                  <span className="text-green-300 text-xs font-semibold">남은 기간</span>
+                  <span className="text-green-400 text-sm font-bold">{daysRemaining}일</span>
+                </div>
+                <p className="text-neutral-400 text-[10px] mt-2">
+                  기간 만료 후 매일 30 크레딧이 자동 충전됩니다.
+                </p>
+              </div>
+            ) : (
+              <div className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 rounded-lg p-4 text-xs border border-amber-500/30">
+                <p className="text-amber-400 font-semibold mb-2 text-sm">🎁 매일 무료 충전!</p>
+                <p className="text-neutral-300 text-xs leading-relaxed">
+                  매일 30 크레딧이 자동으로 충전됩니다.
+                </p>
+              </div>
+            )} 30 크레딧이 자동으로 충전됩니다.
               </p>
             </div>
           </div>

@@ -13,8 +13,10 @@ export const CREDIT_COSTS = {
   IDEATION: 1,        // 아이디어 생성 (가볍게)
 };
 
-// 일일 무료 제공량 (이 이하로 떨어지면 다음 날 채워줌)
-const DAILY_FREE_FLOOR = 30;
+// 크레딧 설정
+const INITIAL_CREDITS = 100;        // 신규 가입자 초기 크레딧
+const INITIAL_PERIOD_DAYS = 3;      // 초기 크레딧 사용 기한 (3일)
+const DAILY_FREE_CREDITS = 30;      // 3일 이후 일일 무료 크레딧
 
 export interface CreditCheckResult {
   allowed: boolean;
@@ -105,49 +107,61 @@ export const checkAndDeductCredits = async (
         }
     }
 
-    const initialCredits = 100; // 신규 가입자 기본 지급량
+    // 신규 가입자: 초기 100 크레딧 + 3일 사용기한 설정
+    const signupDate = new Date();
+    const initialExpiryDate = new Date(signupDate);
+    initialExpiryDate.setDate(initialExpiryDate.getDate() + INITIAL_PERIOD_DAYS);
+    
     const { error: insertError } = await supabaseAdmin
       .from("profiles")
       .insert({ 
         id: userId, 
         email: user.email, 
-        credits: initialCredits, 
-        last_reset_date: new Date().toISOString(),
+        credits: INITIAL_CREDITS, 
+        last_reset_date: signupDate.toISOString(),
+        initial_credits_expiry: initialExpiryDate.toISOString(),
         signup_ip: clientIp 
       });
     
     if (insertError) {
         console.error("Profile creation error:", insertError);
     }
-    currentCredits = initialCredits;
+    currentCredits = INITIAL_CREDITS;
     lastReset = new Date().toISOString();
   } else if (!profile.signup_ip && clientIp) {
     // 기록된 IP가 없으면 현재 IP 기록 (하위 호환성)
     await supabaseAdmin.from("profiles").update({ signup_ip: clientIp }).eq("id", userId);
   }
 
-  // 3. 일일 리셋 로직 (Daily Floor Reset)
-  // 오늘 날짜와 마지막 리셋 날짜 비교
+  // 3. 일일 리셋 로직
   const today = new Date().toISOString().split('T')[0];
   const lastResetDate = lastReset ? new Date(lastReset).toISOString().split('T')[0] : "";
+  const initialExpiryDate = profile?.initial_credits_expiry;
+  const isInInitialPeriod = initialExpiryDate && new Date() < new Date(initialExpiryDate);
 
   if (lastResetDate !== today) {
-    // 날짜가 바뀌었으면
-    if (currentCredits < DAILY_FREE_FLOOR) {
-        // 무료 제공량보다 적으면 무료 제공량만큼 채워줌 (예: 5 -> 30)
-        // 유료 결제해서 500 있는 사람은 그대로 유지 (500 -> 500)
-        currentCredits = DAILY_FREE_FLOOR;
-        
-        await supabaseAdmin
-            .from("profiles")
-            .update({ credits: currentCredits, last_reset_date: today })
-            .eq("id", userId);
+    // 날짜가 바뀌었을 때
+    if (isInInitialPeriod) {
+      // 초기 3일 기간 중: 날짜만 업데이트 (크레딧 충전 안함)
+      await supabaseAdmin
+        .from("profiles")
+        .update({ last_reset_date: today })
+        .eq("id", userId);
     } else {
+      // 3일 이후: 일일 무료 크레딧 지급
+      if (currentCredits < DAILY_FREE_CREDITS) {
+        currentCredits = DAILY_FREE_CREDITS;
+        await supabaseAdmin
+          .from("profiles")
+          .update({ credits: currentCredits, last_reset_date: today })
+          .eq("id", userId);
+      } else {
         // 이미 많으면 날짜만 업데이트
         await supabaseAdmin
-            .from("profiles")
-            .update({ last_reset_date: today })
-            .eq("id", userId);
+          .from("profiles")
+          .update({ last_reset_date: today })
+          .eq("id", userId);
+      }
     }
   }
 

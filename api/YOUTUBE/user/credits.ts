@@ -35,7 +35,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // 프로필에서 크레딧 조회
     const { data: profile, error: profileError } = await supabaseAdmin
       .from("profiles")
-      .select("credits")
+      .select("credits, initial_credits_expiry")
       .eq("id", user.id)
       .single();
 
@@ -44,9 +44,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(500).json({ error: "크레딧 정보를 불러올 수 없습니다." });
     }
 
+    // 초기 크레딧 기간 확인
+    const initialExpiryDate = profile?.initial_credits_expiry;
+    const isInInitialPeriod = initialExpiryDate && new Date() < new Date(initialExpiryDate);
+    const daysRemaining = initialExpiryDate 
+      ? Math.max(0, Math.ceil((new Date(initialExpiryDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))
+      : 0;
+
     return res.status(200).json({
       credits: profile?.credits ?? 0,
-      userId: user.id
+      userId: user.id,
+      isInInitialPeriod,
+      daysRemaining,
+      initialExpiryDate
     });
 
   } catch (error) {
