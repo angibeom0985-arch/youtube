@@ -15,12 +15,12 @@ const UserCreditSidebar: React.FC<UserCreditSidebarProps> = ({ user }) => {
 
   const fetchCredits = async () => {
     if (!user) return;
-    
+
     setLoading(true);
     try {
       // Supabase 세션에서 액세스 토큰 가져오기
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
+
       if (sessionError || !session) {
         console.error('세션 오류:', sessionError);
         setCredits(0);
@@ -29,7 +29,7 @@ const UserCreditSidebar: React.FC<UserCreditSidebarProps> = ({ user }) => {
       }
 
       console.log('크레딧 조회 시작...');
-      
+
       // API를 통해 크레딧 조회
       const response = await fetch('/api/YOUTUBE/user/credits', {
         method: 'GET',
@@ -51,7 +51,7 @@ const UserCreditSidebar: React.FC<UserCreditSidebarProps> = ({ user }) => {
 
       const data = await response.json();
       console.log('크레딧 데이터:', data);
-      
+
       setCredits(data.credits ?? 0);
       setIsInInitialPeriod(data.isInInitialPeriod ?? false);
       setDaysRemaining(data.daysRemaining ?? 0);
@@ -65,15 +65,15 @@ const UserCreditSidebar: React.FC<UserCreditSidebarProps> = ({ user }) => {
 
   useEffect(() => {
     fetchCredits();
-    
+
     // 크레딧 갱신 이벤트 리스너 (기능 사용 시에만 갱신)
     const handleCreditRefresh = () => {
       console.log('크레딧 갱신 이벤트 수신');
       fetchCredits();
     };
-    
+
     window.addEventListener('creditRefresh', handleCreditRefresh);
-    
+
     return () => {
       window.removeEventListener('creditRefresh', handleCreditRefresh);
     };
@@ -90,9 +90,9 @@ const UserCreditSidebar: React.FC<UserCreditSidebarProps> = ({ user }) => {
           <div className="mb-6 pb-6 border-b border-zinc-700">
             <div className="flex items-center gap-3 mb-3">
               {user.user_metadata?.avatar_url ? (
-                <img 
-                  src={user.user_metadata.avatar_url} 
-                  alt="Profile" 
+                <img
+                  src={user.user_metadata.avatar_url}
+                  alt="Profile"
                   className="w-16 h-16 rounded-full border-2 border-orange-500/50"
                 />
               ) : (
@@ -113,7 +113,7 @@ const UserCreditSidebar: React.FC<UserCreditSidebarProps> = ({ user }) => {
             <div className="mt-3 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-lg px-3 py-2 border border-green-500/30">
               <p className="text-green-400 text-xs font-semibold">🎉 신규 가입 혜택</p>
               <p className="text-neutral-300 text-[10px] mt-1">
-                회원가입 시 <span className="text-green-400 font-bold">100 크레딧</span> 제공 (3일간 유효)
+                회원가입 시 <span className="text-green-400 font-bold">30 크레딧</span> 제공 (3일간 유효)
               </p>
             </div>
           </div>
@@ -127,7 +127,7 @@ const UserCreditSidebar: React.FC<UserCreditSidebarProps> = ({ user }) => {
                   잔여 크레딧
                 </span>
               </div>
-              
+
               {loading ? (
                 <div className="flex items-center justify-center py-2">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-500"></div>
@@ -182,7 +182,7 @@ const UserCreditSidebar: React.FC<UserCreditSidebarProps> = ({ user }) => {
               <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-lg p-4 text-xs border border-green-500/30">
                 <p className="text-green-400 font-semibold mb-2 text-sm">🎉 초기 크레딧 기간!</p>
                 <p className="text-neutral-300 text-xs leading-relaxed mb-2">
-                  회원가입 축하합니다! 100 크레딧을 사용하실 수 있습니다.
+                  회원가입 축하합니다! 30 크레딧을 사용하실 수 있습니다.
                 </p>
                 <div className="flex items-center justify-between bg-green-500/10 rounded px-3 py-2 mt-2">
                   <span className="text-green-300 text-xs font-semibold">남은 기간</span>

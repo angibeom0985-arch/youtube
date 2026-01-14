@@ -41,7 +41,7 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
   const handleAuth = async () => {
     // 현재 접속한 도메인을 기준으로 리다이렉트 URL 설정
     const redirectTo = window.location.origin;
-    
+
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
@@ -121,7 +121,7 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
               </button>
             </div>
             <span className="hidden lg:inline-block text-lg font-black text-yellow-400 animate-bounce bg-yellow-400/20 px-6 py-2.5 rounded-full border-2 border-yellow-400/30 shadow-[0_0_20px_rgba(250,204,21,0.4)]">
-              🎁 신규 가입 시 100 크레딧 즉시 지급!
+              🎁 신규 가입 시 30 크레딧 즉시 지급!
             </span>
           </div>
         )}
@@ -248,12 +248,12 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
         </div>
       </div>
 
-      <LoginModal 
-        isOpen={isLoginModalOpen} 
-        onClose={() => setIsLoginModalOpen(false)} 
-        onLogin={handleAuth} 
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        onLogin={handleAuth}
       />
-      
+
       {/* 사용자 크레딧 사이드바 */}
       <UserCreditSidebar user={user} />
     </div>
