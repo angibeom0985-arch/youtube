@@ -62,6 +62,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         });
       }
 
+      if (!newProfile) {
+        console.error("Profile creation failed: No data returned");
+        return res.status(500).json({ 
+          error: "프로필 생성에 실패했습니다.",
+          details: "데이터가 반환되지 않았습니다." 
+        });
+      }
+
       console.log('새 프로필 생성 완료:', { userId: user.id, credits: 100 });
       return res.status(200).json({
         credits: 100,
