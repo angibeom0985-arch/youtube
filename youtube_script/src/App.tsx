@@ -866,6 +866,9 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
         videoDetails?.title
       );
       setAnalysisResult(result);
+      
+      // 크레딧 차감 후 갱신
+      window.dispatchEvent(new Event('creditRefresh'));
 
       setIsGeneratingIdeas(true);
       try {
@@ -902,6 +905,9 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
         appliedIdeaKeyword || undefined
       );
       setSuggestedIdeas(ideas);
+      
+      // 크레딧 차감 후 갱신
+      window.dispatchEvent(new Event('creditRefresh'));
     } catch (e: any) {
       setError(e.message || "❌ 아이디어 재생성 중 알 수 없는 오류가 발생했습니다.\n\n💡 해결 방법:\n• 페이지를 새로고침하고 다시 시도해주세요");
     } finally {
@@ -1007,6 +1013,9 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
           characters: chapterOutline.characters,
           chapters: chapterOutline.chapters,
         });
+        
+        // 크레딧 차감 후 즉시 갱신
+        window.dispatchEvent(new Event('creditRefresh'));
       } else {
         // 20분 미만 영상은 한 번에 생성 (챕터 시스템 불필요)
         const result = await generateNewPlan(
@@ -1018,6 +1027,9 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
           selectedCategory === "브이로그" ? selectedVlogType : undefined
         );
         setNewPlan(result);
+        
+        // 크레딧 차감 후 즉시 갱신
+        window.dispatchEvent(new Event('creditRefresh'));
       }
     } catch (e: any) {
       console.error("기획안 생성 오류:", e);
@@ -1177,6 +1189,9 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
         };
         return { ...prev, chapters: updatedChapters };
       });
+
+      // 크레딧 차감 후 즉시 갱신
+      window.dispatchEvent(new Event('creditRefresh'));
 
       // 성공 알림
       alert(`✅ 챕터 ${chapterIndex + 1} 생성 완료!`);

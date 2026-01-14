@@ -66,10 +66,21 @@ const UserCreditSidebar: React.FC<UserCreditSidebarProps> = ({ user }) => {
   useEffect(() => {
     fetchCredits();
     
+    // 크레딧 갱신 이벤트 리스너
+    const handleCreditRefresh = () => {
+      console.log('크레딧 갱신 이벤트 수신');
+      fetchCredits();
+    };
+    
+    window.addEventListener('creditRefresh', handleCreditRefresh);
+    
     // 10초마다 크레딧 자동 갱신
     const interval = setInterval(fetchCredits, 10000);
     
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('creditRefresh', handleCreditRefresh);
+    };
   }, [user]);
 
   if (!user) return null;
