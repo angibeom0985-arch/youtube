@@ -16,6 +16,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
+    // Supabase Admin 클라이언트 확인
+    if (!supabaseAdmin) {
+      return res.status(500).json({ error: "서버 설정 오류: Supabase 연결 실패" });
+    }
+
     // Authorization 헤더에서 토큰 추출
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
