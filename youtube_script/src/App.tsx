@@ -2479,12 +2479,8 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                                         onClick={() => handleGenerateChapterScript(newPlan.chapters[index + 1].id)}
                                         className="w-full px-4 py-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-semibold rounded-lg transition-all duration-200 shadow-lg flex items-center justify-center gap-2"
                                       >
-                            ) : (
-                              <>
-                                <FiCpu />
-                                <span>챕터 {index + 2} 대본 생성하기 (5 ⚡)</span>
-                              </>
-                            )}
+                                        <FiCpu />
+                                        <span>챕터 {index + 2} 대본 생성하기 (5 ⚡)</span>
                                         <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                                         </svg>
