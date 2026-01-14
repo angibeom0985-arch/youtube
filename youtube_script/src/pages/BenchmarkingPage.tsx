@@ -1,9 +1,9 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { FiLayout, FiList, FiDownload, FiSettings, FiExternalLink, FiSearch, FiUser, FiLogOut } from "react-icons/fi";
+import { FiLayout, FiList, FiDownload, FiSettings, FiExternalLink, FiSearch } from "react-icons/fi";
 import { supabase } from "../services/supabase";
 import type { User } from "@supabase/supabase-js";
-import UserCreditSidebar from "../components/UserCreditSidebar";
+import UserCreditToolbar from "../components/UserCreditToolbar";
 
 interface DateOption {
   label: string;
@@ -187,37 +187,7 @@ const BenchmarkingPage: React.FC = () => {
     <div className="min-h-screen bg-black text-white selection:bg-purple-500/30 relative">
       {/* Auth Status - Top Right */}
       <div className="absolute top-0 right-0 p-4 sm:p-6 flex gap-3 z-50 items-center">
-        {user ? (
-          <div className="flex items-center gap-4 bg-zinc-900/80 backdrop-blur-md px-4 py-2 rounded-full border border-purple-500/30 shadow-[0_0_15px_rgba(168,85,247,0.2)]">
-            <div className="flex items-center gap-2">
-              {user.user_metadata.avatar_url ? (
-                <img 
-                  src={user.user_metadata.avatar_url} 
-                  alt="Profile" 
-                  className="w-8 h-8 rounded-full border border-purple-500/40"
-                />
-              ) : (
-                <div className="w-8 h-8 rounded-full bg-purple-500/10 flex items-center justify-center">
-                  <FiUser className="text-purple-400" />
-                </div>
-              )}
-              <div className="flex flex-col text-left">
-                <span className="text-xs font-bold text-white truncate max-w-[100px]">
-                  {user.user_metadata.full_name || user.email?.split('@')[0]}
-                </span>
-                <span className="text-[10px] text-purple-400/70 truncate max-w-[100px]">
-                  {user.email}
-                </span>
-              </div>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="text-xs font-bold px-3 py-1 bg-purple-500/10 hover:bg-red-500/20 hover:text-red-400 rounded-full transition-all border border-purple-500/20"
-            >
-              로그아웃
-            </button>
-          </div>
-        ) : null}
+        <UserCreditToolbar user={user} onLogout={handleLogout} tone="purple" />
       </div>
 
       <div className="mx-auto max-w-[1600px] px-6 py-8">
@@ -552,7 +522,6 @@ const BenchmarkingPage: React.FC = () => {
       </div>
 
       {/* 사용자 크레딧 사이드바 */}
-      <UserCreditSidebar user={user} />
     </div>
   );
 };

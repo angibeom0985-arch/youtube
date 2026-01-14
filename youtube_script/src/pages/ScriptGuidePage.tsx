@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { FiHome } from "react-icons/fi";
 import { supabase } from "../services/supabase";
 import type { User } from "@supabase/supabase-js";
-import UserCreditSidebar from "../components/UserCreditSidebar";
+import UserCreditToolbar from "../components/UserCreditToolbar";
 
 const ScriptGuidePage: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -39,11 +39,20 @@ const ScriptGuidePage: React.FC = () => {
     updateMetaTag("og:image", "https://youtube.money-hotissue.com/og-image-guide.png");
     updateMetaTag("og:url", "https://youtube.money-hotissue.com/script/guide");
 
-    return () => subscription.unsubscribe();
+  return () => subscription.unsubscribe();
   }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+  };
+
 
   return (
     <div className="min-h-screen bg-[#0C0C10] text-white font-sans p-4 sm:p-8">
+      <div className="absolute top-0 right-0 p-4 sm:p-6 flex gap-3 z-50 items-center">
+        <UserCreditToolbar user={user} onLogout={handleLogout} tone="orange" />
+      </div>
+
       <div className="max-w-4xl mx-auto">
         <header className="mb-10">
           <a href="/script" className="inline-flex items-center gap-2 text-orange-300 hover:text-orange-200 mb-4">
@@ -107,7 +116,6 @@ const ScriptGuidePage: React.FC = () => {
       </div>
 
       {/* 사용자 크레딧 사이드바 */}
-      <UserCreditSidebar user={user} />
     </div>
   );
 };

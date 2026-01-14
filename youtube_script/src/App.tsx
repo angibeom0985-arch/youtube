@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { FiSettings, FiTrash2, FiLogOut, FiUser } from "react-icons/fi";
+import { FiSettings, FiTrash2 } from "react-icons/fi";
 import { supabase } from "./services/supabase";
 import Login from "./components/Login";
 import type { User } from "@supabase/supabase-js";
@@ -50,7 +50,7 @@ import Footer from "./components/Footer";
 import AdBlockDetector from "./components/AdBlockDetector";
 import AdBlockWarningModal from "./components/AdBlockWarningModal";
 import FloatingAnchorAd from "./components/FloatingAnchorAd";
-import UserCreditSidebar from "./components/UserCreditSidebar";
+import UserCreditToolbar from "./components/UserCreditToolbar";
 import { highlightImportantText } from "./utils/textHighlight.tsx";
 import { useNavigate } from "react-router-dom";
 import { evaluateAbuseRisk, type AbuseDecision } from "./services/abuseService";
@@ -1409,37 +1409,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
     <div className="min-h-screen bg-gradient-to-br from-black via-zinc-950 to-orange-950/30 text-white font-sans p-4 sm:p-8 pb-32 relative">
       {/* Auth Status - Top Right */}
       <div className="absolute top-0 right-0 p-4 sm:p-6 flex gap-3 z-50 items-center">
-        {user ? (
-          <div className="flex items-center gap-4 bg-zinc-900/80 backdrop-blur-md px-4 py-2 rounded-full border border-orange-500/30 shadow-[0_0_15px_rgba(234,88,12,0.2)]">
-            <div className="flex items-center gap-2">
-              {user.user_metadata.avatar_url ? (
-                <img 
-                  src={user.user_metadata.avatar_url} 
-                  alt="Profile" 
-                  className="w-8 h-8 rounded-full border border-orange-500/40"
-                />
-              ) : (
-                <div className="w-8 h-8 rounded-full bg-orange-500/10 flex items-center justify-center">
-                  <FiUser className="text-orange-400" />
-                </div>
-              )}
-              <div className="flex flex-col text-left">
-                <span className="text-xs font-bold text-white truncate max-w-[100px]">
-                  {user.user_metadata.full_name || user.email?.split('@')[0]}
-                </span>
-                <span className="text-[10px] text-orange-400/70 truncate max-w-[100px]">
-                  {user.email}
-                </span>
-              </div>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="text-xs font-bold px-3 py-1 bg-orange-500/10 hover:bg-red-500/20 hover:text-red-400 rounded-full transition-all border border-orange-500/20"
-            >
-              로그아웃
-            </button>
-          </div>
-        ) : null}
+        <UserCreditToolbar user={user} onLogout={handleLogout} tone="orange" />
       </div>
 
       {/* 애드블럭 감지 */}
@@ -2696,7 +2666,6 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
       )}
 
       {/* 사용자 크레딧 사이드바 */}
-      <UserCreditSidebar user={user} />
 
       {/* 플로팅 앵커 광고 - 애드블럭 감지 시 숨김 */}
       {!adBlockDetected && <FloatingAnchorAd />}

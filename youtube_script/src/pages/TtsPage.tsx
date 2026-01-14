@@ -1,10 +1,10 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { generateSsml } from "../services/geminiService";
-import { FiPlay, FiPause, FiMic, FiSliders, FiCpu, FiUser, FiInfo, FiLogOut } from "react-icons/fi";
+import { FiPlay, FiPause, FiMic, FiSliders, FiCpu, FiInfo } from "react-icons/fi";
 import { supabase } from "../services/supabase";
 import type { User } from "@supabase/supabase-js";
-import UserCreditSidebar from "../components/UserCreditSidebar";
+import UserCreditToolbar from "../components/UserCreditToolbar";
 
 const STORAGE_KEYS = {
   text: "tts_text",
@@ -223,37 +223,7 @@ const TtsPage: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-emerald-950 via-slate-950 to-emerald-900 text-white relative">
       {/* Auth Status - Top Right */}
       <div className="absolute top-0 right-0 p-4 sm:p-6 flex gap-3 z-50 items-center">
-        {user ? (
-          <div className="flex items-center gap-4 bg-zinc-900/80 backdrop-blur-md px-4 py-2 rounded-full border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
-            <div className="flex items-center gap-2">
-              {user.user_metadata.avatar_url ? (
-                <img 
-                  src={user.user_metadata.avatar_url} 
-                  alt="Profile" 
-                  className="w-8 h-8 rounded-full border border-emerald-500/40"
-                />
-              ) : (
-                <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                  <FiUser className="text-emerald-400" />
-                </div>
-              )}
-              <div className="flex flex-col text-left">
-                <span className="text-xs font-bold text-white truncate max-w-[100px]">
-                  {user.user_metadata.full_name || user.email?.split('@')[0]}
-                </span>
-                <span className="text-[10px] text-emerald-400/70 truncate max-w-[100px]">
-                  {user.email}
-                </span>
-              </div>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="text-xs font-bold px-3 py-1 bg-emerald-500/10 hover:bg-red-500/20 hover:text-red-400 rounded-full transition-all border border-emerald-500/20"
-            >
-              로그아웃
-            </button>
-          </div>
-        ) : null}
+        <UserCreditToolbar user={user} onLogout={handleLogout} tone="emerald" />
       </div>
 
       <div className="mx-auto max-w-6xl px-6 py-12">
@@ -485,7 +455,6 @@ const TtsPage: React.FC = () => {
       </div>
 
       {/* 사용자 크레딧 사이드바 */}
-      <UserCreditSidebar user={user} />
     </div>
   );
 };

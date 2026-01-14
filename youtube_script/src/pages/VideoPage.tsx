@@ -10,15 +10,13 @@ import {
   FiFileText,
   FiFilm,
   FiImage,
-  FiLogOut,
   FiMic,
   FiUpload,
-  FiUser,
 } from "react-icons/fi";
 import JSZip from "jszip";
 import { supabase } from "../services/supabase";
 import type { User } from "@supabase/supabase-js";
-import UserCreditSidebar from "../components/UserCreditSidebar";
+import UserCreditToolbar from "../components/UserCreditToolbar";
 
 const STORAGE_KEYS = {
   title: "video_project_title",
@@ -259,38 +257,7 @@ const VideoPage: React.FC = () => {
       <div className="absolute -bottom-24 -left-24 h-[clamp(220px,34vw,380px)] w-[clamp(220px,34vw,380px)] rounded-full bg-gradient-to-tr from-blue-200/60 via-sky-200/30 to-violet-200/30 blur-3xl" />
 
       <div className="absolute top-0 right-0 p-4 sm:p-6 flex gap-3 z-50 items-center">
-        {user ? (
-          <div className="flex items-center gap-4 bg-white/90 backdrop-blur-md px-4 py-2 rounded-full border border-slate-200 shadow-sm">
-            <div className="flex items-center gap-2">
-              {user.user_metadata.avatar_url ? (
-                <img
-                  src={user.user_metadata.avatar_url}
-                  alt="Profile"
-                  className="w-8 h-8 rounded-full border border-slate-200"
-                />
-              ) : (
-                <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
-                  <FiUser className="text-slate-500" />
-                </div>
-              )}
-              <div className="flex flex-col text-left">
-                <span className="text-xs font-bold text-slate-900 truncate max-w-[120px]">
-                  {user.user_metadata.full_name || user.email?.split("@")[0]}
-                </span>
-                <span className="text-[10px] text-slate-500 truncate max-w-[120px]">
-                  {user.email}
-                </span>
-              </div>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="text-xs font-bold px-3 py-1 bg-slate-100 hover:bg-red-50 hover:text-red-600 rounded-full transition-all border border-slate-200 inline-flex items-center gap-1"
-            >
-              <FiLogOut className="text-sm" />
-              ????
-            </button>
-          </div>
-        ) : null}
+        <UserCreditToolbar user={user} onLogout={handleLogout} tone="indigo" />
       </div>
 
       <div className="mx-auto max-w-[min(1200px,94vw)] px-[clamp(1rem,3vw,2rem)] py-[clamp(2rem,5vw,4rem)]">
@@ -659,7 +626,6 @@ const VideoPage: React.FC = () => {
         </div>
       </div>
 
-      <UserCreditSidebar user={user} />
     </div>
   );
 };

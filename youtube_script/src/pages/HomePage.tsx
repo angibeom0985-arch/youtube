@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../services/supabase";
 import type { User } from "@supabase/supabase-js";
 import LoginModal from "../components/LoginModal";
-import UserCreditSidebar from "../components/UserCreditSidebar";
+import UserCreditToolbar from "../components/UserCreditToolbar";
 
 interface HomePageProps {
   basePath?: string;
@@ -102,15 +102,7 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
     <div className="min-h-screen bg-black text-white relative">
       <div className="absolute top-0 right-0 p-6 flex gap-3 z-10 items-center">
         {user ? (
-          <div className="flex items-center gap-4 bg-white/5 backdrop-blur-sm px-4 py-2 rounded-full border border-white/10">
-            <span className="text-sm text-slate-300">{user.email}</span>
-            <button
-              onClick={handleLogout}
-              className="text-xs font-semibold text-slate-400 hover:text-white transition-colors"
-            >
-              로그아웃
-            </button>
-          </div>
+          <UserCreditToolbar user={user} onLogout={handleLogout} tone="slate" />
         ) : (
           <div className="flex flex-col items-end gap-3">
             <div className="flex items-center gap-6">
@@ -293,7 +285,6 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
       />
 
       {/* 사용자 크레딧 사이드바 */}
-      <UserCreditSidebar user={user} />
     </div>
   );
 };

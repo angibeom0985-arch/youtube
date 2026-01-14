@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { FiHome, FiZap, FiCheck } from "react-icons/fi";
 import { supabase } from "../services/supabase";
 import type { User } from "@supabase/supabase-js";
-import UserCreditSidebar from "../components/UserCreditSidebar";
+import UserCreditToolbar from "../components/UserCreditToolbar";
 
 interface PricingPlan {
   id: string;
@@ -121,8 +121,13 @@ const CreditPurchasePage: React.FC = () => {
     updateMetaTag("og:description", "매월 든든 자동할 필요가 없습니다. 필요한 때, 필요한 만큼 충전하세요");
     updateMetaTag("og:url", "https://youtube.money-hotissue.com/credit-purchase");
 
-    return () => subscription.unsubscribe();
+  return () => subscription.unsubscribe();
   }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+  };
+
 
   const handlePurchase = (plan: PricingPlan) => {
     if (!user) {
@@ -137,6 +142,10 @@ const CreditPurchasePage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white relative">
+      <div className="absolute top-0 right-0 p-4 sm:p-6 flex gap-3 z-50 items-center">
+        <UserCreditToolbar user={user} onLogout={handleLogout} tone="orange" />
+      </div>
+
       {/* 헤더 */}
       <header className="border-b border-gray-800">
         <div className="max-w-7xl mx-auto px-4 py-6">
@@ -241,7 +250,6 @@ const CreditPurchasePage: React.FC = () => {
       </main>
 
       {/* 사용자 크레딧 사이드바 */}
-      <UserCreditSidebar user={user} />
     </div>
   );
 };
