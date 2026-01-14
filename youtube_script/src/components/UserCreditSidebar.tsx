@@ -16,20 +16,36 @@ const UserCreditSidebar: React.FC<UserCreditSidebarProps> = ({ user }) => {
     
     setLoading(true);
     try {
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('credits')
-        .eq('id', user.id)
-        .single();
-
-      if (error) {
-        console.error('크레딧 조회 오류:', error);
+      // Supabase 세션에서 액세스 토큰 가져오기
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session) {
+        console.error('세션 오류:', sessionError);
+        setCredits(0);
         return;
       }
 
-      setCredits(profile?.credits ?? 0);
+      // API를 통해 크레딧 조회
+      const response = await fetch('/api/YOUTUBE/user/credits', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('크레딧 조회 오류:', errorData);
+        setCredits(0);
+        return;
+      }
+
+      const data = await response.json();
+      setCredits(data.credits ?? 0);
     } catch (error) {
       console.error('크레딧 조회 실패:', error);
+      setCredits(0);
     } finally {
       setLoading(false);
     }
