@@ -25,7 +25,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const token = authHeader.substring(7);
 
     // Supabase로 사용자 확인
-    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+    const { data, error: authError } = await supabaseAdmin.auth.getUser(token);
+    const user = data?.user;
 
     if (authError || !user) {
       console.error("Auth error:", authError);
@@ -33,11 +34,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // 프로필에서 크레딧 조회
-    const { data: profile, error: profileError } = await supabaseAdmin
+    const { data: profileData, error: profileError } = await supabaseAdmin
       .from("profiles")
       .select("credits, initial_credits_expiry")
       .eq("id", user.id)
       .single();
+    
+    const profile = profileData;
 
     // 프로필이 없으면 생성 (회원가입 시 트리거가 작동하지 않은 경우 대비)
     if (profileError && (profileError as any).code === 'PGRST116') {
