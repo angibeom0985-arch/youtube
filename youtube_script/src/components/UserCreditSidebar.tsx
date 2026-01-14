@@ -102,6 +102,13 @@ const UserCreditSidebar: React.FC<UserCreditSidebarProps> = ({ user }) => {
                 </p>
               </div>
             </div>
+            {/* 신규 가입 안내 */}
+            <div className="mt-3 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-lg px-3 py-2 border border-green-500/30">
+              <p className="text-green-400 text-xs font-semibold">🎉 신규 가입 혜택</p>
+              <p className="text-neutral-300 text-[10px] mt-1">
+                회원가입 시 <span className="text-green-400 font-bold">100 크레딧</span> 제공 (3일간 유효)
+              </p>
+            </div>
           </div>
 
           {/* 크레딧 정보 */}
