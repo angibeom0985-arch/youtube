@@ -40,38 +40,38 @@ type Step = {
 const steps: Step[] = [
   {
     id: "setup",
-    label: "??",
-    description: "????? ?? ?? ??? ??? ?????.",
+    label: "설정",
+    description: "프로젝트와 렌더 기본 설정을 빠르게 지정합니다.",
     icon: <FiCheckCircle />,
   },
   {
     id: "script",
-    label: "?? ??",
-    description: "?? ???? ?? ???? ? ?? ?????.",
+    label: "대본 생성",
+    description: "주제와 키워드를 넣으면 AI가 대본을 만들어 줍니다.",
     icon: <FiFileText />,
   },
   {
     id: "tts",
-    label: "?? ??",
-    description: "??? ???? ??? ????? ????.",
+    label: "음성 생성",
+    description: "대본을 AI 음성으로 빠르게 변환해 나레이션을 제작합니다.",
     icon: <FiMic />,
   },
   {
     id: "image",
-    label: "??? ??",
-    description: "??? ?? ???? ?????? ?????.",
+    label: "이미지 생성",
+    description: "컷 구조에 맞는 이미지와 스토리보드를 구성하세요.",
     icon: <FiImage />,
   },
   {
     id: "generate",
-    label: "?? ??",
-    description: "???/??/???? ?? ?? ???? ?????.",
+    label: "영상 생성",
+    description: "이미지, 음성, 효과를 모아 영상 패키지를 준비합니다.",
     icon: <FiFilm />,
   },
   {
     id: "render",
-    label: "?? ???",
-    description: "?? ?? ?????? ?? ???? ?????.",
+    label: "영상 렌더링",
+    description: "최종 편집 체크리스트와 렌더 요청서를 정리합니다.",
     icon: <FiEdit3 />,
   },
 ];
@@ -104,7 +104,7 @@ const VideoPage: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
   const [projectTitle, setProjectTitle] = useState(() =>
-    getStoredString(STORAGE_KEYS.title, "?? 1500? ??? ??? ??")
+    getStoredString(STORAGE_KEYS.title, "환율 1500원 시대에 벌어질 일들")
   );
   const [projectNotes, setProjectNotes] = useState(() =>
     getStoredString(STORAGE_KEYS.notes)
