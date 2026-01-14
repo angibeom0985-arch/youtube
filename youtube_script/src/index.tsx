@@ -44,6 +44,7 @@ root.render(
         <Route path="/debug/script" element={<DebugPage mode="script" />} />
         <Route path="/debug/image/*" element={<DebugPage mode="image" />} />
         <Route path="/debug/tts" element={<Navigate to="/tts" replace />} />
+        <Route path="/debug/video" element={<DebugPage mode="video" />} />
         <Route path="/download-progress" element={<DownloadProgressPage />} />
         <Route path="/download" element={<DownloadPage />} />
         <Route path="/tts" element={<TtsPage />} />

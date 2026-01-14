@@ -2,10 +2,11 @@ import React, { useEffect, useState } from "react";
 import App from "../App";
 import ImageApp from "../../../youtube_image/ui/App";
 import ImageErrorBoundary from "../../../youtube_image/ui/components/ErrorBoundary";
+import VideoPage from "./VideoPage";
 import { FiEye, FiEyeOff, FiHome } from "react-icons/fi";
 
 type LoginState = "checking" | "loggedOut" | "loggedIn";
-type DebugMode = "script" | "image";
+type DebugMode = "script" | "image" | "video";
 
 interface DebugPageProps {
   mode: DebugMode;
@@ -140,13 +141,19 @@ const DebugPage: React.FC<DebugPageProps> = ({ mode }) => {
     );
   }
 
-  return mode === "image" ? (
-    <ImageErrorBoundary>
-      <ImageApp basePath="/debug/image" />
-    </ImageErrorBoundary>
-  ) : (
-    <App allowDevtools />
-  );
+  if (mode === "image") {
+    return (
+      <ImageErrorBoundary>
+        <ImageApp basePath="/debug/image" />
+      </ImageErrorBoundary>
+    );
+  }
+
+  if (mode === "video") {
+    return <VideoPage />;
+  }
+
+  return <App allowDevtools />;
 };
 
 export default DebugPage;
