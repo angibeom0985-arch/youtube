@@ -9,11 +9,8 @@
     { "source": "/api/upload-image", "destination": "/api/youtube_image/upload-image.js" },
     { "source": "/api/tts", "destination": "/api/youtube_TTS/tts.ts" },
     { "source": "/api/abuse/check", "destination": "/api/YOUTUBE/abuse/check.ts" },
-    { "source": "/api/admin/login", "destination": "/api/YOUTUBE/admin/login.ts" },
-    { "source": "/api/admin/logout", "destination": "/api/YOUTUBE/admin/logout.ts" },
+    { "source": "/api/admin/auth", "destination": "/api/YOUTUBE/admin/auth.ts" },
     { "source": "/api/admin/abuse", "destination": "/api/YOUTUBE/admin/abuse.ts" },
-    { "source": "/api/guide/api-key", "destination": "/api/YOUTUBE/guide/api-key.js" },
-    { "source": "/api/guide/user-guide", "destination": "/api/YOUTUBE/guide/user-guide.js" },
     { "source": "/api/benchmarking/search", "destination": "/api/youtube_script/benchmarking/search.ts" },
     { "source": "/admin", "destination": "/admin.html" },
     { "source": "/(.*)", "destination": "/index.html" }

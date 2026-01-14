@@ -44,10 +44,10 @@ const DebugPage: React.FC<DebugPageProps> = ({ mode }) => {
     setLoading(true);
 
     try {
-      const response = await fetch("/api/admin/login", {
+      const response = await fetch("/api/admin/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ action: "login", username, password }),
       });
 
       if (!response.ok) {
