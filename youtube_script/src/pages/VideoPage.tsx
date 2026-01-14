@@ -47,25 +47,25 @@ const steps: Step[] = [
   {
     id: "script",
     label: "대본 생성",
-    description: "주제와 키워드를 넣으면 AI가 대본을 만들어 줍니다.",
+    description: "주제와 키워드를 넣으면 AI가 대본을 만들어 드립니다.",
     icon: <FiFileText />,
   },
   {
     id: "tts",
     label: "음성 생성",
-    description: "대본을 AI 음성으로 빠르게 변환해 나레이션을 제작합니다.",
+    description: "대본을 AI 음성으로 변환해 나레이션을 제작합니다.",
     icon: <FiMic />,
   },
   {
     id: "image",
     label: "이미지 생성",
-    description: "컷 구조에 맞는 이미지와 스토리보드를 구성하세요.",
+    description: "컷 구조에 맞는 이미지와 스토리보드를 구성합니다.",
     icon: <FiImage />,
   },
   {
     id: "generate",
     label: "영상 생성",
-    description: "이미지, 음성, 효과를 모아 영상 패키지를 준비합니다.",
+    description: "이미지, 음성, 효과음을 묶어 영상 패키지를 준비합니다.",
     icon: <FiFilm />,
   },
   {
@@ -221,15 +221,15 @@ const VideoPage: React.FC = () => {
       const fileName = `${projectTitle || "video-project"}-package.zip`;
       downloadBlob(blob, fileName);
     } catch (error) {
-      console.error("??? ?? ??:", error);
-      alert("???? ??? ?????. ?? ??????.");
+      console.error("패키지 생성 실패:", error);
+      alert("패키지를 만들지 못했습니다. 다시 시도해 주세요.");
     } finally {
       setIsPackaging(false);
     }
   };
 
   const handleDownloadEditNotes = () => {
-    const content = editNotes.trim() || "?? ?? ??? ?? ????.";
+    const content = editNotes.trim() || "편집 요청 사항이 아직 없습니다.";
     const fileName = `${projectTitle || "video-project"}-edit-notes.txt`;
     downloadBlob(new Blob([content], { type: "text/plain;charset=utf-8" }), fileName);
   };
@@ -262,15 +262,15 @@ const VideoPage: React.FC = () => {
 
       <div className="mx-auto max-w-[min(1200px,94vw)] px-[clamp(1rem,3vw,2rem)] py-[clamp(2rem,5vw,4rem)]">
         <Link to="/" className="text-sm text-slate-400 hover:text-slate-600">
-          ????? ??
+          대시보드로 이동
         </Link>
 
         <div className="mt-5">
           <h1 className="text-[clamp(1.8rem,2.8vw,2.8rem)] font-black text-white">
-            ??? ?? ?? ????
+            올인원 영상 제작 스튜디오
           </h1>
           <p className="mt-2 text-[clamp(0.9rem,1.6vw,1rem)] text-white/60">
-            ???? ??, ??, ???, ?? ??, ????? ? ???? ???? ?????.
+            설정부터 대본, 음성, 이미지, 영상, 렌더링까지 한 화면에서 순서대로 진행하세요.
           </p>
         </div>
 
@@ -331,56 +331,56 @@ const VideoPage: React.FC = () => {
               <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)] grid gap-[clamp(1rem,2vw,1.5rem)] lg:grid-cols-2">
                 <div className="rounded-[clamp(1rem,2vw,1.5rem)] border border-white/20 p-[clamp(1rem,2.3vw,1.5rem)] bg-black/40 border-white/10">
                   <h3 className="text-[clamp(1rem,1.6vw,1.2rem)] font-semibold text-white">
-                    ?? ??? ??? ?????
+                    어떤 영상을 만들고 싶으세요?
                   </h3>
                   <p className="mt-2 text-[clamp(0.8rem,1.4vw,0.95rem)] text-white/60">
-                    ??? ?? ??? ???? ??? ????????.
+                    주제와 기획 메모를 입력하면 영상 흐름을 구조화해 드립니다.
                   </p>
                   <div className="mt-5 space-y-4">
                     <div>
-                      <label className="text-xs font-semibold text-white/60">???? ??</label>
+                      <label className="text-xs font-semibold text-white/60">프로젝트 제목</label>
                       <input
                         value={projectTitle}
                         onChange={(event) => setProjectTitle(event.target.value)}
                         className="mt-2 w-full rounded-xl border border-white/20 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
-                        placeholder="?: ?? 1500? ??? ??? ??"
+                        placeholder="예: 환율 1500원 시대에 벌어질 일들"
                       />
                     </div>
                     <div>
-                      <label className="text-xs font-semibold text-white/60">?? ??</label>
+                      <label className="text-xs font-semibold text-white/60">기획 메모</label>
                       <textarea
                         value={projectNotes}
                         onChange={(event) => setProjectNotes(event.target.value)}
                         className="mt-2 w-full rounded-xl border border-white/20 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
                         rows={5}
-                        placeholder="??, ?, CTA ? ?? ???? ??? ???."
+                        placeholder="타겟, 톤, CTA 등 핵심 포인트를 정리해 주세요."
                       />
                     </div>
                   </div>
                 </div>
                 <div className="rounded-[clamp(1rem,2vw,1.5rem)] border border-white/20 p-[clamp(1rem,2.3vw,1.5rem)] bg-black/40 border-white/10">
                   <h3 className="text-[clamp(1rem,1.6vw,1.2rem)] font-semibold text-white">
-                    ?? ?? ?? ??
+                    렌더 기본 설정
                   </h3>
                   <p className="mt-2 text-[clamp(0.8rem,1.4vw,0.95rem)] text-white/60">
-                    ????? ??, ??? ??? ?? ?????.
+                    전체 길이와 비율, 프레임 등 기본 옵션을 선택하세요.
                   </p>
                   <div className="mt-5 grid gap-4 sm:grid-cols-3">
                     <div>
-                      <label className="text-xs font-semibold text-white/60">??</label>
+                      <label className="text-xs font-semibold text-white/60">길이</label>
                       <select
                         value={renderDuration}
                         onChange={(event) => setRenderDuration(event.target.value)}
                         className="mt-2 w-full rounded-xl border border-white/20 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
                       >
-                        <option value="30s">30?</option>
-                        <option value="60s">1?</option>
-                        <option value="180s">3?</option>
-                        <option value="300s">5?</option>
+                        <option value="30s">30초</option>
+                        <option value="60s">1분</option>
+                        <option value="180s">3분</option>
+                        <option value="300s">5분</option>
                       </select>
                     </div>
                     <div>
-                      <label className="text-xs font-semibold text-white/60">??</label>
+                      <label className="text-xs font-semibold text-white/60">화면 비율</label>
                       <select
                         value={renderRatio}
                         onChange={(event) => setRenderRatio(event.target.value)}
@@ -398,20 +398,20 @@ const VideoPage: React.FC = () => {
                         onChange={(event) => setRenderFps(event.target.value)}
                         className="mt-2 w-full rounded-xl border border-white/20 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
                       >
-                        <option value="24">24</option>
-                        <option value="30">30</option>
-                        <option value="60">60</option>
+                        <option value="24">24fps</option>
+                        <option value="30">30fps</option>
+                        <option value="60">60fps</option>
                       </select>
                     </div>
                   </div>
                   <div className="mt-6">
-                    <label className="text-xs font-semibold text-white/60">?? ??</label>
+                    <label className="text-xs font-semibold text-white/60">렌더 메모</label>
                     <textarea
                       value={renderNotes}
                       onChange={(event) => setRenderNotes(event.target.value)}
                       className="mt-2 w-full rounded-xl border border-white/20 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
                       rows={4}
-                      placeholder="??, ??, ?? ?? ? ??? ??? ?????."
+                      placeholder="자막, 효과, 화면 전환 등 원하는 느낌을 적어주세요."
                     />
                   </div>
                 </div>
@@ -421,19 +421,19 @@ const VideoPage: React.FC = () => {
             {activeStep.id === "script" && (
               <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
                 <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-white/60">
-                  <span>?? ?? ??? ? ???? ?? ??? ? ???.</span>
+                  <span>대본 작성 화면을 한 화면에서 바로 확인하세요.</span>
                   <a
                     href="/script"
                     target="_blank"
                     rel="noreferrer"
                     className="rounded-full border border-red-500/30 px-4 py-1 text-xs font-semibold text-red-300 hover:border-red-400"
                   >
-                    ? ??? ??
+                    새 창에서 열기
                   </a>
                 </div>
                 <div className="mt-4 overflow-hidden rounded-[clamp(1rem,2vw,1.5rem)] border border-white/20">
                   <iframe
-                    title="?? ??"
+                    title="대본 생성"
                     src="/script"
                     className="h-[clamp(420px,72vh,760px)] w-full"
                     loading="lazy"
@@ -445,19 +445,19 @@ const VideoPage: React.FC = () => {
             {activeStep.id === "tts" && (
               <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
                 <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-white/60">
-                  <span>????? ???? ?? AI ???? ??????.</span>
+                  <span>대본을 AI 음성으로 변환해 나레이션을 만들어보세요.</span>
                   <a
                     href="/tts"
                     target="_blank"
                     rel="noreferrer"
                     className="rounded-full border border-red-500/30 px-4 py-1 text-xs font-semibold text-red-300 hover:border-red-400"
                   >
-                    ? ??? ??
+                    새 창에서 열기
                   </a>
                 </div>
                 <div className="mt-4 overflow-hidden rounded-[clamp(1rem,2vw,1.5rem)] border border-white/20">
                   <iframe
-                    title="?? ??"
+                    title="음성 생성"
                     src="/tts"
                     className="h-[clamp(420px,72vh,760px)] w-full"
                     loading="lazy"
@@ -469,19 +469,19 @@ const VideoPage: React.FC = () => {
             {activeStep.id === "image" && (
               <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
                 <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-white/60">
-                  <span>??? ?????? ?? ???? ??? ? ????.</span>
+                  <span>이미지 생성 화면에서 스토리보드를 바로 만들 수 있습니다.</span>
                   <a
                     href="/image"
                     target="_blank"
                     rel="noreferrer"
                     className="rounded-full border border-red-500/30 px-4 py-1 text-xs font-semibold text-red-300 hover:border-red-400"
                   >
-                    ? ??? ??
+                    새 창에서 열기
                   </a>
                 </div>
                 <div className="mt-4 overflow-hidden rounded-[clamp(1rem,2vw,1.5rem)] border border-white/20">
                   <iframe
-                    title="??? ??"
+                    title="이미지 생성"
                     src="/image"
                     className="h-[clamp(420px,72vh,760px)] w-full"
                     loading="lazy"
@@ -491,18 +491,18 @@ const VideoPage: React.FC = () => {
             )}
 
             {activeStep.id === "generate" && (
-              <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)] grid gap-[clamp(1rem,2vw,1.5rem)] lg:grid-cols-[minmax(0,1fr)_clamp(240px,28vw,340px)]">
+              <div className="mt-[clamp(1rem,2vw,1.5rem)] grid gap-[clamp(1rem,2vw,1.5rem)] lg:grid-cols-[minmax(0,1fr)_clamp(240px,28vw,340px)]">
                 <div className="rounded-[clamp(1rem,2vw,1.5rem)] border border-white/20 p-[clamp(1rem,2.3vw,1.5rem)] bg-black/40 border-white/10">
                   <h3 className="text-[clamp(1rem,1.6vw,1.2rem)] font-semibold text-white">
-                    ?? ??? ?? ???
+                    영상 패키지 재료 업로드
                   </h3>
                   <p className="mt-2 text-[clamp(0.8rem,1.4vw,0.95rem)] text-white/60">
-                    ???, ??, BGM? ??? ???? ??????.
+                    이미지, 음성, BGM 등을 모아 렌더 패키지를 만들어보세요.
                   </p>
                   <div className="mt-4 flex flex-wrap items-center gap-3">
                     <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-red-500/30 px-4 py-2 text-xs font-semibold text-red-300 hover:border-red-400">
                       <FiUpload />
-                      ?? ??
+                      파일 추가
                       <input
                         type="file"
                         multiple
@@ -512,13 +512,13 @@ const VideoPage: React.FC = () => {
                       />
                     </label>
                     <span className="text-xs text-slate-400">
-                      {assetFiles.length ? `${assetFiles.length}? ?? ???` : "?? ??? ??"}
+                      {assetFiles.length ? `${assetFiles.length}개 파일 준비됨` : "아직 업로드 없음"}
                     </span>
                   </div>
                   <div className="mt-4 space-y-2">
                     {assetFiles.length === 0 && (
                       <div className="rounded-lg border border-dashed border-white/20 px-4 py-6 text-center text-sm text-slate-400">
-                        ???? ??? ??? ?????.
+                        파일을 업로드하면 여기에 목록이 표시됩니다.
                       </div>
                     )}
                     {assetFiles.map((file, index) => (
@@ -534,7 +534,7 @@ const VideoPage: React.FC = () => {
                           onClick={() => handleRemoveFile(index)}
                           className="text-xs text-slate-400 hover:text-red-500"
                         >
-                          ??
+                          삭제
                         </button>
                       </div>
                     ))}
@@ -542,13 +542,13 @@ const VideoPage: React.FC = () => {
                 </div>
                 <div className="rounded-[clamp(1rem,2vw,1.5rem)] border border-white/20 p-[clamp(1rem,2.3vw,1.5rem)] bg-black/40 border-white/10">
                   <h3 className="text-[clamp(1rem,1.6vw,1.2rem)] font-semibold text-white">
-                    ?? ?? ??
+                    렌더 준비 요약
                   </h3>
                   <ul className="mt-4 space-y-2 text-[clamp(0.85rem,1.4vw,0.95rem)] text-white/60">
-                    <li>??: {renderDuration}</li>
-                    <li>??: {renderRatio}</li>
+                    <li>길이: {renderDuration}</li>
+                    <li>비율: {renderRatio}</li>
                     <li>FPS: {renderFps}</li>
-                    <li>???: {assetFiles.length}?</li>
+                    <li>업로드 수: {assetFiles.length}개</li>
                   </ul>
                   <button
                     type="button"
@@ -557,7 +557,7 @@ const VideoPage: React.FC = () => {
                     className="mt-6 w-full rounded-xl bg-red-600 px-4 py-3 text-sm font-bold text-white shadow-[0_10px_20px_rgba(255,69,91,0.25)] transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-70 flex items-center justify-center gap-2"
                   >
                     <FiDownload />
-                    {isPackaging ? "??? ?? ?..." : "?? ??? ????"}
+                    {isPackaging ? "패키지 생성 중..." : "렌더 패키지 다운로드"}
                   </button>
                 </div>
               </div>
@@ -567,28 +567,28 @@ const VideoPage: React.FC = () => {
               <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)] grid gap-[clamp(1rem,2vw,1.5rem)] lg:grid-cols-[minmax(0,1fr)_clamp(240px,28vw,340px)]">
                 <div className="rounded-[clamp(1rem,2vw,1.5rem)] border border-white/20 p-[clamp(1rem,2.3vw,1.5rem)] bg-black/40 border-white/10">
                   <h3 className="text-[clamp(1rem,1.6vw,1.2rem)] font-semibold text-white">
-                    ?? ?? & ?????
+                    편집 요청 & 체크리스트
                   </h3>
                   <p className="mt-2 text-[clamp(0.8rem,1.4vw,0.95rem)] text-white/60">
-                    ??, ??, ? ?? ? ?? ???? ?????.
+                    자막, 장면 전환, 강조 포인트 등 수정 포인트를 상세히 기술하세요.
                   </p>
                   <textarea
                     value={editNotes}
                     onChange={(event) => setEditNotes(event.target.value)}
                     rows={6}
                     className="mt-4 w-full rounded-xl border border-white/20 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
-                    placeholder="?: ? 3 ????? ?? / CTA 0.6? ?? / ?? ?? ???"
+                    placeholder="예: 컷 3 하이라이트 확대 / CTA 0.6초 추가 / 전환 효과 줄이기"
                   />
                 </div>
                 <div className="rounded-[clamp(1rem,2vw,1.5rem)] border border-white/20 p-[clamp(1rem,2.3vw,1.5rem)] bg-black/40 border-white/10">
                   <h3 className="text-[clamp(1rem,1.6vw,1.2rem)] font-semibold text-white">
-                    ?? ?? ??
+                    최종 렌더 요약
                   </h3>
                   <ul className="mt-4 space-y-2 text-[clamp(0.85rem,1.4vw,0.95rem)] text-white/60">
-                    <li>?? ??: {renderDuration}</li>
-                    <li>?? ??: {renderRatio}</li>
-                    <li>???: {renderFps}fps</li>
-                    <li>??: ?? ??</li>
+                    <li>렌더 길이: {renderDuration}</li>
+                    <li>화면 비율: {renderRatio}</li>
+                    <li>프레임: {renderFps}fps</li>
+                    <li>자막 포함: 기본 세팅</li>
                   </ul>
                   <button
                     type="button"
@@ -596,7 +596,7 @@ const VideoPage: React.FC = () => {
                     className="mt-6 w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-bold text-white shadow-[0_10px_20px_rgba(15,23,42,0.25)] transition hover:bg-slate-800 flex items-center justify-center gap-2"
                   >
                     <FiDownload />
-                    ?? ??? ????
+                    편집 요청서 다운로드
                   </button>
                 </div>
               </div>
@@ -610,7 +610,7 @@ const VideoPage: React.FC = () => {
                 className="inline-flex items-center gap-2 rounded-full border border-white/20 px-5 py-2 text-sm font-semibold text-white/60 transition hover:border-slate-300 disabled:opacity-40"
               >
                 <FiChevronLeft />
-                ?? ??
+                이전 단계
               </button>
               <button
                 type="button"
@@ -618,7 +618,7 @@ const VideoPage: React.FC = () => {
                 disabled={!canGoNext}
                 className="inline-flex items-center gap-2 rounded-full bg-red-600 px-6 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(255,69,91,0.3)] transition hover:bg-red-500 disabled:opacity-40"
               >
-                ?? ??
+                다음 단계
                 <FiChevronRight />
               </button>
             </div>
