@@ -70,7 +70,7 @@ export const checkAndDeductCredits = async (
   // 2. 프로필(크레딧) 조회
   const { data: profile, error: profileError } = await supabaseAdmin
     .from("profiles")
-    .select("credits, last_reset_date, signup_ip")
+    .select("credits, last_reset_date, signup_ip, initial_credits_expiry")
     .eq("id", userId)
     .single();
 
