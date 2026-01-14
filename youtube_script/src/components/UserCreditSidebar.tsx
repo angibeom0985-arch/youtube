@@ -24,9 +24,12 @@ const UserCreditSidebar: React.FC<UserCreditSidebarProps> = ({ user }) => {
       if (sessionError || !session) {
         console.error('세션 오류:', sessionError);
         setCredits(0);
+        setLoading(false);
         return;
       }
 
+      console.log('크레딧 조회 시작...');
+      
       // API를 통해 크레딧 조회
       const response = await fetch('/api/YOUTUBE/user/credits', {
         method: 'GET',
@@ -36,14 +39,19 @@ const UserCreditSidebar: React.FC<UserCreditSidebarProps> = ({ user }) => {
         },
       });
 
+      console.log('API 응답 상태:', response.status);
+
       if (!response.ok) {
         const errorData = await response.json();
         console.error('크레딧 조회 오류:', errorData);
         setCredits(0);
+        setLoading(false);
         return;
       }
 
       const data = await response.json();
+      console.log('크레딧 데이터:', data);
+      
       setCredits(data.credits ?? 0);
       setIsInInitialPeriod(data.isInInitialPeriod ?? false);
       setDaysRemaining(data.daysRemaining ?? 0);
@@ -155,7 +163,8 @@ const UserCreditSidebar: React.FC<UserCreditSidebarProps> = ({ user }) => {
                 </div>
               </div>
             </div>
-{isInInitialPeriod ? (
+            {/* 일일 무료 크레딧 안내 */}
+            {isInInitialPeriod ? (
               <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-lg p-4 text-xs border border-green-500/30">
                 <p className="text-green-400 font-semibold mb-2 text-sm">🎉 초기 크레딧 기간!</p>
                 <p className="text-neutral-300 text-xs leading-relaxed mb-2">
@@ -171,14 +180,9 @@ const UserCreditSidebar: React.FC<UserCreditSidebarProps> = ({ user }) => {
               </div>
             ) : (
               <div className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 rounded-lg p-4 text-xs border border-amber-500/30">
-                <p className="text-amber-400 font-semibold mb-2 text-sm">🎁 매일 무료 충전!</p>
-                <p className="text-neutral-300 text-xs leading-relaxed">
-                  매일 30 크레딧이 자동으로 충전됩니다.
-                </p>
+                <p className="text-amber-400 font-semibold text-sm">🎁 매일 30 크레딧 무료 충전!</p>
               </div>
-            )} 30 크레딧이 자동으로 충전됩니다.
-              </p>
-            </div>
+            )}
           </div>
         </div>
       </div>
