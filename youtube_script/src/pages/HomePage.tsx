@@ -149,10 +149,10 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
             href={videoPath}
             onClick={(e) => handleNavigation(e, videoPath)}
             style={videoCardStyle}
-            className="group relative rounded-3xl border p-8 transition duration-300 hover:-translate-y-1 cursor-pointer"
+            className="group relative block w-full overflow-hidden rounded-3xl border p-8 transition duration-300 hover:-translate-y-1 cursor-pointer"
           >
-            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-              <div className="flex-1">
+            <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+              <div className="max-w-3xl">
                 <span className="inline-flex items-center gap-2 rounded-full bg-red-500/20 px-4 py-1.5 text-xs font-bold text-red-200">
                   NEW 올인원 제작
                 </span>
@@ -163,7 +163,7 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
                   대본 생성부터 이미지, 영상 패키징, 편집 체크리스트까지 한 화면에서 흐름대로 진행합니다.
                 </p>
               </div>
-              <div className="flex flex-col items-start gap-3 text-sm lg:items-end">
+              <div className="flex flex-col items-start gap-3 text-sm lg:items-end lg:text-right">
                 <span className="rounded-full bg-black/40 px-4 py-2 font-semibold text-slate-200">
                   대본 → 이미지 → 영상 → 편집
                 </span>
