@@ -10,6 +10,10 @@
 }
 
 @layer base {
+  html {
+    font-size: clamp(14px, 0.35vw + 12px, 17px);
+  }
+
   :root {
     --tone-image-purple: #9333ea;
     --tone-image-green: #16a34a;

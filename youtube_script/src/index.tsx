@@ -19,6 +19,7 @@ import DownloadPage from './pages/DownloadPage.tsx';
 import TtsPage from './pages/TtsPage.tsx';
 import BenchmarkingPage from './pages/BenchmarkingPage.tsx';
 import CreditPurchasePage from './pages/CreditPurchasePage.tsx';
+import VideoPage from './pages/VideoPage.tsx';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -47,6 +48,7 @@ root.render(
         <Route path="/download" element={<DownloadPage />} />
         <Route path="/tts" element={<TtsPage />} />
         <Route path="/credit-purchase" element={<CreditPurchasePage />} />
+        <Route path="/video" element={<VideoPage />} />
         <Route
           path="/image/*"
           element={

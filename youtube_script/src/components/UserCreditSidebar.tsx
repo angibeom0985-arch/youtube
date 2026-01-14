@@ -84,7 +84,7 @@ const UserCreditSidebar: React.FC<UserCreditSidebarProps> = ({ user }) => {
   return (
     <>
       {/* 왼쪽 사이드바 */}
-      <div className="hidden xl:block fixed left-4 top-24 w-[280px] z-30">
+      <div className="hidden xl:block fixed left-4 top-24 w-[clamp(220px,18vw,320px)] z-30">
         <div className="bg-gradient-to-br from-zinc-900/95 to-zinc-800/95 backdrop-blur-md rounded-2xl p-6 border border-orange-500/30 shadow-[0_0_30px_rgba(234,88,12,0.15)]">
           {/* 사용자 정보 */}
           <div className="mb-6 pb-6 border-b border-zinc-700">

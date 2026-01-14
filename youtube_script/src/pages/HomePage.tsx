@@ -18,6 +18,7 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
   const scriptPath = `${normalizedBasePath}/script` || "/script";
   const imagePath = `${normalizedBasePath}/image` || "/image";
   const ttsPath = `${normalizedBasePath}/tts` || "/tts";
+  const videoPath = `${normalizedBasePath}/video` || "/video";
 
   useEffect(() => {
     // URL에서 해시(#) 제거
@@ -91,6 +92,12 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
       "linear-gradient(135deg, rgba(22, 163, 74, 0.32), rgba(22, 163, 74, 0.12) 48%, transparent 100%)",
   } as React.CSSProperties;
 
+  const videoCardStyle = {
+    borderColor: "var(--tone-brand-red, #ff0000)",
+    background:
+      "linear-gradient(135deg, rgba(239, 68, 68, 0.38), rgba(249, 115, 22, 0.18) 48%, transparent 100%)",
+  } as React.CSSProperties;
+
   return (
     <div className="min-h-screen bg-black text-white relative">
       <div className="absolute top-0 right-0 p-6 flex gap-3 z-10 items-center">
@@ -137,7 +144,38 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
           </h1>
         </div>
 
-        <div className="mt-12 grid w-full gap-6 sm:grid-cols-2">
+        <div className="mt-10 w-full">
+          <a
+            href={videoPath}
+            onClick={(e) => handleNavigation(e, videoPath)}
+            style={videoCardStyle}
+            className="group relative overflow-hidden rounded-3xl border p-8 transition duration-300 hover:-translate-y-1 cursor-pointer"
+          >
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <span className="inline-flex items-center gap-2 rounded-full bg-red-500/20 px-4 py-1.5 text-xs font-bold text-red-200">
+                  NEW 올인원 제작
+                </span>
+                <h2 className="mt-4 text-3xl font-black">
+                  영상 제작 올인원 스튜디오
+                </h2>
+                <p className="mt-3 text-sm text-slate-100/80">
+                  대본 생성부터 이미지, 영상 패키징, 편집 체크리스트까지 한 화면에서 흐름대로 진행합니다.
+                </p>
+              </div>
+              <div className="flex flex-col items-start gap-3 text-sm sm:text-right">
+                <span className="rounded-full bg-black/40 px-4 py-2 font-semibold text-slate-200">
+                  대본 → 이미지 → 영상 → 편집
+                </span>
+                <span className="inline-flex items-center rounded-full px-5 py-2 text-sm font-black text-white shadow-sm bg-gradient-to-r from-red-500 to-orange-500">
+                  올인원 시작하기 -&gt;
+                </span>
+              </div>
+            </div>
+          </a>
+        </div>
+
+        <div className="mt-10 grid w-full gap-6 sm:grid-cols-2">
           <a
             href={benchmarkingPath}
             onClick={(e) => handleNavigation(e, benchmarkingPath)}
