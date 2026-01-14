@@ -1708,7 +1708,6 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
               </div>
             </div>
             <button
-            <button
               onClick={handleAnalyze}
               disabled={isAnalyzing || !transcript}
               className="w-full mt-4 bg-gradient-to-br from-orange-600 to-orange-500 text-white font-bold py-3 px-4 rounded-lg hover:from-orange-500 hover:to-orange-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105"
