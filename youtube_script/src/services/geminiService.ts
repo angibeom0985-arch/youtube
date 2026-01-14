@@ -14,6 +14,14 @@ const toUserMessage = (raw: string): string => {
   const text = (raw || "").trim();
   const lower = text.toLowerCase();
 
+  // JSON 에러 응답 처리
+  try {
+    const json = JSON.parse(text);
+    if (json.message) return json.message;
+  } catch (e) {
+    // JSON이 아니면 아래 로직으로 진행
+  }
+
   if (lower.includes("rate_limit")) {
     return "요청이 너무 많습니다. 잠시 후 다시 시도해주세요.";
   }

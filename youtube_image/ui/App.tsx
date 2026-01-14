@@ -1894,7 +1894,7 @@ const App: React.FC<ImageAppProps> = ({
                     <span className="ml-2">페르소나 생성 중...</span>
                   </>
                 ) : (
-                  "페르소나 생성"
+                  "페르소나 생성 (5 ⚡)"
                 )}
               </button>
             </section>

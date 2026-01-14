@@ -50,7 +50,7 @@ import Footer from "./components/Footer";
 import AdBlockDetector from "./components/AdBlockDetector";
 import AdBlockWarningModal from "./components/AdBlockWarningModal";
 import FloatingAnchorAd from "./components/FloatingAnchorAd";
-import SidebarAds from "./components/SidebarAds";
+import UserCreditSidebar from "./components/UserCreditSidebar";
 import { highlightImportantText } from "./utils/textHighlight.tsx";
 import { useNavigate } from "react-router-dom";
 import { evaluateAbuseRisk, type AbuseDecision } from "./services/abuseService";
@@ -1391,7 +1391,42 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
       : "떡상할 제목을 입력하세요";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-zinc-950 to-orange-950/30 text-white font-sans p-4 sm:p-8 pb-32">
+    <div className="min-h-screen bg-gradient-to-br from-black via-zinc-950 to-orange-950/30 text-white font-sans p-4 sm:p-8 pb-32 relative">
+      {/* Auth Status - Top Right */}
+      <div className="absolute top-0 right-0 p-4 sm:p-6 flex gap-3 z-50 items-center">
+        {user ? (
+          <div className="flex items-center gap-4 bg-zinc-900/80 backdrop-blur-md px-4 py-2 rounded-full border border-orange-500/30 shadow-[0_0_15px_rgba(234,88,12,0.2)]">
+            <div className="flex items-center gap-2">
+              {user.user_metadata.avatar_url ? (
+                <img 
+                  src={user.user_metadata.avatar_url} 
+                  alt="Profile" 
+                  className="w-8 h-8 rounded-full border border-orange-500/40"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-orange-500/10 flex items-center justify-center">
+                  <FiUser className="text-orange-400" />
+                </div>
+              )}
+              <div className="flex flex-col text-left">
+                <span className="text-xs font-bold text-white truncate max-w-[100px]">
+                  {user.user_metadata.full_name || user.email?.split('@')[0]}
+                </span>
+                <span className="text-[10px] text-orange-400/70 truncate max-w-[100px]">
+                  {user.email}
+                </span>
+              </div>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="text-xs font-bold px-3 py-1 bg-orange-500/10 hover:bg-red-500/20 hover:text-red-400 rounded-full transition-all border border-orange-500/20"
+            >
+              로그아웃
+            </button>
+          </div>
+        ) : null}
+      </div>
+
       {/* 애드블럭 감지 */}
       <AdBlockDetector onAdBlockDetected={handleAdBlockDetected} />
 
@@ -1429,39 +1464,6 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                               <FiTrash2 size={14} className="text-orange-400" />
                               <span>데이터 삭제</span>
                             </button>              )}
-            </div>
-            
-            <div className="flex items-center gap-2 ml-2">
-              {user ? (
-                <div className="flex items-center gap-2 bg-zinc-800 rounded-lg p-1 pr-3 border border-zinc-700 shadow-lg">
-                  {user.user_metadata.avatar_url ? (
-                    <img 
-                      src={user.user_metadata.avatar_url} 
-                      alt="Profile" 
-                      className="w-8 h-8 rounded-full border border-zinc-600"
-                    />
-                  ) : (
-                    <div className="w-8 h-8 rounded-full bg-zinc-600 flex items-center justify-center">
-                      <FiUser className="text-zinc-300" />
-                    </div>
-                  )}
-                  <div className="flex flex-col text-left">
-                    <span className="text-xs font-bold text-white max-w-[100px] truncate leading-tight">
-                      {user.user_metadata.full_name || user.email?.split('@')[0]}
-                    </span>
-                    <span className="text-[10px] text-zinc-400 truncate max-w-[100px]">
-                      {user.email}
-                    </span>
-                  </div>
-                  <button
-                    onClick={handleLogout}
-                    className="ml-1 p-1.5 hover:bg-zinc-700 rounded-md text-zinc-400 hover:text-red-400 transition-colors"
-                    title="로그아웃"
-                  >
-                    <FiLogOut size={14} />
-                  </button>
-                </div>
-              ) : null}
             </div>
           </nav>
         </header>
@@ -1706,11 +1708,12 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
               </div>
             </div>
             <button
+            <button
               onClick={handleAnalyze}
               disabled={isAnalyzing || !transcript}
               className="w-full mt-4 bg-gradient-to-br from-orange-600 to-orange-500 text-white font-bold py-3 px-4 rounded-lg hover:from-orange-500 hover:to-orange-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105"
             >
-              {isAnalyzing ? "분석 중..." : "떡상 이유 분석하기"}
+              {isAnalyzing ? "분석 중..." : "떡상 이유 분석하기 (1 ⚡)"}
             </button>
 
             {/* 분석 진행 상태 표시 */}
@@ -2010,7 +2013,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                     disabled={isGeneratingIdeas || !analysisResult}
                     className="text-sm font-medium text-orange-500 hover:text-orange-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    새로고침
+                    새로고침 (1 ⚡)
                   </button>
                 </div>
                 <div className="mb-3 user-idea-keyword-input">
@@ -2130,7 +2133,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                 disabled={isGenerating || !newKeyword || !analysisResult}
                 className="w-full bg-gradient-to-br from-orange-600 to-orange-500 text-white font-bold py-3 px-6 rounded-lg hover:from-orange-500 hover:to-orange-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105"
               >
-                {isGenerating ? "생성 중..." : "기획안 생성"}
+                {isGenerating ? "생성 중..." : "나만의 떡상 기획안 작성 (10 ⚡)"}
               </button>
 
               {/* 기획안 생성 오류 표시 */}
@@ -2477,7 +2480,12 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                                         onClick={() => handleGenerateChapterScript(newPlan.chapters[index + 1].id)}
                                         className="w-full px-4 py-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-semibold rounded-lg transition-all duration-200 shadow-lg flex items-center justify-center gap-2"
                                       >
-                                        <span>챕터 {index + 2} 대본 생성하기</span>
+                            ) : (
+                              <>
+                                <FiCpu />
+                                <span>챕터 {index + 2} 대본 생성하기 (5 ⚡)</span>
+                              </>
+                            )}
                                         <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                                         </svg>
@@ -2677,8 +2685,8 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
         </button>
       )}
 
-      {/* 사이드바 광고 - 애드블럭 감지 시 숨김 */}
-      {!adBlockDetected && <SidebarAds />}
+      {/* 사용자 크레딧 사이드바 */}
+      <UserCreditSidebar user={user} />
 
       {/* 플로팅 앵커 광고 - 애드블럭 감지 시 숨김 */}
       {!adBlockDetected && <FloatingAnchorAd />}
