@@ -127,9 +127,15 @@ const TtsPage: React.FC = () => {
     }
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
       const response = await fetch("/api/tts", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
           text: "안녕하세요, 제 목소리입니다.",
           voice: voiceId,
@@ -199,6 +205,7 @@ const TtsPage: React.FC = () => {
       }
 
       setAudioSrc(`data:audio/mp3;base64,${payload.audioContent}`);
+      window.dispatchEvent(new Event("creditRefresh"));
       setProgressStep("completed");
 
     } catch (err: any) {

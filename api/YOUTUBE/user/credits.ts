@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { supabaseAdmin } from "../../_lib/supabase.js";
+import { getSupabaseUser } from "../../_lib/supabase.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // CORS 헤더 설정
+  // CORS ?¤ë” ?¤ì •
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
@@ -16,41 +16,34 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    // Supabase Admin 클라이언트 확인
-    if (!supabaseAdmin) {
-      return res.status(500).json({ error: "서버 설정 오류: Supabase 연결 실패" });
-    }
-
-    // Authorization 헤더에서 토큰 추출
+    // Authorization ?¤ë”?ì„œ ? í° ì¶”ì¶œ
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({ error: "인증이 필요합니다." });
+      return res.status(401).json({ error: "?¸ì¦???„ìš”?©ë‹ˆ??" });
     }
 
     const token = authHeader.substring(7);
+    const authResult = await getSupabaseUser(token);
+    const user = authResult.user;
+    const supabaseClient = authResult.client;
 
-    // Supabase로 사용자 확인
-    const { data, error: authError } = await supabaseAdmin.auth.getUser(token);
-    const user = data?.user;
-
-    if (authError || !user) {
-      console.error("Auth error:", authError);
-      return res.status(401).json({ error: "유효하지 않은 토큰입니다." });
+    if (!user || !supabaseClient) {
+      return res.status(401).json({ error: "? íš¨?˜ì? ?Šì? ? í°?…ë‹ˆ??" });
     }
 
-    // 프로필에서 크레딧 조회
-    const { data: profileData, error: profileError } = await supabaseAdmin
+    // ?„ë¡œ?„ì—???¬ë ˆ??ì¡°íšŒ
+    const { data: profileData, error: profileError } = await supabaseClient
       .from("profiles")
       .select("credits, initial_credits_expiry")
       .eq("id", user.id)
       .single();
-    
+
     const profile = profileData;
 
-    // 프로필이 없으면 생성 (회원가입 시 트리거가 작동하지 않은 경우 대비)
-    if (profileError && (profileError as any).code === 'PGRST116') {
-      console.log('프로필 없음. 새로 생성...', { userId: user.id, email: user.email });
-      const { data: newProfile, error: insertError } = await supabaseAdmin
+    // ?„ë¡œ?„ì´ ?†ìœ¼ë©??ì„± (?Œì›ê°€?????¸ë¦¬ê±°ê? ?‘ë™?˜ì? ?Šì? ê²½ìš° ?€ë¹?
+    if (profileError && (profileError as any).code === "PGRST116") {
+      console.log("?„ë¡œ???†ìŒ. ?ˆë¡œ ?ì„±...", { userId: user.id, email: user.email });
+      const { data: newProfile, error: insertError } = await supabaseClient
         .from("profiles")
         .insert({
           id: user.id,
@@ -64,43 +57,49 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       if (insertError) {
         console.error("Profile creation error:", insertError);
-        return res.status(500).json({ 
-          error: "프로필 생성 중 오류가 발생했습니다.",
-          details: insertError.message 
+        return res.status(500).json({
+          error: "?„ë¡œ???ì„± ì¤??¤ë¥˜ê°€ ë°œìƒ?ˆìŠµ?ˆë‹¤.",
+          details: insertError.message,
         });
       }
 
       if (!newProfile) {
         console.error("Profile creation failed: No data returned");
-        return res.status(500).json({ 
-          error: "프로필 생성에 실패했습니다.",
-          details: "데이터가 반환되지 않았습니다." 
+        return res.status(500).json({
+          error: "?„ë¡œ???ì„±???¤íŒ¨?ˆìŠµ?ˆë‹¤.",
+          details: "?°ì´?°ê? ë°˜í™˜?˜ì? ?Šì•˜?µë‹ˆ??",
         });
       }
 
-      console.log('새 프로필 생성 완료:', { userId: user.id, credits: 100 });
+      console.log("???„ë¡œ???ì„± ?„ë£Œ:", { userId: user.id, credits: 100 });
       return res.status(200).json({
         credits: 100,
         userId: user.id,
         isInInitialPeriod: true,
         daysRemaining: 3,
-        initialExpiryDate: newProfile.initial_credits_expiry
+        initialExpiryDate: newProfile.initial_credits_expiry,
       });
     }
 
     if (profileError) {
       console.error("Profile fetch error:", profileError);
-      return res.status(500).json({ 
-        error: "크레딧 정보를 불러올 수 없습니다.",
-        details: profileError.message 
+      return res.status(500).json({
+        error: "?¬ë ˆ???•ë³´ë¥?ë¶ˆëŸ¬?????†ìŠµ?ˆë‹¤.",
+        details: profileError.message,
       });
     }
 
-    // 초기 크레딧 기간 확인
+    // ì´ˆê¸° ?¬ë ˆ??ê¸°ê°„ ?•ì¸
     const initialExpiryDate = profile?.initial_credits_expiry;
     const isInInitialPeriod = initialExpiryDate && new Date() < new Date(initialExpiryDate);
-    const daysRemaining = initialExpiryDate 
-      ? Math.max(0, Math.ceil((new Date(initialExpiryDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))
+    const daysRemaining = initialExpiryDate
+      ? Math.max(
+          0,
+          Math.ceil(
+            (new Date(initialExpiryDate).getTime() - new Date().getTime()) /
+              (1000 * 60 * 60 * 24)
+          )
+        )
       : 0;
 
     return res.status(200).json({
@@ -108,14 +107,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       userId: user.id,
       isInInitialPeriod,
       daysRemaining,
-      initialExpiryDate
+      initialExpiryDate,
     });
-
   } catch (error) {
     console.error("Credits fetch error:", error);
-    return res.status(500).json({ 
-      error: "크레딧 조회 중 오류가 발생했습니다.",
-      details: error instanceof Error ? error.message : String(error)
+    return res.status(500).json({
+      error: "?¬ë ˆ??ì¡°íšŒ ì¤??¤ë¥˜ê°€ ë°œìƒ?ˆìŠµ?ˆë‹¤.",
+      details: error instanceof Error ? error.message : String(error),
     });
   }
 }

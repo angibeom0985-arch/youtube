@@ -8,6 +8,7 @@ import {
   regenerateStoryboardImage,
   generateCameraAngles,
 } from "./services/geminiService";
+import { supabase } from "./services/supabase";
 import { detectUnsafeWords, replaceUnsafeWords } from "./utils/contentSafety";
 import {
   AspectRatio,
@@ -38,6 +39,8 @@ interface ImageAppProps {
   basePath?: string;
   initialScript?: string;
 }
+
+const IMAGE_CREDIT_COST = 5;
 
 const App: React.FC<ImageAppProps> = ({
   basePath = "/image",
@@ -102,6 +105,33 @@ const App: React.FC<ImageAppProps> = ({
   const [isLoadingCameraAngles, setIsLoadingCameraAngles] = useState<boolean>(false);
   const [cameraAngleProgress, setCameraAngleProgress] = useState<string>("");
   const [cameraAngleError, setCameraAngleError] = useState<string | null>(null);
+
+  const getAuthHeaders = useCallback(async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    return { headers, token };
+  }, []);
+
+  const deductCredits = useCallback(async (cost: number) => {
+    const { headers, token } = await getAuthHeaders();
+    if (!token) {
+      throw new Error("로그인이 필요한 서비스입니다.");
+    }
+    const response = await fetch("/api/YOUTUBE/user/credits-deduct", {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ cost }),
+    });
+    const payload = await response.json().catch(() => null);
+    if (!response.ok) {
+      throw new Error(payload?.message || "크레딧 차감에 실패했습니다.");
+    }
+    window.dispatchEvent(new Event("creditRefresh"));
+  }, [getAuthHeaders]);
 
   // URL 기반 현재 뷰 결정
   useEffect(() => {
@@ -931,6 +961,7 @@ const App: React.FC<ImageAppProps> = ({
           "페르소나 생성에 실패했습니다. 입력을 바꿔 다시 시도해주세요."
         );
       } else {
+        await deductCredits(generatedCharacters.length * IMAGE_CREDIT_COST);
         setCharacters(generatedCharacters);
         setPersonaError(`✅ 페르소나 ${generatedCharacters.length}개 생성 완료`);
         setTimeout(() => saveDataToStorage(true), 100);
@@ -978,6 +1009,7 @@ const App: React.FC<ImageAppProps> = ({
         return;
       }
       try {
+        await deductCredits(IMAGE_CREDIT_COST);
         const mergedDescription = customPrompt
           ? `${description}\n추가 요청: ${customPrompt}`
           : description;
@@ -1032,6 +1064,7 @@ const App: React.FC<ImageAppProps> = ({
     setLoadingProgress("대본 분석 중...");
 
     try {
+      await deductCredits(imageCount * IMAGE_CREDIT_COST);
       const generatedVideoSource = await generateStoryboard(
         videoSourceScript,
         characters,
@@ -1081,6 +1114,7 @@ const App: React.FC<ImageAppProps> = ({
       if (!target) return;
 
       try {
+        await deductCredits(IMAGE_CREDIT_COST);
         const mergedScene = customPrompt
           ? `${target.sceneDescription}\n추가 요청: ${customPrompt}`
           : target.sceneDescription;
@@ -1141,6 +1175,7 @@ const App: React.FC<ImageAppProps> = ({
     setCameraAngleProgress("원본 이미지 분석 중...");
 
     try {
+      await deductCredits(selectedCameraAngles.length * IMAGE_CREDIT_COST);
       const generatedAngles = await generateCameraAngles(
         cameraAngleSourceImage,
         selectedCameraAngles,

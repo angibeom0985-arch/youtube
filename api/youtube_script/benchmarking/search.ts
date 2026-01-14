@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { checkAndDeductCredits, CREDIT_COSTS } from "../../_lib/creditService.js";
 
 const YT_BASE_URL = "https://www.googleapis.com/youtube/v3";
 const MAX_RESULTS_PER_PAGE = 50;
@@ -28,7 +29,7 @@ async function fetchJson(url: string): Promise<any> {
   const response = await fetch(url);
   const data = await response.json();
   if (!response.ok) {
-    const errorMsg = data?.error?.message || "YouTube API 요청에 실패했습니다.";
+    const errorMsg = data?.error?.message || "YouTube API ?”ì²­???¤íŒ¨?ˆìŠµ?ˆë‹¤.";
     throw new Error(errorMsg);
   }
   return data;
@@ -75,26 +76,35 @@ export default async function handler(
   }
 
   const body = req.body;
-  
-  // 클라이언트에서 전달한 API 키 우선 사용, 없으면 환경변수 사용
+
+  // ?´ë¼?´ì–¸?¸ì—???„ë‹¬??API ???°ì„  ?¬ìš©, ?†ìœ¼ë©??˜ê²½ë³€???¬ìš©
   const apiKey = (body.apiKey || "").trim() || process.env.YOUTUBE_API_KEY;
-  
+
   if (!apiKey) {
-    return res.status(400).json({ error: "YouTube API 키가 설정되지 않았습니다. 설정에서 입력해 주세요." });
+    return res.status(400).json({ error: "YouTube API ?¤ê? ?¤ì •?˜ì? ?Šì•˜?µë‹ˆ?? ?¤ì •?ì„œ ?…ë ¥??ì£¼ì„¸??" });
   }
 
   const query = String(body.query || "").trim();
   if (!query) {
-    return res.status(400).json({ error: "검색어를 입력해 주세요." });
+    return res.status(400).json({ error: "ê²€?‰ì–´ë¥??…ë ¥??ì£¼ì„¸??" });
   }
 
-  const days = Number(body.days || 3650); // 0이면 전체 기간 (약 10년)
+  const creditResult = await checkAndDeductCredits(req, res, CREDIT_COSTS.SEARCH);
+  if (!creditResult.allowed) {
+    return res.status(creditResult.status || 402).json({
+      message: creditResult.message || "Credits required",
+      error: "credit_limit",
+      currentCredits: creditResult.currentCredits,
+    });
+  }
+
+  const days = Number(body.days || 3650); // 0?´ë©´ ?„ì²´ ê¸°ê°„ (??10??
   const durationFilter = body.durationFilter || "any"; // any, short, long
   const minViews = Number(body.minViews || 0);
   const maxSubs = Number(body.maxSubs || 999999999);
   const maxScan = Math.min(Number(body.maxScan || 50), 500);
 
-  // 날짜 필터 설정
+  // ? ì§œ ?„í„° ?¤ì •
   let publishedAfter: string | undefined;
   if (days > 0) {
     publishedAfter = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
@@ -121,13 +131,13 @@ export default async function handler(
         q: query,
         maxResults: String(MAX_RESULTS_PER_PAGE),
         type: "video",
-        order: "relevance"
+        order: "relevance",
       });
-      
+
       if (publishedAfter) {
         searchParams.set("publishedAfter", publishedAfter);
       }
-      
+
       if (nextPageToken) {
         searchParams.set("pageToken", nextPageToken);
       }
@@ -140,11 +150,11 @@ export default async function handler(
       for (const item of items) {
         const videoId = item?.id?.videoId;
         if (!videoId || videoMeta[videoId]) continue;
-        
+
         const title = item?.snippet?.title || "";
         const titleLower = title.toLowerCase();
-        
-        // 키워드 매칭 (제목 기반 필터링은 선택사항이나 정확도를 위해 유지)
+
+        // ?¤ì›Œ??ë§¤ì¹­ (?œëª© ê¸°ë°˜ ?„í„°ë§ì? ? íƒ?¬í•­?´ë‚˜ ?•í™•?„ë? ?„í•´ ? ì?)
         const matches = keywords.length === 0 || keywords.some((word) => titleLower.includes(word));
         if (!matches) continue;
 
@@ -158,7 +168,7 @@ export default async function handler(
           publishedAt: item?.snippet?.publishedAt,
           channelTitle: item?.snippet?.channelTitle,
           thumbnail: item?.snippet?.thumbnails?.high?.url || item?.snippet?.thumbnails?.medium?.url || "",
-          channelId
+          channelId,
         };
 
         if (videoIds.length >= maxScan) break;
@@ -171,11 +181,11 @@ export default async function handler(
     if (videoIds.length === 0) {
       return res.json({
         results: [],
-        summary: { scanned: collected, titleFiltered, matched: 0 }
+        summary: { scanned: collected, titleFiltered, matched: 0 },
       });
     }
 
-    // 채널 정보 가져오기 (구독자 수)
+    // ì±„ë„ ?•ë³´ ê°€?¸ì˜¤ê¸?(êµ¬ë…??
     const uniqueChannelIds = Array.from(new Set(channelIds)).filter(Boolean);
     const channelSubs: Record<string, number> = {};
 
@@ -183,7 +193,7 @@ export default async function handler(
       const channelParams = new URLSearchParams({
         key: apiKey,
         part: "statistics",
-        id: chunk.join(",")
+        id: chunk.join(","),
       });
       const channelUrl = `${YT_BASE_URL}/channels?${channelParams.toString()}`;
       const channelData = await fetchJson(channelUrl);
@@ -192,13 +202,13 @@ export default async function handler(
       }
     }
 
-    // 영상 상세 정보 가져오기 (재생 시간, 태그, 설명, 조회수)
+    // ?ìƒ ?ì„¸ ?•ë³´ ê°€?¸ì˜¤ê¸?(?¬ìƒ ?œê°„, ?œê·¸, ?¤ëª…, ì¡°íšŒ??
     const results: VideoResult[] = [];
     for (const chunk of chunkArray(videoIds, 50)) {
       const videoParams = new URLSearchParams({
         key: apiKey,
         part: "statistics,contentDetails,snippet",
-        id: chunk.join(",")
+        id: chunk.join(","),
       });
       const videoUrl = `${YT_BASE_URL}/videos?${videoParams.toString()}`;
       const videoData = await fetchJson(videoUrl);
@@ -208,13 +218,13 @@ export default async function handler(
         const stats = item.statistics || {};
         const content = item.contentDetails || {};
         const snippet = item.snippet || {};
-        
+
         const viewCount = Number(stats.viewCount || 0);
         const channelId = videoMeta[videoId]?.channelId || "";
         const subs = Number(channelSubs[channelId] || 0);
         const durationSeconds = parseDurationToSeconds(content.duration);
 
-        // 기간 필터 (숏폼: 1분 미만 / 롱폼: 1분 이상)
+        // ê¸°ê°„ ?„í„° (?í¼: 1ë¶?ë¯¸ë§Œ / ë¡±í¼: 1ë¶??´ìƒ)
         let passDuration = true;
         if (durationFilter === "short") {
           passDuration = durationSeconds < 60;
@@ -222,10 +232,10 @@ export default async function handler(
           passDuration = durationSeconds >= 60;
         }
 
-        // 기본 필터링 (조회수, 구독자)
+        // ê¸°ë³¸ ?„í„°ë§?(ì¡°íšŒ?? êµ¬ë…??
         if (!passDuration || viewCount < minViews || subs > maxSubs) continue;
 
-        // 기여도(모멘텀) 계산: 구독자 대비 조회수 배수
+        // ê¸°ì—¬??ëª¨ë©˜?€) ê³„ì‚°: êµ¬ë…???€ë¹?ì¡°íšŒ??ë°°ìˆ˜
         const contribution = subs > 0 ? Number((viewCount / subs).toFixed(2)) : viewCount > 0 ? 999 : 0;
 
         results.push({
@@ -241,12 +251,12 @@ export default async function handler(
           views: viewCount,
           subscribers: subs,
           contribution,
-          link: `https://www.youtube.com/watch?v=${videoId}`
+          link: `https://www.youtube.com/watch?v=${videoId}`,
         });
       }
     }
 
-    // 기본 정렬: 모멘텀(기여도) 높은 순
+    // ê¸°ë³¸ ?•ë ¬: ëª¨ë©˜?€(ê¸°ì—¬?? ?’ì? ??
     results.sort((a, b) => b.contribution - a.contribution);
 
     return res.json({
@@ -254,12 +264,11 @@ export default async function handler(
       summary: {
         scanned: collected,
         titleFiltered,
-        matched: results.length
-      }
+        matched: results.length,
+      },
     });
-
   } catch (error: any) {
     console.error("[Search API Error]:", error);
-    return res.status(500).json({ error: error.message || "영상 검색 중 오류가 발생했습니다." });
+    return res.status(500).json({ error: error.message || "?ìƒ ê²€??ì¤??¤ë¥˜ê°€ ë°œìƒ?ˆìŠµ?ˆë‹¤." });
   }
 }

@@ -118,9 +118,15 @@ const BenchmarkingPage: React.FC = () => {
     setError("");
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
       const response = await fetch("/api/benchmarking/search", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
           query,
           days,
@@ -135,8 +141,9 @@ const BenchmarkingPage: React.FC = () => {
         throw new Error(data?.error || "검색에 실패했습니다.");
       }
 
-      setResults(data.results || []);
-      setSummary(data.summary || null);
+        setResults(data.results || []);
+        setSummary(data.summary || null);
+        window.dispatchEvent(new Event("creditRefresh"));
     } catch (err) {
       setError((err as Error).message || "검색에 실패했습니다.");
     } finally {
