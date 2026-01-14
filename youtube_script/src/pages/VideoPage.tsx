@@ -252,12 +252,12 @@ const VideoPage: React.FC = () => {
   const activeStep = steps[currentStep];
 
   return (
-    <div className="min-h-screen bg-[#f5f6fb] text-slate-900 relative overflow-hidden">
-      <div className="absolute -top-32 -right-24 h-[clamp(200px,30vw,360px)] w-[clamp(200px,30vw,360px)] rounded-full bg-gradient-to-br from-indigo-200/70 via-purple-200/40 to-pink-200/40 blur-3xl" />
+    <div className="min-h-screen bg-gradient-to-b from-[#050505] via-[#1b0505] to-[#260808] text-white relative overflow-hidden">
+      <div className="absolute -top-32 -right-24 h-[clamp(200px,30vw,360px)] w-[clamp(200px,30vw,360px)] rounded-full bg-gradient-to-br from-red-600/60 via-red-500/40 to-orange-300/30 blur-3xl" />
       <div className="absolute -bottom-24 -left-24 h-[clamp(220px,34vw,380px)] w-[clamp(220px,34vw,380px)] rounded-full bg-gradient-to-tr from-blue-200/60 via-sky-200/30 to-violet-200/30 blur-3xl" />
 
       <div className="absolute top-0 right-0 p-4 sm:p-6 flex gap-3 z-50 items-center">
-        <UserCreditToolbar user={user} onLogout={handleLogout} tone="indigo" />
+        <UserCreditToolbar user={user} onLogout={handleLogout} tone="red" />
       </div>
 
       <div className="mx-auto max-w-[min(1200px,94vw)] px-[clamp(1rem,3vw,2rem)] py-[clamp(2rem,5vw,4rem)]">
@@ -266,10 +266,10 @@ const VideoPage: React.FC = () => {
         </Link>
 
         <div className="mt-5">
-          <h1 className="text-[clamp(1.8rem,2.8vw,2.8rem)] font-black text-slate-900">
+          <h1 className="text-[clamp(1.8rem,2.8vw,2.8rem)] font-black text-white">
             ??? ?? ?? ????
           </h1>
-          <p className="mt-2 text-[clamp(0.9rem,1.6vw,1rem)] text-slate-500">
+          <p className="mt-2 text-[clamp(0.9rem,1.6vw,1rem)] text-white/60">
             ???? ??, ??, ???, ?? ??, ????? ? ???? ???? ?????.
           </p>
         </div>
@@ -286,20 +286,20 @@ const VideoPage: React.FC = () => {
                     key={step.id}
                     type="button"
                     onClick={() => setCurrentStep(index)}
-                    className="relative flex flex-col items-center gap-2 text-[clamp(0.65rem,1vw,0.75rem)] font-semibold text-slate-500"
+                    className="relative flex flex-col items-center gap-2 text-[clamp(0.65rem,1vw,0.75rem)] font-semibold text-white/60"
                   >
                     <span
                       className={`flex h-[clamp(2rem,3vw,2.6rem)] w-[clamp(2rem,3vw,2.6rem)] items-center justify-center rounded-full border-2 transition-all ${
                         isDone
-                          ? "border-indigo-500 bg-indigo-500 text-white"
+                          ? "border-red-500 bg-red-500 text-white shadow-[0_0_10px_rgba(244,63,94,0.45)]"
                           : isActive
-                            ? "border-indigo-500 text-indigo-600 bg-white"
-                            : "border-slate-300 bg-white text-slate-400"
+                            ? "border-red-500 text-white bg-white"
+                            : "border-white/30 bg-black/20 text-white/40"
                       }`}
                     >
                       {isDone ? <FiCheckCircle className="text-white" /> : index + 1}
                     </span>
-                    <span className={`${isActive ? "text-indigo-600" : "text-slate-500"}`}>
+                    <span className={`${isActive ? "text-red-400" : "text-white/60"}`}>
                       {step.label}
                     </span>
                   </button>
@@ -309,18 +309,18 @@ const VideoPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="mt-[clamp(1.8rem,3vw,3rem)] rounded-[clamp(1.25rem,2.5vw,2rem)] bg-white shadow-[0_18px_40px_rgba(15,23,42,0.08)] border border-slate-200">
-          <div className="h-1 w-full rounded-t-[clamp(1.25rem,2.5vw,2rem)] bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-400" />
+        <div className="mt-[clamp(1.8rem,3vw,3rem)] rounded-[clamp(1.25rem,2.5vw,2rem)] bg-white/5 shadow-[0_18px_40px_rgba(0,0,0,0.6)] border border-white/10 backdrop-blur-2xl">
+          <div className="h-1 w-full rounded-t-[clamp(1.25rem,2.5vw,2rem)] bg-gradient-to-r from-red-500 via-orange-500 to-rose-500" />
           <div className="p-[clamp(1.25rem,3vw,2.5rem)]">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-[clamp(0.6rem,1vw,0.7rem)] font-semibold uppercase tracking-[0.2em] text-slate-400">
                   STEP {currentStep + 1}
                 </p>
-                <h2 className="text-[clamp(1.3rem,2.4vw,2rem)] font-bold text-slate-900 mt-2">
+                <h2 className="text-[clamp(1.3rem,2.4vw,2rem)] font-bold text-white mt-2">
                   {activeStep.label}
                 </h2>
-                <p className="text-[clamp(0.85rem,1.5vw,1rem)] text-slate-500 mt-1">
+                <p className="text-[clamp(0.85rem,1.5vw,1rem)] text-white/60 mt-1">
                   {activeStep.description}
                 </p>
               </div>
@@ -329,49 +329,49 @@ const VideoPage: React.FC = () => {
 
             {activeStep.id === "setup" && (
               <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)] grid gap-[clamp(1rem,2vw,1.5rem)] lg:grid-cols-2">
-                <div className="rounded-[clamp(1rem,2vw,1.5rem)] border border-slate-200 p-[clamp(1rem,2.3vw,1.5rem)] bg-slate-50">
-                  <h3 className="text-[clamp(1rem,1.6vw,1.2rem)] font-semibold text-slate-900">
+                <div className="rounded-[clamp(1rem,2vw,1.5rem)] border border-white/20 p-[clamp(1rem,2.3vw,1.5rem)] bg-black/40 border-white/10">
+                  <h3 className="text-[clamp(1rem,1.6vw,1.2rem)] font-semibold text-white">
                     ?? ??? ??? ?????
                   </h3>
-                  <p className="mt-2 text-[clamp(0.8rem,1.4vw,0.95rem)] text-slate-500">
+                  <p className="mt-2 text-[clamp(0.8rem,1.4vw,0.95rem)] text-white/60">
                     ??? ?? ??? ???? ??? ????????.
                   </p>
                   <div className="mt-5 space-y-4">
                     <div>
-                      <label className="text-xs font-semibold text-slate-500">???? ??</label>
+                      <label className="text-xs font-semibold text-white/60">???? ??</label>
                       <input
                         value={projectTitle}
                         onChange={(event) => setProjectTitle(event.target.value)}
-                        className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                        className="mt-2 w-full rounded-xl border border-white/20 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
                         placeholder="?: ?? 1500? ??? ??? ??"
                       />
                     </div>
                     <div>
-                      <label className="text-xs font-semibold text-slate-500">?? ??</label>
+                      <label className="text-xs font-semibold text-white/60">?? ??</label>
                       <textarea
                         value={projectNotes}
                         onChange={(event) => setProjectNotes(event.target.value)}
-                        className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                        className="mt-2 w-full rounded-xl border border-white/20 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
                         rows={5}
                         placeholder="??, ?, CTA ? ?? ???? ??? ???."
                       />
                     </div>
                   </div>
                 </div>
-                <div className="rounded-[clamp(1rem,2vw,1.5rem)] border border-slate-200 p-[clamp(1rem,2.3vw,1.5rem)] bg-slate-50">
-                  <h3 className="text-[clamp(1rem,1.6vw,1.2rem)] font-semibold text-slate-900">
+                <div className="rounded-[clamp(1rem,2vw,1.5rem)] border border-white/20 p-[clamp(1rem,2.3vw,1.5rem)] bg-black/40 border-white/10">
+                  <h3 className="text-[clamp(1rem,1.6vw,1.2rem)] font-semibold text-white">
                     ?? ?? ?? ??
                   </h3>
-                  <p className="mt-2 text-[clamp(0.8rem,1.4vw,0.95rem)] text-slate-500">
+                  <p className="mt-2 text-[clamp(0.8rem,1.4vw,0.95rem)] text-white/60">
                     ????? ??, ??? ??? ?? ?????.
                   </p>
                   <div className="mt-5 grid gap-4 sm:grid-cols-3">
                     <div>
-                      <label className="text-xs font-semibold text-slate-500">??</label>
+                      <label className="text-xs font-semibold text-white/60">??</label>
                       <select
                         value={renderDuration}
                         onChange={(event) => setRenderDuration(event.target.value)}
-                        className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                        className="mt-2 w-full rounded-xl border border-white/20 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
                       >
                         <option value="30s">30?</option>
                         <option value="60s">1?</option>
@@ -380,11 +380,11 @@ const VideoPage: React.FC = () => {
                       </select>
                     </div>
                     <div>
-                      <label className="text-xs font-semibold text-slate-500">??</label>
+                      <label className="text-xs font-semibold text-white/60">??</label>
                       <select
                         value={renderRatio}
                         onChange={(event) => setRenderRatio(event.target.value)}
-                        className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                        className="mt-2 w-full rounded-xl border border-white/20 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
                       >
                         <option value="16:9">16:9</option>
                         <option value="9:16">9:16</option>
@@ -392,11 +392,11 @@ const VideoPage: React.FC = () => {
                       </select>
                     </div>
                     <div>
-                      <label className="text-xs font-semibold text-slate-500">FPS</label>
+                      <label className="text-xs font-semibold text-white/60">FPS</label>
                       <select
                         value={renderFps}
                         onChange={(event) => setRenderFps(event.target.value)}
-                        className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                        className="mt-2 w-full rounded-xl border border-white/20 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
                       >
                         <option value="24">24</option>
                         <option value="30">30</option>
@@ -405,11 +405,11 @@ const VideoPage: React.FC = () => {
                     </div>
                   </div>
                   <div className="mt-6">
-                    <label className="text-xs font-semibold text-slate-500">?? ??</label>
+                    <label className="text-xs font-semibold text-white/60">?? ??</label>
                     <textarea
                       value={renderNotes}
                       onChange={(event) => setRenderNotes(event.target.value)}
-                      className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                      className="mt-2 w-full rounded-xl border border-white/20 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
                       rows={4}
                       placeholder="??, ??, ?? ?? ? ??? ??? ?????."
                     />
@@ -420,18 +420,18 @@ const VideoPage: React.FC = () => {
 
             {activeStep.id === "script" && (
               <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
-                <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-slate-500">
+                <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-white/60">
                   <span>?? ?? ??? ? ???? ?? ??? ? ???.</span>
                   <a
                     href="/script"
                     target="_blank"
                     rel="noreferrer"
-                    className="rounded-full border border-indigo-200 px-4 py-1 text-xs font-semibold text-indigo-500 hover:border-indigo-300"
+                    className="rounded-full border border-red-500/30 px-4 py-1 text-xs font-semibold text-red-300 hover:border-red-400"
                   >
                     ? ??? ??
                   </a>
                 </div>
-                <div className="mt-4 overflow-hidden rounded-[clamp(1rem,2vw,1.5rem)] border border-slate-200">
+                <div className="mt-4 overflow-hidden rounded-[clamp(1rem,2vw,1.5rem)] border border-white/20">
                   <iframe
                     title="?? ??"
                     src="/script"
@@ -444,18 +444,18 @@ const VideoPage: React.FC = () => {
 
             {activeStep.id === "tts" && (
               <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
-                <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-slate-500">
+                <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-white/60">
                   <span>????? ???? ?? AI ???? ??????.</span>
                   <a
                     href="/tts"
                     target="_blank"
                     rel="noreferrer"
-                    className="rounded-full border border-indigo-200 px-4 py-1 text-xs font-semibold text-indigo-500 hover:border-indigo-300"
+                    className="rounded-full border border-red-500/30 px-4 py-1 text-xs font-semibold text-red-300 hover:border-red-400"
                   >
                     ? ??? ??
                   </a>
                 </div>
-                <div className="mt-4 overflow-hidden rounded-[clamp(1rem,2vw,1.5rem)] border border-slate-200">
+                <div className="mt-4 overflow-hidden rounded-[clamp(1rem,2vw,1.5rem)] border border-white/20">
                   <iframe
                     title="?? ??"
                     src="/tts"
@@ -468,18 +468,18 @@ const VideoPage: React.FC = () => {
 
             {activeStep.id === "image" && (
               <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
-                <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-slate-500">
+                <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-white/60">
                   <span>??? ?????? ?? ???? ??? ? ????.</span>
                   <a
                     href="/image"
                     target="_blank"
                     rel="noreferrer"
-                    className="rounded-full border border-indigo-200 px-4 py-1 text-xs font-semibold text-indigo-500 hover:border-indigo-300"
+                    className="rounded-full border border-red-500/30 px-4 py-1 text-xs font-semibold text-red-300 hover:border-red-400"
                   >
                     ? ??? ??
                   </a>
                 </div>
-                <div className="mt-4 overflow-hidden rounded-[clamp(1rem,2vw,1.5rem)] border border-slate-200">
+                <div className="mt-4 overflow-hidden rounded-[clamp(1rem,2vw,1.5rem)] border border-white/20">
                   <iframe
                     title="??? ??"
                     src="/image"
@@ -492,15 +492,15 @@ const VideoPage: React.FC = () => {
 
             {activeStep.id === "generate" && (
               <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)] grid gap-[clamp(1rem,2vw,1.5rem)] lg:grid-cols-[minmax(0,1fr)_clamp(240px,28vw,340px)]">
-                <div className="rounded-[clamp(1rem,2vw,1.5rem)] border border-slate-200 p-[clamp(1rem,2.3vw,1.5rem)] bg-slate-50">
-                  <h3 className="text-[clamp(1rem,1.6vw,1.2rem)] font-semibold text-slate-900">
+                <div className="rounded-[clamp(1rem,2vw,1.5rem)] border border-white/20 p-[clamp(1rem,2.3vw,1.5rem)] bg-black/40 border-white/10">
+                  <h3 className="text-[clamp(1rem,1.6vw,1.2rem)] font-semibold text-white">
                     ?? ??? ?? ???
                   </h3>
-                  <p className="mt-2 text-[clamp(0.8rem,1.4vw,0.95rem)] text-slate-500">
+                  <p className="mt-2 text-[clamp(0.8rem,1.4vw,0.95rem)] text-white/60">
                     ???, ??, BGM? ??? ???? ??????.
                   </p>
                   <div className="mt-4 flex flex-wrap items-center gap-3">
-                    <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-indigo-200 px-4 py-2 text-xs font-semibold text-indigo-500 hover:border-indigo-300">
+                    <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-red-500/30 px-4 py-2 text-xs font-semibold text-red-300 hover:border-red-400">
                       <FiUpload />
                       ?? ??
                       <input
@@ -517,14 +517,14 @@ const VideoPage: React.FC = () => {
                   </div>
                   <div className="mt-4 space-y-2">
                     {assetFiles.length === 0 && (
-                      <div className="rounded-lg border border-dashed border-slate-200 px-4 py-6 text-center text-sm text-slate-400">
+                      <div className="rounded-lg border border-dashed border-white/20 px-4 py-6 text-center text-sm text-slate-400">
                         ???? ??? ??? ?????.
                       </div>
                     )}
                     {assetFiles.map((file, index) => (
                       <div
                         key={`${file.name}-${index}`}
-                        className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
+                        className="flex items-center justify-between rounded-lg border border-white/20 bg-white px-3 py-2 text-sm"
                       >
                         <div>
                           <p className="text-slate-700">{file.name}</p>
@@ -540,11 +540,11 @@ const VideoPage: React.FC = () => {
                     ))}
                   </div>
                 </div>
-                <div className="rounded-[clamp(1rem,2vw,1.5rem)] border border-slate-200 p-[clamp(1rem,2.3vw,1.5rem)] bg-slate-50">
-                  <h3 className="text-[clamp(1rem,1.6vw,1.2rem)] font-semibold text-slate-900">
+                <div className="rounded-[clamp(1rem,2vw,1.5rem)] border border-white/20 p-[clamp(1rem,2.3vw,1.5rem)] bg-black/40 border-white/10">
+                  <h3 className="text-[clamp(1rem,1.6vw,1.2rem)] font-semibold text-white">
                     ?? ?? ??
                   </h3>
-                  <ul className="mt-4 space-y-2 text-[clamp(0.85rem,1.4vw,0.95rem)] text-slate-500">
+                  <ul className="mt-4 space-y-2 text-[clamp(0.85rem,1.4vw,0.95rem)] text-white/60">
                     <li>??: {renderDuration}</li>
                     <li>??: {renderRatio}</li>
                     <li>FPS: {renderFps}</li>
@@ -554,7 +554,7 @@ const VideoPage: React.FC = () => {
                     type="button"
                     onClick={handlePackageDownload}
                     disabled={!assetFiles.length || isPackaging}
-                    className="mt-6 w-full rounded-xl bg-indigo-500 px-4 py-3 text-sm font-bold text-white shadow-[0_10px_20px_rgba(79,70,229,0.2)] transition hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-70 flex items-center justify-center gap-2"
+                    className="mt-6 w-full rounded-xl bg-red-600 px-4 py-3 text-sm font-bold text-white shadow-[0_10px_20px_rgba(255,69,91,0.25)] transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-70 flex items-center justify-center gap-2"
                   >
                     <FiDownload />
                     {isPackaging ? "??? ?? ?..." : "?? ??? ????"}
@@ -565,26 +565,26 @@ const VideoPage: React.FC = () => {
 
             {activeStep.id === "render" && (
               <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)] grid gap-[clamp(1rem,2vw,1.5rem)] lg:grid-cols-[minmax(0,1fr)_clamp(240px,28vw,340px)]">
-                <div className="rounded-[clamp(1rem,2vw,1.5rem)] border border-slate-200 p-[clamp(1rem,2.3vw,1.5rem)] bg-slate-50">
-                  <h3 className="text-[clamp(1rem,1.6vw,1.2rem)] font-semibold text-slate-900">
+                <div className="rounded-[clamp(1rem,2vw,1.5rem)] border border-white/20 p-[clamp(1rem,2.3vw,1.5rem)] bg-black/40 border-white/10">
+                  <h3 className="text-[clamp(1rem,1.6vw,1.2rem)] font-semibold text-white">
                     ?? ?? & ?????
                   </h3>
-                  <p className="mt-2 text-[clamp(0.8rem,1.4vw,0.95rem)] text-slate-500">
+                  <p className="mt-2 text-[clamp(0.8rem,1.4vw,0.95rem)] text-white/60">
                     ??, ??, ? ?? ? ?? ???? ?????.
                   </p>
                   <textarea
                     value={editNotes}
                     onChange={(event) => setEditNotes(event.target.value)}
                     rows={6}
-                    className="mt-4 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                    className="mt-4 w-full rounded-xl border border-white/20 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
                     placeholder="?: ? 3 ????? ?? / CTA 0.6? ?? / ?? ?? ???"
                   />
                 </div>
-                <div className="rounded-[clamp(1rem,2vw,1.5rem)] border border-slate-200 p-[clamp(1rem,2.3vw,1.5rem)] bg-slate-50">
-                  <h3 className="text-[clamp(1rem,1.6vw,1.2rem)] font-semibold text-slate-900">
+                <div className="rounded-[clamp(1rem,2vw,1.5rem)] border border-white/20 p-[clamp(1rem,2.3vw,1.5rem)] bg-black/40 border-white/10">
+                  <h3 className="text-[clamp(1rem,1.6vw,1.2rem)] font-semibold text-white">
                     ?? ?? ??
                   </h3>
-                  <ul className="mt-4 space-y-2 text-[clamp(0.85rem,1.4vw,0.95rem)] text-slate-500">
+                  <ul className="mt-4 space-y-2 text-[clamp(0.85rem,1.4vw,0.95rem)] text-white/60">
                     <li>?? ??: {renderDuration}</li>
                     <li>?? ??: {renderRatio}</li>
                     <li>???: {renderFps}fps</li>
@@ -607,7 +607,7 @@ const VideoPage: React.FC = () => {
                 type="button"
                 onClick={handlePrev}
                 disabled={!canGoPrev}
-                className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-500 transition hover:border-slate-300 disabled:opacity-40"
+                className="inline-flex items-center gap-2 rounded-full border border-white/20 px-5 py-2 text-sm font-semibold text-white/60 transition hover:border-slate-300 disabled:opacity-40"
               >
                 <FiChevronLeft />
                 ?? ??
@@ -616,7 +616,7 @@ const VideoPage: React.FC = () => {
                 type="button"
                 onClick={handleNext}
                 disabled={!canGoNext}
-                className="inline-flex items-center gap-2 rounded-full bg-indigo-500 px-6 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(99,102,241,0.25)] transition hover:bg-indigo-400 disabled:opacity-40"
+                className="inline-flex items-center gap-2 rounded-full bg-red-600 px-6 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(255,69,91,0.3)] transition hover:bg-red-500 disabled:opacity-40"
               >
                 ?? ??
                 <FiChevronRight />
