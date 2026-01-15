@@ -69,7 +69,7 @@ const steps: Step[] = [
   {
     id: "script",
     label: "대본 생성",
-    description: "주제와 톤을 적으면 흐름을 파악해 대본을 만들어 드립니다.",
+    description: "입력한 대본을 분석해서, 새로운 주제로 대본을 작성합니다.",
     icon: <FiFileText />,
   },
   {
@@ -143,7 +143,7 @@ const VideoPage: React.FC = () => {
   const [scriptDraft, setScriptDraft] = useState(() =>
     getStoredString(
       STORAGE_KEYS.script,
-      "[오프닝]\n환율 1500원 시대가 열렸습니다.\n[중간]\n실물 가격이 천정부지로..."
+      ""
     )
   );
   const [ttsScript, setTtsScript] = useState(() =>
@@ -499,7 +499,7 @@ const VideoPage: React.FC = () => {
   const scriptSlides = [
     {
       title: "대본 입력",
-      description: "입력한 대본을 분석해서, 새로운 주제로 대본을 작성합니다.",
+      description: "",
     },
     {
       title: "영상 길이 선택",
@@ -755,9 +755,11 @@ const VideoPage: React.FC = () => {
                       (대본 생성 단계 {scriptFlowStep + 1} / {scriptSlides.length})
                     </span>
                   </div>
-                  <p className="mt-2 text-sm text-white/60">
-                    {scriptSlides[scriptFlowStep].description}
-                  </p>
+                  {scriptSlides[scriptFlowStep].description && (
+                    <p className="mt-2 text-sm text-white/60">
+                      {scriptSlides[scriptFlowStep].description}
+                    </p>
+                  )}
                 </div>
                 <a
                   href="/script?no_ads=true"
@@ -776,7 +778,7 @@ const VideoPage: React.FC = () => {
                       value={scriptDraft}
                       onChange={(event) => setScriptDraft(event.target.value)}
                       rows={7}
-                      className="w-full rounded-2xl border border-white/20 bg-white px-4 py-4 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500 select-text"
+                      className="transcript-input w-full rounded-2xl border border-white/20 bg-white px-4 py-4 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500 select-text"
                       placeholder={"1. [오프닝] 주제 소개\n2. [중간] 핵심 논지 전개\n3. [마무리] 요약 + 결론"}
                     />
                     <div className="flex flex-wrap items-center justify-between text-sm text-white/50">
