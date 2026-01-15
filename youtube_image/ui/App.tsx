@@ -53,6 +53,11 @@ const App: React.FC<ImageAppProps> = ({
     ((location.state as { script?: string } | null)?.script) || "";
   const normalizedBasePath =
     basePath && basePath !== "/" ? basePath.replace(/\/$/, "") : "";
+  
+  // Check for no_ads query param
+  const searchParams = new URLSearchParams(location.search);
+  const noAds = searchParams.get("no_ads") === "true";
+
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY || "";
   const [imageStyle, setImageStyle] = useState<"realistic" | "animation">(
     "realistic"
@@ -1391,7 +1396,7 @@ const App: React.FC<ImageAppProps> = ({
 
   return (
     <>
-      <AdBlockDetector />
+      {!noAds && <AdBlockDetector />}
       <MetaTags
         title="유튜브 롱폼 이미지 생성기 - AI로 캐릭터와 스토리보드 만들기"
         description="Google Gemini AI를 활용해 유튜브 콘텐츠용 페르소나와 영상 소스를 쉽고 빠르게 생성하세요. 다양한 비율(9:16, 16:9, 1:1) 지원."
@@ -1399,8 +1404,8 @@ const App: React.FC<ImageAppProps> = ({
         image="/og-image.png"
         type="website"
       />
-      <SideFloatingAd side="left" />
-      <SideFloatingAd side="right" />
+      {!noAds && <SideFloatingAd side="left" />}
+      {!noAds && <SideFloatingAd side="right" />}
       <div
         className="min-h-screen bg-gray-900 text-white font-sans p-4 sm:p-6 lg:p-8"
         style={{ paddingBottom: "120px" }}
@@ -1439,7 +1444,7 @@ const App: React.FC<ImageAppProps> = ({
           </header>
 
           <main className="space-y-6">
-            <AdBanner />
+            {!noAds && <AdBanner />}
 
             <section className="bg-gray-800 p-6 rounded-xl shadow-2xl border-2 border-blue-500">
               <h2 className="text-2xl font-bold mb-4 text-blue-400 flex items-center">

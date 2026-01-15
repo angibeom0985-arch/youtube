@@ -269,8 +269,14 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
 
   // 애드블럭 감지
   const [adBlockDetected, setAdBlockDetected] = useState<boolean>(false);
+  
+  // Check for no_ads query param
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const noAds = searchParams.get("no_ads") === "true";
 
   const handleAdBlockDetected = () => {
+    if (noAds) return;
     setAdBlockDetected(true);
   };
 
@@ -1413,10 +1419,10 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
       </div>
 
       {/* 애드블럭 감지 */}
-      <AdBlockDetector onAdBlockDetected={handleAdBlockDetected} />
+      {!noAds && <AdBlockDetector onAdBlockDetected={handleAdBlockDetected} />}
 
       {/* 애드블럭 경고 모달 */}
-      <AdBlockWarningModal isOpen={adBlockDetected} />
+      {!noAds && <AdBlockWarningModal isOpen={adBlockDetected} />}
 
       {/* 애드블럭 감지 시 컨텐츠 흐림 처리 */}
       <div
@@ -1727,7 +1733,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
             )}
           </div>
 
-          <AdSense />
+          {!noAds && <AdSense />}
 
           {/* --- SEPARATOR --- */}
           <div className="my-12">
@@ -1796,7 +1802,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                   </div>
                 </ResultCard>
 
-                <AdSense />
+                {!noAds && <AdSense />}
 
                 <ResultCard
                   title="3. 조회수 예측 분석"
@@ -1827,7 +1833,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                   </div>
                 </ResultCard>
 
-                <AdSense />
+                {!noAds && <AdSense />}
 
                 {analysisResult.scriptStructure && (
                   <ResultCard
@@ -1889,7 +1895,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
             )}
           </div>
 
-          <AdSense />
+          {!noAds && <AdSense />}
 
           {/* --- NEW PLAN GENERATION SECTION --- */}
           <div id="generation-section" className="mb-8">
@@ -2195,7 +2201,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
               <Loader />
             ) : newPlan ? (
               <>
-                <AdSense />
+                {!noAds && <AdSense />}
 
                 <ResultCard
                   title="5. 새로운 영상 기획 의도"
@@ -2226,7 +2232,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                   </div>
                 </ResultCard>
 
-                <AdSense />
+                {!noAds && <AdSense />}
 
                 {/* 챕터 기반 대본 (1시간 영상) */}
                 {newPlan.chapters && newPlan.characters && (
