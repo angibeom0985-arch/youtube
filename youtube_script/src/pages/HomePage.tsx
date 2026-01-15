@@ -102,7 +102,15 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
     <div className="min-h-screen bg-black text-white relative">
       <div className="absolute top-0 right-0 p-6 flex gap-3 z-10 items-center">
         {user ? (
-          <UserCreditToolbar user={user} onLogout={handleLogout} tone="slate" />
+          <div className="flex items-center gap-3">
+            <Link
+              to="/mypage"
+              className="px-4 py-2 text-sm font-bold text-white border border-white/20 rounded-full hover:bg-white/10 transition-all flex items-center gap-2"
+            >
+              <span>👤 마이페이지</span>
+            </Link>
+            <UserCreditToolbar user={user} onLogout={handleLogout} tone="slate" />
+          </div>
         ) : (
           <div className="flex flex-col items-end gap-3">
             <div className="flex items-center gap-6">

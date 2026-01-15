@@ -39,29 +39,40 @@ const setStoredValue = (key: string, value: string): void => {
   }
 };
 
-// 목소리 옵션 데이터 확장
+// 목소리 옵션 데이터 확장 (Google Cloud TTS 지원 음성들)
 const voiceOptions = [
-  // 여성 음성
-  { value: "ko-KR-Standard-A", label: "소연", gender: "female", type: "차분함" },
-  { value: "ko-KR-Standard-B", label: "지민", gender: "female", type: "또렇함" },
-  { value: "ko-KR-Standard-D", label: "다영", gender: "female", type: "발랄함" },
-  { value: "ko-KR-Wavenet-A", label: "애진", gender: "female", type: "섬세함" },
-  { value: "ko-KR-Wavenet-B", label: "유나", gender: "female", type: "부드러움" },
-  { value: "ko-KR-Neural2-A", label: "지수", gender: "female", type: "고품질" },
-  { value: "ko-KR-Neural2-B", label: "소윤", gender: "female", type: "밝음" },
+  // --- 한국어 (KO) ---
+  { value: "ko-KR-Standard-A", label: "소연", gender: "female", type: "차분함", lang: "ko" },
+  { value: "ko-KR-Standard-B", label: "지민", gender: "female", type: "또렷함", lang: "ko" },
+  { value: "ko-KR-Standard-D", label: "다영", gender: "female", type: "발랄함", lang: "ko" },
+  { value: "ko-KR-Wavenet-A", label: "애진", gender: "female", type: "섬세함", lang: "ko" },
+  { value: "ko-KR-Wavenet-B", label: "유나", gender: "female", type: "부드러움", lang: "ko" },
+  { value: "ko-KR-Neural2-A", label: "지수", gender: "female", type: "고품질", lang: "ko" },
+  { value: "ko-KR-Neural2-B", label: "소윤", gender: "female", type: "밝음", lang: "ko" },
+  { value: "ko-KR-Standard-C", label: "민우", gender: "male", type: "중후함", lang: "ko" },
+  { value: "ko-KR-Wavenet-C", label: "준혁", gender: "male", type: "저음", lang: "ko" },
+  { value: "ko-KR-Wavenet-D", label: "지훈", gender: "male", type: "차분함", lang: "ko" },
+  { value: "ko-KR-Neural2-C", label: "민현", gender: "male", type: "고품질", lang: "ko" },
 
-  // 남성 음성
-  { value: "ko-KR-Standard-C", label: "민우", gender: "male", type: "중후함" },
-  { value: "ko-KR-Wavenet-C", label: "준혁", gender: "male", type: "저음" },
-  { value: "ko-KR-Wavenet-D", label: "지훈", gender: "male", type: "차분함" },
-  { value: "ko-KR-Neural2-C", label: "민현", gender: "male", type: "고품질" },
+  // --- 영어 (EN-US) ---
+  { value: "en-US-Neural2-F", label: "Sarah", gender: "female", type: "Professional", lang: "en" },
+  { value: "en-US-Neural2-H", label: "Emma", gender: "female", type: "Soft", lang: "en" },
+  { value: "en-US-Neural2-D", label: "John", gender: "male", type: "Bold", lang: "en" },
+  { value: "en-US-Neural2-J", label: "Michael", gender: "male", type: "Clear", lang: "en" },
+
+  // --- 일본어 (JA-JP) ---
+  { value: "ja-JP-Neural2-B", label: "Mayu", gender: "female", type: "Natural", lang: "ja" },
+  { value: "ja-JP-Neural2-C", label: "Nanami", gender: "female", type: "Cute", lang: "ja" },
+  { value: "ja-JP-Neural2-D", label: "Keita", gender: "male", type: "Cool", lang: "ja" },
+
+  // --- 중국어 (ZH-CN) ---
+  { value: "zh-CN-Neural2-A", label: "Xiaoxiao", gender: "female", type: "Friendly", lang: "zh" },
+  { value: "zh-CN-Neural2-C", label: "Yunxi", gender: "male", type: "Deep", lang: "zh" },
 ];
-
-
-
 
 const TtsPage: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
+  const [isAuthChecking, setIsAuthChecking] = useState(true);
   const [text, setText] = useState(() => getStoredString(STORAGE_KEYS.text));
   const [voice, setVoice] = useState(() =>
     getStoredString(STORAGE_KEYS.voice, "ko-KR-Standard-A")
@@ -71,7 +82,15 @@ const TtsPage: React.FC = () => {
   );
   const [pitch, setPitch] = useState(() => getStoredNumber(STORAGE_KEYS.pitch, 0));
   const [actingPrompt, setActingPrompt] = useState(() => getStoredString(STORAGE_KEYS.prompt));
-  const [audioSrc, setAudioSrc] = useState(() => getStoredString(STORAGE_KEYS.audio));
+  const [audioSrc, setAudioSrc] = useState(() => {
+    const stored = getStoredString(STORAGE_KEYS.audio);
+    // 로컬 스토리지 데이터가 너무 크면 성능 저하 및 크래시 우려가 있으므로 초기화 제안 또는 무시
+    if (stored.length > 5 * 1024 * 1024) {
+      console.warn("TTS audio data too large, clearing storage.");
+      return "";
+    }
+    return stored;
+  });
   const [error, setError] = useState(() => getStoredString(STORAGE_KEYS.error));
   const [isGenerating, setIsGenerating] = useState(false);
   const [progressStep, setProgressStep] = useState("");
@@ -84,10 +103,12 @@ const TtsPage: React.FC = () => {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
+      setIsAuthChecking(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      setIsAuthChecking(false);
     });
 
     return () => subscription.unsubscribe();
@@ -97,15 +118,28 @@ const TtsPage: React.FC = () => {
     await supabase.auth.signOut();
   };
 
-  useEffect(() => setStoredValue(STORAGE_KEYS.text, text), [text]);
+  useEffect(() => {
+    if (text !== undefined) setStoredValue(STORAGE_KEYS.text, text);
+  }, [text]);
+  
   useEffect(() => setStoredValue(STORAGE_KEYS.voice, voice), [voice]);
   useEffect(() => setStoredValue(STORAGE_KEYS.rate, String(speakingRate)), [speakingRate]);
   useEffect(() => setStoredValue(STORAGE_KEYS.pitch, String(pitch)), [pitch]);
-  useEffect(() => setStoredValue(STORAGE_KEYS.audio, audioSrc), [audioSrc]);
+  
+  useEffect(() => {
+    // 오디오 소스가 너무 크면 저장하지 않음
+    if (audioSrc && audioSrc.length < 2 * 1024 * 1024) {
+      setStoredValue(STORAGE_KEYS.audio, audioSrc);
+    } else if (!audioSrc) {
+      setStoredValue(STORAGE_KEYS.audio, "");
+    }
+  }, [audioSrc]);
+
   useEffect(() => setStoredValue(STORAGE_KEYS.error, error), [error]);
   useEffect(() => setStoredValue(STORAGE_KEYS.prompt, actingPrompt), [actingPrompt]);
 
   const handleReset = () => {
+    if (!window.confirm("모든 입력을 초기화하시겠습니까?")) return;
     setText("");
     setVoice("ko-KR-Standard-A");
     setSpeakingRate(1);
@@ -116,6 +150,7 @@ const TtsPage: React.FC = () => {
     setCopyStatus("");
     setProgressStep("");
     setUseAIActing(false);
+    localStorage.removeItem(STORAGE_KEYS.audio);
   };
 
   const handlePreviewVoice = async (voiceId: string) => {
@@ -140,7 +175,7 @@ const TtsPage: React.FC = () => {
         method: "POST",
         headers,
         body: JSON.stringify({
-          text: "안녕하세요, 제 목소리입니다.",
+          text: "안녕하세요, 미리듣기입니다.",
           voice: voiceId,
           speakingRate: 1,
           pitch: 0,
@@ -162,6 +197,10 @@ const TtsPage: React.FC = () => {
   };
 
   const handleGenerate = async () => {
+    if (!user) {
+      alert("로그인이 필요한 기능입니다.");
+      return;
+    }
     if (!text.trim()) {
       setError("변환할 텍스트를 입력해 주세요.");
       return;
@@ -177,18 +216,23 @@ const TtsPage: React.FC = () => {
       // 1. AI 연기 모드이거나 프롬프트가 있으면 SSML 생성
       if (useAIActing || actingPrompt.trim()) {
         setProgressStep("analyzing"); // 연기 분석 중
-        
-        // 프롬프트가 비어있으면 "자연스럽게" 또는 텍스트 맥락에 맞게 자동 생성하도록 geminiService에서 처리됨
-        finalSsml = await generateSsml(text, actingPrompt, ""); // API 키는 서버에서 처리
+        finalSsml = await generateSsml(text, actingPrompt, "");
       }
 
       // 2. TTS 요청
       setProgressStep("requesting");
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
       const response = await fetch("/api/tts", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
-          text: finalSsml ? undefined : text, // SSML이 있으면 텍스트 대신 보냄
+          text: finalSsml ? undefined : text,
           ssml: finalSsml || undefined,
           voice,
           speakingRate,
@@ -219,29 +263,41 @@ const TtsPage: React.FC = () => {
     }
   };
 
-  const femaleVoices = voiceOptions.filter(v => v.gender === "female");
-  const maleVoices = voiceOptions.filter(v => v.gender === "male");
+  const filterVoices = (gender: string) => voiceOptions.filter(v => v.gender === gender);
+
+  if (isAuthChecking) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center text-white">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500"></div>
+          <p className="text-emerald-400 font-medium">스튜디오를 준비하는 중...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-950 via-slate-950 to-emerald-900 text-white relative">
+    <div className="min-h-screen bg-[#050a0a] text-white relative">
+      <div className="absolute inset-0 bg-gradient-to-br from-emerald-950/20 via-slate-950 to-emerald-900/20 pointer-events-none" />
+      
       {/* Auth Status - Top Right */}
       <div className="absolute top-0 right-0 p-4 sm:p-6 flex gap-3 z-50 items-center">
         <UserCreditToolbar user={user} onLogout={handleLogout} tone="emerald" />
       </div>
 
-      <div className="mx-auto max-w-6xl px-6 py-12">
+      <div className="relative mx-auto max-w-6xl px-6 py-12">
         {/* Header */}
-        <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+        <div className="mb-10 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
           <div>
-            <Link to="/" className="text-emerald-400 hover:text-emerald-300 transition-colors flex items-center gap-2 mb-2">
+            <Link to="/" className="text-emerald-400 hover:text-emerald-300 transition-colors flex items-center gap-2 mb-2 font-medium">
                ← 메인으로 돌아가기
             </Link>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-400 to-teal-300 bg-clip-text text-transparent">
+            <h1 className="text-4xl font-black bg-gradient-to-r from-emerald-400 to-teal-300 bg-clip-text text-transparent">
               AI 성우 스튜디오
             </h1>
-            <p className="text-slate-400 mt-1">대본에 감정을 입혀 생생한 목소리를 만들어보세요.</p>
+            <p className="text-slate-400 mt-2">대본에 감정을 입혀 생생한 목소리를 만들어보세요.</p>
           </div>
-          <button onClick={handleReset} className="px-4 py-2 text-sm font-medium text-slate-300 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors">
+          <button onClick={handleReset} className="px-5 py-2.5 text-sm font-bold text-slate-300 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors">
             초기화
           </button>
         </div>
@@ -251,27 +307,30 @@ const TtsPage: React.FC = () => {
           <div className="lg:col-span-4 space-y-6">
             
             {/* Voice Selection */}
-            <div className="bg-white/5 border border-white/10 rounded-xl p-5 backdrop-blur-sm">
-              <h2 className="text-lg font-semibold text-emerald-300 mb-4 flex items-center gap-2">
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-md shadow-2xl">
+              <h2 className="text-lg font-bold text-emerald-300 mb-5 flex items-center gap-2">
                 <FiUser /> 목소리 선택
               </h2>
               
-              <div className="space-y-4">
+              <div className="space-y-6 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
                 <div>
-                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">여성 성우</label>
+                  <label className="text-xs font-black text-slate-500 uppercase tracking-widest mb-3 block">여성 성우</label>
                   <div className="space-y-2">
-                    {femaleVoices.map(v => (
+                    {filterVoices("female").map(v => (
                       <div 
                         key={v.value}
                         onClick={() => setVoice(v.value)}
-                        className={`group flex items-center justify-between p-3 rounded-lg cursor-pointer border transition-all ${voice === v.value ? 'bg-emerald-500/20 border-emerald-500/50 ring-1 ring-emerald-500/50' : 'bg-slate-800/50 border-transparent hover:bg-slate-800'}`}
+                        className={`group flex items-center justify-between p-3.5 rounded-xl cursor-pointer border transition-all ${voice === v.value ? 'bg-emerald-500/20 border-emerald-500/50 ring-1 ring-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.15)]' : 'bg-slate-900/40 border-white/5 hover:border-white/20'}`}
                       >
-                        <div className="flex flex-col">
-                          <span className={`text-sm font-medium ${voice === v.value ? 'text-emerald-300' : 'text-slate-200'}`}>{`${v.label} (${v.type})`}</span>
+                        <div className="flex flex-col min-w-0">
+                          <span className={`text-sm font-bold truncate ${voice === v.value ? 'text-emerald-300' : 'text-slate-200'}`}>
+                            {v.label} <span className="opacity-50 text-[10px] ml-1">({v.lang.toUpperCase()})</span>
+                          </span>
+                          <span className="text-[11px] text-slate-500">{v.type}</span>
                         </div>
                         <button 
                           onClick={(e) => { e.stopPropagation(); handlePreviewVoice(v.value); }}
-                          className="p-2 rounded-full hover:bg-white/10 text-emerald-400 transition-colors"
+                          className="p-2 rounded-full bg-white/5 hover:bg-emerald-500 hover:text-white text-emerald-400 transition-all"
                           title="미리듣기"
                         >
                           {playingPreview === v.value ? <FiPause size={14} /> : <FiPlay size={14} />}
@@ -282,20 +341,23 @@ const TtsPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">남성 성우</label>
+                  <label className="text-xs font-black text-slate-500 uppercase tracking-widest mb-3 block">남성 성우</label>
                   <div className="space-y-2">
-                    {maleVoices.map(v => (
+                    {filterVoices("male").map(v => (
                       <div 
                         key={v.value}
                         onClick={() => setVoice(v.value)}
-                        className={`group flex items-center justify-between p-3 rounded-lg cursor-pointer border transition-all ${voice === v.value ? 'bg-emerald-500/20 border-emerald-500/50 ring-1 ring-emerald-500/50' : 'bg-slate-800/50 border-transparent hover:bg-slate-800'}`}
+                        className={`group flex items-center justify-between p-3.5 rounded-xl cursor-pointer border transition-all ${voice === v.value ? 'bg-emerald-500/20 border-emerald-500/50 ring-1 ring-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.15)]' : 'bg-slate-900/40 border-white/5 hover:border-white/20'}`}
                       >
-                        <div className="flex flex-col">
-                          <span className={`text-sm font-medium ${voice === v.value ? 'text-emerald-300' : 'text-slate-200'}`}>{`${v.label} (${v.type})`}</span>
+                        <div className="flex flex-col min-w-0">
+                          <span className={`text-sm font-bold truncate ${voice === v.value ? 'text-emerald-300' : 'text-slate-200'}`}>
+                            {v.label} <span className="opacity-50 text-[10px] ml-1">({v.lang.toUpperCase()})</span>
+                          </span>
+                          <span className="text-[11px] text-slate-500">{v.type}</span>
                         </div>
                         <button 
                           onClick={(e) => { e.stopPropagation(); handlePreviewVoice(v.value); }}
-                          className="p-2 rounded-full hover:bg-white/10 text-emerald-400 transition-colors"
+                          className="p-2 rounded-full bg-white/5 hover:bg-emerald-500 hover:text-white text-emerald-400 transition-all"
                           title="미리듣기"
                         >
                           {playingPreview === v.value ? <FiPause size={14} /> : <FiPlay size={14} />}
@@ -308,15 +370,15 @@ const TtsPage: React.FC = () => {
             </div>
 
             {/* Voice Settings */}
-            <div className="bg-white/5 border border-white/10 rounded-xl p-5 backdrop-blur-sm">
-              <h2 className="text-lg font-semibold text-emerald-300 mb-4 flex items-center gap-2">
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-md">
+              <h2 className="text-lg font-bold text-emerald-300 mb-5 flex items-center gap-2">
                 <FiSliders /> 음성 설정
               </h2>
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <div>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-slate-300">속도</span>
-                    <span className="text-emerald-400">{speakingRate.toFixed(1)}x</span>
+                  <div className="flex justify-between text-sm mb-2">
+                    <span className="text-slate-300 font-medium">속도</span>
+                    <span className="text-emerald-400 font-bold">{speakingRate.toFixed(1)}x</span>
                   </div>
                   <input
                     type="range"
@@ -325,13 +387,13 @@ const TtsPage: React.FC = () => {
                     step="0.1"
                     value={speakingRate}
                     onChange={(e) => setSpeakingRate(parseFloat(e.target.value))}
-                    className="w-full accent-emerald-500 h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer"
+                    className="w-full accent-emerald-500 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer"
                   />
                 </div>
                 <div>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-slate-300">톤 (Pitch)</span>
-                    <span className="text-emerald-400">{pitch.toFixed(1)}</span>
+                  <div className="flex justify-between text-sm mb-2">
+                    <span className="text-slate-300 font-medium">톤 (Pitch)</span>
+                    <span className="text-emerald-400 font-bold">{pitch.toFixed(1)}</span>
                   </div>
                   <input
                     type="range"
@@ -340,7 +402,7 @@ const TtsPage: React.FC = () => {
                     step="0.5"
                     value={pitch}
                     onChange={(e) => setPitch(parseFloat(e.target.value))}
-                    className="w-full accent-emerald-500 h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer"
+                    className="w-full accent-emerald-500 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer"
                   />
                 </div>
               </div>
@@ -351,15 +413,15 @@ const TtsPage: React.FC = () => {
           <div className="lg:col-span-8 space-y-6">
             
             {/* Acting Prompt Section */}
-            <div className={`border rounded-xl p-5 transition-all duration-300 ${useAIActing ? 'bg-emerald-900/20 border-emerald-500/30' : 'bg-white/5 border-white/10'}`}>
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <div className={`p-1.5 rounded-lg ${useAIActing ? 'bg-emerald-500 text-white' : 'bg-slate-700 text-slate-400'}`}>
-                    <FiCpu size={18} />
+            <div className={`border rounded-2xl p-6 transition-all duration-500 ${useAIActing ? 'bg-emerald-900/10 border-emerald-500/40 shadow-[0_0_20px_rgba(16,185,129,0.1)]' : 'bg-white/5 border-white/10'}`}>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-xl ${useAIActing ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'bg-slate-800 text-slate-400'}`}>
+                    <FiCpu size={20} />
                   </div>
                   <div>
-                    <h2 className={`font-semibold ${useAIActing ? 'text-emerald-300' : 'text-slate-300'}`}>AI 감정 연기</h2>
-                    <p className="text-xs text-slate-400">원하면 아래에 감정 연기 방향을 적어주세요. 비워두면 대본을 분석해 자동으로 작성합니다.</p>
+                    <h2 className={`font-bold ${useAIActing ? 'text-emerald-300' : 'text-slate-200'}`}>AI 감정 연기 가이드</h2>
+                    <p className="text-xs text-slate-500 mt-0.5">Gemini가 텍스트를 분석하여 최적의 호흡과 억양을 입힙니다.</p>
                   </div>
                 </div>
                 
@@ -372,34 +434,44 @@ const TtsPage: React.FC = () => {
               </div>
 
               {useAIActing && (
-                <div className="mt-3 animate-fadeIn">
+                <div className="mt-4 animate-fadeIn">
                   <textarea
                     value={actingPrompt}
                     onChange={(e) => setActingPrompt(e.target.value)}
-                    placeholder="원하는 감정/연기 톤을 적어주세요. (비워두면 자동 작성)"
-                    className="w-full bg-slate-900/50 border border-emerald-500/30 rounded-lg p-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400"
+                    placeholder="예: 뉴스 앵커처럼 신뢰감 있게, 슬픈 드라마 주인공처럼 애절하게, 어린이에게 동화책을 읽어주듯 다정하게 (비워두면 자동 분석)"
+                    className="w-full bg-black/40 border border-emerald-500/20 rounded-xl p-4 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 transition-all leading-relaxed"
                     rows={2}
                   />
-                  <div className="flex items-start gap-2 mt-2 text-xs text-emerald-400/80">
-                    <FiInfo className="mt-0.5" />
-                    <p>입력한 내용은 SSML로 반영됩니다. 비워두면 대본 분석 기반으로 자동 작성됩니다.</p>
+                  <div className="flex items-start gap-2 mt-3 text-xs text-emerald-400/70">
+                    <FiInfo className="mt-0.5 flex-shrink-0" />
+                    <p>AI가 텍스트를 SSML 마크업으로 변환하여 문장 사이의 쉼표, 강조, 속도를 세밀하게 조절합니다.</p>
                   </div>
                 </div>
               )}
             </div>
 
             {/* Text Input */}
-            <div className="bg-white/5 border border-white/10 rounded-xl p-5 backdrop-blur-sm">
-              <label className="text-lg font-semibold text-slate-200 mb-3 block">대본 입력</label>
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-md">
+              <div className="flex items-center justify-between mb-4">
+                <label className="text-lg font-bold text-slate-200 flex items-center gap-2">
+                  <FiFileText className="text-emerald-400" /> 대본 입력
+                </label>
+                <div className="text-xs text-slate-500 font-mono">
+                  {text.length.toLocaleString()} 자
+                </div>
+              </div>
               <textarea
                 value={text}
                 onChange={(e) => setText(e.target.value)}
-                className="w-full h-64 bg-slate-900/50 border border-slate-700 rounded-lg p-4 text-white placeholder:text-slate-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 leading-relaxed resize-none"
-                placeholder="여기에 변환할 텍스트를 입력하세요..."
+                className="w-full h-80 bg-black/30 border border-white/5 rounded-xl p-5 text-white placeholder:text-slate-700 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 leading-relaxed resize-none transition-all shadow-inner tts-text-input"
+                placeholder="여기에 변환할 텍스트를 입력하세요. 대화체, 나레이션 모두 가능합니다."
+                style={
+                  {
+                    userSelect: "text",
+                    WebkitUserSelect: "text",
+                  } as React.CSSProperties
+                }
               />
-              <div className="mt-2 text-right text-xs text-slate-500">
-                {text.length}자
-              </div>
             </div>
 
             {/* Action Button */}
@@ -407,16 +479,20 @@ const TtsPage: React.FC = () => {
                 type="button"
                 onClick={handleGenerate}
                 disabled={isGenerating || !text.trim()}
-                className={`w-full rounded-lg bg-emerald-500 px-4 py-3 text-sm font-bold text-white shadow-[0_0_18px_rgba(16,185,129,0.25)] transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-70 flex items-center justify-center gap-2`}
+                className={`w-full rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-4 text-lg font-black text-white shadow-[0_10px_30px_rgba(16,185,129,0.3)] transition-all hover:from-emerald-500 hover:to-teal-500 hover:-translate-y-0.5 active:scale-[0.98] disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-3`}
               >
                 {isGenerating ? (
-                  "처리 중입니다..."
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    <span>{progressStep === 'analyzing' ? 'AI가 감정 분석 중...' : progressStep === 'requesting' ? '음성 생성 중...' : '처리 중...'}</span>
+                  </>
                 ) : (
                   <>
-                    <span>TTS 생성하기</span>
+                    <FiMic size={22} />
+                    <span>TTS 음성 생성하기</span>
                     {text.trim() && (
-                      <span className="bg-emerald-700/50 px-2 py-0.5 rounded text-xs font-normal">
-                        예상 {Math.ceil(text.trim().length / 10)} ⚡
+                      <span className="bg-white/20 px-2.5 py-0.5 rounded-full text-xs font-bold ml-2">
+                        {Math.ceil(text.trim().length / 10)} ⚡
                       </span>
                     )}
                   </>
@@ -425,27 +501,37 @@ const TtsPage: React.FC = () => {
 
             {/* Error Message */}
             {error && (
-              <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-red-200 text-sm animate-fadeIn">
-                <p className="font-semibold mb-1">오류가 발생했습니다</p>
-                <p>{error}</p>
+              <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-5 text-red-200 text-sm animate-fadeIn flex items-start gap-3">
+                <div className="bg-red-500 text-white rounded-full p-1 mt-0.5 flex-shrink-0">
+                  <FiInfo size={12} />
+                </div>
+                <div>
+                  <p className="font-bold mb-1 text-red-400 text-base">생성 중 오류가 발생했습니다</p>
+                  <p className="leading-relaxed">{error}</p>
+                </div>
               </div>
             )}
 
             {/* Audio Result */}
             {audioSrc && (
-              <div className="bg-emerald-900/20 border border-emerald-500/30 rounded-xl p-6 animate-fadeIn">
-                <h3 className="text-lg font-semibold text-emerald-300 mb-4 flex items-center gap-2">
-                  <FiPlay /> 생성 완료
+              <div className="bg-emerald-900/10 border border-emerald-500/30 rounded-2xl p-8 animate-fadeIn shadow-[0_20px_50px_rgba(0,0,0,0.3)] backdrop-blur-lg">
+                <h3 className="text-xl font-bold text-emerald-300 mb-6 flex items-center gap-3">
+                  <div className="bg-emerald-500 text-white p-1.5 rounded-lg shadow-lg shadow-emerald-500/20">
+                    <FiPlay size={18} />
+                  </div>
+                  생성된 AI 목소리
                 </h3>
-                <audio controls className="w-full mb-4 accent-emerald-500">
+                <audio controls className="w-full mb-6 accent-emerald-500 filter invert h-12" key={audioSrc}>
                   <source src={audioSrc} type="audio/mpeg" />
                 </audio>
-                <div className="flex justify-end">
+                <div className="flex justify-between items-center">
+                  <p className="text-xs text-slate-500">주의: 브라우저 캐시를 지우면 생성된 오디오가 사라질 수 있습니다.</p>
                   <a
                     href={audioSrc}
-                    download="generated_voice.mp3"
-                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-medium transition-colors"
+                    download={`voice_${new Date().getTime()}.mp3`}
+                    className="flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-black transition-all shadow-lg shadow-emerald-600/20 active:scale-95"
                   >
+                    <FiDownload />
                     MP3 다운로드
                   </a>
                 </div>
@@ -455,9 +541,31 @@ const TtsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* 사용자 크레딧 사이드바 */}
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(16, 185, 129, 0.2);
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(16, 185, 129, 0.4);
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.4s ease-out forwards;
+        }
+      `}</style>
     </div>
   );
 };
 
 export default TtsPage;
+
