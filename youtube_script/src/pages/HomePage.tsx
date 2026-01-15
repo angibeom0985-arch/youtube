@@ -274,7 +274,13 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
         </div>
 
         <div className="mt-12 text-xs text-slate-400/80">
-          안내: 결과 화면에서도 언제든 다른 기능으로 이동할 수 있습니다.
+          제작자 : 데이비 · 문의 :{" "}
+          <a
+            href="mailto:david153.official@gmail.com"
+            className="underline underline-offset-2 hover:text-slate-200"
+          >
+            david153.official@gmail.com
+          </a>
         </div>
       </div>
 
