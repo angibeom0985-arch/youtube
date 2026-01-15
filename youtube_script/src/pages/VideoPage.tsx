@@ -774,6 +774,14 @@ const VideoPage: React.FC = () => {
               <div className="mt-6 grid gap-4">
                 {scriptFlowStep === 0 && (
                   <>
+                    <div className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white/70">
+                      <p className="font-semibold text-white">대본 생성 사용법</p>
+                      <ol className="mt-2 list-decimal space-y-1 pl-5 text-white/60">
+                        <li>현재 대본의 흐름을 그대로 붙여 넣기</li>
+                        <li>영상 길이를 선택해 새 대본의 분량 설정</li>
+                        <li>추천 주제 중 하나를 골라 새 대본 생성</li>
+                      </ol>
+                    </div>
                     <textarea
                       value={scriptDraft}
                       onChange={(event) => setScriptDraft(event.target.value)}
