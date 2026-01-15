@@ -528,17 +528,17 @@ const VideoPage: React.FC = () => {
                       key={option.value}
                       type="button"
                       onClick={() => handleFormatChange(option.value)}
-                      className={`rounded-2xl border px-4 py-3 text-left transition ${
+                      className={`rounded-2xl border px-4 py-3 text-center transition ${
                         videoFormat === option.value
                           ? "border-red-400 bg-red-500/10 shadow-[0_10px_20px_rgba(239,68,68,0.2)]"
                           : "border-white/15 bg-black/30 hover:border-white/30"
                       }`}
                     >
-                      <div className="flex items-center gap-2 text-white">
+                      <div className="flex flex-col items-center gap-2 text-white">
                         <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10">
                           {option.icon}
                         </span>
-                        <div>
+                        <div className="text-center">
                           <p className="text-sm font-semibold">{option.title}</p>
                           <p className="text-sm text-white/50">{option.description}</p>
                         </div>
@@ -556,14 +556,14 @@ const VideoPage: React.FC = () => {
                       key={option.value}
                       type="button"
                       onClick={() => handleRatioChange(option.value)}
-                      className={`rounded-2xl border px-3 py-3 text-left transition ${
+                      className={`rounded-2xl border px-3 py-3 text-center transition ${
                         renderRatio === option.value
                           ? "border-red-400 bg-red-500/10 shadow-[0_10px_20px_rgba(239,68,68,0.2)]"
                           : "border-white/15 bg-black/30 hover:border-white/30"
                       }`}
                     >
-                      <div className="flex items-center justify-between">
-                        <div>
+                      <div className="flex flex-col items-center gap-1">
+                        <div className="text-center">
                           <p className="text-sm font-semibold text-white">{option.title}</p>
                           <p className="text-sm text-white/50">{option.size}</p>
                         </div>
@@ -582,9 +582,6 @@ const VideoPage: React.FC = () => {
                             } bg-black/40`}
                           >
                             <div className="absolute inset-1 rounded-md bg-gradient-to-br from-white/10 to-white/5" />
-                            <div className="absolute inset-0 flex items-center justify-center text-sm font-semibold text-white/60">
-                              {option.size}
-                            </div>
                           </div>
                         </div>
                       </div>
