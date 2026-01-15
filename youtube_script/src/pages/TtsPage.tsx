@@ -41,26 +41,24 @@ const setStoredValue = (key: string, value: string): void => {
 
 // 목소리 옵션 데이터 확장
 const voiceOptions = [
-  // 여성 목소리
-  { value: "ko-KR-Standard-A", label: "서연 (차분한)", gender: "female", type: "Standard" },
-  { value: "ko-KR-Standard-B", label: "지민 (아나운서 톤)", gender: "female", type: "Standard" },
-  { value: "ko-KR-Standard-D", label: "하은 (발랄한)", gender: "female", type: "Standard" },
-  { value: "ko-KR-Wavenet-A", label: "수진 (자연스러운)", gender: "female", type: "WaveNet" },
-  { value: "ko-KR-Wavenet-B", label: "유나 (부드러운)", gender: "female", type: "WaveNet" },
-  { value: "ko-KR-Neural2-A", label: "지원 (고품질 AI)", gender: "female", type: "Neural2" },
-  { value: "ko-KR-Neural2-B", label: "서윤 (뉴스 톤)", gender: "female", type: "Neural2" },
-  // 추가된 여성 목소리
-  { value: "en-US-Neural2-F", label: "Sarah (영어/여성)", gender: "female", type: "English" },
-  { value: "ja-JP-Neural2-B", label: "Mayu (일본어/여성)", gender: "female", type: "Japanese" },
+  // 여성 음성
+  { value: "ko-KR-Standard-A", label: "소연", gender: "female", type: "차분함" },
+  { value: "ko-KR-Standard-B", label: "지민", gender: "female", type: "또렇함" },
+  { value: "ko-KR-Standard-D", label: "다영", gender: "female", type: "발랄함" },
+  { value: "ko-KR-Wavenet-A", label: "애진", gender: "female", type: "섬세함" },
+  { value: "ko-KR-Wavenet-B", label: "유나", gender: "female", type: "부드러움" },
+  { value: "ko-KR-Neural2-A", label: "지수", gender: "female", type: "고품질" },
+  { value: "ko-KR-Neural2-B", label: "소윤", gender: "female", type: "밝음" },
 
-  // 남성 목소리
-  { value: "ko-KR-Standard-C", label: "민준 (신뢰감 있는)", gender: "male", type: "Standard" },
-  { value: "ko-KR-Wavenet-C", label: "준호 (굵은 목소리)", gender: "male", type: "WaveNet" },
-  { value: "ko-KR-Wavenet-D", label: "지훈 (청년)", gender: "male", type: "WaveNet" },
-  { value: "ko-KR-Neural2-C", label: "도현 (고품질 AI)", gender: "male", type: "Neural2" },
-  // 추가된 남성 목소리
-  { value: "en-US-Neural2-D", label: "John (영어/남성)", gender: "male", type: "English" },
+  // 남성 음성
+  { value: "ko-KR-Standard-C", label: "민우", gender: "male", type: "중후함" },
+  { value: "ko-KR-Wavenet-C", label: "준혁", gender: "male", type: "저음" },
+  { value: "ko-KR-Wavenet-D", label: "지훈", gender: "male", type: "차분함" },
+  { value: "ko-KR-Neural2-C", label: "민현", gender: "male", type: "고품질" },
 ];
+
+
+
 
 const TtsPage: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -269,8 +267,7 @@ const TtsPage: React.FC = () => {
                         className={`group flex items-center justify-between p-3 rounded-lg cursor-pointer border transition-all ${voice === v.value ? 'bg-emerald-500/20 border-emerald-500/50 ring-1 ring-emerald-500/50' : 'bg-slate-800/50 border-transparent hover:bg-slate-800'}`}
                       >
                         <div className="flex flex-col">
-                          <span className={`text-sm font-medium ${voice === v.value ? 'text-emerald-300' : 'text-slate-200'}`}>{v.label}</span>
-                          <span className="text-xs text-slate-500">{v.type}</span>
+                          <span className={`text-sm font-medium ${voice === v.value ? 'text-emerald-300' : 'text-slate-200'}`}>{`${v.label} (${v.type})`}</span>
                         </div>
                         <button 
                           onClick={(e) => { e.stopPropagation(); handlePreviewVoice(v.value); }}
@@ -294,8 +291,7 @@ const TtsPage: React.FC = () => {
                         className={`group flex items-center justify-between p-3 rounded-lg cursor-pointer border transition-all ${voice === v.value ? 'bg-emerald-500/20 border-emerald-500/50 ring-1 ring-emerald-500/50' : 'bg-slate-800/50 border-transparent hover:bg-slate-800'}`}
                       >
                         <div className="flex flex-col">
-                          <span className={`text-sm font-medium ${voice === v.value ? 'text-emerald-300' : 'text-slate-200'}`}>{v.label}</span>
-                          <span className="text-xs text-slate-500">{v.type}</span>
+                          <span className={`text-sm font-medium ${voice === v.value ? 'text-emerald-300' : 'text-slate-200'}`}>{`${v.label} (${v.type})`}</span>
                         </div>
                         <button 
                           onClick={(e) => { e.stopPropagation(); handlePreviewVoice(v.value); }}
@@ -363,7 +359,7 @@ const TtsPage: React.FC = () => {
                   </div>
                   <div>
                     <h2 className={`font-semibold ${useAIActing ? 'text-emerald-300' : 'text-slate-300'}`}>AI 감정 연기</h2>
-                    <p className="text-xs text-slate-400">Gemini가 대본을 분석해 감정을 입힙니다.</p>
+                    <p className="text-xs text-slate-400">원하면 아래에 감정 연기 방향을 적어주세요. 비워두면 대본을 분석해 자동으로 작성합니다.</p>
                   </div>
                 </div>
                 
@@ -380,13 +376,13 @@ const TtsPage: React.FC = () => {
                   <textarea
                     value={actingPrompt}
                     onChange={(e) => setActingPrompt(e.target.value)}
-                    placeholder="예: 아주 슬픈 목소리로 읽어줘, 뉴스 앵커처럼 진지하게, 어린아이에게 말하듯 다정하게 (비워두면 AI가 대본을 분석해 자동으로 설정합니다)"
+                    placeholder="원하는 감정/연기 톤을 적어주세요. (비워두면 자동 작성)"
                     className="w-full bg-slate-900/50 border border-emerald-500/30 rounded-lg p-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400"
                     rows={2}
                   />
                   <div className="flex items-start gap-2 mt-2 text-xs text-emerald-400/80">
                     <FiInfo className="mt-0.5" />
-                    <p>AI가 텍스트를 SSML(음성 합성 마크업 언어)로 변환하여 억양, 숨쉬기, 강조를 자동으로 추가합니다.</p>
+                    <p>입력한 내용은 SSML로 반영됩니다. 비워두면 대본 분석 기반으로 자동 작성됩니다.</p>
                   </div>
                 </div>
               )}
