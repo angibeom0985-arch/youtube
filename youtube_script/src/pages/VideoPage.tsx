@@ -18,7 +18,8 @@ import { supabase } from "../services/supabase";
 import type { User } from "@supabase/supabase-js";
 import UserCreditToolbar from "../components/UserCreditToolbar";
 import HomeBackButton from "../components/HomeBackButton";
-import { generateVideo } from "../services/videoService";
+import type { AnalysisResult, NewPlan } from "../types";
+import { analyzeTranscript, generateIdeas, generateNewPlan } from "../services/geminiService";
 import { generateVideo } from "../services/videoService";
 
 const STORAGE_KEYS = {
@@ -153,6 +154,16 @@ const VideoPage: React.FC = () => {
   );
   const [selectedVoice, setSelectedVoice] = useState(voiceOptions[0].name);
   const [ttsSpeed, setTtsSpeed] = useState(1);
+  const [scriptFlowStep, setScriptFlowStep] = useState(0);
+  const [scriptLengthMinutes, setScriptLengthMinutes] = useState("3");
+  const [scriptChecks, setScriptChecks] = useState([false, false, false, false, false]);
+  const [scriptAnalysis, setScriptAnalysis] = useState<AnalysisResult | null>(null);
+  const [scriptIdeas, setScriptIdeas] = useState<string[]>([]);
+  const [selectedTopic, setSelectedTopic] = useState("");
+  const [generatedPlan, setGeneratedPlan] = useState<NewPlan | null>(null);
+  const [scriptError, setScriptError] = useState("");
+  const [isAnalyzingScript, setIsAnalyzingScript] = useState(false);
+  const [isGeneratingScript, setIsGeneratingScript] = useState(false);
   const [ttsSamples, setTtsSamples] = useState<
     { id: number; voice: string; text: string; status: string }[]
   >([]);
@@ -489,6 +500,146 @@ const VideoPage: React.FC = () => {
       setVideoFormat("long");
     }
   };
+  const scriptSlides = [
+    {
+      title: "대본 입력",
+      description: "사용자가 입력한 대본을 바탕으로 구조를 분석합니다.",
+    },
+    {
+      title: "영상 길이 선택",
+      description: "대본 작성 전에 원하는 영상 길이를 먼저 정합니다.",
+    },
+    {
+      title: "구조 분석",
+      description: "대본 구조를 분석하고 핵심 흐름을 정리합니다.",
+    },
+    {
+      title: "새 주제 추천",
+      description: "분석된 구조를 바탕으로 새 주제를 추천합니다.",
+    },
+    {
+      title: "새 대본 작성",
+      description: "선택한 주제로 입력한 대본 구조를 반영해 작성합니다.",
+    },
+  ];
+  const scriptLengthOptions = ["1", "2", "3", "5", "8", "10"];
+  const handleScriptCheck = (index: number, checked: boolean) => {
+    setScriptChecks((prev) => {
+      const next = [...prev];
+      next[index] = checked;
+      return next;
+    });
+  };
+  const handleSelectScriptLength = (minutes: string) => {
+    setScriptLengthMinutes(minutes);
+    const seconds = Number(minutes) * 60;
+    if (Number.isFinite(seconds) && seconds > 0) {
+      setRenderDuration(String(seconds));
+    }
+  };
+  const isScriptStepReady = (index: number) => {
+    switch (index) {
+      case 0:
+        return Boolean(scriptDraft.trim());
+      case 1:
+        return Boolean(scriptLengthMinutes);
+      case 2:
+        return Boolean(scriptAnalysis);
+      case 3:
+        return Boolean(selectedTopic);
+      case 4:
+        return Boolean(generatedPlan);
+      default:
+        return true;
+    }
+  };
+  const canScriptPrev = scriptFlowStep > 0;
+  const canScriptNext =
+    scriptFlowStep < scriptSlides.length - 1 &&
+    scriptChecks[scriptFlowStep] &&
+    isScriptStepReady(scriptFlowStep);
+  const handleScriptPrev = () => {
+    if (!canScriptPrev) return;
+    setScriptFlowStep((prev) => prev - 1);
+  };
+  const handleScriptNext = () => {
+    if (!canScriptNext) return;
+    setScriptFlowStep((prev) => prev + 1);
+  };
+  const handleAnalyzeScript = async () => {
+    if (!scriptDraft.trim()) {
+      setScriptError("분석할 대본을 먼저 입력해 주세요.");
+      return;
+    }
+    setScriptError("");
+    setIsAnalyzingScript(true);
+    try {
+      const analysis = await analyzeTranscript(scriptDraft.trim(), "일반", "", projectTitle);
+      setScriptAnalysis(analysis);
+      const ideas = await generateIdeas(analysis, "일반", "");
+      setScriptIdeas(ideas);
+      if (ideas.length > 0) {
+        setSelectedTopic(ideas[0]);
+      }
+    } catch (error) {
+      setScriptError(
+        error instanceof Error ? error.message : "대본 분석에 실패했습니다."
+      );
+    } finally {
+      setIsAnalyzingScript(false);
+    }
+  };
+  const handleGenerateScript = async () => {
+    if (!scriptAnalysis) {
+      setScriptError("대본 구조 분석을 먼저 진행해 주세요.");
+      return;
+    }
+    if (!selectedTopic) {
+      setScriptError("추천 주제를 선택해 주세요.");
+      return;
+    }
+    setScriptError("");
+    setIsGeneratingScript(true);
+    try {
+      const plan = await generateNewPlan(
+        scriptAnalysis,
+        selectedTopic,
+        `${scriptLengthMinutes}분`,
+        "일반"
+      );
+      setGeneratedPlan(plan);
+    } catch (error) {
+      setScriptError(
+        error instanceof Error ? error.message : "대본 생성에 실패했습니다."
+      );
+    } finally {
+      setIsGeneratingScript(false);
+    }
+  };
+  const formatGeneratedScript = (plan: NewPlan | null) => {
+    if (!plan) return "";
+    if (plan.chapters && plan.chapters.length > 0) {
+      return plan.chapters
+        .map((chapter, index) => {
+          const lines = (chapter.script || [])
+            .map((line) => `${line.character}: ${line.line}`)
+            .join("\n");
+          return `# 챕터 ${index + 1}. ${chapter.title}\n${lines || chapter.purpose}`;
+        })
+        .join("\n\n");
+    }
+    if (plan.scriptWithCharacters && plan.scriptWithCharacters.length > 0) {
+      return plan.scriptWithCharacters
+        .map((line) => `${line.character}: ${line.line}`)
+        .join("\n");
+    }
+    if (plan.scriptOutline && plan.scriptOutline.length > 0) {
+      return plan.scriptOutline
+        .map((stage) => `[${stage.stage}]\n${stage.details}`)
+        .join("\n\n");
+    }
+    return "";
+  };
 
   const timelineScenes = useMemo(() => {
     const lines = scriptDraft
@@ -602,12 +753,14 @@ const VideoPage: React.FC = () => {
             <div className="rounded-[clamp(1rem,2vw,1.6rem)] border border-white/10 bg-black/40 p-[clamp(1.25rem,2vw,1.8rem)] shadow-[0_18px_40px_rgba(0,0,0,0.45)]">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-semibold text-white/60">대본 / 프롬프트</p>
+                  <p className="text-sm font-semibold text-white/60">
+                    대본 생성 슬라이드 {scriptFlowStep + 1} / {scriptSlides.length}
+                  </p>
                   <h3 className="text-2xl font-bold text-white mt-1">
-                    어떤 영상을 만들고 싶으세요?
+                    {scriptSlides[scriptFlowStep].title}
                   </h3>
                   <p className="mt-2 text-sm text-white/60">
-                    따라 하고 싶은 대본을 붙여 넣으면 새 주제의 대본으로 분석해 드립니다.
+                    {scriptSlides[scriptFlowStep].description}
                   </p>
                 </div>
                 <a
@@ -619,35 +772,179 @@ const VideoPage: React.FC = () => {
                   대본 페이지 열기
                 </a>
               </div>
-              <textarea
-                value={scriptDraft}
-                onChange={(event) => setScriptDraft(event.target.value)}
-                rows={6}
-                className="mt-5 w-full rounded-2xl border border-white/20 bg-white px-4 py-4 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500"
-                placeholder="예: 환율 1500원이 넘으면 우리나라에 벌어지는 일들"
-              />
-              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-white/50">
-                <span>
-                  {scriptLineCount}줄 · {scriptDraft.length.toLocaleString()}자
-                </span>
+
+              <div className="mt-6 grid gap-4">
+                {scriptFlowStep === 0 && (
+                  <>
+                    <textarea
+                      value={scriptDraft}
+                      onChange={(event) => setScriptDraft(event.target.value)}
+                      rows={7}
+                      className="w-full rounded-2xl border border-white/20 bg-white px-4 py-4 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500"
+                      placeholder="예: 환율 1500원이 넘으면 우리나라에 벌어지는 일들"
+                    />
+                    <div className="flex flex-wrap items-center justify-between text-sm text-white/50">
+                      <span>
+                        {scriptLineCount}줄 · {scriptDraft.length.toLocaleString()}자
+                      </span>
+                      <span>대본 구조 분석용 입력</span>
+                    </div>
+                  </>
+                )}
+
+                {scriptFlowStep === 1 && (
+                  <div className="grid gap-4">
+                    <div className="flex flex-wrap gap-2">
+                      {scriptLengthOptions.map((minutes) => (
+                        <button
+                          key={minutes}
+                          type="button"
+                          onClick={() => handleSelectScriptLength(minutes)}
+                          className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                            scriptLengthMinutes === minutes
+                              ? "border-red-400 bg-red-500/15 text-red-200"
+                              : "border-white/15 bg-black/30 text-white/70 hover:border-white/30"
+                          }`}
+                        >
+                          {minutes}분
+                        </button>
+                      ))}
+                    </div>
+                    <p className="text-sm text-white/50">
+                      선택한 길이에 맞춰 대본을 구성합니다. ({scriptLengthMinutes}분 기준)
+                    </p>
+                  </div>
+                )}
+
+                {scriptFlowStep === 2 && (
+                  <div className="grid gap-4">
+                    <button
+                      type="button"
+                      onClick={handleAnalyzeScript}
+                      disabled={isAnalyzingScript}
+                      className="w-full rounded-full bg-gradient-to-r from-red-500 to-orange-500 px-5 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(239,68,68,0.3)] disabled:opacity-60"
+                    >
+                      {isAnalyzingScript ? "구조 분석 중..." : "대본 구조 분석하기"}
+                    </button>
+                    {scriptAnalysis?.scriptStructure && (
+                      <div className="rounded-2xl border border-white/10 bg-black/30 p-4 text-sm text-white/70">
+                        <p className="text-sm font-semibold text-white mb-3">분석된 구조</p>
+                        <div className="space-y-3">
+                          {scriptAnalysis.scriptStructure.map((stage) => (
+                            <div key={stage.stage} className="rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+                              <p className="font-semibold text-white">{stage.stage}</p>
+                              <p className="text-sm text-white/50">{stage.purpose}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {scriptFlowStep === 3 && (
+                  <div className="grid gap-4">
+                    {scriptIdeas.length === 0 ? (
+                      <p className="text-sm text-white/60">
+                        구조 분석 후 추천 주제가 표시됩니다.
+                      </p>
+                    ) : (
+                      <div className="grid gap-2">
+                        {scriptIdeas.map((idea) => (
+                          <button
+                            key={idea}
+                            type="button"
+                            onClick={() => setSelectedTopic(idea)}
+                            className={`rounded-xl border px-4 py-3 text-left text-sm transition ${
+                              selectedTopic === idea
+                                ? "border-red-400 bg-red-500/10 text-white"
+                                : "border-white/15 bg-black/30 text-white/70 hover:border-white/30"
+                            }`}
+                          >
+                            {idea}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {scriptFlowStep === 4 && (
+                  <div className="grid gap-4">
+                    <button
+                      type="button"
+                      onClick={handleGenerateScript}
+                      disabled={isGeneratingScript}
+                      className="w-full rounded-full bg-gradient-to-r from-red-500 to-orange-500 px-5 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(239,68,68,0.3)] disabled:opacity-60"
+                    >
+                      {isGeneratingScript ? "대본 작성 중..." : "선택 주제로 대본 작성하기"}
+                    </button>
+                    {generatedPlan && (
+                      <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                        <p className="text-sm font-semibold text-white mb-2">생성된 대본</p>
+                        {generatedPlan.chapters && generatedPlan.chapters.length > 0 ? (
+                          <div className="space-y-3 text-sm text-white/70">
+                            {generatedPlan.chapters.map((chapter, index) => (
+                              <div key={chapter.id} className="rounded-xl border border-white/10 bg-black/30 px-4 py-3">
+                                <p className="font-semibold text-white">
+                                  챕터 {index + 1}. {chapter.title}
+                                </p>
+                                <p className="text-sm text-white/50 mt-1">{chapter.purpose}</p>
+                                {chapter.script && chapter.script.length > 0 && (
+                                  <div className="mt-3 space-y-1 text-sm text-white/70">
+                                    {chapter.script.map((line, lineIndex) => (
+                                      <p key={`${chapter.id}-${lineIndex}`}>
+                                        {line.character}: {line.line}
+                                      </p>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <pre className="whitespace-pre-wrap text-sm text-white/70">
+                            {formatGeneratedScript(generatedPlan)}
+                          </pre>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {scriptError && (
+                  <div className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                    {scriptError}
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+                <label className="inline-flex items-center gap-2 text-sm text-white/60">
+                  <input
+                    type="checkbox"
+                    checked={scriptChecks[scriptFlowStep]}
+                    onChange={(event) => handleScriptCheck(scriptFlowStep, event.target.checked)}
+                    className="h-4 w-4 rounded border-white/20 bg-black/40"
+                  />
+                  확인했습니다
+                </label>
                 <div className="flex items-center gap-2">
-                  <label className="text-sm font-semibold text-white/60">목표 길이</label>
-                  <select
-                    value={renderDuration}
-                    onChange={(event) => setRenderDuration(event.target.value)}
-                    className="rounded-full border border-white/20 bg-black/40 px-3 py-1 text-sm text-white"
-                  >
-                    <option value="30">30초</option>
-                    <option value="45">45초</option>
-                    <option value="60">60초</option>
-                    <option value="90">90초</option>
-                  </select>
                   <button
                     type="button"
-                    onClick={handleNext}
-                    className="rounded-full bg-gradient-to-r from-red-500 to-orange-500 px-4 py-1 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(239,68,68,0.3)]"
+                    onClick={handleScriptPrev}
+                    disabled={!canScriptPrev}
+                    className="rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-white/60 disabled:opacity-40"
                   >
-                    대본 분석 시작
+                    이전
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleScriptNext}
+                    disabled={!canScriptNext}
+                    className="rounded-full bg-gradient-to-r from-red-500 to-orange-500 px-5 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(239,68,68,0.3)] disabled:opacity-40"
+                  >
+                    다음
                   </button>
                 </div>
               </div>
