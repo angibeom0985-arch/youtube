@@ -128,12 +128,12 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
 
       <div className="mx-auto flex min-h-screen max-w-6xl flex-col items-center justify-center px-6 py-16">
         <div className="text-center">
-          <p className="text-5xl font-black tracking-[0.08em] text-[color:var(--tone-brand-red,#ff0000)] sm:text-6xl lg:text-7xl">
-            유튜브 팩토리
-          </p>
-          <h1 className="mt-6 text-3xl font-bold sm:text-4xl">
-            원하는 기능을 선택하세요
+          <h1 className="text-5xl font-black tracking-[0.04em] sm:text-6xl lg:text-7xl bg-gradient-to-r from-red-500 via-orange-500 to-amber-400 bg-clip-text text-transparent drop-shadow-[0_0_18px_rgba(249,115,22,0.35)]">
+            유튜브 제작 스튜디오
           </h1>
+          <p className="mt-6 text-3xl font-bold sm:text-4xl">
+            원하는 기능을 선택하세요
+          </p>
         </div>
 
         <div className="mt-10 w-full">
