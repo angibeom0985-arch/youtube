@@ -437,9 +437,8 @@ const VideoPage: React.FC = () => {
         return (
           <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)] grid gap-[clamp(1.25rem,2vw,2rem)] lg:grid-cols-2">
             <div className="rounded-[clamp(1rem,2vw,1.4rem)] border border-white/20 bg-black/40 p-[clamp(1rem,2vw,1.4rem)]">
-              <p className="text-sm font-semibold text-white/60">어떤 영상을 만들고 싶으세요?</p>
-              <h3 className="text-2xl font-bold text-white mt-1">프로젝트 정의</h3>
-              <p className="text-sm text-white/50 mt-2">
+              <h3 className="text-2xl font-bold text-white">어떤 영상을 만들고 싶으세요?</h3>
+              <p className="text-sm text-white/50 mt-3">
                 핵심 메시지와 CTA를 간단히 적어두면 나머지 스텝에서 참조합니다.
               </p>
               <label className="mt-5 block text-xs font-semibold text-white/60">프로젝트 제목</label>
@@ -459,43 +458,48 @@ const VideoPage: React.FC = () => {
               />
             </div>
             <div className="rounded-[clamp(1rem,2vw,1.4rem)] border border-white/20 bg-black/40 p-[clamp(1rem,2vw,1.4rem)]">
-              <p className="text-sm font-semibold text-white/80">영상 기본 설정</p>
-              <h3 className="text-2xl font-bold text-white mt-1">길이 · 화면 · 부드러움</h3>
-              <p className="mt-2 text-sm text-white/70">
+              <h3 className="text-2xl font-bold text-white">영상 기본 설정</h3>
+              <p className="mt-3 text-sm text-white/70">
                 영상 길이와 화면 모양, 움직임 부드러움을 선택해 주세요.
               </p>
               <div className="mt-4 grid gap-4 sm:grid-cols-3">
-                <label className="text-xs font-semibold text-white/80">영상 길이(초)</label>
-                <select
-                  value={renderDuration}
-                  onChange={(event) => setRenderDuration(event.target.value)}
-                  className="rounded-2xl border border-white/20 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-red-500"
-                >
-                  <option value="30">30초</option>
-                  <option value="45">45초</option>
-                  <option value="60">60초</option>
-                  <option value="90">90초</option>
-                </select>
-                <label className="text-xs font-semibold text-white/80">화면 모양</label>
-                <select
-                  value={renderRatio}
-                  onChange={(event) => setRenderRatio(event.target.value)}
-                  className="rounded-2xl border border-white/20 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-red-500"
-                >
-                  <option value="16:9">16:9</option>
-                  <option value="9:16">9:16</option>
-                  <option value="1:1">1:1</option>
-                </select>
-                <label className="text-xs font-semibold text-white/80">부드러움(FPS)</label>
-                <select
-                  value={renderFps}
-                  onChange={(event) => setRenderFps(event.target.value)}
-                  className="rounded-2xl border border-white/20 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-red-500"
-                >
-                  <option value="24">24fps</option>
-                  <option value="30">30fps</option>
-                  <option value="60">60fps</option>
-                </select>
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-white/80">영상 길이(초)</label>
+                  <select
+                    value={renderDuration}
+                    onChange={(event) => setRenderDuration(event.target.value)}
+                    className="w-full rounded-2xl border border-white/20 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  >
+                    <option value="30">30초</option>
+                    <option value="45">45초</option>
+                    <option value="60">60초</option>
+                    <option value="90">90초</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-white/80">부드러움(FPS)</label>
+                  <select
+                    value={renderFps}
+                    onChange={(event) => setRenderFps(event.target.value)}
+                    className="w-full rounded-2xl border border-white/20 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  >
+                    <option value="24">24fps</option>
+                    <option value="30">30fps</option>
+                    <option value="60">60fps</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-white/80">화면 모양</label>
+                  <select
+                    value={renderRatio}
+                    onChange={(event) => setRenderRatio(event.target.value)}
+                    className="w-full rounded-2xl border border-white/20 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  >
+                    <option value="16:9">16:9</option>
+                    <option value="9:16">9:16</option>
+                    <option value="1:1">1:1</option>
+                  </select>
+                </div>
               </div>
               <label className="mt-4 block text-xs font-semibold text-white/80">편집 메모</label>
               <textarea
