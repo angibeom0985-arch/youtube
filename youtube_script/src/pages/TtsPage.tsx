@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { generateSsml } from "../services/geminiService";
-import { FiPlay, FiPause, FiMic, FiSliders, FiCpu, FiInfo } from "react-icons/fi";
+import { FiPlay, FiPause, FiMic, FiSliders, FiCpu, FiInfo, FiUser } from "react-icons/fi";
 import { supabase } from "../services/supabase";
 import type { User } from "@supabase/supabase-js";
 import UserCreditToolbar from "../components/UserCreditToolbar";
