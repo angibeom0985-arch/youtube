@@ -16,6 +16,7 @@ import JSZip from "jszip";
 import { supabase } from "../services/supabase";
 import type { User } from "@supabase/supabase-js";
 import UserCreditToolbar from "../components/UserCreditToolbar";
+import { generateVideo } from "../services/videoService";
 
 const STORAGE_KEYS = {
   title: "video_project_title",
@@ -177,6 +178,11 @@ const VideoPage: React.FC = () => {
   );
   const [assetFiles, setAssetFiles] = useState<File[]>([]);
   const [isPackaging, setIsPackaging] = useState(false);
+  
+  // Video Generation State
+  const [videoPrompt, setVideoPrompt] = useState("");
+  const [isGeneratingVideo, setIsGeneratingVideo] = useState(false);
+  const [generatedVideoUrl, setGeneratedVideoUrl] = useState<string | null>(null);
   const [rendering, setRendering] = useState(false);
   const [renderingStatus, setRenderingStatus] = useState<string | null>(null);
   const [renderingProgress, setRenderingProgress] = useState(0);
@@ -222,6 +228,44 @@ const VideoPage: React.FC = () => {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
+  };
+
+  const handleGenerateVideo = async () => {
+    if (!videoPrompt.trim() && assetFiles.length === 0) {
+      alert("프롬프트나 참조 이미지가 필요합니다.");
+      return;
+    }
+
+    setIsGeneratingVideo(true);
+    setGeneratedVideoUrl(null);
+
+    try {
+      // Use the first image as reference if available
+      let imageBase64: string | undefined;
+      const imageFile = assetFiles.find(f => f.type.startsWith('image/'));
+      if (imageFile) {
+        const reader = new FileReader();
+        imageBase64 = await new Promise((resolve) => {
+          reader.onload = (e) => {
+            const result = e.target?.result as string;
+            resolve(result.split(',')[1]);
+          };
+          reader.readAsDataURL(imageFile);
+        });
+      }
+
+      const url = await generateVideo({
+        prompt: videoPrompt,
+        image: imageBase64,
+      });
+
+      setGeneratedVideoUrl(url);
+    } catch (error: any) {
+      console.error("Video generation failed:", error);
+      alert(error.message || "영상 생성에 실패했습니다.");
+    } finally {
+      setIsGeneratingVideo(false);
+    }
   };
 
   const handleFilesAdded = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -415,238 +459,124 @@ const VideoPage: React.FC = () => {
               />
             </div>
             <div className="rounded-[clamp(1rem,2vw,1.4rem)] border border-white/20 bg-black/40 p-[clamp(1rem,2vw,1.4rem)]">
-              <p className="text-sm font-semibold text-white/60">렌더 기본 설정</p>
-              <h3 className="text-2xl font-bold text-white mt-1">길이 · 비율 · 프레임</h3>
+              <p className="text-sm font-semibold text-white/80">영상 기본 설정</p>
+              <h3 className="text-2xl font-bold text-white mt-1">길이 · 화면 · 부드러움</h3>
+              <p className="mt-2 text-sm text-white/70">
+                영상 길이와 화면 모양, 움직임 부드러움을 선택해 주세요.
+              </p>
               <div className="mt-4 grid gap-4 sm:grid-cols-3">
-                <label className="text-xs font-semibold text-white/60">길이 (초)</label>
+                <label className="text-xs font-semibold text-white/80">영상 길이(초)</label>
                 <select
                   value={renderDuration}
                   onChange={(event) => setRenderDuration(event.target.value)}
-                  className="rounded-2xl border border-white/20 bg-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-500"
+                  className="rounded-2xl border border-white/20 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-red-500"
                 >
                   <option value="30">30초</option>
                   <option value="45">45초</option>
                   <option value="60">60초</option>
                   <option value="90">90초</option>
                 </select>
-                <label className="text-xs font-semibold text-white/60">화면 비율</label>
+                <label className="text-xs font-semibold text-white/80">화면 모양</label>
                 <select
                   value={renderRatio}
                   onChange={(event) => setRenderRatio(event.target.value)}
-                  className="rounded-2xl border border-white/20 bg-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-500"
+                  className="rounded-2xl border border-white/20 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-red-500"
                 >
                   <option value="16:9">16:9</option>
                   <option value="9:16">9:16</option>
                   <option value="1:1">1:1</option>
                 </select>
-                <label className="text-xs font-semibold text-white/60">FPS</label>
+                <label className="text-xs font-semibold text-white/80">부드러움(FPS)</label>
                 <select
                   value={renderFps}
                   onChange={(event) => setRenderFps(event.target.value)}
-                  className="rounded-2xl border border-white/20 bg-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-500"
+                  className="rounded-2xl border border-white/20 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-red-500"
                 >
                   <option value="24">24fps</option>
                   <option value="30">30fps</option>
                   <option value="60">60fps</option>
                 </select>
               </div>
-              <label className="mt-4 block text-xs font-semibold text-white/60">렌더 메모</label>
+              <label className="mt-4 block text-xs font-semibold text-white/80">편집 메모</label>
               <textarea
                 value={renderNotes}
                 onChange={(event) => setRenderNotes(event.target.value)}
                 rows={3}
-                className="mt-2 w-full rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-500"
-                placeholder="전환 효과, 자막 위치, 그래픽 지시 등을 적어주세요."
+                className="mt-2 w-full rounded-2xl border border-white/20 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500"
+                placeholder="전환 효과나 자막 위치처럼 편집 참고사항을 적어주세요."
               />
             </div>
           </div>
         );
       case "script":
         return (
-          <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)] space-y-4">
-            <div className="rounded-[clamp(1rem,2vw,1.4rem)] border border-white/20 bg-black/40 p-[clamp(1rem,2vw,1.4rem)]">
-              <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-                <div>
-                  <p className="text-xs font-semibold text-white/60">대본 생성</p>
-                  <h3 className="text-2xl font-bold text-white">흐름을 자율적으로 완성</h3>
-                </div>
-                <Link
-                  to="/script"
-                  className="text-xs font-semibold text-red-300 underline-offset-4 hover:text-red-200"
-                >
-                  대본 편집기에서 계속하기
-                </Link>
-              </div>
-              <textarea
-                value={scriptDraft}
-                onChange={(event) => setScriptDraft(event.target.value)}
-                rows={8}
-                className="mt-4 w-full rounded-2xl border border-white/20 bg-white/10 px-4 py-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-500"
-                placeholder="오프닝, 본문, 클로징 순으로 간단히라도 메모해두면 자동으로 구분해서 채웁니다."
+          <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
+            <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-white/60 mb-4">
+              <span>대본 작성 화면을 한 화면에서 바로 확인하세요.</span>
+              <a
+                href="/script?no_ads=true"
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-full border border-red-500/30 px-4 py-1 text-xs font-semibold text-red-300 hover:border-red-400"
+              >
+                새 창에서 열기
+              </a>
+            </div>
+            <div className="overflow-hidden rounded-[clamp(1rem,2vw,1.5rem)] border border-white/20 bg-black/40">
+              <iframe
+                title="대본 생성"
+                src="/script?no_ads=true"
+                className="h-[clamp(600px,72vh,800px)] w-full"
+                loading="lazy"
               />
             </div>
           </div>
         );
       case "tts":
         return (
-          <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)] grid gap-[clamp(1.25rem,2vw,2rem)] lg:grid-cols-[minmax(0,1fr)_300px]">
-            <div className="rounded-[clamp(1rem,2vw,1.4rem)] border border-white/20 bg-black/40 p-[clamp(1rem,2vw,1.4rem)]">
-              <h3 className="text-xl font-bold text-white">스크립트를 AI 보이스로</h3>
-              <p className="text-sm text-white/50 mt-1">
-                원본 스크립트를 그대로 붙여넣거나 일부 문장만 선택해 음성으로 만드세요.
-              </p>
-              <textarea
-                value={ttsScript}
-                onChange={(event) => setTtsScript(event.target.value)}
-                rows={5}
-                className="mt-4 w-full rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-500"
-                placeholder="내레이션으로 사용할 문장을 입력하세요."
-              />
-              <div className="mt-4 flex gap-3 flex-wrap">
-                <div className="flex-1 min-w-[160px]">
-                  <p className="text-xs font-semibold text-white/60">보이스</p>
-                  <select
-                    value={selectedVoice}
-                    onChange={(event) => setSelectedVoice(event.target.value)}
-                    className="mt-1 w-full rounded-2xl border border-white/20 bg-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-500"
-                  >
-                    {voiceOptions.map((voice) => (
-                      <option key={voice.name} value={voice.name}>
-                        {voice.name} · {voice.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex-1 min-w-[120px]">
-                  <p className="text-xs font-semibold text-white/60">속도</p>
-                  <input
-                    type="range"
-                    min={0.7}
-                    max={1.3}
-                    step={0.1}
-                    value={ttsSpeed}
-                    onChange={(event) => setTtsSpeed(Number(event.target.value))}
-                    className="mt-1 w-full"
-                  />
-                  <p className="text-xs text-white/60 text-right">{ttsSpeed.toFixed(1)}배속</p>
-                </div>
-                <button
-                  onClick={handleGenerateTts}
-                  className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-red-500 to-orange-500 px-5 py-2 text-sm font-bold text-white shadow-[0_8px_20px_rgba(255,86,96,0.4)]"
-                >
-                  <FiMic /> 음성 생성
-                </button>
-              </div>
+          <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
+            <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-white/60 mb-4">
+              <span>대본을 AI 음성으로 변환해 나레이션을 만들어보세요.</span>
+              <a
+                href="/tts?no_ads=true"
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-full border border-red-500/30 px-4 py-1 text-xs font-semibold text-red-300 hover:border-red-400"
+              >
+                새 창에서 열기
+              </a>
             </div>
-            <div className="space-y-4">
-              {voiceOptions.map((voice) => (
-                <div
-                  key={voice.name}
-                  className={`rounded-2xl border px-4 py-3 text-sm ${
-                    selectedVoice === voice.name
-                      ? "border-red-500 bg-red-500/10"
-                      : "border-white/10 bg-white/5"
-                  }`}
-                >
-                  <p className="font-semibold text-white">{voice.name} · {voice.label}</p>
-                  <p className="text-xs text-white/50">{voice.tone}</p>
-                </div>
-              ))}
-              <div className="rounded-2xl border border-white/20 bg-black/40 p-3 space-y-2 text-sm">
-                <p className="font-semibold text-white">최근 생성</p>
-                {ttsSamples.length === 0 ? (
-                  <p className="text-xs text-white/40">아직 생성한 음성이 없습니다.</p>
-                ) : (
-                  ttsSamples.map((sample) => (
-                    <div key={sample.id} className="rounded-xl bg-white/5 px-3 py-2 text-white/70">
-                      <p className="text-xs text-white/40">{sample.voice}</p>
-                      <p className="text-sm text-white">{sample.text}</p>
-                      <p className="text-xs text-white/40">{sample.status}</p>
-                    </div>
-                  ))
-                )}
-              </div>
+            <div className="overflow-hidden rounded-[clamp(1rem,2vw,1.5rem)] border border-white/20 bg-black/40">
+              <iframe
+                title="음성 생성"
+                src="/tts?no_ads=true"
+                className="h-[clamp(600px,72vh,800px)] w-full"
+                loading="lazy"
+              />
             </div>
           </div>
         );
       case "image":
         return (
-          <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)] grid gap-[clamp(1.25rem,2vw,2rem)] lg:grid-cols-[minmax(0,1fr)_320px]">
-            <div className="rounded-[clamp(1rem,2vw,1.4rem)] border border-white/20 bg-black/40 p-[clamp(1rem,2vw,1.4rem)]">
-              <div className="flex flex-col gap-2">
-                <p className="text-xs font-semibold text-white/60">이미지 프롬프트</p>
-                <h3 className="text-2xl font-bold text-white">스토리보드 컷을 채우세요</h3>
-              </div>
-              <textarea
-                value={imagePrompt}
-                onChange={(event) => setImagePrompt(event.target.value)}
-                rows={4}
-                className="mt-4 w-full rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-500"
-                placeholder="특정 장면, 조명, 감정을 적어보세요."
-              />
-              <div className="mt-4 flex flex-wrap gap-3">
-                <div className="flex-1 min-w-[140px]">
-                  <p className="text-xs font-semibold text-white/60">스타일</p>
-                  <select
-                    value={imageStyle}
-                    onChange={(event) => setImageStyle(event.target.value)}
-                    className="mt-1 w-full rounded-2xl border border-white/20 bg-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-500"
-                  >
-                    {imageStyles.map((style) => (
-                      <option key={style} value={style}>
-                        {style}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex-1 min-w-[140px]">
-                  <p className="text-xs font-semibold text-white/60">컷 수</p>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      min={1}
-                      max={8}
-                      value={imageCount}
-                      onChange={(event) => setImageCount(Math.max(1, Number(event.target.value)))}
-                      className="w-20 rounded-2xl border border-white/20 bg-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-500"
-                    />
-                    <span className="text-xs text-white/50">컷</span>
-                  </div>
-                </div>
-                <button
-                  onClick={handleGenerateImages}
-                  className="rounded-2xl bg-gradient-to-r from-red-500 to-orange-500 px-5 py-2 text-sm font-bold text-white shadow-[0_8px_20px_rgba(255,86,96,0.4)]"
-                >
-                  이미지 생성
-                </button>
-              </div>
+          <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
+            <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-white/60 mb-4">
+              <span>이미지 생성 화면에서 스토리보드를 바로 만들 수 있습니다.</span>
+              <a
+                href="/image?no_ads=true"
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-full border border-red-500/30 px-4 py-1 text-xs font-semibold text-red-300 hover:border-red-400"
+              >
+                새 창에서 열기
+              </a>
             </div>
-            <div className="space-y-3">
-              <div className="rounded-[clamp(1rem,2vw,1.4rem)] border border-white/10 bg-black/50 p-4">
-                <p className="text-xs font-semibold text-white/60">미리보기</p>
-                <div className="mt-3 grid grid-cols-2 gap-3">
-                  {imagePreviews.length === 0 ? (
-                    <p className="text-xs text-white/40">이미지를 생성하면 미리보기 카드가 채워집니다.</p>
-                  ) : (
-                    imagePreviews.map((preview) => (
-                      <div
-                        key={preview.id}
-                        className="rounded-2xl border border-white/10 bg-white/5 p-3 text-xs text-white/80"
-                      >
-                        <p className="text-sm font-semibold text-white">{preview.title}</p>
-                        <p className="text-[12px] text-white/50">{preview.hint}</p>
-                        <p className="text-[11px] text-white/40">{preview.duration}</p>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-              <div className="rounded-[clamp(1rem,2vw,1.4rem)] border border-white/20 bg-black/40 p-3 text-sm text-white/60">
-                <p className="font-semibold text-white">이미지 정책</p>
-                <p className="mt-2 text-[12px]">
-                  AI 이미지 생성은 가이드를 기반으로 합니다. 프롬프트를 구체적으로 적으면 원하는 컷 결과를 얻기 쉽습니다.
-                </p>
-              </div>
+            <div className="overflow-hidden rounded-[clamp(1rem,2vw,1.5rem)] border border-white/20 bg-black/40">
+              <iframe
+                title="이미지 생성"
+                src="/image?no_ads=true"
+                className="h-[clamp(600px,72vh,800px)] w-full"
+                loading="lazy"
+              />
             </div>
           </div>
         );
@@ -675,7 +605,40 @@ const VideoPage: React.FC = () => {
                   </div>
                 ))}
               </div>
-              <label className="mt-4 block text-xs font-semibold text-white/60">보조 자산 업로드</label>
+                  <div className="mb-8 border-b border-white/10 pb-8">
+                    <h3 className="text-[clamp(1rem,1.6vw,1.2rem)] font-semibold text-white">
+                      AI 영상 생성 (Seedance)
+                    </h3>
+                    <p className="mt-2 text-[clamp(0.8rem,1.4vw,0.95rem)] text-white/60">
+                      프롬프트나 이미지를 입력하여 Seedance AI로 영상을 생성하세요.
+                    </p>
+                    <div className="mt-4 space-y-3">
+                       <textarea
+                         value={videoPrompt}
+                         onChange={(e) => setVideoPrompt(e.target.value)}
+                         placeholder="영상에 대한 설명을 입력하세요 (예: 춤추는 고양이)"
+                         className="w-full rounded-xl border border-white/20 bg-white px-4 py-3 text-sm text-black focus:outline-none focus:ring-2 focus:ring-red-500"
+                         rows={3}
+                       />
+                       <button
+                         onClick={handleGenerateVideo}
+                         disabled={isGeneratingVideo}
+                         className="rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-500 disabled:opacity-50"
+                       >
+                         {isGeneratingVideo ? "생성 중..." : "영상 생성하기"}
+                       </button>
+                    </div>
+                    {generatedVideoUrl && (
+                      <div className="mt-4">
+                        <video src={generatedVideoUrl} controls className="w-full rounded-lg" />
+                        <a href={generatedVideoUrl} download className="mt-2 inline-block text-sm text-red-400 hover:text-red-300">다운로드</a>
+                      </div>
+                    )}
+                  </div>
+
+                  <h3 className="text-[clamp(1rem,1.6vw,1.2rem)] font-semibold text-white">
+                    영상 패키지 재료 업로드
+                  </h3>
               <label className="mt-2 inline-flex cursor-pointer items-center gap-2 rounded-2xl border border-dashed border-white/40 px-4 py-3 text-sm text-white/60">
                 <FiUpload />
                 파일 선택
