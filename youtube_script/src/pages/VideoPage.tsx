@@ -503,7 +503,7 @@ const VideoPage: React.FC = () => {
   const scriptSlides = [
     {
       title: "대본 입력",
-      description: "사용자가 입력한 대본을 바탕으로 구조를 분석합니다.",
+      description: "입력한 대본을 분석해서, 새로운 주제로 대본을 작성합니다.",
     },
     {
       title: "영상 길이 선택",
@@ -753,12 +753,14 @@ const VideoPage: React.FC = () => {
             <div className="rounded-[clamp(1rem,2vw,1.6rem)] border border-white/10 bg-black/40 p-[clamp(1.25rem,2vw,1.8rem)] shadow-[0_18px_40px_rgba(0,0,0,0.45)]">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-semibold text-white/60">
-                    대본 생성 슬라이드 {scriptFlowStep + 1} / {scriptSlides.length}
-                  </p>
-                  <h3 className="text-2xl font-bold text-white mt-1">
-                    {scriptSlides[scriptFlowStep].title}
-                  </h3>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <h3 className="text-2xl font-bold text-white">
+                      {scriptSlides[scriptFlowStep].title}
+                    </h3>
+                    <span className="text-sm font-semibold text-white/60">
+                      (대본 생성 단계 {scriptFlowStep + 1} / {scriptSlides.length})
+                    </span>
+                  </div>
                   <p className="mt-2 text-sm text-white/60">
                     {scriptSlides[scriptFlowStep].description}
                   </p>
@@ -780,8 +782,8 @@ const VideoPage: React.FC = () => {
                       value={scriptDraft}
                       onChange={(event) => setScriptDraft(event.target.value)}
                       rows={7}
-                      className="w-full rounded-2xl border border-white/20 bg-white px-4 py-4 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500"
-                      placeholder="예: 환율 1500원이 넘으면 우리나라에 벌어지는 일들"
+                      className="w-full rounded-2xl border border-white/20 bg-white px-4 py-4 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500 select-text"
+                      placeholder={"1. [오프닝] 주제 소개\n2. [중간] 핵심 논지 전개\n3. [마무리] 요약 + 결론"}
                     />
                     <div className="flex flex-wrap items-center justify-between text-sm text-white/50">
                       <span>
