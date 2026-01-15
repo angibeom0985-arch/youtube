@@ -38,18 +38,19 @@ interface SearchSummary {
 }
 
 const dateOptions: DateOption[] = [
-  { label: "1媛쒖썡", days: 30 },
-  { label: "2媛쒖썡", days: 60 },
-  { label: "6媛쒖썡", days: 180 },
-  { label: "1??, days: 365 },
-  { label: "?꾩껜 湲곌컙", days: 0 }
+  { label: "1개월", days: 30 },
+  { label: "2개월", days: 60 },
+  { label: "6개월", days: 180 },
+  { label: "1년", days: 365 },
+  { label: "전체 기간", days: 0 }
 ];
 
 const durationOptions: DurationOption[] = [
-  { label: "?꾩껜", value: "any" },
-  { label: "?륂뤌", value: "short" },
-  { label: "濡깊뤌", value: "long" }
+  { label: "전체", value: "any" },
+  { label: "숏폼", value: "short" },
+  { label: "롱폼", value: "long" }
 ];
+
 
 const momentumOptions = [
   { level: 1, label: "1?④퀎 (??쓬)", min: 0, max: 0.2 },
@@ -63,7 +64,7 @@ const numberFormatter = new Intl.NumberFormat("ko-KR");
 
 const BenchmarkingPage: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
-  const [query, setQuery] = useState("?쇱긽 嫄닿컯");
+  const [query, setQuery] = useState("일상 건강");
   const [days, setDays] = useState(dateOptions[0].days);
   const [durationFilter, setDurationFilter] = useState(durationOptions[0].value);
   const [momentumLevel, setMomentumLevel] = useState(0); // 0?대㈃ ?꾩껜
@@ -482,6 +483,7 @@ const BenchmarkingPage: React.FC = () => {
 };
 
 export default BenchmarkingPage;
+
 
 
 
