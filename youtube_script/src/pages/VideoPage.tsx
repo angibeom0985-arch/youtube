@@ -521,7 +521,7 @@ const VideoPage: React.FC = () => {
                 롱폼/숏폼과 화면 비율을 먼저 선택해 주세요.
               </p>
               <div className="mt-4">
-                <p className="text-xs font-semibold text-white/80">영상 형식</p>
+                <p className="text-sm font-semibold text-white/80">영상 형식</p>
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   {formatOptions.map((option) => (
                     <button
@@ -540,16 +540,16 @@ const VideoPage: React.FC = () => {
                         </span>
                         <div>
                           <p className="text-sm font-semibold">{option.title}</p>
-                          <p className="text-[11px] text-white/50">{option.description}</p>
+                          <p className="text-sm text-white/50">{option.description}</p>
                         </div>
                       </div>
                     </button>
                   ))}
                 </div>
-                <p className="mt-3 text-[11px] text-white/50">롱폼=가로형 · 숏폼=세로형</p>
+                <p className="mt-3 text-sm text-white/50">롱폼=가로형 · 숏폼=세로형</p>
               </div>
               <div className="mt-5">
-                <p className="text-xs font-semibold text-white/80">화면 비율 & 크기</p>
+                <p className="text-sm font-semibold text-white/80">화면 비율 & 크기</p>
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   {ratioOptions.map((option) => (
                     <button
@@ -565,11 +565,11 @@ const VideoPage: React.FC = () => {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-sm font-semibold text-white">{option.title}</p>
-                          <p className="text-[11px] text-white/50">{option.size}</p>
+                          <p className="text-sm text-white/50">{option.size}</p>
                         </div>
-                        <span className="text-xs font-semibold text-white/50">{option.value}</span>
+                        <span className="text-sm font-semibold text-white/50">{option.value}</span>
                       </div>
-                      <p className="mt-2 text-[11px] text-white/50">{option.hint}</p>
+                      <p className="mt-2 text-sm text-white/50">{option.hint}</p>
                       <div className="mt-3 flex justify-center">
                         <div
                           className={`relative ${
@@ -582,7 +582,7 @@ const VideoPage: React.FC = () => {
                             } bg-black/40`}
                           >
                             <div className="absolute inset-1 rounded-md bg-gradient-to-br from-white/10 to-white/5" />
-                            <div className="absolute inset-0 flex items-center justify-center text-[10px] font-semibold text-white/60">
+                            <div className="absolute inset-0 flex items-center justify-center text-sm font-semibold text-white/60">
                               {option.size}
                             </div>
                           </div>
@@ -605,7 +605,7 @@ const VideoPage: React.FC = () => {
             <div className="rounded-[clamp(1rem,2vw,1.6rem)] border border-white/10 bg-black/40 p-[clamp(1.25rem,2vw,1.8rem)] shadow-[0_18px_40px_rgba(0,0,0,0.45)]">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <p className="text-xs font-semibold text-white/60">대본 / 프롬프트</p>
+                  <p className="text-sm font-semibold text-white/60">대본 / 프롬프트</p>
                   <h3 className="text-2xl font-bold text-white mt-1">
                     어떤 영상을 만들고 싶으세요?
                   </h3>
@@ -617,7 +617,7 @@ const VideoPage: React.FC = () => {
                   href="/script?no_ads=true"
                   target="_blank"
                   rel="noreferrer"
-                  className="rounded-full border border-red-500/30 px-4 py-1 text-xs font-semibold text-red-300 hover:border-red-400"
+                  className="rounded-full border border-red-500/30 px-4 py-1 text-sm font-semibold text-red-300 hover:border-red-400"
                 >
                   대본 페이지 열기
                 </a>
@@ -629,16 +629,16 @@ const VideoPage: React.FC = () => {
                 className="mt-5 w-full rounded-2xl border border-white/20 bg-white px-4 py-4 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500"
                 placeholder="예: 환율 1500원이 넘으면 우리나라에 벌어지는 일들"
               />
-              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-white/50">
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-white/50">
                 <span>
                   {scriptLineCount}줄 · {scriptDraft.length.toLocaleString()}자
                 </span>
                 <div className="flex items-center gap-2">
-                  <label className="text-xs font-semibold text-white/60">목표 길이</label>
+                  <label className="text-sm font-semibold text-white/60">목표 길이</label>
                   <select
                     value={renderDuration}
                     onChange={(event) => setRenderDuration(event.target.value)}
-                    className="rounded-full border border-white/20 bg-black/40 px-3 py-1 text-xs text-white"
+                    className="rounded-full border border-white/20 bg-black/40 px-3 py-1 text-sm text-white"
                   >
                     <option value="30">30초</option>
                     <option value="45">45초</option>
@@ -648,7 +648,7 @@ const VideoPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleNext}
-                    className="rounded-full bg-gradient-to-r from-red-500 to-orange-500 px-4 py-1 text-xs font-semibold text-white shadow-[0_8px_16px_rgba(239,68,68,0.3)]"
+                    className="rounded-full bg-gradient-to-r from-red-500 to-orange-500 px-4 py-1 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(239,68,68,0.3)]"
                   >
                     대본 분석 시작
                   </button>
@@ -664,7 +664,7 @@ const VideoPage: React.FC = () => {
             <div className="rounded-[clamp(1rem,2vw,1.6rem)] border border-white/10 bg-black/40 p-[clamp(1.25rem,2vw,1.8rem)] shadow-[0_18px_40px_rgba(0,0,0,0.45)]">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <p className="text-xs font-semibold text-white/60">스크립트 & AI 보이스</p>
+                  <p className="text-sm font-semibold text-white/60">스크립트 & AI 보이스</p>
                   <h3 className="text-2xl font-bold text-white mt-1">대본에 음성을 입혀주세요.</h3>
                   <p className="mt-2 text-sm text-white/60">
                     핵심 구간만 선택해도 바로 음성으로 변환됩니다.
@@ -674,14 +674,14 @@ const VideoPage: React.FC = () => {
                   href="/tts?no_ads=true"
                   target="_blank"
                   rel="noreferrer"
-                  className="rounded-full border border-red-500/30 px-4 py-1 text-xs font-semibold text-red-300 hover:border-red-400"
+                  className="rounded-full border border-red-500/30 px-4 py-1 text-sm font-semibold text-red-300 hover:border-red-400"
                 >
                   TTS 페이지 열기
                 </a>
               </div>
               <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
                 <div>
-                  <div className="flex items-center justify-between text-xs text-white/50">
+                  <div className="flex items-center justify-between text-sm text-white/50">
                     <span>스크립트 편집</span>
                     <span>{ttsScript.length.toLocaleString()}자</span>
                   </div>
@@ -694,7 +694,7 @@ const VideoPage: React.FC = () => {
                   />
                   <div className="mt-4 flex flex-wrap items-center gap-3">
                     <div className="flex-1 min-w-[160px]">
-                      <label className="text-xs font-semibold text-white/60">보이스 선택</label>
+                      <label className="text-sm font-semibold text-white/60">보이스 선택</label>
                       <select
                         value={selectedVoice}
                         onChange={(event) => setSelectedVoice(event.target.value)}
@@ -708,7 +708,7 @@ const VideoPage: React.FC = () => {
                       </select>
                     </div>
                     <div className="flex-1 min-w-[160px]">
-                      <label className="text-xs font-semibold text-white/60">속도</label>
+                      <label className="text-sm font-semibold text-white/60">속도</label>
                       <input
                         type="range"
                         min={0.7}
@@ -718,11 +718,11 @@ const VideoPage: React.FC = () => {
                         onChange={(event) => setTtsSpeed(Number(event.target.value))}
                         className="mt-2 w-full"
                       />
-                      <p className="text-xs text-white/50 text-right">{ttsSpeed.toFixed(1)}배속</p>
+                      <p className="text-sm text-white/50 text-right">{ttsSpeed.toFixed(1)}배속</p>
                     </div>
                     <button
                       onClick={handleGenerateTts}
-                      className="rounded-full bg-gradient-to-r from-red-500 to-orange-500 px-4 py-2 text-xs font-semibold text-white shadow-[0_8px_16px_rgba(239,68,68,0.25)]"
+                      className="rounded-full bg-gradient-to-r from-red-500 to-orange-500 px-4 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(239,68,68,0.25)]"
                     >
                       음성 생성
                     </button>
@@ -730,7 +730,7 @@ const VideoPage: React.FC = () => {
                 </div>
                 <div className="space-y-3">
                   <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/70">
-                    <p className="text-xs font-semibold text-white/60">AI 보이스오버</p>
+                    <p className="text-sm font-semibold text-white/60">AI 보이스오버</p>
                     <div className="mt-3 space-y-2">
                       {voiceOptions.map((voice) => (
                         <button
@@ -744,22 +744,22 @@ const VideoPage: React.FC = () => {
                           }`}
                         >
                           <p className="font-semibold text-white">{voice.name}</p>
-                          <p className="text-xs text-white/50">{voice.label} · {voice.tone}</p>
+                          <p className="text-sm text-white/50">{voice.label} · {voice.tone}</p>
                         </button>
                       ))}
                     </div>
                   </div>
                   <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/70">
-                    <p className="text-xs font-semibold text-white/60">최근 생성</p>
+                    <p className="text-sm font-semibold text-white/60">최근 생성</p>
                     {ttsSamples.length === 0 ? (
-                      <p className="mt-2 text-xs text-white/40">아직 생성한 음성이 없습니다.</p>
+                      <p className="mt-2 text-sm text-white/40">아직 생성한 음성이 없습니다.</p>
                     ) : (
                       <div className="mt-2 space-y-2">
                         {ttsSamples.map((sample) => (
                           <div key={sample.id} className="rounded-xl bg-black/30 px-3 py-2">
-                            <p className="text-xs text-white/40">{sample.voice}</p>
+                            <p className="text-sm text-white/40">{sample.voice}</p>
                             <p className="text-sm text-white">{sample.text}</p>
-                            <p className="text-xs text-white/40">{sample.status}</p>
+                            <p className="text-sm text-white/40">{sample.status}</p>
                           </div>
                         ))}
                       </div>
@@ -779,7 +779,7 @@ const VideoPage: React.FC = () => {
                 href="/image?no_ads=true"
                 target="_blank"
                 rel="noreferrer"
-                className="rounded-full border border-red-500/30 px-4 py-1 text-xs font-semibold text-red-300 hover:border-red-400"
+                className="rounded-full border border-red-500/30 px-4 py-1 text-sm font-semibold text-red-300 hover:border-red-400"
               >
                 새 창에서 열기
               </a>
@@ -800,10 +800,10 @@ const VideoPage: React.FC = () => {
             <div className="rounded-[clamp(1rem,2vw,1.4rem)] border border-white/20 bg-black/40 p-[clamp(1rem,2vw,1.4rem)]">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-semibold text-white/60">영상 생성</p>
+                  <p className="text-sm font-semibold text-white/60">영상 생성</p>
                   <h3 className="text-2xl font-bold text-white">씬을 구성해 볼까요</h3>
                 </div>
-                <span className="text-xs font-semibold text-red-300">{imagePreviews.length}컷 선택</span>
+                <span className="text-sm font-semibold text-red-300">{imagePreviews.length}컷 선택</span>
               </div>
               <div className="mt-4 space-y-3">
                 {timelineScenes.map((scene) => (
@@ -813,9 +813,9 @@ const VideoPage: React.FC = () => {
                   >
                     <div>
                       <p className="font-semibold text-white">{scene.label}</p>
-                      <p className="text-[12px] text-white/50 truncate">{scene.desc}</p>
+                      <p className="text-sm text-white/50 truncate">{scene.desc}</p>
                     </div>
-                    <span className="text-xs text-white/50">{scene.duration}</span>
+                    <span className="text-sm text-white/50">{scene.duration}</span>
                   </div>
                 ))}
               </div>
@@ -866,18 +866,18 @@ const VideoPage: React.FC = () => {
               </label>
               <div className="mt-3 space-y-2">
                 {assetFiles.length === 0 ? (
-                  <p className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-white/50">
+                  <p className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/50">
                     업로드한 자산이 없으면 프롬프트 기반으로 생성합니다.
                   </p>
                 ) : (
                   assetFiles.map((file, index) => (
                     <div
                       key={`${file.name}-${index}`}
-                      className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/70"
+                      className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/70"
                     >
                       <div>
                         <p className="font-semibold text-white truncate">{file.name}</p>
-                        <p className="text-[11px] text-white/50">{formatFileSize(file.size)}</p>
+                        <p className="text-sm text-white/50">{formatFileSize(file.size)}</p>
                       </div>
                       <button
                         onClick={() => handleRemoveFile(index)}
@@ -898,14 +898,14 @@ const VideoPage: React.FC = () => {
               </button>
             </div>
             <div className="rounded-[clamp(1rem,2vw,1.4rem)] border border-white/20 bg-black/40 p-4">
-              <p className="text-xs font-semibold text-white/60">영상 스타일</p>
+              <p className="text-sm font-semibold text-white/60">영상 스타일</p>
               <div className="mt-4 space-y-2 text-sm text-white/70">
                 <p>?? 전체 시간: {renderDuration}초</p>
                 <p>?? 화면 비율: {renderRatio}</p>
                 <p>?? FPS: {renderFps}</p>
                 <p>?? 이미지 컷: {imagePreviews.length || imageCount}개</p>
               </div>
-              <p className="mt-4 text-xs text-white/40">
+              <p className="mt-4 text-sm text-white/40">
                 템포나 분위기를 바꾸고 싶다면 상단 스텝으로 돌아가 수정하면 됩니다.
               </p>
               <button
@@ -916,7 +916,7 @@ const VideoPage: React.FC = () => {
                 {videoGenerating ? "영상 생성 요청 중..." : "영상 생성 요청하기"}
               </button>
               {videoError && (
-                <p className="mt-2 text-xs text-red-300">{videoError}</p>
+                <p className="mt-2 text-sm text-red-300">{videoError}</p>
               )}
               {videoUrl && (
                 <div className="mt-4 overflow-hidden rounded-2xl border border-white/10 bg-black/40">
@@ -932,10 +932,10 @@ const VideoPage: React.FC = () => {
             <div className="rounded-[clamp(1rem,2vw,1.6rem)] border border-white/10 bg-white/95 p-[clamp(1.25rem,2vw,1.8rem)] text-slate-900 shadow-[0_20px_40px_rgba(15,23,42,0.15)]">
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-xs font-semibold text-slate-400">영상 렌더링</p>
+                  <p className="text-sm font-semibold text-slate-400">영상 렌더링</p>
                   <h3 className="text-2xl font-bold text-slate-900 mt-1">모든 요소를 조합해 최종 영상을 생성합니다.</h3>
                 </div>
-                <span className="text-xs text-slate-500">진행도 {renderingProgress}%</span>
+                <span className="text-sm text-slate-500">진행도 {renderingProgress}%</span>
               </div>
               <div className="mt-4 flex gap-3 overflow-x-auto pb-2">
                 {timelineScenes.map((scene) => (
@@ -944,14 +944,14 @@ const VideoPage: React.FC = () => {
                     className="min-w-[120px] rounded-xl border border-slate-200 bg-slate-50 p-2"
                   >
                     <div className="h-14 rounded-lg bg-gradient-to-br from-slate-200 to-slate-100" />
-                    <p className="mt-2 text-xs font-semibold text-slate-700">{scene.label}</p>
-                    <p className="text-[11px] text-slate-400">{scene.duration}</p>
+                    <p className="mt-2 text-sm font-semibold text-slate-700">{scene.label}</p>
+                    <p className="text-sm text-slate-400">{scene.duration}</p>
                   </div>
                 ))}
               </div>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 <div className="rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700">
-                  <p className="text-xs font-semibold text-slate-400">렌더 요약</p>
+                  <p className="text-sm font-semibold text-slate-400">렌더 요약</p>
                   <div className="mt-2 space-y-1 text-sm">
                     <div className="flex justify-between">
                       <span>예상 길이</span>
@@ -972,7 +972,7 @@ const VideoPage: React.FC = () => {
                   </div>
                 </div>
                 <div className="rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700">
-                  <p className="text-xs font-semibold text-slate-400">렌더링 메모</p>
+                  <p className="text-sm font-semibold text-slate-400">렌더링 메모</p>
                   <textarea
                     value={editNotes}
                     onChange={(event) => setEditNotes(event.target.value)}
@@ -983,14 +983,14 @@ const VideoPage: React.FC = () => {
                 </div>
               </div>
               <div className="mt-4 flex flex-wrap items-center gap-3">
-                <label className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600">
+                <label className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600">
                   <input type="checkbox" className="h-4 w-4 rounded border-slate-300" defaultChecked />
                   자막 포함
                 </label>
                 <button
                   type="button"
                   onClick={handleDownloadEditNotes}
-                  className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600"
+                  className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600"
                 >
                   편집 노트 다운로드
                 </button>
@@ -1001,7 +1001,7 @@ const VideoPage: React.FC = () => {
                   className="h-full rounded-full bg-gradient-to-r from-red-500 to-orange-400"
                 />
               </div>
-              <p className="mt-3 text-xs text-slate-500">
+              <p className="mt-3 text-sm text-slate-500">
                 {renderingStatus || "렌더링을 시작하면 자동으로 모든 컷을 조합해 영상을 완성합니다."}
               </p>
               <button
@@ -1120,4 +1120,5 @@ const VideoPage: React.FC = () => {
 };
 
 export default VideoPage;
+
 
