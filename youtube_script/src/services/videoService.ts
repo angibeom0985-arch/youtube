@@ -1,15 +1,24 @@
-import { supabase } from "./supabase";
+﻿import { supabase } from "./supabase";
 
 export interface VideoGenerationParams {
   prompt: string;
-  image?: string; // base64
-  audio?: string; // base64
+  image?: string;
+  audio?: string;
   duration?: number;
   ratio?: string;
 }
 
-export const generateVideo = async (params: VideoGenerationParams): Promise<string> => {
-  const { data: { session } } = await supabase.auth.getSession();
+export interface VideoGenerationResult {
+  videoUrl: string;
+  message?: string;
+}
+
+export const generateVideo = async (
+  params: VideoGenerationParams
+): Promise<string> => {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
   const token = session?.access_token;
 
   if (!token) {
@@ -27,9 +36,9 @@ export const generateVideo = async (params: VideoGenerationParams): Promise<stri
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || "영상 생성에 실패했습니다.");
+    throw new Error(errorData.message || "영상 생성 요청에 실패했습니다.");
   }
 
-  const data = await response.json();
+  const data = (await response.json()) as VideoGenerationResult;
   return data.videoUrl;
 };
