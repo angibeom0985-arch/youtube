@@ -250,6 +250,14 @@ const VideoPage: React.FC = () => {
   useEffect(() => setStoredValue(STORAGE_KEYS.editNotes, editNotes), [editNotes]);
   useEffect(() => setStoredValue(STORAGE_KEYS.format, videoFormat), [videoFormat]);
 
+  useEffect(() => {
+    const legacySample =
+      "[오프닝]\n환율 1500원 시대가 열렸습니다.\n[중간]\n실물 가격이 천정부지로...";
+    if (scriptDraft.trim() === legacySample.trim()) {
+      setScriptDraft("");
+    }
+  }, [scriptDraft]);
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
   };
