@@ -110,8 +110,6 @@ const UserCreditToolbar: React.FC<UserCreditToolbarProps> = ({
   const styles = toneMap[tone] || toneMap.slate;
   const [credits, setCredits] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
-  const [isInInitialPeriod, setIsInInitialPeriod] = useState(false);
-  const [daysRemaining, setDaysRemaining] = useState(0);
 
   const fetchCredits = async () => {
     if (!user) return;
@@ -145,8 +143,6 @@ const UserCreditToolbar: React.FC<UserCreditToolbarProps> = ({
 
       const data = await response.json();
       setCredits(data.credits ?? 0);
-      setIsInInitialPeriod(data.isInInitialPeriod ?? false);
-      setDaysRemaining(data.daysRemaining ?? 0);
     } catch (error) {
       console.error("크레딧 조회 실패:", error);
       setCredits(0);
@@ -244,19 +240,6 @@ const UserCreditToolbar: React.FC<UserCreditToolbarProps> = ({
                   <span className={styles.accentText}>5</span>
                 </div>
               </div>
-
-              {isInInitialPeriod ? (
-                <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-200">
-                  <p className="font-semibold">신규 가입 기간 적용 중</p>
-                  <p className="text-[10px] text-emerald-100/80 mt-1">
-                    남은 기간: {daysRemaining}일
-                  </p>
-                </div>
-              ) : (
-                <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
-                  매일 20 크레딧 무료 충전
-                </div>
-              )}
 
               <button
                 type="button"
