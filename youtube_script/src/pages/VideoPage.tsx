@@ -57,7 +57,7 @@ const imageStyles = [
 const steps: Step[] = [
   {
     id: "setup",
-    label: "설정",
+    label: "영상 설정",
     description: "프로젝트 제목과 렌더 기본 값을 먼저 정해보세요.",
     icon: <FiSettings />,
   },
@@ -996,7 +996,7 @@ const VideoPage: React.FC = () => {
                     key={step.id}
                     type="button"
                     onClick={() => setCurrentStep(index)}
-                    className="relative flex flex-col items-center gap-1 text-[clamp(0.65rem,1vw,0.75rem)] font-semibold"
+                    className="relative flex flex-col items-center gap-1 text-[clamp(0.75rem,1.2vw,0.9rem)] font-semibold"
                   >
                     <span
                       className={`flex h-[clamp(2rem,3vw,2.4rem)] w-[clamp(2rem,3vw,2.4rem)] items-center justify-center rounded-full border-2 transition-all ${
@@ -1009,7 +1009,11 @@ const VideoPage: React.FC = () => {
                     >
                       {isDone ? <FiDownload className="text-lg" /> : index + 1}
                     </span>
-                    <span className={`text-[10px] tracking-wide ${isActive ? "text-red-300" : "text-white/60"}`}>
+                    <span
+                      className={`text-[clamp(0.72rem,1vw,0.85rem)] tracking-wide ${
+                        isActive ? "text-red-300" : "text-white/60"
+                      }`}
+                    >
                       {step.label}
                     </span>
                   </button>
