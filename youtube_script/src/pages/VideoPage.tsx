@@ -91,7 +91,7 @@ const steps: Step[] = [
   },
   {
     id: "render",
-    label: "영상 렌더링",
+    label: "영상 편집",
     description: "모든 요소를 최종 렌더링하고 패키지를 다운로드하세요.",
     icon: <FiDownload />,
   },
@@ -558,18 +558,6 @@ const VideoPage: React.FC = () => {
                 <p className="mt-3 text-[11px] text-white/50">
                   롱폼=가로형 · 숏폼=세로형 · 정사각형=인스타 게시글
                 </p>
-              </div>
-              <div className="mt-5 space-y-2">
-                <label className="text-xs font-semibold text-white/80">부드러움(FPS)</label>
-                <select
-                  value={renderFps}
-                  onChange={(event) => setRenderFps(event.target.value)}
-                  className="w-full rounded-2xl border border-white/20 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-red-500"
-                >
-                  <option value="24">24fps</option>
-                  <option value="30">30fps</option>
-                  <option value="60">60fps</option>
-                </select>
               </div>
               <div className="mt-5">
                 <p className="text-xs font-semibold text-white/80">화면 비율 & 크기</p>
