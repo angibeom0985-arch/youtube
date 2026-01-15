@@ -1310,27 +1310,66 @@ const VideoPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#050505] via-[#230b0b] to-[#2b0909] text-white relative overflow-hidden">
-      <div className="absolute -top-32 -right-20 h-[clamp(200px,34vw,400px)] w-[clamp(200px,34vw,400px)] rounded-full bg-gradient-to-br from-red-600/80 via-orange-500/40 to-purple-500/30 blur-3xl" />
-      <div className="absolute -bottom-24 -left-24 h-[clamp(220px,34vw,380px)] w-[clamp(220px,34vw,380px)] rounded-full bg-gradient-to-tr from-blue-200/40 via-sky-200/20 to-violet-200/20 blur-3xl" />
+    <div
+      className="min-h-screen bg-[#0a0505] text-white relative overflow-hidden"
+      style={{
+        fontFamily: '"Pretendard", "SUIT", "Apple SD Gothic Neo", sans-serif',
+      }}
+    >
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,76,76,0.18),_transparent_48%),radial-gradient(circle_at_80%_10%,_rgba(251,146,60,0.18),_transparent_40%),radial-gradient(circle_at_bottom,_rgba(120,55,255,0.12),_transparent_50%)]" />
+      <div className="absolute -top-40 -left-28 h-[clamp(260px,40vw,460px)] w-[clamp(260px,40vw,460px)] rounded-full bg-gradient-to-br from-red-600/40 via-orange-500/20 to-transparent blur-3xl" />
+      <div className="absolute -bottom-32 -right-28 h-[clamp(240px,36vw,420px)] w-[clamp(240px,36vw,420px)] rounded-full bg-gradient-to-tr from-rose-400/30 via-purple-500/10 to-transparent blur-3xl" />
 
       <div className="absolute top-0 right-0 p-4 sm:p-6 flex gap-3 z-50 items-center">
         <UserCreditToolbar user={user} onLogout={handleLogout} tone="red" />
       </div>
 
-      <div className="mx-auto max-w-[min(1200px,94vw)] px-[clamp(1rem,3vw,2rem)] py-[clamp(2rem,5vw,4rem)]">
-        <HomeBackButton tone="red" />
-        <div className="mt-5">
-          <h1 className="text-[clamp(1.8rem,2.8vw,2.8rem)] font-black text-white">올인원 영상 제작 스튜디오</h1>
-          <p className="mt-2 text-[clamp(0.95rem,1.6vw,1rem)] text-white/70">
-            설정부터 대본, 음성, 이미지, 영상 렌더링까지 한 페이지에서 순차적으로 챙겨드립니다.
-          </p>
+      <div className="relative mx-auto max-w-[min(1280px,94vw)] px-[clamp(1rem,3vw,2.5rem)] py-[clamp(2rem,4vw,3.8rem)]">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <HomeBackButton tone="red" />
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1 text-xs text-white/60">
+            올인원 제작 플로우
+            <span className="h-1.5 w-1.5 rounded-full bg-red-400" />
+            {activeStep.label}
+          </div>
         </div>
 
-        <div className="mt-[clamp(1.5rem,3vw,2.5rem)]">
-          <div className="relative">
-            <div className="absolute left-0 right-0 top-1/2 h-[2px] -translate-y-1/2 bg-white/5" />
-            <div className="grid grid-cols-3 gap-[clamp(0.75rem,2vw,1.4rem)] md:grid-cols-6">
+        <header className="mt-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-2xl">
+            <p className="text-[clamp(0.7rem,1.2vw,0.85rem)] font-semibold uppercase tracking-[0.35em] text-white/40">
+              All-in-one studio
+            </p>
+            <h1 className="mt-3 text-[clamp(2.1rem,3.2vw,3.4rem)] font-black text-white">
+              올인원 영상 제작 스튜디오
+            </h1>
+            <p className="mt-3 text-[clamp(0.95rem,1.6vw,1.1rem)] text-white/70 text-balance">
+              각 단계에서 무엇을 해야 하는지 바로 이해할 수 있도록 흐름을 쪼개고,
+              버튼 하나로 다음 작업이 이어지도록 구성했습니다.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2 text-xs text-white/70">
+            {steps.map((step, index) => (
+              <span
+                key={step.id}
+                className={`rounded-full border px-3 py-1 ${
+                  index === currentStep
+                    ? "border-red-400/50 bg-red-500/10 text-red-200"
+                    : "border-white/10 bg-white/5"
+                }`}
+              >
+                {index + 1}. {step.label}
+              </span>
+            ))}
+          </div>
+        </header>
+
+        <div className="mt-[clamp(2rem,4vw,3rem)] grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
+          <aside className="rounded-[clamp(1rem,2vw,1.5rem)] border border-white/10 bg-gradient-to-b from-white/10 to-white/5 p-[clamp(1rem,2vw,1.4rem)] shadow-[0_14px_30px_rgba(0,0,0,0.45)]">
+            <div className="flex items-center justify-between text-sm text-white/60">
+              <span className="font-semibold">현재 단계</span>
+              <span>{progressLabel}</span>
+            </div>
+            <div className="mt-4 space-y-2">
               {steps.map((step, index) => {
                 const isActive = index === currentStep;
                 const isDone = index < currentStep;
@@ -1339,70 +1378,81 @@ const VideoPage: React.FC = () => {
                     key={step.id}
                     type="button"
                     onClick={() => setCurrentStep(index)}
-                    className="relative flex flex-col items-center gap-1 text-[clamp(0.75rem,1.2vw,0.9rem)] font-semibold"
+                    className={`flex w-full items-start gap-3 rounded-2xl border px-3 py-3 text-left transition ${
+                      isActive
+                        ? "border-red-400/50 bg-red-500/10 shadow-[0_10px_20px_rgba(239,68,68,0.2)]"
+                        : "border-white/10 bg-black/30 hover:border-white/20"
+                    }`}
                   >
                     <span
-                      className={`flex h-[clamp(2rem,3vw,2.4rem)] w-[clamp(2rem,3vw,2.4rem)] items-center justify-center rounded-full border-2 transition-all ${
+                      className={`mt-0.5 flex h-9 w-9 items-center justify-center rounded-full border text-sm font-semibold ${
                         isDone
-                          ? "border-red-500 bg-red-500 text-white shadow-[0_0_12px_rgba(244,63,94,0.45)]"
+                          ? "border-red-400 bg-red-500 text-white"
                           : isActive
-                            ? "border-red-500 bg-white text-red-600"
-                            : "border-white/30 bg-black/40 text-white/60"
+                            ? "border-red-400 bg-white text-red-600"
+                            : "border-white/20 text-white/60"
                       }`}
                     >
-                      {isDone ? <FiDownload className="text-lg" /> : index + 1}
+                      {isDone ? <FiDownload className="text-base" /> : index + 1}
                     </span>
-                    <span
-                      className={`text-[clamp(0.72rem,1vw,0.85rem)] tracking-wide ${
-                        isActive ? "text-red-300" : "text-white/60"
-                      }`}
-                    >
-                      {step.label}
-                    </span>
+                    <div>
+                      <p className="text-sm font-semibold text-white">{step.label}</p>
+                      <p className="mt-1 text-xs text-white/50">{step.description}</p>
+                    </div>
                   </button>
                 );
               })}
             </div>
-          </div>
-        </div>
+            <div className="mt-4 rounded-2xl border border-white/10 bg-black/40 p-3 text-xs text-white/70">
+              <p className="font-semibold text-white/80">지금 하는 일</p>
+              <p className="mt-1 text-white/60">{activeStep.description}</p>
+            </div>
+          </aside>
 
-        <div className="mt-[clamp(1.8rem,3vw,3rem)] rounded-[clamp(1.25rem,2.5vw,2rem)] bg-white/5 border border-white/10 shadow-[0_18px_40px_rgba(0,0,0,0.7)] backdrop-blur-2xl">
-          <div className="h-1 w-full rounded-t-[clamp(1.25rem,2.5vw,2rem)] bg-gradient-to-r from-red-500 via-orange-500 to-rose-500" />
-          <div className="p-[clamp(1.5rem,3vw,2.5rem)]">
-            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <div>
-                <p className="text-[clamp(0.6rem,1vw,0.7rem)] font-semibold uppercase tracking-[0.2em] text-slate-400">
-                  STEP {currentStep + 1}
-                </p>
-                <h2 className="text-[clamp(1.5rem,2.4vw,2rem)] font-bold text-white mt-1">
-                  {activeStep.label}
-                </h2>
-                <p className="text-[clamp(0.85rem,1.5vw,1rem)] text-white/60 mt-1">
-                  {activeStep.description}
-                </p>
+          <main className="rounded-[clamp(1.2rem,2.5vw,2rem)] border border-white/10 bg-white/5 shadow-[0_18px_40px_rgba(0,0,0,0.6)] backdrop-blur-2xl">
+            <div className="border-b border-white/10 p-[clamp(1.5rem,3vw,2.5rem)]">
+              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <p className="text-[clamp(0.6rem,1vw,0.75rem)] font-semibold uppercase tracking-[0.3em] text-white/40">
+                    STEP {currentStep + 1}
+                  </p>
+                  <h2 className="mt-2 text-[clamp(1.6rem,2.6vw,2.2rem)] font-bold text-white">
+                    {activeStep.label}
+                  </h2>
+                  <p className="mt-2 text-[clamp(0.9rem,1.5vw,1.05rem)] text-white/70">
+                    {activeStep.description}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-sm text-white/70">
+                  <p className="text-xs uppercase tracking-[0.2em] text-white/40">Progress</p>
+                  <p className="mt-2 text-lg font-semibold text-white">{progressLabel}</p>
+                </div>
               </div>
-              <span className="text-sm font-semibold text-slate-400">{progressLabel}</span>
             </div>
-            {renderStepContent()}
-            <div className="mt-[clamp(1.8rem,3vw,3rem)] flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <button
-                type="button"
-                onClick={handlePrev}
-                disabled={!canGoPrev}
-                className="inline-flex items-center gap-2 rounded-full border border-white/20 px-5 py-2 text-sm font-semibold text-white/60 transition hover:border-slate-300 disabled:opacity-40"
-              >
-                <FiChevronLeft /> 이전 단계
-              </button>
-              <button
-                type="button"
-                onClick={handleNext}
-                disabled={!canGoNext}
-                className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-red-500 to-orange-500 px-6 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(255,69,91,0.3)] transition hover:translate-x-0.5 disabled:opacity-40"
-              >
-                다음 단계 <FiChevronRight />
-              </button>
+
+            <div className="p-[clamp(1.5rem,3vw,2.5rem)]">{renderStepContent()}</div>
+
+            <div className="border-t border-white/10 p-[clamp(1.2rem,2.5vw,2rem)]">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <button
+                  type="button"
+                  onClick={handlePrev}
+                  disabled={!canGoPrev}
+                  className="inline-flex items-center gap-2 rounded-full border border-white/20 px-5 py-2 text-sm font-semibold text-white/70 transition hover:border-white/40 disabled:opacity-40"
+                >
+                  <FiChevronLeft /> 이전 단계
+                </button>
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  disabled={!canGoNext}
+                  className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-red-500 to-orange-500 px-6 py-2 text-sm font-semibold text-white shadow-[0_10px_20px_rgba(255,69,91,0.35)] transition hover:translate-x-0.5 disabled:opacity-40"
+                >
+                  다음 단계 <FiChevronRight />
+                </button>
+              </div>
             </div>
-          </div>
+          </main>
         </div>
       </div>
     </div>
