@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import type { User } from "@supabase/supabase-js";
-import { FiLogOut, FiRefreshCw, FiUser, FiZap } from "react-icons/fi";
+import { FiLogOut, FiRefreshCw, FiUser, FiZap, FiSettings } from "react-icons/fi";
 import { supabase } from "../services/supabase";
 
 type Tone =
@@ -223,23 +224,20 @@ const UserCreditToolbar: React.FC<UserCreditToolbarProps> = ({
                   <span>영상 분석</span>
                   <span className={styles.accentText}>1</span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span>아이디어 생성</span>
-                  <span className={styles.accentText}>1</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>기획안 작성</span>
-                  <span className={styles.accentText}>10</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>벤치마킹 검색</span>
-                  <span className={styles.accentText}>5</span>
-                </div>
+                {/* ... other items ... */}
                 <div className="flex items-center justify-between">
                   <span>이미지 생성</span>
                   <span className={styles.accentText}>5</span>
                 </div>
               </div>
+
+              <Link
+                to="/mypage"
+                className={`w-full flex items-center justify-center gap-2 rounded-lg border ${styles.badgeBorder} hover:bg-white/5 text-xs font-semibold text-slate-200 py-2 transition`}
+              >
+                <FiSettings />
+                마이페이지
+              </Link>
 
               <button
                 type="button"

@@ -273,6 +273,15 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
           </a>
         </div>
 
+        <div className="mt-12 text-center">
+          <Link
+            to="/credit-purchase"
+            className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-6 py-3 text-sm font-semibold text-slate-300 transition hover:bg-white/10 hover:text-white"
+          >
+            💳 크레딧이 부족하신가요? 충전하러 가기
+          </Link>
+        </div>
+
         <div className="mt-12 text-xs text-slate-400/80">
           <span>제작자 : 데이비</span>
           <span className="block">

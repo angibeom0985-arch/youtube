@@ -49,12 +49,17 @@ const voiceOptions = [
   { value: "ko-KR-Wavenet-B", label: "유나 (부드러운)", gender: "female", type: "WaveNet" },
   { value: "ko-KR-Neural2-A", label: "지원 (고품질 AI)", gender: "female", type: "Neural2" },
   { value: "ko-KR-Neural2-B", label: "서윤 (뉴스 톤)", gender: "female", type: "Neural2" },
+  // 추가된 여성 목소리
+  { value: "en-US-Neural2-F", label: "Sarah (영어/여성)", gender: "female", type: "English" },
+  { value: "ja-JP-Neural2-B", label: "Mayu (일본어/여성)", gender: "female", type: "Japanese" },
 
   // 남성 목소리
   { value: "ko-KR-Standard-C", label: "민준 (신뢰감 있는)", gender: "male", type: "Standard" },
   { value: "ko-KR-Wavenet-C", label: "준호 (굵은 목소리)", gender: "male", type: "WaveNet" },
   { value: "ko-KR-Wavenet-D", label: "지훈 (청년)", gender: "male", type: "WaveNet" },
   { value: "ko-KR-Neural2-C", label: "도현 (고품질 AI)", gender: "male", type: "Neural2" },
+  // 추가된 남성 목소리
+  { value: "en-US-Neural2-D", label: "John (영어/남성)", gender: "male", type: "English" },
 ];
 
 const TtsPage: React.FC = () => {
