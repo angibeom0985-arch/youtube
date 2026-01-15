@@ -143,7 +143,7 @@ const BenchmarkingPage: React.FC = () => {
   const exportToExcel = () => {
     if (filteredResults.length === 0) return;
 
-    const headers = ["?쒖쐞", "?쒕ぉ", "梨꾨꼸紐?, "援щ룆??, "議고쉶??, "紐⑤찘?", "湲몄씠", "?낅줈?쒖씪", "留곹겕", "?쒓렇", "?ㅻ챸"];
+    const headers = ["??", "??", "???", "???", "???", "???", "??", "????", "??", "??", "??"];
     const csvRows = filteredResults.map((v, i) => [
       i + 1,
       `"${v.title.replace(/"/g, '""')}"`,
