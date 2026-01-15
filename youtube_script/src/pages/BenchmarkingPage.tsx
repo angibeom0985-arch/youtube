@@ -1,5 +1,5 @@
 ﻿import React, { useState, useMemo, useEffect } from "react";
-import { FiLayout, FiList, FiDownload, FiSettings, FiExternalLink, FiSearch } from "react-icons/fi";
+import { FiLayout, FiList, FiDownload, FiExternalLink, FiSearch } from "react-icons/fi";
 import { supabase } from "../services/supabase";
 import type { User } from "@supabase/supabase-js";
 import UserCreditToolbar from "../components/UserCreditToolbar";
@@ -67,8 +67,6 @@ const BenchmarkingPage: React.FC = () => {
   const [days, setDays] = useState(dateOptions[0].days);
   const [durationFilter, setDurationFilter] = useState(durationOptions[0].value);
   const [momentumLevel, setMomentumLevel] = useState(0); // 0?대㈃ ?꾩껜
-  const [apiKey, setApiKey] = useState(() => localStorage.getItem("yt_api_key") || "");
-  const [showApiSettings, setShowApiSettings] = useState(false);
   const [viewMode, setViewMode] = useState<"card" | "table">("card");
   
   const [loading, setLoading] = useState(false);
@@ -93,11 +91,6 @@ const BenchmarkingPage: React.FC = () => {
     await supabase.auth.signOut();
   };
 
-  // API ??蹂寃??????
-  useEffect(() => {
-    localStorage.setItem("yt_api_key", apiKey);
-  }, [apiKey]);
-
   // ?대씪?댁뼵??痢??꾪꽣留??곸슜 (紐⑤찘? ?덈꺼 ??
   const filteredResults = useMemo(() => {
     if (momentumLevel === 0) return results;
@@ -108,11 +101,6 @@ const BenchmarkingPage: React.FC = () => {
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
-    if (!apiKey.trim()) {
-      setError("YouTube API ?ㅻ? ?낅젰??二쇱꽭??");
-      setShowApiSettings(true);
-      return;
-    }
 
     setLoading(true);
     setError("");
@@ -131,7 +119,6 @@ const BenchmarkingPage: React.FC = () => {
           query,
           days,
           durationFilter,
-          apiKey,
           maxScan: 100 // 理쒕? 100媛??ㅼ틪
         })
       });
@@ -198,14 +185,7 @@ const BenchmarkingPage: React.FC = () => {
           
           <div className="flex flex-wrap items-center justify-end gap-3">
             <UserCreditToolbar user={user} onLogout={handleLogout} tone="purple" />
-            <button 
-              onClick={() => setShowApiSettings(!showApiSettings)}
-              className={`p-2 rounded-lg border transition-colors ${showApiSettings ? 'bg-purple-600 border-purple-500' : 'bg-slate-900 border-slate-700 hover:border-purple-500'}`}
-              title="API ?ㅼ젙"
-            >
-              <FiSettings size={20} />
-            </button>
-            <div className="h-8 w-[1px] bg-slate-800 mx-1" />
+            
             <div className="bg-slate-900 border border-slate-700 rounded-lg p-1 flex">
               <button 
                 onClick={() => setViewMode("card")}
@@ -222,32 +202,6 @@ const BenchmarkingPage: React.FC = () => {
             </div>
           </div>
         </div>
-
-        {/* API Key Settings Panel */}
-        {showApiSettings && (
-          <div className="bg-purple-900/20 border border-purple-500/30 rounded-xl p-6 mb-8 animate-in fade-in slide-in-from-top-4 duration-300">
-            <div className="flex items-center gap-2 mb-4 text-purple-300">
-              <FiSettings />
-              <h3 className="font-bold">?좏뒠釉?API ?ㅼ젙</h3>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm text-slate-300 mb-2">Google Cloud API ??/label>
-                <input 
-                  type="password" 
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                  placeholder="AIzaSy..."
-                  className="w-full px-4 py-2 bg-black border border-purple-500/30 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
-                />
-              </div>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                * ?낅젰?섏떊 API ?ㅻ뒗 釉뚮씪?곗? 濡쒖뺄 ??μ냼?먮쭔 ?덉쟾?섍쾶 蹂닿??⑸땲??<br />
-                * ?ㅺ? ?녿뒗 寃쎌슦 <a href="https://console.cloud.google.com/" target="_blank" rel="noreferrer" className="text-purple-400 underline">Google Cloud Console</a>?먯꽌 諛쒓툒諛쏆쑝?몄슂.
-              </p>
-            </div>
-          </div>
-        )}
 
         {/* Search Form */}
         <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-8 mb-10 shadow-2xl backdrop-blur-sm">
@@ -528,4 +482,10 @@ const BenchmarkingPage: React.FC = () => {
 };
 
 export default BenchmarkingPage;
+
+
+
+
+
+
 
