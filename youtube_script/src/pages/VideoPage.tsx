@@ -462,13 +462,11 @@ const VideoPage: React.FC = () => {
     {
       value: "long" as VideoFormat,
       title: "롱폼",
-      description: "가로형 영상",
       icon: <FiMonitor className="text-lg" />,
     },
     {
       value: "short" as VideoFormat,
       title: "숏폼",
-      description: "세로형 영상",
       icon: <FiSmartphone className="text-lg" />,
     },
   ];
@@ -477,13 +475,11 @@ const VideoPage: React.FC = () => {
       value: "16:9",
       title: "가로형",
       size: "1920 x 1080",
-      hint: "롱폼",
     },
     {
       value: "9:16",
       title: "세로형",
       size: "1080 x 1920",
-      hint: "숏폼",
     },
   ];
 
@@ -691,13 +687,11 @@ const VideoPage: React.FC = () => {
                         </span>
                         <div className="text-center">
                           <p className="text-sm font-semibold">{option.title}</p>
-                          <p className="text-sm text-white/50">{option.description}</p>
                         </div>
                       </div>
                     </button>
                   ))}
                 </div>
-                <p className="mt-3 text-sm text-white/50">롱폼=가로형 · 숏폼=세로형</p>
               </div>
               <div className="mt-5">
                 <p className="text-sm font-semibold text-white/80">화면 비율 & 크기</p>
