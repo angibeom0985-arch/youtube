@@ -14,9 +14,9 @@ export const CREDIT_COSTS = {
 };
 
 // ?¬ë ˆ???¤ì •
-const INITIAL_CREDITS = 30;        // ? ê·œ ê°€?…ìž ì´ˆê¸° ?¬ë ˆ??
-const INITIAL_PERIOD_DAYS = 3;     // ì´ˆê¸° ?¬ë ˆ???¬ìš© ê¸°í•œ (3??
-const DAILY_FREE_CREDITS = 20;     // 3???´í›„ ?¼ì¼ ë¬´ë£Œ ?¬ë ˆ??
+const INITIAL_CREDITS = 12;        // ? ê·œ ê°€?…ìž ì´ˆê¸° ?¬ë ˆ??
+const INITIAL_PERIOD_DAYS = 0;     // ì´ˆê¸° ?¬ë ˆ???¬ìš© ê¸°í•œ (3??
+const DAILY_FREE_CREDITS = 12;     // 3???´í›„ ?¼ì¼ ë¬´ë£Œ ?¬ë ˆ??
 
 export interface CreditCheckResult {
   allowed: boolean;
@@ -125,8 +125,11 @@ export const checkAndDeductCredits = async (
 
     // ? ê·œ ê°€?…ìž: ì´ˆê¸° 100 ?¬ë ˆ??+ 3???¬ìš©ê¸°í•œ ?¤ì •
     const signupDate = new Date();
-    const initialExpiryDate = new Date(signupDate);
-    initialExpiryDate.setDate(initialExpiryDate.getDate() + INITIAL_PERIOD_DAYS);
+    const initialExpiryDate =
+      INITIAL_PERIOD_DAYS > 0 ? new Date(signupDate) : null;
+    if (initialExpiryDate) {
+      initialExpiryDate.setDate(initialExpiryDate.getDate() + INITIAL_PERIOD_DAYS);
+    }
 
     const { error: insertError } = await supabaseClient
       .from("profiles")
@@ -135,7 +138,7 @@ export const checkAndDeductCredits = async (
         email: user.email,
         credits: INITIAL_CREDITS,
         last_reset_date: signupDate.toISOString(),
-        initial_credits_expiry: initialExpiryDate.toISOString(),
+        initial_credits_expiry: initialExpiryDate ? initialExpiryDate.toISOString() : null,
         signup_ip: clientIp,
       });
 
@@ -156,7 +159,8 @@ export const checkAndDeductCredits = async (
   const today = new Date().toISOString().split("T")[0];
   const lastResetDate = lastReset ? new Date(lastReset).toISOString().split("T")[0] : "";
   const initialExpiryDate = profile?.initial_credits_expiry;
-  const isInInitialPeriod = initialExpiryDate && new Date() < new Date(initialExpiryDate);
+  const isInInitialPeriod =
+    INITIAL_PERIOD_DAYS > 0 && initialExpiryDate && new Date() < new Date(initialExpiryDate);
 
   if (lastResetDate !== today) {
     // ? ì§œê°€ ë°”ë€Œì—ˆ????

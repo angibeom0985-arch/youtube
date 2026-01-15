@@ -44,13 +44,13 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin }) => 
           
           <div className="text-lg md:text-xl text-slate-300 mb-10 leading-relaxed">
             <p className="whitespace-nowrap">원활한 서비스 이용을 위해 로그인이 필요합니다.</p>
-            <p className="text-yellow-400 font-black mt-1 whitespace-nowrap">지금 가입하면 100 크레딧을 즉시 드려요! 🎁</p>
+            <p className="text-yellow-400 font-black mt-1 whitespace-nowrap">지금 가입하면 12 크레딧을 즉시 드려요! 🎁</p>
           </div>
 
           {/* Login Button */}
           <button
             onClick={onLogin}
-            className="w-full flex items-center justify-center gap-4 bg-white hover:bg-slate-100 text-slate-900 font-black py-5 px-10 rounded-2xl transition-all shadow-2xl hover:shadow-white/10 hover:-translate-y-1 text-xl md:text-2xl"
+            className="w-full flex items-center justify-center gap-4 bg-white hover:bg-slate-12 text-slate-900 font-black py-5 px-10 rounded-2xl transition-all shadow-2xl hover:shadow-white/10 hover:-translate-y-1 text-xl md:text-2xl"
           >
             <FcGoogle size={32} />
             <span className="whitespace-nowrap">Google로 1초만에 시작하기</span>

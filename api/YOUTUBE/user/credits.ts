@@ -48,9 +48,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .insert({
           id: user.id,
           email: user.email,
-          credits: 100,
+          credits: 12,
           last_reset_date: new Date().toISOString(),
-          initial_credits_expiry: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+          initial_credits_expiry: null,
         })
         .select()
         .single();
@@ -71,13 +71,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         });
       }
 
-      console.log("???„ë¡œ???ì„± ?„ë£Œ:", { userId: user.id, credits: 100 });
+      console.log("???„ë¡œ???ì„± ?„ë£Œ:", { userId: user.id, credits: 12 });
       return res.status(200).json({
-        credits: 100,
+        credits: 12,
         userId: user.id,
-        isInInitialPeriod: true,
-        daysRemaining: 3,
-        initialExpiryDate: newProfile.initial_credits_expiry,
+        isInInitialPeriod: false,
+        daysRemaining: 0,
+        initialExpiryDate: null,
       });
     }
 
@@ -90,17 +90,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // ì´ˆê¸° ?¬ë ˆ??ê¸°ê°„ ?•ì¸
-    const initialExpiryDate = profile?.initial_credits_expiry;
-    const isInInitialPeriod = initialExpiryDate && new Date() < new Date(initialExpiryDate);
-    const daysRemaining = initialExpiryDate
-      ? Math.max(
-          0,
-          Math.ceil(
-            (new Date(initialExpiryDate).getTime() - new Date().getTime()) /
-              (1000 * 60 * 60 * 24)
-          )
-        )
-      : 0;
+    const initialExpiryDate = null;
+    const isInInitialPeriod = false;
+    const daysRemaining = 0;
 
     return res.status(200).json({
       credits: profile?.credits ?? 0,

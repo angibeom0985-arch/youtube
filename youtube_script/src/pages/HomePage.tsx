@@ -128,7 +128,7 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
               </button>
             </div>
             <span className="hidden lg:inline-block text-lg font-black text-yellow-400 animate-bounce bg-yellow-400/20 px-6 py-2.5 rounded-full border-2 border-yellow-400/30 shadow-[0_0_20px_rgba(250,204,21,0.4)]">
-              🎁 신규 가입 시 30 크레딧 즉시 지급!
+              🎁 신규 가입 시 12 크레딧 즉시 지급!
             </span>
           </div>
         )}

@@ -113,7 +113,7 @@ const UserCreditSidebar: React.FC<UserCreditSidebarProps> = ({ user }) => {
             <div className="mt-3 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-lg px-3 py-2 border border-green-500/30">
               <p className="text-green-400 text-xs font-semibold">🎉 신규 가입 혜택</p>
               <p className="text-neutral-300 text-[10px] mt-1">
-                회원가입 시 <span className="text-green-400 font-bold">30 크레딧</span> 제공 (3일간 유효)
+                회원가입 시 <span className="text-green-400 font-bold">12 크레딧</span> 제공
               </p>
             </div>
           </div>
@@ -182,19 +182,19 @@ const UserCreditSidebar: React.FC<UserCreditSidebarProps> = ({ user }) => {
               <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-lg p-4 text-xs border border-green-500/30">
                 <p className="text-green-400 font-semibold mb-2 text-sm">🎉 초기 크레딧 기간!</p>
                 <p className="text-neutral-300 text-xs leading-relaxed mb-2">
-                  회원가입 축하합니다! 30 크레딧을 사용하실 수 있습니다.
+                  회원가입 축하합니다! 12 크레딧을 사용하실 수 있습니다.
                 </p>
                 <div className="flex items-center justify-between bg-green-500/10 rounded px-3 py-2 mt-2">
                   <span className="text-green-300 text-xs font-semibold">남은 기간</span>
                   <span className="text-green-400 text-sm font-bold">{daysRemaining}일</span>
                 </div>
                 <p className="text-neutral-400 text-[10px] mt-2">
-                  기간 만료 후 매일 20 크레딧이 자동 충전됩니다.
+                  기간 만료 후 매일 12 크레딧이 자동 충전됩니다.
                 </p>
               </div>
             ) : (
               <div className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 rounded-lg p-4 text-xs border border-amber-500/30">
-                <p className="text-amber-400 font-semibold text-sm">🎁 매일 20 크레딧 무료 충전!</p>
+                <p className="text-amber-400 font-semibold text-sm">🎁 매일 12 크레딧 무료 충전!</p>
               </div>
             )}
           </div>
