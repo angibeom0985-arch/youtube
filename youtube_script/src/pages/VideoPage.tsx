@@ -1345,8 +1345,7 @@ const VideoPage: React.FC = () => {
               올인원 영상 제작 스튜디오
             </h1>
             <p className="mt-3 text-[clamp(0.95rem,1.6vw,1.1rem)] text-white/70 text-balance">
-              각 단계에서 무엇을 해야 하는지 바로 이해할 수 있도록 흐름을 쪼개고,
-              버튼 하나로 다음 작업이 이어지도록 구성했습니다.
+              단계별로 해야 할 일을 빠르게 확인하고 바로 진행하세요.
             </p>
           </div>
           <div className="flex flex-wrap gap-2 text-xs text-white/70">

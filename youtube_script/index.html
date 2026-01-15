@@ -73,6 +73,12 @@
       }
     </script>
 
+    <script>
+      if (window.location.pathname.indexOf("/debug") === 0) {
+        document.documentElement.classList.add("debug-allow");
+      }
+    </script>
+
     <!-- 강력한 복사/드래그 방지 CSS -->
     <style>
       /* 허용된 입력 필드 - 최우선 순위 */
@@ -113,7 +119,8 @@
         -webkit-touch-callout: default !important;
       }
 
-      *:not(.api-key-modal):not(.api-key-modal *):not(.youtube-url-input):not(
+      html:not(.debug-allow)
+        *:not(.api-key-modal):not(.api-key-modal *):not(.youtube-url-input):not(
           .youtube-url-input *
         ):not(.transcript-input):not(.transcript-input *):not(
           .user-idea-keyword-input
@@ -133,13 +140,13 @@
 
       /* 중복 제거 - 하위 통합 선언 적용 */
 
-      body {
+      html:not(.debug-allow) body {
         -webkit-touch-callout: none !important;
       }
 
       /* 인쇄 방지 */
       @media print {
-        body {
+        html:not(.debug-allow) body {
           display: none !important;
         }
       }
