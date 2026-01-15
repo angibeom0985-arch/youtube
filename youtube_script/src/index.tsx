@@ -51,7 +51,7 @@ root.render(
         <Route path="/tts" element={<TtsPage />} />
         <Route path="/credit-purchase" element={<CreditPurchasePage />} />
         <Route path="/mypage" element={<MyPage />} />
-        <Route path="/video" element={<VideoPage />} />
+        <Route path="/video/*" element={<VideoPage />} />
         <Route
           path="/image/*"
           element={

@@ -1,5 +1,6 @@
 ﻿
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   FiChevronLeft,
   FiChevronRight,
@@ -34,6 +35,7 @@ const STORAGE_KEYS = {
   renderNotes: "video_project_render_notes",
   editNotes: "video_project_edit_notes",
   format: "video_project_format",
+  step: "video_project_step",
 };
 
 type StepId = "setup" | "script" | "tts" | "image" | "generate" | "render";
@@ -125,6 +127,8 @@ const formatFileSize = (size: number) => {
 };
 
 const VideoPage: React.FC = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
   const [videoFormat, setVideoFormat] = useState<VideoFormat>(() => {
@@ -249,6 +253,7 @@ const VideoPage: React.FC = () => {
   useEffect(() => setStoredValue(STORAGE_KEYS.renderNotes, renderNotes), [renderNotes]);
   useEffect(() => setStoredValue(STORAGE_KEYS.editNotes, editNotes), [editNotes]);
   useEffect(() => setStoredValue(STORAGE_KEYS.format, videoFormat), [videoFormat]);
+  useEffect(() => setStoredValue(STORAGE_KEYS.step, String(currentStep)), [currentStep]);
 
   useEffect(() => {
     const legacySample =
@@ -452,17 +457,65 @@ const VideoPage: React.FC = () => {
     currentStep,
   ]);
 
+  const stepPaths = useMemo(
+    () => [
+      "/video",
+      "/video/script",
+      "/video/tts",
+      "/video/image",
+      "/video/generate",
+      "/video/edit",
+    ],
+    []
+  );
+  const normalizePath = (path: string) =>
+    path !== "/" && path.endsWith("/") ? path.slice(0, -1) : path;
+  const getStepIndexFromPath = (path: string) => {
+    const normalized = normalizePath(path);
+    const index = stepPaths.indexOf(normalized);
+    return index >= 0 ? index : null;
+  };
+  const getStoredStepIndex = () => {
+    const stored = getStoredString(STORAGE_KEYS.step, "0");
+    const value = Number.parseInt(stored, 10);
+    if (!Number.isFinite(value)) return 0;
+    return Math.min(Math.max(value, 0), steps.length - 1);
+  };
+  const goToStep = (index: number, replace = false) => {
+    const safeIndex = Math.min(Math.max(index, 0), steps.length - 1);
+    setCurrentStep(safeIndex);
+    const targetPath = stepPaths[safeIndex];
+    if (normalizePath(location.pathname) !== targetPath) {
+      navigate(targetPath, { replace });
+    }
+  };
+
+  useEffect(() => {
+    const normalizedPath = normalizePath(location.pathname);
+    const pathIndex = getStepIndexFromPath(normalizedPath);
+    const storedIndex = getStoredStepIndex();
+    const shouldUseStored = normalizedPath === "/video" && storedIndex !== 0;
+    const nextIndex = shouldUseStored ? storedIndex : pathIndex ?? storedIndex;
+    if (nextIndex !== currentStep) {
+      setCurrentStep(nextIndex);
+    }
+    const targetPath = stepPaths[nextIndex] ?? "/video";
+    if (normalizedPath !== targetPath) {
+      navigate(targetPath, { replace: true });
+    }
+  }, [location.pathname, navigate, stepPaths, currentStep]);
+
   const canGoPrev = currentStep > 0;
   const canGoNext = currentStep < steps.length - 1;
 
   const handlePrev = () => {
     if (!canGoPrev) return;
-    setCurrentStep((prev) => prev - 1);
+    goToStep(currentStep - 1);
   };
 
   const handleNext = () => {
     if (!canGoNext) return;
-    setCurrentStep((prev) => prev + 1);
+    goToStep(currentStep + 1);
   };
 
   const activeStep = steps[currentStep];
