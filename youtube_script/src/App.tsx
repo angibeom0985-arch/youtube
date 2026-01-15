@@ -52,7 +52,7 @@ import AdBlockWarningModal from "./components/AdBlockWarningModal";
 import FloatingAnchorAd from "./components/FloatingAnchorAd";
 import UserCreditToolbar from "./components/UserCreditToolbar";
 import { highlightImportantText } from "./utils/textHighlight.tsx";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { evaluateAbuseRisk, type AbuseDecision } from "./services/abuseService";
 
 const defaultCategories = [
