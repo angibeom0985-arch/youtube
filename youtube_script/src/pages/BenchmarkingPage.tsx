@@ -1,9 +1,9 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { Link } from "react-router-dom";
 import { FiLayout, FiList, FiDownload, FiSettings, FiExternalLink, FiSearch } from "react-icons/fi";
 import { supabase } from "../services/supabase";
 import type { User } from "@supabase/supabase-js";
 import UserCreditToolbar from "../components/UserCreditToolbar";
+import HomeBackButton from "../components/HomeBackButton";
 
 interface DateOption {
   label: string;
@@ -194,9 +194,7 @@ const BenchmarkingPage: React.FC = () => {
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
-            <Link to="/" className="inline-flex items-center text-purple-400 hover:text-purple-300 mb-2 text-sm font-medium">
-              ← 홈으로 돌아가기
-            </Link>
+            <HomeBackButton tone="purple" className="mb-2" />
             <h1 className="text-4xl font-black bg-gradient-to-r from-white via-purple-200 to-purple-500 bg-clip-text text-transparent">
               벤치마킹 영상 발굴
             </h1>

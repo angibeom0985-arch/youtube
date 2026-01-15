@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { FiHome, FiExternalLink } from 'react-icons/fi';
+import { FiExternalLink } from 'react-icons/fi';
 import AdSense from '../components/AdSense';
 import { supabase } from '../services/supabase';
 import type { User } from '@supabase/supabase-js';
 import UserCreditToolbar from '../components/UserCreditToolbar';
+import HomeBackButton from "../components/HomeBackButton";
 
 const ApiGuidePage: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -55,10 +56,7 @@ const ApiGuidePage: React.FC = () => {
 
       <div className="max-w-4xl mx-auto">
         <header className="mb-8">
-          <a href="/" className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 mb-4">
-            <FiHome size={20} />
-            <span>홈으로 돌아가기</span>
-          </a>
+          <HomeBackButton tone="orange" className="mb-4" />
           <h1 className="text-4xl sm:text-5xl font-extrabold bg-gradient-to-r from-orange-500 to-orange-400 bg-clip-text text-transparent mb-4">
             Google Gemini API 키 발급 가이드
           </h1>

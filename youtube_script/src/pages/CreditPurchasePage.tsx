@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { FiHome, FiZap, FiCheck } from "react-icons/fi";
+import { FiZap, FiCheck } from "react-icons/fi";
 import { supabase } from "../services/supabase";
 import type { User } from "@supabase/supabase-js";
 import UserCreditToolbar from "../components/UserCreditToolbar";
+import HomeBackButton from "../components/HomeBackButton";
 
 interface PricingPlan {
   id: string;
@@ -149,13 +150,7 @@ const CreditPurchasePage: React.FC = () => {
       {/* 헤더 */}
       <header className="border-b border-gray-800">
         <div className="max-w-7xl mx-auto px-4 py-6">
-          <a 
-            href="/" 
-            className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors"
-          >
-            <FiHome size={20} />
-            <span>홈으로 돌아가기</span>
-          </a>
+          <HomeBackButton tone="yellow" />
         </div>
       </header>
 

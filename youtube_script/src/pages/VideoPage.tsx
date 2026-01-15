@@ -1,6 +1,5 @@
 ﻿
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
 import {
   FiChevronLeft,
   FiChevronRight,
@@ -8,14 +7,17 @@ import {
   FiFileText,
   FiFilm,
   FiImage,
+  FiMonitor,
   FiMic,
   FiSettings,
+  FiSmartphone,
   FiUpload,
 } from "react-icons/fi";
 import JSZip from "jszip";
 import { supabase } from "../services/supabase";
 import type { User } from "@supabase/supabase-js";
 import UserCreditToolbar from "../components/UserCreditToolbar";
+import HomeBackButton from "../components/HomeBackButton";
 import { generateVideo } from "../services/videoService";
 import { generateVideo } from "../services/videoService";
 
@@ -30,9 +32,11 @@ const STORAGE_KEYS = {
   renderFps: "video_project_render_fps",
   renderNotes: "video_project_render_notes",
   editNotes: "video_project_edit_notes",
+  format: "video_project_format",
 };
 
 type StepId = "setup" | "script" | "tts" | "image" | "generate" | "render";
+type VideoFormat = "long" | "short";
 
 type Step = {
   id: StepId;
@@ -122,6 +126,10 @@ const formatFileSize = (size: number) => {
 const VideoPage: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
+  const [videoFormat, setVideoFormat] = useState<VideoFormat>(() => {
+    const stored = getStoredString(STORAGE_KEYS.format, "long");
+    return stored === "short" ? "short" : "long";
+  });
   const [projectTitle, setProjectTitle] = useState(() =>
     getStoredString(STORAGE_KEYS.title, "환율 1500원 시대, 내 자산은 어떻게 지킬까?")
   );
@@ -229,6 +237,7 @@ const VideoPage: React.FC = () => {
   useEffect(() => setStoredValue(STORAGE_KEYS.renderFps, renderFps), [renderFps]);
   useEffect(() => setStoredValue(STORAGE_KEYS.renderNotes, renderNotes), [renderNotes]);
   useEffect(() => setStoredValue(STORAGE_KEYS.editNotes, editNotes), [editNotes]);
+  useEffect(() => setStoredValue(STORAGE_KEYS.format, videoFormat), [videoFormat]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -438,6 +447,57 @@ const VideoPage: React.FC = () => {
   };
 
   const activeStep = steps[currentStep];
+  const formatOptions = [
+    {
+      value: "long" as VideoFormat,
+      title: "롱폼",
+      description: "유튜브 기본 가로형 영상에 최적화",
+      icon: <FiMonitor className="text-lg" />,
+    },
+    {
+      value: "short" as VideoFormat,
+      title: "숏폼",
+      description: "세로형 숏츠/릴스에 적합",
+      icon: <FiSmartphone className="text-lg" />,
+    },
+  ];
+  const ratioOptions = [
+    {
+      value: "16:9",
+      title: "가로형",
+      size: "1920 x 1080",
+      hint: "롱폼 · 유튜브 기본",
+      previewPadding: "pt-[56.25%]",
+    },
+    {
+      value: "9:16",
+      title: "세로형",
+      size: "1080 x 1920",
+      hint: "숏폼 · Shorts/Reels",
+      previewPadding: "pt-[177.78%]",
+    },
+    {
+      value: "1:1",
+      title: "정사각형",
+      size: "1080 x 1080",
+      hint: "피드/썸네일 활용",
+      previewPadding: "pt-[100%]",
+    },
+  ];
+
+  const handleFormatChange = (format: VideoFormat) => {
+    setVideoFormat(format);
+    setRenderRatio(format === "short" ? "9:16" : "16:9");
+  };
+
+  const handleRatioChange = (ratio: string) => {
+    setRenderRatio(ratio);
+    if (ratio === "9:16") {
+      setVideoFormat("short");
+    } else if (ratio === "16:9") {
+      setVideoFormat("long");
+    }
+  };
 
   const timelineScenes = useMemo(() => {
     const lines = scriptDraft
@@ -490,7 +550,34 @@ const VideoPage: React.FC = () => {
               <p className="mt-3 text-sm text-white/70">
                 영상 길이와 화면 모양, 움직임 부드러움을 선택해 주세요.
               </p>
-              <div className="mt-4 grid gap-4 sm:grid-cols-3">
+              <div className="mt-4">
+                <p className="text-xs font-semibold text-white/80">영상 형식</p>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  {formatOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => handleFormatChange(option.value)}
+                      className={`rounded-2xl border px-4 py-3 text-left transition ${
+                        videoFormat === option.value
+                          ? "border-red-400 bg-red-500/10 shadow-[0_10px_20px_rgba(239,68,68,0.2)]"
+                          : "border-white/15 bg-black/30 hover:border-white/30"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 text-white">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10">
+                          {option.icon}
+                        </span>
+                        <div>
+                          <p className="text-sm font-semibold">{option.title}</p>
+                          <p className="text-[11px] text-white/50">{option.description}</p>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="mt-5 grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <label className="text-xs font-semibold text-white/80">영상 길이(초)</label>
                   <select
@@ -516,17 +603,45 @@ const VideoPage: React.FC = () => {
                     <option value="60">60fps</option>
                   </select>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-semibold text-white/80">화면 모양</label>
-                  <select
-                    value={renderRatio}
-                    onChange={(event) => setRenderRatio(event.target.value)}
-                    className="w-full rounded-2xl border border-white/20 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-red-500"
-                  >
-                    <option value="16:9">16:9</option>
-                    <option value="9:16">9:16</option>
-                    <option value="1:1">1:1</option>
-                  </select>
+              </div>
+              <div className="mt-5">
+                <p className="text-xs font-semibold text-white/80">화면 비율 & 크기</p>
+                <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                  {ratioOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => handleRatioChange(option.value)}
+                      className={`rounded-2xl border px-3 py-3 text-left transition ${
+                        renderRatio === option.value
+                          ? "border-red-400 bg-red-500/10 shadow-[0_10px_20px_rgba(239,68,68,0.2)]"
+                          : "border-white/15 bg-black/30 hover:border-white/30"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-semibold text-white">{option.title}</p>
+                          <p className="text-[11px] text-white/50">{option.size}</p>
+                        </div>
+                        <span className="text-xs font-semibold text-white/50">{option.value}</span>
+                      </div>
+                      <p className="mt-2 text-[11px] text-white/50">{option.hint}</p>
+                      <div className="mt-3 flex justify-center">
+                        <div className={`relative w-full max-w-[120px] ${option.previewPadding}`}>
+                          <div
+                            className={`absolute inset-0 rounded-lg border ${
+                              renderRatio === option.value ? "border-red-400/70" : "border-white/20"
+                            } bg-black/40`}
+                          >
+                            <div className="absolute inset-1 rounded-md bg-gradient-to-br from-white/10 to-white/5" />
+                            <div className="absolute inset-0 flex items-center justify-center text-[10px] font-semibold text-white/60">
+                              {option.size}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
                 </div>
               </div>
               <label className="mt-4 block text-xs font-semibold text-white/80">편집 메모</label>
@@ -974,9 +1089,7 @@ const VideoPage: React.FC = () => {
       </div>
 
       <div className="mx-auto max-w-[min(1200px,94vw)] px-[clamp(1rem,3vw,2rem)] py-[clamp(2rem,5vw,4rem)]">
-        <Link to="/" className="text-sm text-slate-300 hover:text-slate-100">
-          홈으로 돌아가기
-        </Link>
+        <HomeBackButton tone="red" />
         <div className="mt-5">
           <h1 className="text-[clamp(1.8rem,2.8vw,2.8rem)] font-black text-white">올인원 영상 제작 스튜디오</h1>
           <p className="mt-2 text-[clamp(0.95rem,1.6vw,1rem)] text-white/70">
