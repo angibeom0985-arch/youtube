@@ -547,43 +547,43 @@ const VideoPage: React.FC = () => {
           .filter(Boolean).length;
         return (
           <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
-            <div className="rounded-[clamp(1rem,2vw,1.6rem)] border border-white/10 bg-white/95 p-[clamp(1.25rem,2vw,1.8rem)] text-slate-900 shadow-[0_20px_40px_rgba(15,23,42,0.15)]">
+            <div className="rounded-[clamp(1rem,2vw,1.6rem)] border border-white/10 bg-black/40 p-[clamp(1.25rem,2vw,1.8rem)] shadow-[0_18px_40px_rgba(0,0,0,0.45)]">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <p className="text-xs font-semibold text-slate-400">대본 / 프롬프트</p>
-                  <h3 className="text-2xl font-bold text-slate-900 mt-1">
+                  <p className="text-xs font-semibold text-white/60">대본 / 프롬프트</p>
+                  <h3 className="text-2xl font-bold text-white mt-1">
                     어떤 영상을 만들고 싶으세요?
                   </h3>
-                  <p className="mt-2 text-sm text-slate-500">
-                    주제나 흐름을 입력하면 구조화를 도와드립니다.
+                  <p className="mt-2 text-sm text-white/60">
+                    따라 하고 싶은 대본을 붙여 넣으면 새 주제의 대본으로 분석해 드립니다.
                   </p>
                 </div>
                 <a
                   href="/script?no_ads=true"
                   target="_blank"
                   rel="noreferrer"
-                  className="rounded-full border border-red-500/30 px-4 py-1 text-xs font-semibold text-red-500 hover:border-red-400"
+                  className="rounded-full border border-red-500/30 px-4 py-1 text-xs font-semibold text-red-300 hover:border-red-400"
                 >
-                  새 창에서 열기
+                  대본 페이지 열기
                 </a>
               </div>
               <textarea
                 value={scriptDraft}
                 onChange={(event) => setScriptDraft(event.target.value)}
-                rows={7}
-                className="mt-5 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500"
+                rows={6}
+                className="mt-5 w-full rounded-2xl border border-white/20 bg-white px-4 py-4 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500"
                 placeholder="예: 환율 1500원이 넘으면 우리나라에 벌어지는 일들"
               />
-              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500">
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-white/50">
                 <span>
                   {scriptLineCount}줄 · {scriptDraft.length.toLocaleString()}자
                 </span>
                 <div className="flex items-center gap-2">
-                  <label className="text-xs font-semibold text-slate-500">목표 길이</label>
+                  <label className="text-xs font-semibold text-white/60">목표 길이</label>
                   <select
                     value={renderDuration}
                     onChange={(event) => setRenderDuration(event.target.value)}
-                    className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs text-slate-700"
+                    className="rounded-full border border-white/20 bg-black/40 px-3 py-1 text-xs text-white"
                   >
                     <option value="30">30초</option>
                     <option value="45">45초</option>
@@ -595,7 +595,7 @@ const VideoPage: React.FC = () => {
                     onClick={handleNext}
                     className="rounded-full bg-gradient-to-r from-red-500 to-orange-500 px-4 py-1 text-xs font-semibold text-white shadow-[0_8px_16px_rgba(239,68,68,0.3)]"
                   >
-                    대본 생성하기
+                    대본 분석 시작
                   </button>
                 </div>
               </div>
@@ -606,44 +606,44 @@ const VideoPage: React.FC = () => {
       case "tts":
         return (
           <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
-            <div className="rounded-[clamp(1rem,2vw,1.6rem)] border border-white/10 bg-white/95 p-[clamp(1.25rem,2vw,1.8rem)] text-slate-900 shadow-[0_20px_40px_rgba(15,23,42,0.15)]">
+            <div className="rounded-[clamp(1rem,2vw,1.6rem)] border border-white/10 bg-black/40 p-[clamp(1.25rem,2vw,1.8rem)] shadow-[0_18px_40px_rgba(0,0,0,0.45)]">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <p className="text-xs font-semibold text-slate-400">스크립트 & AI 보이스</p>
-                  <h3 className="text-2xl font-bold text-slate-900 mt-1">스크립트를 편집하고 음성을 생성하세요.</h3>
-                  <p className="mt-2 text-sm text-slate-500">
-                    텍스트를 다듬은 뒤 보이스를 선택하면 즉시 음성을 만들 수 있습니다.
+                  <p className="text-xs font-semibold text-white/60">스크립트 & AI 보이스</p>
+                  <h3 className="text-2xl font-bold text-white mt-1">대본에 음성을 입혀주세요.</h3>
+                  <p className="mt-2 text-sm text-white/60">
+                    핵심 구간만 선택해도 바로 음성으로 변환됩니다.
                   </p>
                 </div>
                 <a
                   href="/tts?no_ads=true"
                   target="_blank"
                   rel="noreferrer"
-                  className="rounded-full border border-red-500/30 px-4 py-1 text-xs font-semibold text-red-500 hover:border-red-400"
+                  className="rounded-full border border-red-500/30 px-4 py-1 text-xs font-semibold text-red-300 hover:border-red-400"
                 >
-                  새 창에서 열기
+                  TTS 페이지 열기
                 </a>
               </div>
               <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
                 <div>
-                  <div className="flex items-center justify-between text-xs text-slate-500">
+                  <div className="flex items-center justify-between text-xs text-white/50">
                     <span>스크립트 편집</span>
                     <span>{ttsScript.length.toLocaleString()}자</span>
                   </div>
                   <textarea
                     value={ttsScript}
                     onChange={(event) => setTtsScript(event.target.value)}
-                    rows={8}
-                    className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500"
+                    rows={7}
+                    className="mt-2 w-full rounded-2xl border border-white/20 bg-white px-4 py-4 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500"
                     placeholder="음성으로 변환할 스크립트를 입력하세요."
                   />
                   <div className="mt-4 flex flex-wrap items-center gap-3">
                     <div className="flex-1 min-w-[160px]">
-                      <label className="text-xs font-semibold text-slate-500">보이스 선택</label>
+                      <label className="text-xs font-semibold text-white/60">보이스 선택</label>
                       <select
                         value={selectedVoice}
                         onChange={(event) => setSelectedVoice(event.target.value)}
-                        className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700"
+                        className="mt-2 w-full rounded-2xl border border-white/20 bg-black/40 px-3 py-2 text-sm text-white"
                       >
                         {voiceOptions.map((voice) => (
                           <option key={voice.name} value={voice.name}>
@@ -653,7 +653,7 @@ const VideoPage: React.FC = () => {
                       </select>
                     </div>
                     <div className="flex-1 min-w-[160px]">
-                      <label className="text-xs font-semibold text-slate-500">속도</label>
+                      <label className="text-xs font-semibold text-white/60">속도</label>
                       <input
                         type="range"
                         min={0.7}
@@ -663,7 +663,7 @@ const VideoPage: React.FC = () => {
                         onChange={(event) => setTtsSpeed(Number(event.target.value))}
                         className="mt-2 w-full"
                       />
-                      <p className="text-xs text-slate-500 text-right">{ttsSpeed.toFixed(1)}배속</p>
+                      <p className="text-xs text-white/50 text-right">{ttsSpeed.toFixed(1)}배속</p>
                     </div>
                     <button
                       onClick={handleGenerateTts}
@@ -674,8 +674,8 @@ const VideoPage: React.FC = () => {
                   </div>
                 </div>
                 <div className="space-y-3">
-                  <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
-                    <p className="text-xs font-semibold text-slate-500">AI 보이스오버</p>
+                  <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/70">
+                    <p className="text-xs font-semibold text-white/60">AI 보이스오버</p>
                     <div className="mt-3 space-y-2">
                       {voiceOptions.map((voice) => (
                         <button
@@ -684,27 +684,27 @@ const VideoPage: React.FC = () => {
                           onClick={() => setSelectedVoice(voice.name)}
                           className={`w-full rounded-xl border px-3 py-2 text-left ${
                             selectedVoice === voice.name
-                              ? "border-red-300 bg-red-50"
-                              : "border-slate-200 bg-white"
+                              ? "border-red-400 bg-red-500/10"
+                              : "border-white/10 bg-black/30"
                           }`}
                         >
-                          <p className="font-semibold text-slate-800">{voice.name}</p>
-                          <p className="text-xs text-slate-500">{voice.label} · {voice.tone}</p>
+                          <p className="font-semibold text-white">{voice.name}</p>
+                          <p className="text-xs text-white/50">{voice.label} · {voice.tone}</p>
                         </button>
                       ))}
                     </div>
                   </div>
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-                    <p className="text-xs font-semibold text-slate-500">최근 생성</p>
+                  <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/70">
+                    <p className="text-xs font-semibold text-white/60">최근 생성</p>
                     {ttsSamples.length === 0 ? (
-                      <p className="mt-2 text-xs text-slate-400">아직 생성한 음성이 없습니다.</p>
+                      <p className="mt-2 text-xs text-white/40">아직 생성한 음성이 없습니다.</p>
                     ) : (
                       <div className="mt-2 space-y-2">
                         {ttsSamples.map((sample) => (
-                          <div key={sample.id} className="rounded-xl bg-white px-3 py-2">
-                            <p className="text-xs text-slate-400">{sample.voice}</p>
-                            <p className="text-sm text-slate-700">{sample.text}</p>
-                            <p className="text-xs text-slate-400">{sample.status}</p>
+                          <div key={sample.id} className="rounded-xl bg-black/30 px-3 py-2">
+                            <p className="text-xs text-white/40">{sample.voice}</p>
+                            <p className="text-sm text-white">{sample.text}</p>
+                            <p className="text-xs text-white/40">{sample.status}</p>
                           </div>
                         ))}
                       </div>
