@@ -467,21 +467,12 @@ const VideoPage: React.FC = () => {
       title: "가로형",
       size: "1920 x 1080",
       hint: "롱폼",
-      previewPadding: "pt-[56.25%]",
     },
     {
       value: "9:16",
       title: "세로형",
       size: "1080 x 1920",
       hint: "숏폼",
-      previewPadding: "pt-[177.78%]",
-    },
-    {
-      value: "1:1",
-      title: "정사각형",
-      size: "1080 x 1080",
-      hint: "인스타 게시글",
-      previewPadding: "pt-[100%]",
     },
   ];
 
@@ -555,13 +546,11 @@ const VideoPage: React.FC = () => {
                     </button>
                   ))}
                 </div>
-                <p className="mt-3 text-[11px] text-white/50">
-                  롱폼=가로형 · 숏폼=세로형 · 정사각형=인스타 게시글
-                </p>
+                <p className="mt-3 text-[11px] text-white/50">롱폼=가로형 · 숏폼=세로형</p>
               </div>
               <div className="mt-5">
                 <p className="text-xs font-semibold text-white/80">화면 비율 & 크기</p>
-                <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   {ratioOptions.map((option) => (
                     <button
                       key={option.value}
@@ -582,7 +571,11 @@ const VideoPage: React.FC = () => {
                       </div>
                       <p className="mt-2 text-[11px] text-white/50">{option.hint}</p>
                       <div className="mt-3 flex justify-center">
-                        <div className={`relative w-full max-w-[120px] ${option.previewPadding}`}>
+                        <div
+                          className={`relative ${
+                            option.value === "16:9" ? "h-14 w-24" : "h-24 w-14"
+                          }`}
+                        >
                           <div
                             className={`absolute inset-0 rounded-lg border ${
                               renderRatio === option.value ? "border-red-400/70" : "border-white/20"
