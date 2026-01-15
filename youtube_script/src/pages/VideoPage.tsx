@@ -55,7 +55,7 @@ const voiceOptions = [
 const imageStyles = [
   "미니멀 애니메이션",
   "실사 느낌",
-  "카툰 렌더",
+  "카툰 스타일",
   "하이퍼 리얼",
 ];
 
@@ -63,37 +63,37 @@ const steps: Step[] = [
   {
     id: "setup",
     label: "영상 설정",
-    description: "프로젝트 제목과 렌더 기본 값을 먼저 정해보세요.",
+    description: "프로젝트 제목·출력 기본 값 설정",
     icon: <FiSettings />,
   },
   {
     id: "script",
     label: "대본 생성",
-    description: "입력한 대본을 분석해서, 새로운 주제로 대본을 작성합니다.",
+    description: "입력 대본 분석·새 주제 대본 작성",
     icon: <FiFileText />,
   },
   {
     id: "tts",
     label: "음성 생성",
-    description: "AI 보이스를 선택해 내레이션을 만들고 저장하세요.",
+    description: "AI 보이스 선택·내레이션 저장",
     icon: <FiMic />,
   },
   {
     id: "image",
     label: "이미지 생성",
-    description: "스토리보드 컷을 기준으로 이미지 프롬프트를 세팅합니다.",
+    description: "스토리보드 기반 이미지 프롬프트 설정",
     icon: <FiImage />,
   },
   {
     id: "generate",
     label: "영상 생성",
-    description: "이미지, 음성, 텍스트를 하나로 묶어 영상 클립을 구성합니다.",
+    description: "이미지·음성·텍스트로 영상 구성",
     icon: <FiFilm />,
   },
   {
     id: "render",
     label: "영상 편집",
-    description: "모든 요소를 최종 렌더링하고 패키지를 다운로드하세요.",
+    description: "최종 영상 출력·패키지 다운로드",
     icon: <FiDownload />,
   },
 ];
@@ -348,7 +348,7 @@ const VideoPage: React.FC = () => {
       }
       zip.file(
         "README.txt",
-        "올인원 영상 제작 스튜디오 패키지입니다.\nassets 폴더에 이미지와 음성, 영상 소스를 넣어주세요.\nmanifest.json에서 렌더 설정을 확인할 수 있습니다."
+        "올인원 영상 제작 스튜디오 패키지입니다.\nassets 폴더에 이미지와 음성, 영상 소스를 넣어주세요.\nmanifest.json에서 출력 설정을 확인할 수 있습니다."
       );
 
       const blob = await zip.generateAsync({ type: "blob" });
@@ -380,7 +380,7 @@ const VideoPage: React.FC = () => {
       status: "생성 완료",
     };
     setTtsSamples((prev) => [newSample, ...prev].slice(0, 3));
-    setRenderingStatus("AI 음성 렌더링을 준비했습니다.");
+    setRenderingStatus("AI 음성 출력을 준비했습니다.");
   };
 
   const handleGenerateImages = () => {
@@ -398,7 +398,7 @@ const VideoPage: React.FC = () => {
     if (rendering) return;
     setRendering(true);
     setRenderingProgress(0);
-    setRenderingStatus("렌더링을 예약하고 있습니다.");
+    setRenderingStatus("출력을 예약하고 있습니다.");
     const interval = window.setInterval(() => {
       setRenderingProgress((prev) => {
         const next = prev + 20;
@@ -406,7 +406,7 @@ const VideoPage: React.FC = () => {
           window.clearInterval(interval);
           setRendering(false);
           setRenderingStatus(
-            "렌더링이 완료되었습니다. 결과를 다운로드하거나 패키지를 확인하세요."
+            "출력이 완료되었습니다. 결과를 다운로드하거나 패키지를 확인하세요."
           );
           return 100;
         }
@@ -1186,7 +1186,7 @@ const VideoPage: React.FC = () => {
                 disabled={!assetFiles.length || isPackaging}
                 className="mt-6 w-full rounded-2xl bg-gradient-to-r from-red-500 to-orange-500 px-5 py-3 text-sm font-bold text-white shadow-[0_10px_30px_rgba(255,86,96,0.4)] disabled:opacity-60"
               >
-                <FiDownload /> {isPackaging ? "패키지를 준비 중입니다" : "렌더 패키지 다운로드"}
+                <FiDownload /> {isPackaging ? "패키지를 준비 중입니다" : "출력 패키지 다운로드"}
               </button>
             </div>
             <div className="rounded-[clamp(1rem,2vw,1.4rem)] border border-white/20 bg-black/40 p-4">
@@ -1224,7 +1224,7 @@ const VideoPage: React.FC = () => {
             <div className="rounded-[clamp(1rem,2vw,1.6rem)] border border-white/10 bg-white/95 p-[clamp(1.25rem,2vw,1.8rem)] text-slate-900 shadow-[0_20px_40px_rgba(15,23,42,0.15)]">
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-sm font-semibold text-slate-400">영상 렌더링</p>
+                  <p className="text-sm font-semibold text-slate-400">영상 출력</p>
                   <h3 className="text-2xl font-bold text-slate-900 mt-1">모든 요소를 조합해 최종 영상을 생성합니다.</h3>
                 </div>
                 <span className="text-sm text-slate-500">진행도 {renderingProgress}%</span>
@@ -1243,7 +1243,7 @@ const VideoPage: React.FC = () => {
               </div>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 <div className="rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700">
-                  <p className="text-sm font-semibold text-slate-400">렌더 요약</p>
+                  <p className="text-sm font-semibold text-slate-400">출력 요약</p>
                   <div className="mt-2 space-y-1 text-sm">
                     <div className="flex justify-between">
                       <span>예상 길이</span>
@@ -1264,7 +1264,7 @@ const VideoPage: React.FC = () => {
                   </div>
                 </div>
                 <div className="rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700">
-                  <p className="text-sm font-semibold text-slate-400">렌더링 메모</p>
+                  <p className="text-sm font-semibold text-slate-400">출력 메모</p>
                   <textarea
                     value={editNotes}
                     onChange={(event) => setEditNotes(event.target.value)}
@@ -1294,14 +1294,14 @@ const VideoPage: React.FC = () => {
                 />
               </div>
               <p className="mt-3 text-sm text-slate-500">
-                {renderingStatus || "렌더링을 시작하면 자동으로 모든 컷을 조합해 영상을 완성합니다."}
+                {renderingStatus || "출력을 시작하면 자동으로 모든 컷을 조합해 영상을 완성합니다."}
               </p>
               <button
                 onClick={startRendering}
                 disabled={rendering}
                 className="mt-6 w-full rounded-2xl bg-gradient-to-r from-red-500 to-orange-500 px-5 py-3 text-sm font-bold text-white shadow-[0_10px_30px_rgba(255,86,96,0.35)] disabled:opacity-60"
               >
-                {rendering ? "렌더링 중..." : "영상 렌더링 시작"}
+                {rendering ? "출력 중..." : "영상 출력 시작"}
               </button>
             </div>
           </div>
