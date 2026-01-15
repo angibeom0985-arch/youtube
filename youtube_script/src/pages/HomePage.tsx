@@ -274,13 +274,16 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
         </div>
 
         <div className="mt-12 text-xs text-slate-400/80">
-          제작자 : 데이비 · 문의 :{" "}
-          <a
-            href="mailto:david153.official@gmail.com"
-            className="underline underline-offset-2 hover:text-slate-200"
-          >
-            david153.official@gmail.com
-          </a>
+          <span>제작자 : 데이비</span>
+          <span className="block">
+            문의 :{" "}
+            <a
+              href="mailto:david153.official@gmail.com"
+              className="underline underline-offset-2 hover:text-slate-200"
+            >
+              david153.official@gmail.com
+            </a>
+          </span>
         </div>
       </div>
 
