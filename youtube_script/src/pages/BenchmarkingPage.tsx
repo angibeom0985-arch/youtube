@@ -47,8 +47,8 @@ const dateOptions: DateOption[] = [
 
 const durationOptions: DurationOption[] = [
   { label: "전체", value: "any" },
-  { label: "숏폼 (< 1분)", value: "short" },
-  { label: "롱폼 (>= 1분)", value: "long" }
+  { label: "숏폼", value: "short" },
+  { label: "롱폼", value: "long" }
 ];
 
 const momentumOptions = [
@@ -184,11 +184,7 @@ const BenchmarkingPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white selection:bg-purple-500/30 relative">
-      {/* Auth Status - Top Right */}
-      <div className="absolute top-0 right-0 p-4 sm:p-6 flex gap-3 z-50 items-center">
-        <UserCreditToolbar user={user} onLogout={handleLogout} tone="purple" />
-      </div>
+    <div className="min-h-screen bg-black text-white selection:bg-purple-500/30">
 
       <div className="mx-auto max-w-[1600px] px-6 py-8">
         {/* Header */}
@@ -200,7 +196,8 @@ const BenchmarkingPage: React.FC = () => {
             </h1>
           </div>
           
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-end gap-3">
+            <UserCreditToolbar user={user} onLogout={handleLogout} tone="purple" />
             <button 
               onClick={() => setShowApiSettings(!showApiSettings)}
               className={`p-2 rounded-lg border transition-colors ${showApiSettings ? 'bg-purple-600 border-purple-500' : 'bg-slate-900 border-slate-700 hover:border-purple-500'}`}
