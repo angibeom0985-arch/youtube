@@ -1329,11 +1329,6 @@ const VideoPage: React.FC = () => {
       <div className="relative mx-auto max-w-[min(1280px,94vw)] px-[clamp(1rem,3vw,2.5rem)] py-[clamp(2rem,4vw,3.8rem)]">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <HomeBackButton tone="red" />
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1 text-xs text-white/60">
-            올인원 제작 플로우
-            <span className="h-1.5 w-1.5 rounded-full bg-red-400" />
-            {activeStep.label}
-          </div>
         </div>
 
         <header className="mt-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -1345,14 +1340,14 @@ const VideoPage: React.FC = () => {
               올인원 영상 제작 스튜디오
             </h1>
             <p className="mt-3 text-[clamp(0.95rem,1.6vw,1.1rem)] text-white/70 text-balance">
-              단계별로 해야 할 일을 빠르게 확인하고 바로 진행하세요.
+              필요한 단계를 쉽게 확인하고, 빠르게 영상 제작 기능을 이어서 사용할 수 있어요.
             </p>
           </div>
-          <div className="flex flex-wrap gap-2 text-xs text-white/70">
+          <div className="grid w-full gap-2 text-xs text-white/70 sm:max-w-[520px] sm:grid-cols-3">
             {steps.map((step, index) => (
               <span
                 key={step.id}
-                className={`rounded-full border px-3 py-1 ${
+                className={`rounded-full border px-3 py-1 text-center ${
                   index === currentStep
                     ? "border-red-400/50 bg-red-500/10 text-red-200"
                     : "border-white/10 bg-white/5"
