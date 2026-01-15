@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+﻿import React, { useState, useMemo, useEffect } from "react";
 import { FiLayout, FiList, FiDownload, FiSettings, FiExternalLink, FiSearch } from "react-icons/fi";
 import { supabase } from "../services/supabase";
 import type { User } from "@supabase/supabase-js";
@@ -38,35 +38,35 @@ interface SearchSummary {
 }
 
 const dateOptions: DateOption[] = [
-  { label: "1개월", days: 30 },
-  { label: "2개월", days: 60 },
-  { label: "6개월", days: 180 },
-  { label: "1년", days: 365 },
-  { label: "전체 기간", days: 0 }
+  { label: "1媛쒖썡", days: 30 },
+  { label: "2媛쒖썡", days: 60 },
+  { label: "6媛쒖썡", days: 180 },
+  { label: "1??, days: 365 },
+  { label: "?꾩껜 湲곌컙", days: 0 }
 ];
 
 const durationOptions: DurationOption[] = [
-  { label: "전체", value: "any" },
-  { label: "숏폼", value: "short" },
-  { label: "롱폼", value: "long" }
+  { label: "?꾩껜", value: "any" },
+  { label: "?륂뤌", value: "short" },
+  { label: "濡깊뤌", value: "long" }
 ];
 
 const momentumOptions = [
-  { level: 1, label: "1단계 (낮음)", min: 0, max: 0.2 },
-  { level: 2, label: "2단계 (성장 중)", min: 0.2, max: 0.5 },
-  { level: 3, label: "3단계 (1:1 균형)", min: 0.5, max: 1.5 },
-  { level: 4, label: "4단계 (높은 모멘텀)", min: 1.5, max: 5.0 },
-  { level: 5, label: "5단계 (폭발적 성과)", min: 5.0, max: 99999 }
+  { level: 1, label: "1?④퀎 (??쓬)", min: 0, max: 0.2 },
+  { level: 2, label: "2?④퀎 (?깆옣 以?", min: 0.2, max: 0.5 },
+  { level: 3, label: "3?④퀎 (1:1 洹좏삎)", min: 0.5, max: 1.5 },
+  { level: 4, label: "4?④퀎 (?믪? 紐⑤찘?)", min: 1.5, max: 5.0 },
+  { level: 5, label: "5?④퀎 (??컻???깃낵)", min: 5.0, max: 99999 }
 ];
 
 const numberFormatter = new Intl.NumberFormat("ko-KR");
 
 const BenchmarkingPage: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
-  const [query, setQuery] = useState("일상 건강");
+  const [query, setQuery] = useState("?쇱긽 嫄닿컯");
   const [days, setDays] = useState(dateOptions[0].days);
   const [durationFilter, setDurationFilter] = useState(durationOptions[0].value);
-  const [momentumLevel, setMomentumLevel] = useState(0); // 0이면 전체
+  const [momentumLevel, setMomentumLevel] = useState(0); // 0?대㈃ ?꾩껜
   const [apiKey, setApiKey] = useState(() => localStorage.getItem("yt_api_key") || "");
   const [showApiSettings, setShowApiSettings] = useState(false);
   const [viewMode, setViewMode] = useState<"card" | "table">("card");
@@ -93,12 +93,12 @@ const BenchmarkingPage: React.FC = () => {
     await supabase.auth.signOut();
   };
 
-  // API 키 변경 시 저장
+  // API ??蹂寃??????
   useEffect(() => {
     localStorage.setItem("yt_api_key", apiKey);
   }, [apiKey]);
 
-  // 클라이언트 측 필터링 적용 (모멘텀 레벨 등)
+  // ?대씪?댁뼵??痢??꾪꽣留??곸슜 (紐⑤찘? ?덈꺼 ??
   const filteredResults = useMemo(() => {
     if (momentumLevel === 0) return results;
     const option = momentumOptions.find(o => o.level === momentumLevel);
@@ -109,7 +109,7 @@ const BenchmarkingPage: React.FC = () => {
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     if (!apiKey.trim()) {
-      setError("YouTube API 키를 입력해 주세요.");
+      setError("YouTube API ?ㅻ? ?낅젰??二쇱꽭??");
       setShowApiSettings(true);
       return;
     }
@@ -132,30 +132,30 @@ const BenchmarkingPage: React.FC = () => {
           days,
           durationFilter,
           apiKey,
-          maxScan: 100 // 최대 100개 스캔
+          maxScan: 100 // 理쒕? 100媛??ㅼ틪
         })
       });
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data?.error || "검색에 실패했습니다.");
+        throw new Error(data?.error || "寃?됱뿉 ?ㅽ뙣?덉뒿?덈떎.");
       }
 
         setResults(data.results || []);
         setSummary(data.summary || null);
         window.dispatchEvent(new Event("creditRefresh"));
     } catch (err) {
-      setError((err as Error).message || "검색에 실패했습니다.");
+      setError((err as Error).message || "寃?됱뿉 ?ㅽ뙣?덉뒿?덈떎.");
     } finally {
       setLoading(false);
     }
   }
 
-  // 엑셀(CSV) 저장 기능 (한글 깨짐 방지 BOM 추가)
+  // ?묒?(CSV) ???湲곕뒫 (?쒓? 源⑥쭚 諛⑹? BOM 異붽?)
   const exportToExcel = () => {
     if (filteredResults.length === 0) return;
 
-    const headers = ["순위", "제목", "채널명", "구독자", "조회수", "모멘텀", "길이", "업로드일", "링크", "태그", "설명"];
+    const headers = ["?쒖쐞", "?쒕ぉ", "梨꾨꼸紐?, "援щ룆??, "議고쉶??, "紐⑤찘?", "湲몄씠", "?낅줈?쒖씪", "留곹겕", "?쒓렇", "?ㅻ챸"];
     const csvRows = filteredResults.map((v, i) => [
       i + 1,
       `"${v.title.replace(/"/g, '""')}"`,
@@ -172,12 +172,12 @@ const BenchmarkingPage: React.FC = () => {
 
     const csvContent = [headers, ...csvRows].map(e => e.join(",")).join("\n");
     
-    // UTF-8 BOM 추가 (\ufeff)
+    // UTF-8 BOM 異붽? (\ufeff)
     const blob = new Blob(["\ufeff" + csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", `유튜브_모멘텀_분석_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute("download", `?좏뒠釉?紐⑤찘?_遺꾩꽍_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -192,7 +192,7 @@ const BenchmarkingPage: React.FC = () => {
           <div>
             <HomeBackButton tone="purple" className="mb-2" />
             <h1 className="text-4xl font-black bg-gradient-to-r from-white via-purple-200 to-purple-500 bg-clip-text text-transparent">
-              벤치마킹 영상 발굴
+              踰ㅼ튂留덊궧 ?곸긽 諛쒓뎬
             </h1>
           </div>
           
@@ -201,7 +201,7 @@ const BenchmarkingPage: React.FC = () => {
             <button 
               onClick={() => setShowApiSettings(!showApiSettings)}
               className={`p-2 rounded-lg border transition-colors ${showApiSettings ? 'bg-purple-600 border-purple-500' : 'bg-slate-900 border-slate-700 hover:border-purple-500'}`}
-              title="API 설정"
+              title="API ?ㅼ젙"
             >
               <FiSettings size={20} />
             </button>
@@ -228,11 +228,11 @@ const BenchmarkingPage: React.FC = () => {
           <div className="bg-purple-900/20 border border-purple-500/30 rounded-xl p-6 mb-8 animate-in fade-in slide-in-from-top-4 duration-300">
             <div className="flex items-center gap-2 mb-4 text-purple-300">
               <FiSettings />
-              <h3 className="font-bold">유튜브 API 설정</h3>
+              <h3 className="font-bold">?좏뒠釉?API ?ㅼ젙</h3>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm text-slate-300 mb-2">Google Cloud API 키</label>
+                <label className="block text-sm text-slate-300 mb-2">Google Cloud API ??/label>
                 <input 
                   type="password" 
                   value={apiKey}
@@ -242,8 +242,8 @@ const BenchmarkingPage: React.FC = () => {
                 />
               </div>
               <p className="text-xs text-slate-400 leading-relaxed">
-                * 입력하신 API 키는 브라우저 로컬 저장소에만 안전하게 보관됩니다.<br />
-                * 키가 없는 경우 <a href="https://console.cloud.google.com/" target="_blank" rel="noreferrer" className="text-purple-400 underline">Google Cloud Console</a>에서 발급받으세요.
+                * ?낅젰?섏떊 API ?ㅻ뒗 釉뚮씪?곗? 濡쒖뺄 ??μ냼?먮쭔 ?덉쟾?섍쾶 蹂닿??⑸땲??<br />
+                * ?ㅺ? ?녿뒗 寃쎌슦 <a href="https://console.cloud.google.com/" target="_blank" rel="noreferrer" className="text-purple-400 underline">Google Cloud Console</a>?먯꽌 諛쒓툒諛쏆쑝?몄슂.
               </p>
             </div>
           </div>
@@ -258,21 +258,27 @@ const BenchmarkingPage: React.FC = () => {
                 <div>
                   <label className="flex items-center gap-2 text-sm font-bold text-slate-200 mb-3">
                     <FiSearch className="text-purple-500" />
-                    검색 키워드
+                    寃???ㅼ썙??
                   </label>
                   <input
                     type="text"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
-                    placeholder="분석할 키워드를 입력하세요 (예: 재테크 노하우)"
+                    placeholder="遺꾩꽍???ㅼ썙?쒕? ?낅젰?섏꽭??(?? ?ы뀒???명븯??"
                     required
                     className="w-full px-5 py-4 bg-black border border-slate-700 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all text-lg"
+                    style={
+                      {
+                        userSelect: "text",
+                        WebkitUserSelect: "text",
+                      } as React.CSSProperties
+                    }
                   />
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-bold text-slate-200 mb-3">업로드 기간</label>
+                    <label className="block text-sm font-bold text-slate-200 mb-3">?낅줈??湲곌컙</label>
                     <div className="flex flex-wrap gap-2">
                       {dateOptions.map((opt) => (
                         <button
@@ -287,7 +293,7 @@ const BenchmarkingPage: React.FC = () => {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-bold text-slate-200 mb-3">영상 유형</label>
+                    <label className="block text-sm font-bold text-slate-200 mb-3">?곸긽 ?좏삎</label>
                     <div className="flex gap-2">
                       {durationOptions.map((opt) => (
                         <button
@@ -307,16 +313,16 @@ const BenchmarkingPage: React.FC = () => {
               {/* Momentum Info */}
               <div className="bg-purple-900/10 border border-purple-500/20 rounded-2xl p-6 flex flex-col justify-center">
                 <h3 className="text-purple-400 font-bold mb-4 flex items-center gap-2 text-lg">
-                  💡 벤치마킹 수치란?
+                  ?뮕 踰ㅼ튂留덊궧 ?섏튂??
                 </h3>
                 <div className="space-y-4 text-sm text-slate-300">
                   <p className="leading-relaxed">
-                    구독자 수 대비 조회수가 얼마나 높은지를 측정하여 벤치마킹 효율을 계산합니다. <br />
-                    <span className="text-white font-bold">1:1 비율(1배)</span>이 평균적인 성과라면, <br />
-                    <span className="text-purple-400 font-bold">10배 이상의 수치</span>는 폭발적인 잠재력을 의미합니다.
+                    援щ룆?????鍮?議고쉶?섍? ?쇰쭏???믪?吏瑜?痢≪젙?섏뿬 踰ㅼ튂留덊궧 ?⑥쑉??怨꾩궛?⑸땲?? <br />
+                    <span className="text-white font-bold">1:1 鍮꾩쑉(1諛?</span>???됯퇏?곸씤 ?깃낵?쇰㈃, <br />
+                    <span className="text-purple-400 font-bold">10諛??댁긽???섏튂</span>????컻?곸씤 ?좎옱?μ쓣 ?섎??⑸땲??
                   </p>
                   <div className="p-3 bg-black/40 rounded-lg border border-purple-500/10">
-                    <p className="text-xs text-slate-400">기준: 구독자 1만 / 조회수 10만 = 10배 효율</p>
+                    <p className="text-xs text-slate-400">湲곗?: 援щ룆??1留?/ 議고쉶??10留?= 10諛??⑥쑉</p>
                   </div>
                 </div>
               </div>
@@ -330,12 +336,12 @@ const BenchmarkingPage: React.FC = () => {
               {loading ? (
                 <span className="flex items-center justify-center gap-3">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
-                  유튜브 엔진 분석 중...
+                  ?좏뒠釉??붿쭊 遺꾩꽍 以?..
                 </span>
               ) : (
                 <>
-                  <span>벤치마킹 영상 검색</span>
-                  <span className="bg-white/20 text-white text-sm px-2 py-1 rounded-full font-bold">5 ⚡</span>
+                  <span>踰ㅼ튂留덊궧 ?곸긽 寃??/span>
+                  <span className="bg-white/20 text-white text-sm px-2 py-1 rounded-full font-bold">5 ??/span>
                 </>
               )}
             </button>
@@ -346,13 +352,13 @@ const BenchmarkingPage: React.FC = () => {
         {results.length > 0 && (
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8 p-6 bg-slate-900/50 border border-slate-800 rounded-2xl">
             <div className="w-full lg:w-auto">
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">모멘텀 배수 필터</label>
+              <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">紐⑤찘? 諛곗닔 ?꾪꽣</label>
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => setMomentumLevel(0)}
                   className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${momentumLevel === 0 ? 'bg-white text-black' : 'bg-slate-800 text-slate-400'}`}
                 >
-                  전체
+                  ?꾩껜
                 </button>
                 {momentumOptions.map((opt) => (
                   <button
@@ -368,15 +374,15 @@ const BenchmarkingPage: React.FC = () => {
             
             <div className="flex items-center gap-4 w-full lg:w-auto">
               <div className="text-right flex-grow lg:flex-grow-0">
-                <span className="text-slate-400 text-sm">발견된 기회</span>
-                <p className="text-2xl font-black text-purple-400">{filteredResults.length}건</p>
+                <span className="text-slate-400 text-sm">諛쒓껄??湲고쉶</span>
+                <p className="text-2xl font-black text-purple-400">{filteredResults.length}嫄?/p>
               </div>
               <button
                 onClick={exportToExcel}
                 className="flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-500 text-white font-bold rounded-xl transition-all shadow-lg"
               >
                 <FiDownload />
-                엑셀 저장
+                ?묒? ???
               </button>
             </div>
           </div>
@@ -385,7 +391,7 @@ const BenchmarkingPage: React.FC = () => {
         {/* Error State */}
         {error && (
           <div className="bg-orange-900/20 border-2 border-orange-500/30 rounded-xl p-6 mb-10 text-center">
-            <p className="text-orange-400 font-bold">❌ {error}</p>
+            <p className="text-orange-400 font-bold">??{error}</p>
           </div>
         )}
 
@@ -393,7 +399,7 @@ const BenchmarkingPage: React.FC = () => {
         {loading ? (
           <div className="py-20 text-center">
             <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-500 mx-auto mb-6"></div>
-            <p className="text-slate-400 animate-pulse text-lg">YouTube 데이터를 심층 분석하고 있습니다...</p>
+            <p className="text-slate-400 animate-pulse text-lg">YouTube ?곗씠?곕? ?ъ링 遺꾩꽍?섍퀬 ?덉뒿?덈떎...</p>
           </div>
         ) : filteredResults.length > 0 ? (
           viewMode === "card" ? (
@@ -419,19 +425,19 @@ const BenchmarkingPage: React.FC = () => {
                     
                     <div className="grid grid-cols-2 gap-3 mb-6">
                       <div className="bg-black/40 rounded-xl p-3 border border-slate-800">
-                        <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">조회수</p>
+                        <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">議고쉶??/p>
                         <p className="text-green-400 font-black">{numberFormatter.format(video.views)}</p>
                       </div>
                       <div className="bg-black/40 rounded-xl p-3 border border-slate-800">
-                        <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">구독자</p>
+                        <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">援щ룆??/p>
                         <p className="text-slate-300 font-black">{numberFormatter.format(video.subscribers)}</p>
                       </div>
                     </div>
 
                     <div className="bg-purple-600/10 border border-purple-500/30 rounded-xl p-4 mb-6">
                       <div className="flex justify-between items-center">
-                        <span className="text-sm font-bold text-purple-300">모멘텀</span>
-                        <span className="text-xl font-black text-purple-400">{video.contribution}배 🚀</span>
+                        <span className="text-sm font-bold text-purple-300">紐⑤찘?</span>
+                        <span className="text-xl font-black text-purple-400">{video.contribution}諛???</span>
                       </div>
                     </div>
 
@@ -448,7 +454,7 @@ const BenchmarkingPage: React.FC = () => {
                       className="flex items-center justify-center gap-2 w-full py-3 bg-orange-600/10 hover:bg-orange-600 text-orange-500 hover:text-white font-bold rounded-xl border border-orange-600/30 transition-all"
                     >
                       <FiExternalLink />
-                      영상 자세히 보기
+                      ?곸긽 ?먯꽭??蹂닿린
                     </a>
                   </div>
                 </div>
@@ -461,14 +467,14 @@ const BenchmarkingPage: React.FC = () => {
                 <table className="w-full text-left border-collapse min-w-[1200px]">
                   <thead>
                     <tr className="bg-slate-800/50 border-b border-slate-700">
-                      <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase w-20">순위</th>
-                      <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase min-w-[300px] resize-x overflow-auto">영상 제목</th>
-                      <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase min-w-[150px] resize-x overflow-auto">채널</th>
-                      <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase w-24">길이</th>
-                      <th className="px-6 py-4 text-xs font-bold text-green-400 uppercase w-32">조회수</th>
-                      <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase w-32">구독자</th>
-                      <th className="px-6 py-4 text-xs font-bold text-purple-400 uppercase w-32">모멘텀</th>
-                      <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase w-24">링크</th>
+                      <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase w-20">?쒖쐞</th>
+                      <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase min-w-[300px] resize-x overflow-auto">?곸긽 ?쒕ぉ</th>
+                      <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase min-w-[150px] resize-x overflow-auto">梨꾨꼸</th>
+                      <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase w-24">湲몄씠</th>
+                      <th className="px-6 py-4 text-xs font-bold text-green-400 uppercase w-32">議고쉶??/th>
+                      <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase w-32">援щ룆??/th>
+                      <th className="px-6 py-4 text-xs font-bold text-purple-400 uppercase w-32">紐⑤찘?</th>
+                      <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase w-24">留곹겕</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800">
@@ -490,7 +496,7 @@ const BenchmarkingPage: React.FC = () => {
                         <td className="px-6 py-4 text-sm font-bold text-slate-400">{numberFormatter.format(video.subscribers)}</td>
                         <td className="px-6 py-4">
                           <span className="px-3 py-1 bg-purple-600/20 text-purple-400 rounded-full font-black text-xs border border-purple-500/20">
-                            {video.contribution}배
+                            {video.contribution}諛?
                           </span>
                         </td>
                         <td className="px-6 py-4">
@@ -510,15 +516,16 @@ const BenchmarkingPage: React.FC = () => {
             <div className="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-600">
               <FiSearch size={40} />
             </div>
-            <h3 className="text-xl font-bold text-slate-400 mb-2">분석 데이터가 없습니다</h3>
-            <p className="text-slate-500">검색어를 입력하고 버튼을 눌러 유튜브 시장의 기회를 찾아보세요.</p>
+            <h3 className="text-xl font-bold text-slate-400 mb-2">遺꾩꽍 ?곗씠?곌? ?놁뒿?덈떎</h3>
+            <p className="text-slate-500">寃?됱뼱瑜??낅젰?섍퀬 踰꾪듉???뚮윭 ?좏뒠釉??쒖옣??湲고쉶瑜?李얠븘蹂댁꽭??</p>
           </div>
         )}
       </div>
 
-      {/* 사용자 크레딧 사이드바 */}
+      {/* ?ъ슜???щ젅???ъ씠?쒕컮 */}
     </div>
   );
 };
 
 export default BenchmarkingPage;
+
