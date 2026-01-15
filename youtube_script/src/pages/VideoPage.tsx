@@ -1359,54 +1359,9 @@ const VideoPage: React.FC = () => {
           </div>
         </header>
 
-        <div className="mt-[clamp(2rem,4vw,3rem)] grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
-          <aside className="rounded-[clamp(1rem,2vw,1.5rem)] border border-white/10 bg-gradient-to-b from-white/10 to-white/5 p-[clamp(1rem,2vw,1.4rem)] shadow-[0_14px_30px_rgba(0,0,0,0.45)]">
-            <div className="flex items-center justify-between text-sm text-white/60">
-              <span className="font-semibold">현재 단계</span>
-              <span>{progressLabel}</span>
-            </div>
-            <div className="mt-4 space-y-2">
-              {steps.map((step, index) => {
-                const isActive = index === currentStep;
-                const isDone = index < currentStep;
-                return (
-                  <button
-                    key={step.id}
-                    type="button"
-                    onClick={() => setCurrentStep(index)}
-                    className={`flex w-full items-start gap-3 rounded-2xl border px-3 py-3 text-left transition ${
-                      isActive
-                        ? "border-red-400/50 bg-red-500/10 shadow-[0_10px_20px_rgba(239,68,68,0.2)]"
-                        : "border-white/10 bg-black/30 hover:border-white/20"
-                    }`}
-                  >
-                    <span
-                      className={`mt-0.5 flex h-9 w-9 items-center justify-center rounded-full border text-sm font-semibold ${
-                        isDone
-                          ? "border-red-400 bg-red-500 text-white"
-                          : isActive
-                            ? "border-red-400 bg-white text-red-600"
-                            : "border-white/20 text-white/60"
-                      }`}
-                    >
-                      {isDone ? <FiDownload className="text-base" /> : index + 1}
-                    </span>
-                    <div>
-                      <p className="text-sm font-semibold text-white">{step.label}</p>
-                      <p className="mt-1 text-xs text-white/50">{step.description}</p>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-            <div className="mt-4 rounded-2xl border border-white/10 bg-black/40 p-3 text-xs text-white/70">
-              <p className="font-semibold text-white/80">지금 하는 일</p>
-              <p className="mt-1 text-white/60">{activeStep.description}</p>
-            </div>
-          </aside>
-
+        <div className="mt-[clamp(2rem,4vw,3rem)]">
           <main className="rounded-[clamp(1.2rem,2.5vw,2rem)] border border-white/10 bg-white/5 shadow-[0_18px_40px_rgba(0,0,0,0.6)] backdrop-blur-2xl">
-            <div className="border-b border-white/10 p-[clamp(1.5rem,3vw,2.5rem)]">
+            <div className="border-b border-white/10 px-[clamp(1.5rem,3vw,2.5rem)] py-[clamp(1.1rem,2.4vw,1.8rem)]">
               <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div>
                   <p className="text-[clamp(0.6rem,1vw,0.75rem)] font-semibold uppercase tracking-[0.3em] text-white/40">
