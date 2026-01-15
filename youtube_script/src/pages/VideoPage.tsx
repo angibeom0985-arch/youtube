@@ -451,13 +451,13 @@ const VideoPage: React.FC = () => {
     {
       value: "long" as VideoFormat,
       title: "롱폼",
-      description: "유튜브 기본 가로형 영상에 최적화",
+      description: "가로형 영상",
       icon: <FiMonitor className="text-lg" />,
     },
     {
       value: "short" as VideoFormat,
       title: "숏폼",
-      description: "세로형 숏츠/릴스에 적합",
+      description: "세로형 영상",
       icon: <FiSmartphone className="text-lg" />,
     },
   ];
@@ -466,21 +466,21 @@ const VideoPage: React.FC = () => {
       value: "16:9",
       title: "가로형",
       size: "1920 x 1080",
-      hint: "롱폼 · 유튜브 기본",
+      hint: "롱폼",
       previewPadding: "pt-[56.25%]",
     },
     {
       value: "9:16",
       title: "세로형",
       size: "1080 x 1920",
-      hint: "숏폼 · Shorts/Reels",
+      hint: "숏폼",
       previewPadding: "pt-[177.78%]",
     },
     {
       value: "1:1",
       title: "정사각형",
       size: "1080 x 1080",
-      hint: "피드/썸네일 활용",
+      hint: "인스타 게시글",
       previewPadding: "pt-[100%]",
     },
   ];
@@ -523,32 +523,11 @@ const VideoPage: React.FC = () => {
     switch (activeStep.id) {
       case "setup":
         return (
-          <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)] grid gap-[clamp(1.25rem,2vw,2rem)] lg:grid-cols-2">
-            <div className="rounded-[clamp(1rem,2vw,1.4rem)] border border-white/20 bg-black/40 p-[clamp(1rem,2vw,1.4rem)]">
-              <h3 className="text-2xl font-bold text-white">어떤 영상을 만들고 싶으세요?</h3>
-              <p className="text-sm text-white/50 mt-3">
-                핵심 메시지와 CTA를 간단히 적어두면 나머지 스텝에서 참조합니다.
-              </p>
-              <label className="mt-5 block text-xs font-semibold text-white/60">프로젝트 제목</label>
-              <input
-                value={projectTitle}
-                onChange={(event) => setProjectTitle(event.target.value)}
-                className="mt-2 w-full rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-500"
-                placeholder="예: 2026년 환율 1500원 시대의 기회"
-              />
-              <label className="mt-4 block text-xs font-semibold text-white/60">기획 메모</label>
-              <textarea
-                value={projectNotes}
-                onChange={(event) => setProjectNotes(event.target.value)}
-                rows={4}
-                className="mt-2 w-full rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-500"
-                placeholder="타겟, 톤, CTA 등을 적어주세요."
-              />
-            </div>
+          <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
             <div className="rounded-[clamp(1rem,2vw,1.4rem)] border border-white/20 bg-black/40 p-[clamp(1rem,2vw,1.4rem)]">
               <h3 className="text-2xl font-bold text-white">영상 기본 설정</h3>
               <p className="mt-3 text-sm text-white/70">
-                영상 길이와 화면 모양, 움직임 부드러움을 선택해 주세요.
+                롱폼/숏폼과 화면 비율을 먼저 선택해 주세요.
               </p>
               <div className="mt-4">
                 <p className="text-xs font-semibold text-white/80">영상 형식</p>
@@ -576,33 +555,21 @@ const VideoPage: React.FC = () => {
                     </button>
                   ))}
                 </div>
+                <p className="mt-3 text-[11px] text-white/50">
+                  롱폼=가로형 · 숏폼=세로형 · 정사각형=인스타 게시글
+                </p>
               </div>
-              <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <label className="text-xs font-semibold text-white/80">영상 길이(초)</label>
-                  <select
-                    value={renderDuration}
-                    onChange={(event) => setRenderDuration(event.target.value)}
-                    className="w-full rounded-2xl border border-white/20 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-red-500"
-                  >
-                    <option value="30">30초</option>
-                    <option value="45">45초</option>
-                    <option value="60">60초</option>
-                    <option value="90">90초</option>
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-semibold text-white/80">부드러움(FPS)</label>
-                  <select
-                    value={renderFps}
-                    onChange={(event) => setRenderFps(event.target.value)}
-                    className="w-full rounded-2xl border border-white/20 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-red-500"
-                  >
-                    <option value="24">24fps</option>
-                    <option value="30">30fps</option>
-                    <option value="60">60fps</option>
-                  </select>
-                </div>
+              <div className="mt-5 space-y-2">
+                <label className="text-xs font-semibold text-white/80">부드러움(FPS)</label>
+                <select
+                  value={renderFps}
+                  onChange={(event) => setRenderFps(event.target.value)}
+                  className="w-full rounded-2xl border border-white/20 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-red-500"
+                >
+                  <option value="24">24fps</option>
+                  <option value="30">30fps</option>
+                  <option value="60">60fps</option>
+                </select>
               </div>
               <div className="mt-5">
                 <p className="text-xs font-semibold text-white/80">화면 비율 & 크기</p>
@@ -644,14 +611,6 @@ const VideoPage: React.FC = () => {
                   ))}
                 </div>
               </div>
-              <label className="mt-4 block text-xs font-semibold text-white/80">편집 메모</label>
-              <textarea
-                value={renderNotes}
-                onChange={(event) => setRenderNotes(event.target.value)}
-                rows={3}
-                className="mt-2 w-full rounded-2xl border border-white/20 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500"
-                placeholder="전환 효과나 자막 위치처럼 편집 참고사항을 적어주세요."
-              />
             </div>
           </div>
         );
