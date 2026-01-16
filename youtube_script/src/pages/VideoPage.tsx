@@ -68,9 +68,6 @@ const imageStyles = [
 
 const SCRIPT_USAGE_GUIDE =
   "대본 생성 사용법\n1. 현재 대본의 흐름을 그대로 붙여 넣기\n2. 영상 길이를 선택해 새 대본의 분량 설정\n3. 추천 주제 중 하나를 골라 새 대본 생성";
-const LEGACY_SAMPLE =
-  "[오프닝]\n환율 1500원 시대가 열렸습니다.\n[중간]\n실물 가격이 천정부지로...";
-
 const steps: Step[] = [
   {
     id: "setup",
@@ -156,10 +153,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     )
   );
   const [scriptDraft, setScriptDraft] = useState(() =>
-    getStoredString(
-      STORAGE_KEYS.script,
-      SCRIPT_USAGE_GUIDE
-    )
+    getStoredString(STORAGE_KEYS.script, "")
   );
   const [ttsScript, setTtsScript] = useState(() =>
     getStoredString(
@@ -264,14 +258,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   useEffect(() => setStoredValue(STORAGE_KEYS.editNotes, editNotes), [editNotes]);
   useEffect(() => setStoredValue(STORAGE_KEYS.format, videoFormat), [videoFormat]);
   useEffect(() => setStoredValue(STORAGE_KEYS.step, String(currentStep)), [currentStep]);
-
-  useEffect(() => {
-    const trimmed = scriptDraft.trim();
-    if (trimmed === LEGACY_SAMPLE.trim() || trimmed.includes("환율 1500원 시대")) {
-      setScriptDraft(SCRIPT_USAGE_GUIDE);
-    }
-  }, [scriptDraft]);
-
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -805,13 +791,10 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
             <div className="rounded-[clamp(1rem,2vw,1.6rem)] border border-white/10 bg-black/40 p-[clamp(1.25rem,2vw,1.8rem)] shadow-[0_18px_40px_rgba(0,0,0,0.45)]">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <div className="flex flex-wrap items-center gap-3">
-                    <h3 className="text-2xl font-bold text-white">?? ?? ??</h3>
-                  </div>
+                  <h3 className="text-2xl font-bold text-white">대본 입력</h3>
                   <p className="mt-2 text-sm text-white/60">
-                    ? ???? ?? ??, ??, ??, ?? ???? ?????.
+                    입력 대본을 분석하고 원하는 길이에 맞춰 새 스크립트를 만들어 드립니다.
                   </p>
-                  
                 </div>
                 <a
                   href="/script?no_ads=true"
@@ -823,161 +806,158 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 </a>
               </div>
 
-              <div className="mt-6 grid gap-4">
-                <>
-                    <textarea
-                      value={scriptDraft}
-                      onChange={(event) => setScriptDraft(event.target.value)}
-                      onFocus={() => {
-                        const trimmed = scriptDraft.trim();
-                        if (
-                          trimmed === SCRIPT_USAGE_GUIDE.trim() ||
-                          trimmed === LEGACY_SAMPLE.trim() ||
-                          trimmed.includes("환율 1500원 시대")
-                        ) {
-                          setScriptDraft("");
-                        }
-                      }}
-                      onBlur={() => {
-                        if (!scriptDraft.trim()) {
-                          setScriptDraft(SCRIPT_USAGE_GUIDE);
-                        }
-                      }}
-                      rows={7}
-                      className="transcript-input w-full rounded-2xl border border-white/20 bg-white px-4 py-4 text-sm text-slate-700 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500 select-text"
-                      placeholder=""
-                    />
-                    <div className="flex flex-wrap items-center justify-between text-sm text-white/50">
-                      <span>
-                        {scriptLineCount}줄 · {scriptDraft.length.toLocaleString()}자
-                      </span>
-                      <span>대본 구조 분석용 입력</span>
+              <div className="mt-6 space-y-5">
+                <textarea
+                  value={scriptDraft}
+                  onChange={(event) => setScriptDraft(event.target.value)}
+                  rows={7}
+                  className="transcript-input w-full rounded-2xl border border-white/20 bg-black/30 px-4 py-4 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  placeholder={SCRIPT_USAGE_GUIDE}
+                />
+                <div className="flex flex-wrap items-center justify-between text-sm text-white/50">
+                  <span>
+                    {scriptLineCount}줄 · {scriptDraft.length.toLocaleString()}자
+                  </span>
+                  <span>대본 구조 분석용 입력</span>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex flex-wrap gap-2">
+                    {scriptLengthOptions.map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => handleSelectScriptLength(option.value)}
+                        className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                          scriptLengthMinutes === option.value
+                            ? "border-red-400 bg-red-500/15 text-red-200"
+                            : "border-white/15 bg-black/30 text-white/70 hover:border-white/30"
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                  {scriptLengthMinutes === "custom" && (
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min="1"
+                        value={customScriptLength}
+                        onChange={(event) => handleCustomScriptLengthChange(event.target.value)}
+                        className="w-32 rounded-full border border-white/15 bg-black/30 px-4 py-2 text-sm text-white/80 focus:outline-none focus:ring-2 focus:ring-red-500"
+                        placeholder="분"
+                      />
+                      <span className="text-sm text-white/60">분</span>
                     </div>
-                  <div className="grid gap-4 pt-2">
-                    <div className="flex flex-wrap gap-2">
-                      {scriptLengthOptions.map((option) => (
+                  )}
+                  <p className="text-sm text-white/50">
+                    선택한 길이에 맞춰 대본을 구성합니다. ({formatScriptLengthLabel()} 기준)
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <button
+                    type="button"
+                    onClick={handleAnalyzeScript}
+                    disabled={isAnalyzingScript || !isScriptStepReady(0)}
+                    className="w-full rounded-full bg-gradient-to-r from-red-500 to-orange-500 px-5 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(239,68,68,0.3)] disabled:opacity-60"
+                  >
+                    {isAnalyzingScript ? "구조 분석 중..." : "대본 구조 분석하기"}
+                  </button>
+                  {scriptAnalysis?.scriptStructure && (
+                    <div className="rounded-2xl border border-white/10 bg-black/30 p-4 text-sm text-white/70">
+                      <p className="text-sm font-semibold text-white mb-3">분석된 구조</p>
+                      <div className="space-y-3">
+                        {scriptAnalysis.scriptStructure.map((stage) => (
+                          <div
+                            key={stage.stage}
+                            className="rounded-xl border border-white/10 bg-white/5 px-3 py-2"
+                          >
+                            <p className="font-semibold text-white">{stage.stage}</p>
+                            <p className="text-sm text-white/50">{stage.purpose}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-3">
+                  {scriptIdeas.length === 0 ? (
+                    <p className="text-sm text-white/60">
+                      구조 분석 후 추천 주제가 표시됩니다.
+                    </p>
+                  ) : (
+                    <div className="grid gap-2">
+                      {scriptIdeas.map((idea) => (
                         <button
-                          key={option.value}
+                          key={idea}
                           type="button"
-                          onClick={() => handleSelectScriptLength(option.value)}
-                          className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
-                            scriptLengthMinutes === option.value
-                              ? "border-red-400 bg-red-500/15 text-red-200"
+                          onClick={() => setSelectedTopic(idea)}
+                          className={`rounded-xl border px-4 py-3 text-left text-sm transition ${
+                            selectedTopic === idea
+                              ? "border-red-400 bg-red-500/10 text-white"
                               : "border-white/15 bg-black/30 text-white/70 hover:border-white/30"
                           }`}
                         >
-                          {option.label}
+                          {idea}
                         </button>
                       ))}
                     </div>
-                    {scriptLengthMinutes === "custom" && (
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="number"
-                          min="1"
-                          value={customScriptLength}
-                          onChange={(event) => handleCustomScriptLengthChange(event.target.value)}
-                          className="w-32 rounded-full border border-white/15 bg-black/30 px-4 py-2 text-sm text-white/80 focus:outline-none focus:ring-2 focus:ring-red-500"
-                          placeholder="분"
-                        />
-                        <span className="text-sm text-white/60">분</span>
-                      </div>
-                    )}
-                    <p className="text-sm text-white/50">
-                      선택한 길이에 맞춰 대본을 구성합니다. ({formatScriptLengthLabel()} 기준)
-                    </p>
-                  <div className="grid gap-4 pt-2">
-                    <button
-                      type="button"
-                      onClick={handleAnalyzeScript}
-                      disabled={isAnalyzingScript || !isScriptStepReady(0)}
-                      className="w-full rounded-full bg-gradient-to-r from-red-500 to-orange-500 px-5 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(239,68,68,0.3)] disabled:opacity-60"
-                    >
-                      {isAnalyzingScript ? "구조 분석 중..." : "대본 구조 분석하기"}
-                    </button>
-                    {scriptAnalysis?.scriptStructure && (
-                      <div className="rounded-2xl border border-white/10 bg-black/30 p-4 text-sm text-white/70">
-                        <p className="text-sm font-semibold text-white mb-3">분석된 구조</p>
-                        <div className="space-y-3">
-                          {scriptAnalysis.scriptStructure.map((stage) => (
-                            <div key={stage.stage} className="rounded-xl border border-white/10 bg-white/5 px-3 py-2">
-                              <p className="font-semibold text-white">{stage.stage}</p>
-                              <p className="text-sm text-white/50">{stage.purpose}</p>
+                  )}
+                </div>
+
+                <div className="space-y-3">
+                  <button
+                    type="button"
+                    onClick={handleGenerateScript}
+                    disabled={isGeneratingScript || !isScriptStepReady(2)}
+                    className="w-full rounded-full bg-gradient-to-r from-red-500 to-orange-500 px-5 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(239,68,68,0.3)] disabled:opacity-60"
+                  >
+                    {isGeneratingScript ? "대본 작성 중..." : "선택 주제로 대본 작성하기"}
+                  </button>
+                  {generatedPlan && (
+                    <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                      <p className="text-sm font-semibold text-white mb-2">생성된 대본</p>
+                      {generatedPlan.chapters && generatedPlan.chapters.length > 0 ? (
+                        <div className="space-y-3 text-sm text-white/70">
+                          {generatedPlan.chapters.map((chapter, index) => (
+                            <div
+                              key={chapter.id}
+                              className="rounded-xl border border-white/10 bg-black/30 px-4 py-3"
+                            >
+                              <p className="font-semibold text-white">
+                                챕터 {index + 1}. {chapter.title}
+                              </p>
+                              <p className="text-sm text-white/50 mt-1">{chapter.purpose}</p>
+                              {chapter.script && chapter.script.length > 0 && (
+                                <div className="mt-3 space-y-1 text-sm text-white/70">
+                                  {chapter.script.map((line, lineIndex) => (
+                                    <p key={`${chapter.id}-${lineIndex}`}>
+                                      {line.character}: {line.line}
+                                    </p>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                           ))}
                         </div>
-                      </div>
-                    )}
-                  <div className="grid gap-4 pt-2">
-                    {scriptIdeas.length === 0 ? (
-                      <p className="text-sm text-white/60">
-                        구조 분석 후 추천 주제가 표시됩니다.
-                      </p>
-                    ) : (
-                      <div className="grid gap-2">
-                        {scriptIdeas.map((idea) => (
-                          <button
-                            key={idea}
-                            type="button"
-                            onClick={() => setSelectedTopic(idea)}
-                            className={`rounded-xl border px-4 py-3 text-left text-sm transition ${
-                              selectedTopic === idea
-                                ? "border-red-400 bg-red-500/10 text-white"
-                                : "border-white/15 bg-black/30 text-white/70 hover:border-white/30"
-                            }`}
-                          >
-                            {idea}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  <div className="grid gap-4 pt-2">
-                    <button
-                      type="button"
-                      onClick={handleGenerateScript}
-                      disabled={isGeneratingScript || !isScriptStepReady(2)}
-                      className="w-full rounded-full bg-gradient-to-r from-red-500 to-orange-500 px-5 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(239,68,68,0.3)] disabled:opacity-60"
-                    >
-                      {isGeneratingScript ? "대본 작성 중..." : "선택 주제로 대본 작성하기"}
-                    </button>
-                    {generatedPlan && (
-                      <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                        <p className="text-sm font-semibold text-white mb-2">생성된 대본</p>
-                        {generatedPlan.chapters && generatedPlan.chapters.length > 0 ? (
-                          <div className="space-y-3 text-sm text-white/70">
-                            {generatedPlan.chapters.map((chapter, index) => (
-                              <div key={chapter.id} className="rounded-xl border border-white/10 bg-black/30 px-4 py-3">
-                                <p className="font-semibold text-white">
-                                  챕터 {index + 1}. {chapter.title}
-                                </p>
-                                <p className="text-sm text-white/50 mt-1">{chapter.purpose}</p>
-                                {chapter.script && chapter.script.length > 0 && (
-                                  <div className="mt-3 space-y-1 text-sm text-white/70">
-                                    {chapter.script.map((line, lineIndex) => (
-                                      <p key={`${chapter.id}-${lineIndex}`}>
-                                        {line.character}: {line.line}
-                                      </p>
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <pre className="whitespace-pre-wrap text-sm text-white/70">
-                            {formatGeneratedScript(generatedPlan)}
-                          </pre>
-                        )}
-                      </div>
-                    )}
-                  </div>
+                      ) : (
+                        <pre className="whitespace-pre-wrap text-sm text-white/70">
+                          {formatGeneratedScript(generatedPlan)}
+                        </pre>
+                      )}
+                    </div>
+                  )}
+                </div>
 
                 {scriptError && (
                   <div className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
                     {scriptError}
                   </div>
+                )}
               </div>
-
             </div>
           </div>
         );
