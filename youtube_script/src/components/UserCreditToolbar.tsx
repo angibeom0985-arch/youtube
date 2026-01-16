@@ -126,7 +126,7 @@ const UserCreditToolbar: React.FC<UserCreditToolbarProps> = ({
         return;
       }
 
-      const response = await fetch("/api/YOUTUBE/user/credits", {
+      const response = await fetch("/api/YOUTUBE/user", {
         method: "GET",
         headers: {
           Authorization: `Bearer ${session.access_token}`,

@@ -37,7 +37,7 @@ const MyPage: React.FC = () => {
 
   const fetchCredits = async (token: string) => {
     try {
-      const response = await fetch("/api/YOUTUBE/user/credits", {
+      const response = await fetch("/api/YOUTUBE/user", {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -71,7 +71,7 @@ const MyPage: React.FC = () => {
         navigate("/");
         return;
       }
-      const response = await fetch("/api/YOUTUBE/user/delete", {
+      const response = await fetch("/api/YOUTUBE/user", {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${session.access_token}`,

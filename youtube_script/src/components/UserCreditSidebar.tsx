@@ -31,7 +31,7 @@ const UserCreditSidebar: React.FC<UserCreditSidebarProps> = ({ user }) => {
       console.log('크레딧 조회 시작...');
 
       // API를 통해 크레딧 조회
-      const response = await fetch('/api/YOUTUBE/user/credits', {
+      const response = await fetch('/api/YOUTUBE/user', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
