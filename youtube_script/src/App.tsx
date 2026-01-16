@@ -454,6 +454,14 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
 
   // 강력한 복사/드래그/우클릭 방지 시스템
   useEffect(() => {
+    if (allowDevtools) {
+      document.body.style.userSelect = "";
+      document.body.style.webkitUserSelect = "";
+      (document.body.style as any).msUserSelect = "";
+      (document.body.style as any).MozUserSelect = "";
+      return;
+    }
+
     // API 키 모달이 열려있으면 선택 해제 기능 비활성화
     // 다층 방어 함수들
     const preventAction = (e: Event) => {
