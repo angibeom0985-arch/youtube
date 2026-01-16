@@ -273,11 +273,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     }
   }, [scriptDraft]);
 
-  useEffect(() => {
-    if (!scriptDraft.trim()) {
-      setScriptDraft(SCRIPT_USAGE_GUIDE);
-    }
-  }, [scriptDraft]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
