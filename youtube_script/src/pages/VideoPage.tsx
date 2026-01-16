@@ -66,6 +66,11 @@ const imageStyles = [
   "하이퍼 리얼",
 ];
 
+const SCRIPT_USAGE_GUIDE =
+  "대본 생성 사용법\n1. 현재 대본의 흐름을 그대로 붙여 넣기\n2. 영상 길이를 선택해 새 대본의 분량 설정\n3. 추천 주제 중 하나를 골라 새 대본 생성";
+const LEGACY_SAMPLE =
+  "[오프닝]\n환율 1500원 시대가 열렸습니다.\n[중간]\n실물 가격이 천정부지로...";
+
 const steps: Step[] = [
   {
     id: "setup",
@@ -153,7 +158,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [scriptDraft, setScriptDraft] = useState(() =>
     getStoredString(
       STORAGE_KEYS.script,
-      "대본 생성 사용법\n1. 현재 대본의 흐름을 그대로 붙여 넣기\n2. 영상 길이를 선택해 새 대본의 분량 설정\n3. 추천 주제 중 하나를 골라 새 대본 생성"
+      SCRIPT_USAGE_GUIDE
     )
   );
   const [ttsScript, setTtsScript] = useState(() =>
@@ -262,12 +267,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   useEffect(() => setStoredValue(STORAGE_KEYS.step, String(currentStep)), [currentStep]);
 
   useEffect(() => {
-    const legacySample =
-      "[오프닝]\n환율 1500원 시대가 열렸습니다.\n[중간]\n실물 가격이 천정부지로...";
-    const usageGuide =
-      "대본 생성 사용법\n1. 현재 대본의 흐름을 그대로 붙여 넣기\n2. 영상 길이를 선택해 새 대본의 분량 설정\n3. 추천 주제 중 하나를 골라 새 대본 생성";
-    if (scriptDraft.trim() === legacySample.trim()) {
-      setScriptDraft(usageGuide);
+    const trimmed = scriptDraft.trim();
+    if (trimmed === LEGACY_SAMPLE.trim() || trimmed.includes("환율 1500원 시대")) {
+      setScriptDraft(SCRIPT_USAGE_GUIDE);
     }
   }, [scriptDraft]);
 
@@ -855,6 +857,16 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     <textarea
                       value={scriptDraft}
                       onChange={(event) => setScriptDraft(event.target.value)}
+                      onFocus={() => {
+                        const trimmed = scriptDraft.trim();
+                        if (
+                          trimmed === SCRIPT_USAGE_GUIDE.trim() ||
+                          trimmed === LEGACY_SAMPLE.trim() ||
+                          trimmed.includes("환율 1500원 시대")
+                        ) {
+                          setScriptDraft("");
+                        }
+                      }}
                       rows={7}
                       className="transcript-input w-full rounded-2xl border border-white/20 bg-white px-4 py-4 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500 select-text"
                       placeholder={"1. [오프닝] 주제 소개\n2. [중간] 핵심 논지 전개\n3. [마무리] 요약 + 결론"}
