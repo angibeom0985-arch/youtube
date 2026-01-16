@@ -860,8 +860,13 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                           setScriptDraft("");
                         }
                       }}
+                      onBlur={() => {
+                        if (!scriptDraft.trim()) {
+                          setScriptDraft(SCRIPT_USAGE_GUIDE);
+                        }
+                      }}
                       rows={7}
-                      className="transcript-input w-full rounded-2xl border border-white/20 bg-white px-4 py-4 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500 select-text"
+                      className="transcript-input w-full rounded-2xl border border-white/20 bg-white px-4 py-4 text-sm text-slate-700 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500 select-text"
                       placeholder=""
                     />
                     <div className="flex flex-wrap items-center justify-between text-sm text-white/50">
