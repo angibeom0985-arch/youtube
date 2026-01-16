@@ -26,24 +26,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const authResult = await getSupabaseUser(token);
     const user = authResult.user;
     const supabaseClient = authResult.client;
+    const supabaseAny = supabaseClient as any;
 
     if (!user || !supabaseClient) {
       return res.status(401).json({ error: "? íš¨?˜ì? ?Šì? ? í°?…ë‹ˆ??" });
     }
 
     // ?„ë¡œ?„ì—???¬ë ˆ??ì¡°íšŒ
-    const { data: profileData, error: profileError } = await supabaseClient
+    const { data: profileData, error: profileError } = await supabaseAny
       .from("profiles")
       .select("credits, initial_credits_expiry")
       .eq("id", user.id)
       .single();
 
-    const profile = profileData;
+    const profile = profileData ?? null;
 
     // ?„ë¡œ?„ì´ ?†ìœ¼ë©??ì„± (?Œì›ê°€?????¸ë¦¬ê±°ê? ?‘ë™?˜ì? ?Šì? ê²½ìš° ?€ë¹?
     if (profileError && (profileError as any).code === "PGRST116") {
       console.log("?„ë¡œ???†ìŒ. ?ˆë¡œ ?ì„±...", { userId: user.id, email: user.email });
-      const { data: newProfile, error: insertError } = await supabaseClient
+      const { data: newProfile, error: insertError } = await supabaseAny
         .from("profiles")
         .insert({
           id: user.id,
@@ -94,8 +95,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const isInInitialPeriod = false;
     const daysRemaining = 0;
 
+    const credits = profile && typeof profile === "object" && "credits" in profile
+      ? profile.credits ?? 0
+      : 0;
+
     return res.status(200).json({
-      credits: profile?.credits ?? 0,
+      credits,
       userId: user.id,
       isInInitialPeriod,
       daysRemaining,
