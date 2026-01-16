@@ -129,11 +129,11 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
           <div className="flex items-center gap-3">
             <Link
               to="/mypage"
-              className="px-4 py-2 text-sm font-bold text-white border border-white/20 rounded-full hover:bg-white/10 transition-all flex items-center gap-2"
+              className="px-4 py-2 text-sm font-bold text-red-100 border border-red-500/40 rounded-full bg-red-500/10 hover:bg-red-500/20 transition-all flex items-center gap-2"
             >
               <span>👤 마이페이지</span>
             </Link>
-            <UserCreditToolbar user={user} onLogout={handleLogout} tone="slate" />
+            <UserCreditToolbar user={user} onLogout={handleLogout} tone="red" />
           </div>
         ) : (
           <div className="flex flex-col items-end gap-3">
@@ -141,20 +141,20 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
               {enableKakaoLogin && (
                 <button
                   onClick={handleKakaoAuth}
-                  className="px-8 py-4 text-lg font-black bg-yellow-300 text-black rounded-2xl hover:bg-yellow-200 transition-all shadow-[0_0_30px_rgba(250,204,21,0.35)] hover:shadow-[0_0_40px_rgba(250,204,21,0.5)] transform hover:-translate-y-1 active:scale-95 border border-yellow-200"
+                  className="px-8 py-4 text-lg font-black bg-red-500 text-white rounded-2xl hover:bg-red-400 transition-all shadow-[0_0_30px_rgba(239,68,68,0.35)] hover:shadow-[0_0_40px_rgba(239,68,68,0.5)] transform hover:-translate-y-1 active:scale-95 border border-red-400"
                 >
                   ???? ????
                 </button>
               )}
               <button
                 onClick={handleGoogleAuth}
-                className="px-8 py-4 text-lg font-black text-white border-2 border-white/20 rounded-2xl hover:bg-white/10 hover:border-white/40 transition-all active:scale-95"
+                className="px-8 py-4 text-lg font-black text-red-100 border-2 border-red-500/40 rounded-2xl bg-red-500/10 hover:bg-red-500/20 hover:border-red-400 transition-all active:scale-95"
               >
                 로그인
               </button>
               <button
                 onClick={handleGoogleAuth}
-                className="px-8 py-4 text-lg font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white rounded-2xl hover:from-blue-500 hover:via-indigo-500 hover:to-purple-500 transition-all shadow-[0_0_30px_rgba(37,99,235,0.4)] hover:shadow-[0_0_40px_rgba(37,99,235,0.6)] transform hover:-translate-y-1 active:scale-95 border border-white/20"
+                className="px-8 py-4 text-lg font-black bg-gradient-to-r from-red-600 via-red-500 to-orange-500 text-white rounded-2xl hover:from-red-500 hover:via-red-400 hover:to-orange-400 transition-all shadow-[0_0_30px_rgba(239,68,68,0.4)] hover:shadow-[0_0_40px_rgba(239,68,68,0.6)] transform hover:-translate-y-1 active:scale-95 border border-red-400/40"
               >
                 지금 무료 회원가입
               </button>

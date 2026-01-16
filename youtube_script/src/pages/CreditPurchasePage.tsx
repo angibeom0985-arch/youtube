@@ -17,75 +17,44 @@ interface PricingPlan {
 const pricingPlans: PricingPlan[] = [
   {
     id: "basic",
-    name: "베이직 팩",
-    price: 10.00,
-    credits: 200,
+    name: "??? ????? ?? ?? ?",
+    price: 9.90,
+    credits: 180,
     features: [
-      "영상 분석 200회",
-      "아이디어 생성 200회", 
-      "기획안 작성 20회",
-      "챕터 생성 40회",
-      "30일 유효기간"
+      "??? ??? ??? ??? ??? ?? ?? 180?",
+      "??? ????? ?? ????? ?? ??? ??? ?? ?? 180?",
+      "??? ????? ?? ?? ??? ??? ??? ?? 18?",
+      "??? ??? ??? ??? ??? ?? ?? 36?",
+      "30? ??? ????? ?? ????? ?? ??"
     ]
   },
   {
-    id: "premium",
-    name: "프리미엄 팩",
+    id: "value",
+    name: "??? ??? ??? ?? ?",
     price: 29.90,
-    credits: 630,
+    credits: 720,
     popular: true,
     features: [
-      "영상 분석 630회",
-      "아이디어 생성 630회",
-      "기획안 작성 63회", 
-      "챕터 생성 126회",
-      "60일 유효기간",
-      "우선 지원"
+      "??? ??? ??? ??? ??? ?? ?? 720?",
+      "??? ????? ?? ????? ?? ??? ??? ?? ?? 720?",
+      "??? ????? ?? ?? ??? ??? ??? ?? 72?",
+      "??? ??? ??? ??? ??? ?? ?? 144?",
+      "90? ??? ????? ?? ????? ?? ??",
+      "??? ??? ??? ??? ??? ?? ??"
     ]
   },
   {
     id: "pro",
-    name: "프로 팩",
-    price: 49.90,
-    credits: 1100,
+    name: "??? ??? ??? ?? ?",
+    price: 79.90,
+    credits: 1800,
     features: [
-      "영상 분석 1,100회",
-      "아이디어 생성 1,100회",
-      "기획안 작성 110회",
-      "챕터 생성 220회", 
-      "90일 유효기간",
-      "우선 지원"
-    ]
-  },
-  {
-    id: "master",
-    name: "마스터 팩",
-    price: 99.90,
-    credits: 2300,
-    features: [
-      "영상 분석 2,300회",
-      "아이디어 생성 2,300회",
-      "기획안 작성 230회",
-      "챕터 생성 460회",
-      "180일 유효기간",
-      "우선 지원",
-      "1:1 컨설팅"
-    ]
-  },
-  {
-    id: "enterprise",
-    name: "엔터프라이즈 팩",
-    price: 199.90,
-    credits: 5000,
-    features: [
-      "영상 분석 5,000회",
-      "아이디어 생성 5,000회",
-      "기획안 작성 500회",
-      "챕터 생성 1,000회",
-      "365일 유효기간",
-      "우선 지원",
-      "1:1 컨설팅",
-      "전용 API 지원"
+      "??? ??? ??? ??? ??? ?? ?? 1,800?",
+      "??? ????? ?? ????? ?? ??? ??? ?? ?? 1,800?",
+      "??? ????? ?? ?? ??? ??? ??? ?? 180?",
+      "??? ??? ??? ??? ??? ?? ?? 360?",
+      "180? ??? ????? ?? ????? ?? ??",
+      "??? ??? ??? ??? ??? ?? ??"
     ]
   }
 ];
@@ -96,13 +65,13 @@ const CreditPurchasePage: React.FC = () => {
   useEffect(() => {
     // 사용자 세션 확인
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
+      setUser(session?.user ??? ??? ??? ?? null);
     });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+      setUser(session?.user ??? ??? ??? ?? null);
     });
 
     // 페이지 메타데이터
@@ -144,13 +113,13 @@ const CreditPurchasePage: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white relative">
       <div className="absolute top-0 right-0 p-4 sm:p-6 flex gap-3 z-50 items-center">
-        <UserCreditToolbar user={user} onLogout={handleLogout} tone="orange" />
+        <UserCreditToolbar user={user} onLogout={handleLogout} tone="red" />
       </div>
 
       {/* 헤더 */}
       <header className="border-b border-gray-800">
         <div className="max-w-7xl mx-auto px-4 py-6">
-          <HomeBackButton tone="yellow" />
+          <HomeBackButton tone="red" />
         </div>
       </header>
 
@@ -158,31 +127,29 @@ const CreditPurchasePage: React.FC = () => {
       <main className="max-w-7xl mx-auto px-4 py-12">
         {/* 제목 섹션 */}
         <div className="text-center mb-16">
-          <h1 className="text-5xl font-black mb-4 bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
+          <h1 className="text-5xl font-black mb-4 bg-gradient-to-r from-red-500 to-orange-500 bg-clip-text text-transparent">
             크레딧 충전
           </h1>
           <p className="text-xl text-gray-400">
-            매월 든든 자동할 필요가 없습니다. <span className="text-yellow-400 font-bold">필요한 때</span>, <span className="text-yellow-400 font-bold">필요한 만큼</span> 충전하세요
+            매월 든든 자동할 필요가 없습니다. <span className="text-red-300 font-bold">필요한 때</span>, <span className="text-red-300 font-bold">필요한 만큼</span> 충전하세요
           </p>
         </div>
 
         {/* 가격 카드들 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6">
           {pricingPlans.map((plan) => (
             <div
               key={plan.id}
               className={`relative rounded-2xl border-2 p-6 transition-all hover:scale-105 ${
                 plan.popular
-                  ? "border-yellow-500 bg-gradient-to-b from-yellow-500/10 to-transparent"
+                  ? "border-red-500 bg-gradient-to-b from-red-500/12 to-transparent"
                   : "border-gray-800 bg-gray-900/50"
               }`}
             >
               {/* 인기 배지 */}
               {plan.popular && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                  <span className="bg-yellow-500 text-black text-sm font-bold px-4 py-1 rounded-full">
-                    추천
-                  </span>
+                  <span className="bg-red-500 text-white text-sm font-bold px-4 py-1 rounded-full">??? ??</span>
                 </div>
               )}
 
@@ -195,7 +162,7 @@ const CreditPurchasePage: React.FC = () => {
               </div>
 
               {/* 크레딧 */}
-              <div className="flex items-center justify-center gap-2 mb-6 text-yellow-400">
+              <div className="flex items-center justify-center gap-2 mb-6 text-red-300">
                 <span className="text-3xl font-bold">{plan.credits.toLocaleString()}</span>
                 <FiZap size={24} />
               </div>
@@ -220,7 +187,7 @@ const CreditPurchasePage: React.FC = () => {
                 onClick={() => handlePurchase(plan)}
                 className={`w-full py-3 rounded-xl font-bold text-lg transition-all ${
                   plan.popular
-                    ? "bg-yellow-500 hover:bg-yellow-400 text-black"
+                    ? "bg-red-500 hover:bg-red-400 text-white"
                     : "bg-gray-800 hover:bg-gray-700 text-white"
                 }`}
               >
@@ -229,9 +196,7 @@ const CreditPurchasePage: React.FC = () => {
 
               {/* 상쾌한 이용 가능 */}
               {plan.popular && (
-                <p className="text-center text-xs text-gray-400 mt-3">
-                  ✓ 상쾌한 이용 가능
-                </p>
+                <p className="text-center text-xs text-gray-400 mt-3">??? ??</p>
               )}
             </div>
           ))}
