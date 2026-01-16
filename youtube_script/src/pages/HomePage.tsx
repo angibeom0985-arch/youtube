@@ -21,19 +21,24 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
   const videoPath = `${normalizedBasePath}/video` || "/video";
 
   useEffect(() => {
-    // URL에서 해시(#) 제거
-    if (window.location.hash) {
-      window.history.replaceState(null, '', window.location.pathname + window.location.search);
-    }
+    const hash = window.location.hash || "";
+    const hasAuthHash =
+      hash.includes("access_token") || hash.includes("refresh_token") || hash.includes("error");
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
+      if (session && hasAuthHash) {
+        window.history.replaceState(null, "", window.location.pathname + window.location.search);
+      }
     });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      if (session && hasAuthHash) {
+        window.history.replaceState(null, "", window.location.pathname + window.location.search);
+      }
     });
 
     return () => subscription.unsubscribe();
