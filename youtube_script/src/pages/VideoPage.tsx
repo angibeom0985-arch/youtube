@@ -170,7 +170,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [selectedVoice, setSelectedVoice] = useState(voiceOptions[0].name);
   const [ttsSpeed, setTtsSpeed] = useState(1);
   const [scriptFlowStep, setScriptFlowStep] = useState(0);
-  const [scriptLengthMinutes, setScriptLengthMinutes] = useState("3");
+  const [scriptLengthMinutes, setScriptLengthMinutes] = useState("8");
+  const [customScriptLength, setCustomScriptLength] = useState("5");
   const [scriptAnalysis, setScriptAnalysis] = useState<AnalysisResult | null>(null);
   const [scriptIdeas, setScriptIdeas] = useState<string[]>([]);
   const [selectedTopic, setSelectedTopic] = useState("");
@@ -590,10 +591,36 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       description: "선택한 주제로 입력한 대본 구조를 반영해 작성합니다.",
     },
   ];
-  const scriptLengthOptions = ["1", "2", "3", "5", "8", "10"];
+  const scriptLengthOptions = [
+    { value: "1", label: "1분" },
+    { value: "8", label: "8분" },
+    { value: "60", label: "1시간" },
+    { value: "custom", label: "사용자 입력" },
+  ];
+  const resolveScriptLengthMinutes = () => {
+    return scriptLengthMinutes === "custom" ? customScriptLength : scriptLengthMinutes;
+  };
+  const formatScriptLengthLabel = () => {
+    if (scriptLengthMinutes === "custom") {
+      return `${customScriptLength || "-"}분`;
+    }
+    if (scriptLengthMinutes === "60") {
+      return "1시간";
+    }
+    return `${scriptLengthMinutes}분`;
+  };
   const handleSelectScriptLength = (minutes: string) => {
     setScriptLengthMinutes(minutes);
-    const seconds = Number(minutes) * 60;
+    const resolved = minutes === "custom" ? customScriptLength : minutes;
+    const seconds = Number(resolved) * 60;
+    if (Number.isFinite(seconds) && seconds > 0) {
+      setRenderDuration(String(seconds));
+    }
+  };
+  const handleCustomScriptLengthChange = (value: string) => {
+    setCustomScriptLength(value);
+    if (scriptLengthMinutes !== "custom") return;
+    const seconds = Number(value) * 60;
     if (Number.isFinite(seconds) && seconds > 0) {
       setRenderDuration(String(seconds));
     }
@@ -602,8 +629,10 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     switch (index) {
       case 0:
         return Boolean(scriptDraft.trim());
-      case 1:
-        return Boolean(scriptLengthMinutes);
+      case 1: {
+        const value = resolveScriptLengthMinutes();
+        return Boolean(value) && Number(value) > 0;
+      }
       case 2:
         return Boolean(scriptAnalysis);
       case 3:
@@ -664,7 +693,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       const plan = await generateNewPlan(
         scriptAnalysis,
         selectedTopic,
-        `${scriptLengthMinutes}분`,
+        formatScriptLengthLabel(),
         "일반"
       );
       setGeneratedPlan(plan);
@@ -872,23 +901,36 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 {scriptFlowStep === 1 && (
                   <div className="grid gap-4">
                     <div className="flex flex-wrap gap-2">
-                      {scriptLengthOptions.map((minutes) => (
+                      {scriptLengthOptions.map((option) => (
                         <button
-                          key={minutes}
+                          key={option.value}
                           type="button"
-                          onClick={() => handleSelectScriptLength(minutes)}
+                          onClick={() => handleSelectScriptLength(option.value)}
                           className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
-                            scriptLengthMinutes === minutes
+                            scriptLengthMinutes === option.value
                               ? "border-red-400 bg-red-500/15 text-red-200"
                               : "border-white/15 bg-black/30 text-white/70 hover:border-white/30"
                           }`}
                         >
-                          {minutes}분
+                          {option.label}
                         </button>
                       ))}
                     </div>
+                    {scriptLengthMinutes === "custom" && (
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          min="1"
+                          value={customScriptLength}
+                          onChange={(event) => handleCustomScriptLengthChange(event.target.value)}
+                          className="w-32 rounded-full border border-white/15 bg-black/30 px-4 py-2 text-sm text-white/80 focus:outline-none focus:ring-2 focus:ring-red-500"
+                          placeholder="분"
+                        />
+                        <span className="text-sm text-white/60">분</span>
+                      </div>
+                    )}
                     <p className="text-sm text-white/50">
-                      선택한 길이에 맞춰 대본을 구성합니다. ({scriptLengthMinutes}분 기준)
+                      선택한 길이에 맞춰 대본을 구성합니다. ({formatScriptLengthLabel()} 기준)
                     </p>
                   </div>
                 )}
