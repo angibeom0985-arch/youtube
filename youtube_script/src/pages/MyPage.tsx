@@ -9,6 +9,7 @@ const MyPage: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [credits, setCredits] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -60,6 +61,36 @@ const MyPage: React.FC = () => {
     navigate("/");
   };
 
+  const handleDeleteAccount = async () => {
+    const confirmed = window.confirm("정말 회원탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.");
+    if (!confirmed) return;
+    setIsDeleting(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        navigate("/");
+        return;
+      }
+      const response = await fetch("/api/YOUTUBE/user/delete", {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          "Content-Type": "application/json",
+        },
+      });
+      if (!response.ok) {
+        throw new Error("Account deletion failed");
+      }
+      await supabase.auth.signOut();
+      navigate("/");
+    } catch (error) {
+      console.error("Failed to delete account:", error);
+      alert("회원탈퇴에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center text-white">
@@ -107,6 +138,13 @@ const MyPage: React.FC = () => {
                 className="w-full py-2 rounded-lg border border-white/10 hover:bg-white/5 text-sm font-medium transition-colors text-slate-300"
               >
                 로그아웃
+              </button>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={isDeleting}
+                className="mt-2 w-full py-2 rounded-lg border border-red-500/30 text-sm font-medium text-red-200 hover:bg-red-500/10 transition-colors disabled:opacity-50"
+              >
+                {isDeleting ? "회원탈퇴 처리 중..." : "회원탈퇴"}
               </button>
             </div>
           </div>

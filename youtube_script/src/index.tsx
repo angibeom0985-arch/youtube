@@ -21,6 +21,7 @@ import BenchmarkingPage from './pages/BenchmarkingPage.tsx';
 import CreditPurchasePage from './pages/CreditPurchasePage.tsx';
 import VideoPage from './pages/VideoPage.tsx';
 import MyPage from './pages/MyPage.tsx';
+import RequireAuth from './components/RequireAuth.tsx';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -33,8 +34,22 @@ root.render(
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/benchmarking" element={<BenchmarkingPage />} />
-        <Route path="/script" element={<App />} />
+        <Route element={<RequireAuth />}>
+          <Route path="/benchmarking" element={<BenchmarkingPage />} />
+          <Route path="/script" element={<App />} />
+          <Route
+            path="/image/*"
+            element={
+              <ImageErrorBoundary>
+                <ImageApp basePath="/image" />
+              </ImageErrorBoundary>
+            }
+          />
+          <Route path="/tts" element={<TtsPage />} />
+          <Route path="/credit-purchase" element={<CreditPurchasePage />} />
+          <Route path="/mypage" element={<MyPage />} />
+          <Route path="/video/*" element={<VideoPage />} />
+        </Route>
         <Route path="/guide" element={<GuidePage />} />
         <Route path="/script/guide" element={<ScriptGuidePage />} />
         <Route path="/image/guide" element={<ImageGuidePage />} />
@@ -48,18 +63,6 @@ root.render(
         <Route path="/debug/video" element={<DebugPage mode="video" />} />
         <Route path="/download-progress" element={<DownloadProgressPage />} />
         <Route path="/download" element={<DownloadPage />} />
-        <Route path="/tts" element={<TtsPage />} />
-        <Route path="/credit-purchase" element={<CreditPurchasePage />} />
-        <Route path="/mypage" element={<MyPage />} />
-        <Route path="/video/*" element={<VideoPage />} />
-        <Route
-          path="/image/*"
-          element={
-            <ImageErrorBoundary>
-              <ImageApp basePath="/image" />
-            </ImageErrorBoundary>
-          }
-        />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>
