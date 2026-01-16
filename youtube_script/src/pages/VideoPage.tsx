@@ -19,6 +19,7 @@ import { supabase } from "../services/supabase";
 import type { User } from "@supabase/supabase-js";
 import UserCreditToolbar from "../components/UserCreditToolbar";
 import HomeBackButton from "../components/HomeBackButton";
+import ErrorNotice from "../components/ErrorNotice";
 import type { AnalysisResult, NewPlan } from "../types";
 import { analyzeTranscript, generateIdeas, generateNewPlan } from "../services/geminiService";
 import { generateVideo } from "../services/videoService";
@@ -271,6 +272,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
     setIsGeneratingVideo(true);
     setGeneratedVideoUrl(null);
+    setVideoError(null);
 
     try {
       // Use the first image as reference if available
@@ -295,7 +297,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       setGeneratedVideoUrl(url);
     } catch (error: any) {
       console.error("Video generation failed:", error);
-      alert(error.message || "영상 생성에 실패했습니다.");
+      const message =
+        error instanceof Error ? error.message : "영상 생성에 실패했습니다.";
+      setVideoError(message);
     } finally {
       setIsGeneratingVideo(false);
     }
@@ -952,9 +956,20 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   )}
                 </div>
 
-                {scriptError && (
-                  <div className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-                    {scriptError}
+                <ErrorNotice error={scriptError} context="대본 생성" />
+                {(generatedPlan || scriptDraft.trim()) && (
+                  <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-black/30 px-4 py-3">
+                    <p className="text-sm text-white/60">
+                      대본이 준비되면 다음 단계로 이동하세요.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleNext}
+                      disabled={!canGoNext}
+                      className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-red-500 to-orange-500 px-5 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(239,68,68,0.3)] disabled:opacity-60"
+                    >
+                      다음 단계로 <FiChevronRight />
+                    </button>
                   </div>
                 )}
               </div>
@@ -1219,9 +1234,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
               >
                 {videoGenerating ? "영상 생성 요청 중..." : "영상 생성 요청하기"}
               </button>
-              {videoError && (
-                <p className="mt-2 text-sm text-red-300">{videoError}</p>
-              )}
+              <ErrorNotice error={videoError} context="영상 생성" />
               {videoUrl && (
                 <div className="mt-4 overflow-hidden rounded-2xl border border-white/10 bg-black/40">
                   <video src={videoUrl} controls className="w-full" />

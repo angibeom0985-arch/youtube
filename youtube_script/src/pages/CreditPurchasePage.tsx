@@ -65,13 +65,13 @@ const CreditPurchasePage: React.FC = () => {
   useEffect(() => {
     // 사용자 세션 확인
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
+      setUser(session && session.user ? session.user : null);
     });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+      setUser(session && session.user ? session.user : null);
     });
 
     // 페이지 메타데이터

@@ -5,6 +5,7 @@ import { FiPlay, FiPause, FiMic, FiSliders, FiCpu, FiInfo, FiUser } from "react-
 import { supabase } from "../services/supabase";
 import type { User } from "@supabase/supabase-js";
 import UserCreditToolbar from "../components/UserCreditToolbar";
+import ErrorNotice from "../components/ErrorNotice";
 
 const STORAGE_KEYS = {
   text: "tts_text",
@@ -499,18 +500,7 @@ const TtsPage: React.FC = () => {
                 )}
               </button>
 
-            {/* Error Message */}
-            {error && (
-              <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-5 text-red-200 text-sm animate-fadeIn flex items-start gap-3">
-                <div className="bg-red-500 text-white rounded-full p-1 mt-0.5 flex-shrink-0">
-                  <FiInfo size={12} />
-                </div>
-                <div>
-                  <p className="font-bold mb-1 text-red-400 text-base">생성 중 오류가 발생했습니다</p>
-                  <p className="leading-relaxed">{error}</p>
-                </div>
-              </div>
-            )}
+            <ErrorNotice error={error} context="TTS 음성 생성" />
 
             {/* Audio Result */}
             {audioSrc && (
