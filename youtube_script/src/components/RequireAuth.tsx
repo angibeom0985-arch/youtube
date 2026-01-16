@@ -27,12 +27,31 @@ const RequireAuth: React.FC = () => {
     };
   }, []);
 
+
+  const isKakaoUser = !!(
+    user?.app_metadata?.provider === "kakao" ||
+    user?.app_metadata?.providers?.includes("kakao")
+  );
+  const hasPhoneNumber = Boolean(
+    user?.user_metadata?.phone_number || user?.user_metadata?.phone
+  );
+  const requiresKakaoPhone = Boolean(user) && (!isKakaoUser || !hasPhoneNumber);
+
+  useEffect(() => {
+    if (!requiresKakaoPhone) return;
+    supabase.auth.signOut();
+  }, [requiresKakaoPhone]);
+
   if (user === undefined) {
     return null;
   }
 
   if (!user) {
     return <Navigate to="/" replace state={{ from: location.pathname }} />;
+  }
+
+  if (requiresKakaoPhone) {
+    return <Navigate to="/" replace state={{ authError: "kakao_phone_required" }} />;
   }
 
   return <Outlet />;

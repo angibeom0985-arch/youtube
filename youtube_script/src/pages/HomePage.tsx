@@ -1,5 +1,5 @@
 ﻿import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "../services/supabase";
 import type { User } from "@supabase/supabase-js";
 import LoginModal from "../components/LoginModal";
@@ -13,6 +13,7 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const normalizedBasePath = basePath && basePath != "/" ? basePath.replace(/\/$/, "") : "";
   const benchmarkingPath = `${normalizedBasePath}/benchmarking` || "/benchmarking";
   const scriptPath = `${normalizedBasePath}/script` || "/script";
@@ -44,7 +45,7 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const handleAuth = async () => {
+  const handleGoogleAuth = async () => {
     // 현재 접속한 도메인을 기준으로 리다이렉트 URL 설정
     const redirectTo = window.location.origin;
 
@@ -59,6 +60,22 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
       },
     });
   };
+
+  const handleKakaoAuth = async () => {
+    const redirectTo = window.location.origin;
+
+    await supabase.auth.signInWithOAuth({
+      provider: "kakao",
+      options: {
+        redirectTo,
+        scopes: "account_email profile_nickname phone_number",
+        queryParams: {
+          prompt: "consent",
+        },
+      },
+    });
+  };
+
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -120,13 +137,13 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
           <div className="flex flex-col items-end gap-3">
             <div className="flex items-center gap-6">
               <button
-                onClick={handleAuth}
+                onClick={handleKakaoAuth}
                 className="px-8 py-4 text-lg font-black text-white border-2 border-white/20 rounded-2xl hover:bg-white/10 hover:border-white/40 transition-all active:scale-95"
               >
                 로그인
               </button>
               <button
-                onClick={handleAuth}
+                onClick={handleKakaoAuth}
                 className="px-8 py-4 text-lg font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white rounded-2xl hover:from-blue-500 hover:via-indigo-500 hover:to-purple-500 transition-all shadow-[0_0_30px_rgba(37,99,235,0.4)] hover:shadow-[0_0_40px_rgba(37,99,235,0.6)] transform hover:-translate-y-1 active:scale-95 border border-white/20"
               >
                 지금 무료 회원가입
@@ -140,6 +157,14 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
       </div>
 
       <div className="mx-auto flex min-h-screen max-w-6xl flex-col items-center justify-center px-6 py-16">
+
+        {location.state?.authError === "kakao_phone_required" && (
+          <div className="mb-6 rounded-2xl border border-yellow-400/40 bg-yellow-500/10 px-6 py-4 text-yellow-200">
+            ??? ???(???? ??) ??? ?? ?????. ???? ?? ???????.
+          </div>
+        )}
+
+
         <div className="text-center">
           <h1 className="text-5xl font-black tracking-[0.04em] sm:text-6xl lg:text-7xl bg-gradient-to-r from-red-500 via-orange-500 to-amber-400 bg-clip-text text-transparent drop-shadow-[0_0_18px_rgba(249,115,22,0.35)]">
             유튜브 제작 스튜디오
@@ -312,7 +337,8 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
       <LoginModal
         isOpen={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}
-        onLogin={handleAuth}
+        onLoginGoogle={handleGoogleAuth}
+        onLoginKakao={handleKakaoAuth}
       />
 
       {/* 사용자 크레딧 사이드바 */}

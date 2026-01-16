@@ -1,6 +1,7 @@
 import React from 'react';
 import { supabase } from '../services/supabase';
 import { FcGoogle } from 'react-icons/fc';
+import { SiKakaotalk } from 'react-icons/si';
 
 interface LoginProps {
   onLogin?: () => void;
@@ -33,11 +34,47 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     }
   };
 
+
+  const handleKakaoLogin = async () => {
+    try {
+      const redirectTo = window.location.origin;
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'kakao',
+        options: {
+          redirectTo,
+          scopes: 'account_email profile_nickname phone_number',
+          queryParams: {
+            prompt: 'consent',
+          },
+        },
+      });
+      
+      if (error) {
+        console.error('Error logging in with Kakao:', error.message);
+        alert('??? ??? ??: ' + error.message);
+      } else if (onLogin) {
+        onLogin();
+      }
+    } catch (error) {
+      console.error('Unexpected error during Kakao login:', error);
+      alert('??? ??? ? ? ? ?? ??? ??????.');
+    }
+  };
+
   return (
     <div className="flex flex-col items-center gap-3">
       <span className="text-sm font-black text-blue-600 animate-bounce bg-blue-50 px-3 py-1 rounded-full border border-blue-200 shadow-sm">
         ✨ 지금 가입하고 무료 크레딧 받기
       </span>
+
+      <button
+        onClick={handleKakaoLogin}
+        className="flex items-center gap-2 px-4 py-2 bg-yellow-300 text-black rounded-lg hover:bg-yellow-200 transition-colors shadow-md font-medium text-sm border border-yellow-200"
+        title="??? ???? ????? ??? ?? ??? ?????."
+      >
+        <SiKakaotalk size={20} />
+        <span>???? ????</span>
+      </button>
       <button
         onClick={handleGoogleLogin}
         className="flex items-center gap-2 px-4 py-2 bg-white text-gray-700 rounded-lg hover:bg-gray-100 transition-colors shadow-md font-medium text-sm border border-gray-200"
