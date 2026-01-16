@@ -68,7 +68,7 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
       provider: "kakao",
       options: {
         redirectTo,
-        scopes: "account_email profile_nickname phone_number",
+        scopes: "profile_nickname",
         queryParams: {
           prompt: "consent",
         },
@@ -157,12 +157,6 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
       </div>
 
       <div className="mx-auto flex min-h-screen max-w-6xl flex-col items-center justify-center px-6 py-16">
-
-        {location.state?.authError === "kakao_phone_required" && (
-          <div className="mb-6 rounded-2xl border border-yellow-400/40 bg-yellow-500/10 px-6 py-4 text-yellow-200">
-            ??? ???(???? ??) ??? ?? ?????. ???? ?? ???????.
-          </div>
-        )}
 
 
         <div className="text-center">

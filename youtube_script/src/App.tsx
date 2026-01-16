@@ -452,6 +452,28 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
   }, [scriptStyle]);
 
 
+  useEffect(() => {
+    let isMounted = true;
+    evaluateAbuseRisk()
+      .then((decision) => {
+        if (!isMounted) return;
+        setAbuseDecision(decision);
+        if (decision.label === "abusive") {
+          setError("?? ??? ???? ?? ??? ?????. ??? ???? ????? ??????.");
+        } else if (decision.label === "suspicious") {
+          setError("?? ??? ?????? ???? ?? ??? ??? ? ????.");
+        }
+      })
+      .catch((error) => {
+        console.warn("Abuse check failed:", error);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+
   // 강력한 복사/드래그/우클릭 방지 시스템
   useEffect(() => {
     if (allowDevtools) {
@@ -860,6 +882,9 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
 
   const handleAnalyze = useCallback(async () => {
     if (abuseDecision?.label === "abusive") {
+      return;
+    }
+    if (abuseDecision?.label === "suspicious") {
       return;
     }
     if (!transcript) {

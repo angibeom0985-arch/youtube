@@ -42,7 +42,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         provider: 'kakao',
         options: {
           redirectTo,
-          scopes: 'account_email profile_nickname phone_number',
+          scopes: 'profile_nickname',
           queryParams: {
             prompt: 'consent',
           },

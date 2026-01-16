@@ -56,7 +56,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLoginGoogle,
             className="w-full flex items-center justify-center gap-4 bg-yellow-300 hover:bg-yellow-200 text-black font-black py-5 px-10 rounded-2xl transition-all shadow-2xl hover:shadow-yellow-200/30 hover:-translate-y-1 text-xl md:text-2xl"
           >
             <SiKakaotalk size={32} />
-            <span className="whitespace-nowrap">???? ???? (???? ??)</span>
+            <span className="whitespace-nowrap">???? ????</span>
           </button>
 
           <button
