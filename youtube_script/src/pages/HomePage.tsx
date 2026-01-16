@@ -9,6 +9,8 @@ interface HomePageProps {
   basePath?: string;
 }
 
+const enableKakaoLogin = import.meta.env.VITE_ENABLE_KAKAO_LOGIN === "true";
+
 const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
@@ -59,6 +61,23 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
       },
     });
   };
+
+  const handleKakaoAuth = async () => {
+    if (!enableKakaoLogin) return;
+    const redirectTo = window.location.origin;
+
+    await supabase.auth.signInWithOAuth({
+      provider: "kakao",
+      options: {
+        redirectTo,
+        scopes: "profile_nickname",
+        queryParams: {
+          prompt: "consent",
+        },
+      },
+    });
+  };
+
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -119,6 +138,14 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
         ) : (
           <div className="flex flex-col items-end gap-3">
             <div className="flex items-center gap-6">
+              {enableKakaoLogin && (
+                <button
+                  onClick={handleKakaoAuth}
+                  className="px-8 py-4 text-lg font-black bg-yellow-300 text-black rounded-2xl hover:bg-yellow-200 transition-all shadow-[0_0_30px_rgba(250,204,21,0.35)] hover:shadow-[0_0_40px_rgba(250,204,21,0.5)] transform hover:-translate-y-1 active:scale-95 border border-yellow-200"
+                >
+                  ???? ????
+                </button>
+              )}
               <button
                 onClick={handleGoogleAuth}
                 className="px-8 py-4 text-lg font-black text-white border-2 border-white/20 rounded-2xl hover:bg-white/10 hover:border-white/40 transition-all active:scale-95"
@@ -315,6 +342,7 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
         isOpen={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}
         onLoginGoogle={handleGoogleAuth}
+        onLoginKakao={enableKakaoLogin ? handleKakaoAuth : undefined}
       />
 
       {/* 사용자 크레딧 사이드바 */}

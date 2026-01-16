@@ -1,14 +1,18 @@
 import React from 'react';
 import { FcGoogle } from 'react-icons/fc';
+import { SiKakaotalk } from 'react-icons/si';
 import { FiX } from 'react-icons/fi';
 
 interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
   onLoginGoogle: () => void;
+  onLoginKakao?: () => void;
 }
 
-const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLoginGoogle }) => {
+const enableKakaoLogin = import.meta.env.VITE_ENABLE_KAKAO_LOGIN === 'true';
+
+const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLoginGoogle, onLoginKakao }) => {
   if (!isOpen) return null;
 
   return (
@@ -50,6 +54,17 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLoginGoogle 
           {/* Login Button */}
 
 
+
+
+          {enableKakaoLogin && onLoginKakao && (
+            <button
+              onClick={onLoginKakao}
+              className="w-full flex items-center justify-center gap-4 bg-yellow-300 hover:bg-yellow-200 text-black font-black py-5 px-10 rounded-2xl transition-all shadow-2xl hover:shadow-yellow-200/30 hover:-translate-y-1 text-xl md:text-2xl"
+            >
+              <SiKakaotalk size={32} />
+              <span className="whitespace-nowrap">???? ????</span>
+            </button>
+          )}
 
           <button
             onClick={onLoginGoogle}
