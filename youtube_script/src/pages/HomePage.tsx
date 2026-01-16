@@ -1,5 +1,5 @@
 ﻿import React, { useEffect, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../services/supabase";
 import type { User } from "@supabase/supabase-js";
 import LoginModal from "../components/LoginModal";
@@ -13,7 +13,6 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
   const normalizedBasePath = basePath && basePath != "/" ? basePath.replace(/\/$/, "") : "";
   const benchmarkingPath = `${normalizedBasePath}/benchmarking` || "/benchmarking";
   const scriptPath = `${normalizedBasePath}/script` || "/script";
@@ -60,22 +59,6 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
       },
     });
   };
-
-  const handleKakaoAuth = async () => {
-    const redirectTo = window.location.origin;
-
-    await supabase.auth.signInWithOAuth({
-      provider: "kakao",
-      options: {
-        redirectTo,
-        scopes: "profile_nickname",
-        queryParams: {
-          prompt: "consent",
-        },
-      },
-    });
-  };
-
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -137,13 +120,13 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
           <div className="flex flex-col items-end gap-3">
             <div className="flex items-center gap-6">
               <button
-                onClick={handleKakaoAuth}
+                onClick={handleGoogleAuth}
                 className="px-8 py-4 text-lg font-black text-white border-2 border-white/20 rounded-2xl hover:bg-white/10 hover:border-white/40 transition-all active:scale-95"
               >
                 로그인
               </button>
               <button
-                onClick={handleKakaoAuth}
+                onClick={handleGoogleAuth}
                 className="px-8 py-4 text-lg font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white rounded-2xl hover:from-blue-500 hover:via-indigo-500 hover:to-purple-500 transition-all shadow-[0_0_30px_rgba(37,99,235,0.4)] hover:shadow-[0_0_40px_rgba(37,99,235,0.6)] transform hover:-translate-y-1 active:scale-95 border border-white/20"
               >
                 지금 무료 회원가입
@@ -332,7 +315,6 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
         isOpen={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}
         onLoginGoogle={handleGoogleAuth}
-        onLoginKakao={handleKakaoAuth}
       />
 
       {/* 사용자 크레딧 사이드바 */}
