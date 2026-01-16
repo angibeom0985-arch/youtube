@@ -7,10 +7,11 @@ declare global {
 }
 
 interface AdSenseProps {
+  adSlot?: string;
   className?: string;
 }
 
-const AdSense: React.FC<AdSenseProps> = ({ className = '' }) => {
+const AdSense: React.FC<AdSenseProps> = ({ adSlot = "8116896499", className = '' }) => {
   useEffect(() => {
     try {
       if (window.adsbygoogle && process.env.NODE_ENV === 'production') {
@@ -27,7 +28,7 @@ const AdSense: React.FC<AdSenseProps> = ({ className = '' }) => {
         className="adsbygoogle"
         style={{ display: 'block' }}
         data-ad-client="ca-pub-2686975437928535"
-        data-ad-slot="8116896499"
+        data-ad-slot={adSlot}
         data-ad-format="auto"
         data-full-width-responsive="true"
       />

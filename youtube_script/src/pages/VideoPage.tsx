@@ -22,6 +22,7 @@ import HomeBackButton from "../components/HomeBackButton";
 import type { AnalysisResult, NewPlan } from "../types";
 import { analyzeTranscript, generateIdeas, generateNewPlan } from "../services/geminiService";
 import { generateVideo } from "../services/videoService";
+import AdSense from "../components/AdSense";
 
 const STORAGE_KEYS = {
   title: "video_project_title",
@@ -1453,9 +1454,7 @@ const VideoPage: React.FC = () => {
             <div className="p-[clamp(1.5rem,3vw,2.5rem)]">{renderStepContent()}</div>
 
             <div className="border-t border-white/10 p-[clamp(1.2rem,2.5vw,2rem)]">
-              <div className="mb-4 rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-xs text-white/50">
-                디스플레이 광고 영역
-              </div>
+              <AdSense adSlot="3672059148" className="mb-4 rounded-2xl border border-white/10 bg-black/30 px-4 py-3" />
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <button
                   type="button"
