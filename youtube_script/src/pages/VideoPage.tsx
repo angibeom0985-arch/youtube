@@ -171,7 +171,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [ttsSpeed, setTtsSpeed] = useState(1);
   const [scriptFlowStep, setScriptFlowStep] = useState(0);
   const [scriptLengthMinutes, setScriptLengthMinutes] = useState("3");
-  const [scriptChecks, setScriptChecks] = useState([false, false, false, false, false]);
   const [scriptAnalysis, setScriptAnalysis] = useState<AnalysisResult | null>(null);
   const [scriptIdeas, setScriptIdeas] = useState<string[]>([]);
   const [selectedTopic, setSelectedTopic] = useState("");
@@ -592,13 +591,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     },
   ];
   const scriptLengthOptions = ["1", "2", "3", "5", "8", "10"];
-  const handleScriptCheck = (index: number, checked: boolean) => {
-    setScriptChecks((prev) => {
-      const next = [...prev];
-      next[index] = checked;
-      return next;
-    });
-  };
   const handleSelectScriptLength = (minutes: string) => {
     setScriptLengthMinutes(minutes);
     const seconds = Number(minutes) * 60;
@@ -625,7 +617,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const canScriptPrev = scriptFlowStep > 0;
   const canScriptNext =
     scriptFlowStep < scriptSlides.length - 1 &&
-    scriptChecks[scriptFlowStep] &&
     isScriptStepReady(scriptFlowStep);
   const handleScriptPrev = () => {
     if (!canScriptPrev) return;
@@ -1005,34 +996,23 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 )}
               </div>
 
-              <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-                <label className="inline-flex items-center gap-2 text-sm text-white/60">
-                  <input
-                    type="checkbox"
-                    checked={scriptChecks[scriptFlowStep]}
-                    onChange={(event) => handleScriptCheck(scriptFlowStep, event.target.checked)}
-                    className="h-4 w-4 rounded border-white/20 bg-black/40"
-                  />
-                  확인했습니다
-                </label>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={handleScriptPrev}
-                    disabled={!canScriptPrev}
-                    className="rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-white/60 disabled:opacity-40"
-                  >
-                    이전
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleScriptNext}
+              <div className="mt-6 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={handleScriptPrev}
+                  disabled={!canScriptPrev}
+                  className="rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-white/60 disabled:opacity-40"
+                >
+                  이전
+                </button>
+                <button
+                  type="button"
+                  onClick={handleScriptNext}
                     disabled={!canScriptNext}
                     className="rounded-full bg-gradient-to-r from-red-500 to-orange-500 px-5 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(239,68,68,0.3)] disabled:opacity-40"
                   >
                     다음
                   </button>
-                </div>
               </div>
             </div>
           </div>
