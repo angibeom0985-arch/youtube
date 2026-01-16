@@ -62,6 +62,7 @@ export const checkAndDeductCredits = async (
   const authResult = await getSupabaseUser(token);
   const user = authResult.user;
   const supabaseClient = authResult.client;
+  const supabaseAny = supabaseClient as any;
   const usingAdmin = authResult.usingAdmin;
 
   if (!user || !supabaseClient) {

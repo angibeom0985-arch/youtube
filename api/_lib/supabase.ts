@@ -7,17 +7,17 @@ const supabaseAnonKey =
 
 export const supabaseAdmin =
   supabaseUrl && supabaseServiceKey
-    ? createClient(supabaseUrl, supabaseServiceKey, {
+    ? (createClient(supabaseUrl, supabaseServiceKey, {
         auth: { persistSession: false },
         global: {
           headers: { "X-Client-Info": "abuse-detection" },
         },
-      })
+      }) as any)
     : null;
 
 export type SupabaseUserResult = {
   user: { id: string; email?: string | null } | null;
-  client: ReturnType<typeof createClient> | null;
+  client: any;
   usingAdmin: boolean;
   error?: string;
 };
@@ -39,7 +39,7 @@ export const getSupabaseUser = async (token: string): Promise<SupabaseUserResult
     global: {
       headers: { Authorization: `Bearer ${token}` },
     },
-  });
+  }) as any;
 
   const { data, error } = await authedClient.auth.getUser(token);
   if (error || !data?.user) {
