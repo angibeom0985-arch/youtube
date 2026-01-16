@@ -228,7 +228,9 @@ export const analyzeTranscript = async (
         systemInstruction: `당신은 '${category}' 전문 YouTube 콘텐츠 전략가입니다. 당신의 임무는 비디오 스크립트를 분석하고 벤치마킹을 위해 핵심 요소에 대한 구조화된 분석을 제공하는 것입니다. 모든 텍스트 설명은 가독성을 위해 **굵은 글씨**를 활용하고, 글머리 기호(-) 대신 문단 사이에 두 번의 줄바꿈을 사용하여 명확하게 구분해주세요.`,
         responseMimeType: "application/json",
         responseSchema: fullAnalysisSchema,
-      },
+      
+        maxOutputTokens: 2048,
+},
     });
 
     const jsonText = response.text.trim();

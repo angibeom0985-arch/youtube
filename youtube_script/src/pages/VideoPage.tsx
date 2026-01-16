@@ -169,7 +169,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   );
   const [selectedVoice, setSelectedVoice] = useState(voiceOptions[0].name);
   const [ttsSpeed, setTtsSpeed] = useState(1);
-  const [scriptFlowStep, setScriptFlowStep] = useState(0);
   const [scriptLengthMinutes, setScriptLengthMinutes] = useState("8");
   const [customScriptLength, setCustomScriptLength] = useState("5");
   const [scriptAnalysis, setScriptAnalysis] = useState<AnalysisResult | null>(null);
@@ -569,28 +568,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       setVideoFormat("long");
     }
   };
-  const scriptSlides = [
-    {
-      title: "대본 입력",
-      description: "",
-    },
-    {
-      title: "영상 길이 선택",
-      description: "대본 작성 전에 원하는 영상 길이를 먼저 정합니다.",
-    },
-    {
-      title: "구조 분석",
-      description: "대본 구조를 분석하고 핵심 흐름을 정리합니다.",
-    },
-    {
-      title: "새 주제 추천",
-      description: "분석된 구조를 바탕으로 새 주제를 추천합니다.",
-    },
-    {
-      title: "새 대본 작성",
-      description: "선택한 주제로 입력한 대본 구조를 반영해 작성합니다.",
-    },
-  ];
   const scriptLengthOptions = [
     { value: "1", label: "1분" },
     { value: "8", label: "8분" },
@@ -642,18 +619,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       default:
         return true;
     }
-  };
-  const canScriptPrev = scriptFlowStep > 0;
-  const canScriptNext =
-    scriptFlowStep < scriptSlides.length - 1 &&
-    isScriptStepReady(scriptFlowStep);
-  const handleScriptPrev = () => {
-    if (!canScriptPrev) return;
-    setScriptFlowStep((prev) => prev - 1);
-  };
-  const handleScriptNext = () => {
-    if (!canScriptNext) return;
-    setScriptFlowStep((prev) => prev + 1);
   };
   const handleAnalyzeScript = async () => {
     if (!scriptDraft.trim()) {
@@ -841,18 +806,12 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <div className="flex flex-wrap items-center gap-3">
-                    <h3 className="text-2xl font-bold text-white">
-                      {scriptSlides[scriptFlowStep].title}
-                    </h3>
-                    <span className="text-sm font-semibold text-white/60">
-                      (대본 생성 단계 {scriptFlowStep + 1} / {scriptSlides.length})
-                    </span>
+                    <h3 className="text-2xl font-bold text-white">?? ?? ??</h3>
                   </div>
-                  {scriptSlides[scriptFlowStep].description && (
-                    <p className="mt-2 text-sm text-white/60">
-                      {scriptSlides[scriptFlowStep].description}
-                    </p>
-                  )}
+                  <p className="mt-2 text-sm text-white/60">
+                    ? ???? ?? ??, ??, ??, ?? ???? ?????.
+                  </p>
+                  
                 </div>
                 <a
                   href="/script?no_ads=true"
@@ -865,8 +824,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
               </div>
 
               <div className="mt-6 grid gap-4">
-                {scriptFlowStep === 0 && (
-                  <>
+                <>
                     <textarea
                       value={scriptDraft}
                       onChange={(event) => setScriptDraft(event.target.value)}
@@ -895,11 +853,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       </span>
                       <span>대본 구조 분석용 입력</span>
                     </div>
-                  </>
-                )}
-
-                {scriptFlowStep === 1 && (
-                  <div className="grid gap-4">
+                  <div className="grid gap-4 pt-2">
                     <div className="flex flex-wrap gap-2">
                       {scriptLengthOptions.map((option) => (
                         <button
@@ -932,15 +886,11 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     <p className="text-sm text-white/50">
                       선택한 길이에 맞춰 대본을 구성합니다. ({formatScriptLengthLabel()} 기준)
                     </p>
-                  </div>
-                )}
-
-                {scriptFlowStep === 2 && (
-                  <div className="grid gap-4">
+                  <div className="grid gap-4 pt-2">
                     <button
                       type="button"
                       onClick={handleAnalyzeScript}
-                      disabled={isAnalyzingScript}
+                      disabled={isAnalyzingScript || !isScriptStepReady(0)}
                       className="w-full rounded-full bg-gradient-to-r from-red-500 to-orange-500 px-5 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(239,68,68,0.3)] disabled:opacity-60"
                     >
                       {isAnalyzingScript ? "구조 분석 중..." : "대본 구조 분석하기"}
@@ -958,11 +908,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         </div>
                       </div>
                     )}
-                  </div>
-                )}
-
-                {scriptFlowStep === 3 && (
-                  <div className="grid gap-4">
+                  <div className="grid gap-4 pt-2">
                     {scriptIdeas.length === 0 ? (
                       <p className="text-sm text-white/60">
                         구조 분석 후 추천 주제가 표시됩니다.
@@ -985,15 +931,11 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         ))}
                       </div>
                     )}
-                  </div>
-                )}
-
-                {scriptFlowStep === 4 && (
-                  <div className="grid gap-4">
+                  <div className="grid gap-4 pt-2">
                     <button
                       type="button"
                       onClick={handleGenerateScript}
-                      disabled={isGeneratingScript}
+                      disabled={isGeneratingScript || !isScriptStepReady(2)}
                       className="w-full rounded-full bg-gradient-to-r from-red-500 to-orange-500 px-5 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(239,68,68,0.3)] disabled:opacity-60"
                     >
                       {isGeneratingScript ? "대본 작성 중..." : "선택 주제로 대본 작성하기"}
@@ -1029,33 +971,13 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       </div>
                     )}
                   </div>
-                )}
 
                 {scriptError && (
                   <div className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
                     {scriptError}
                   </div>
-                )}
               </div>
 
-              <div className="mt-6 flex items-center justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={handleScriptPrev}
-                  disabled={!canScriptPrev}
-                  className="rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-white/60 disabled:opacity-40"
-                >
-                  이전
-                </button>
-                <button
-                  type="button"
-                  onClick={handleScriptNext}
-                    disabled={!canScriptNext}
-                    className="rounded-full bg-gradient-to-r from-red-500 to-orange-500 px-5 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(239,68,68,0.3)] disabled:opacity-40"
-                  >
-                    다음
-                  </button>
-              </div>
             </div>
           </div>
         );
