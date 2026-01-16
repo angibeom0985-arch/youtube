@@ -153,7 +153,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [scriptDraft, setScriptDraft] = useState(() =>
     getStoredString(
       STORAGE_KEYS.script,
-      ""
+      "대본 생성 사용법\n1. 현재 대본의 흐름을 그대로 붙여 넣기\n2. 영상 길이를 선택해 새 대본의 분량 설정\n3. 추천 주제 중 하나를 골라 새 대본 생성"
     )
   );
   const [ttsScript, setTtsScript] = useState(() =>
@@ -264,8 +264,10 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   useEffect(() => {
     const legacySample =
       "[오프닝]\n환율 1500원 시대가 열렸습니다.\n[중간]\n실물 가격이 천정부지로...";
+    const usageGuide =
+      "대본 생성 사용법\n1. 현재 대본의 흐름을 그대로 붙여 넣기\n2. 영상 길이를 선택해 새 대본의 분량 설정\n3. 추천 주제 중 하나를 골라 새 대본 생성";
     if (scriptDraft.trim() === legacySample.trim()) {
-      setScriptDraft("");
+      setScriptDraft(usageGuide);
     }
   }, [scriptDraft]);
 
