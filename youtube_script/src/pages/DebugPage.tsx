@@ -151,11 +151,11 @@ const DebugPage: React.FC<DebugPageProps> = ({ mode }) => {
   }
 
   if (mode === "home") {
-    return <HomePage basePath="/debug" />;
+    return <HomePage basePath="/debug" allowUnauthedNavigation />;
   }
 
   if (mode === "video") {
-    return <VideoPage />;
+    return <VideoPage basePath="/debug" />;
   }
 
   return <App allowDevtools />;

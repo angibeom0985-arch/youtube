@@ -7,11 +7,15 @@ import UserCreditToolbar from "../components/UserCreditToolbar";
 
 interface HomePageProps {
   basePath?: string;
+  allowUnauthedNavigation?: boolean;
 }
 
 const enableKakaoLogin = import.meta.env.VITE_ENABLE_KAKAO_LOGIN === "true";
 
-const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
+const HomePage: React.FC<HomePageProps> = ({
+  basePath = "",
+  allowUnauthedNavigation = false,
+}) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const navigate = useNavigate();
@@ -85,7 +89,7 @@ const HomePage: React.FC<HomePageProps> = ({ basePath = "" }) => {
 
   const handleNavigation = (e: React.MouseEvent, path: string) => {
     e.preventDefault();
-    if (!user) {
+    if (!user && !allowUnauthedNavigation) {
       setIsLoginModalOpen(true);
     } else {
       navigate(path);

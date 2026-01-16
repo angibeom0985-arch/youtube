@@ -42,6 +42,10 @@ const STORAGE_KEYS = {
 type StepId = "setup" | "script" | "tts" | "image" | "generate" | "render";
 type VideoFormat = "long" | "short";
 
+interface VideoPageProps {
+  basePath?: string;
+}
+
 type Step = {
   id: StepId;
   label: string;
@@ -127,9 +131,10 @@ const formatFileSize = (size: number) => {
   return `${(size / (1024 * 1024 * 1024)).toFixed(1)} GB`;
 };
 
-const VideoPage: React.FC = () => {
+const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const normalizedBasePath = basePath && basePath !== "/" ? basePath.replace(/\/$/, "") : "";
   const [user, setUser] = useState<User | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
   const [videoFormat, setVideoFormat] = useState<VideoFormat>(() => {
@@ -460,14 +465,14 @@ const VideoPage: React.FC = () => {
 
   const stepPaths = useMemo(
     () => [
-      "/video",
-      "/video/script",
-      "/video/tts",
-      "/video/image",
-      "/video/generate",
-      "/video/edit",
+      `${normalizedBasePath}/video`,
+      `${normalizedBasePath}/video/script`,
+      `${normalizedBasePath}/video/tts`,
+      `${normalizedBasePath}/video/image`,
+      `${normalizedBasePath}/video/generate`,
+      `${normalizedBasePath}/video/edit`,
     ],
-    []
+    [normalizedBasePath]
   );
   const normalizePath = (path: string) =>
     path !== "/" && path.endsWith("/") ? path.slice(0, -1) : path;
@@ -495,12 +500,13 @@ const VideoPage: React.FC = () => {
     const normalizedPath = normalizePath(location.pathname);
     const pathIndex = getStepIndexFromPath(normalizedPath);
     const storedIndex = getStoredStepIndex();
-    const shouldUseStored = normalizedPath === "/video" && storedIndex !== 0;
+    const shouldUseStored =
+      normalizedPath === `${normalizedBasePath}/video` && storedIndex !== 0;
     const nextIndex = shouldUseStored ? storedIndex : pathIndex ?? storedIndex;
     if (nextIndex !== currentStep) {
       setCurrentStep(nextIndex);
     }
-    const targetPath = stepPaths[nextIndex] ?? "/video";
+    const targetPath = stepPaths[nextIndex] ?? `${normalizedBasePath}/video`;
     if (normalizedPath !== targetPath) {
       navigate(targetPath, { replace: true });
     }
