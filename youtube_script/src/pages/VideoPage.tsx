@@ -787,11 +787,17 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   ))}
                 </div>
               </div>
-              
-              <div className="mt-5">
+            </div>
+
+            <div className="mt-6 rounded-[clamp(1rem,2vw,1.4rem)] border border-white/20 bg-black/40 p-[clamp(1rem,2vw,1.4rem)]">
+              <h3 className="text-2xl font-bold text-white">API 키</h3>
+              <p className="mt-3 text-sm text-white/70">
+                대본 생성 및 분석을 위해 본인의 Gemini API 키를 입력해주세요.
+              </p>
+              <div className="mt-4">
                 <p className="text-sm font-semibold text-white/80">Gemini API 키</p>
                 <p className="mt-1 text-xs text-white/50">
-                  대본 생성 및 분석을 위해 본인의 Gemini API 키를 입력해주세요.{" "}
+                  무료로 발급받을 수 있으며, 사용량에 따라 과금됩니다.{" "}
                   <a
                     href="https://aistudio.google.com/app/apikey"
                     target="_blank"
