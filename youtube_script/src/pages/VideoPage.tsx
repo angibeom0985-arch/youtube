@@ -55,55 +55,55 @@ type Step = {
 };
 
 const voiceOptions = [
-  { name: "ï¿½ï¿½ï¿½ï¿½", label: "ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½Ö¾ï¿½", tone: "ï¿½Å·Ú°ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½Å¥ ï¿½ï¿½Å¸ï¿½ï¿½" },
-  { name: "ï¿½ï¿½ï¿½ï¿½", label: "ï¿½ï¿½ï¿½ï¿½ ï¿½Æ³ï¿½ï¿½î¼­", tone: "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½" },
-  { name: "ï¿½ï¿½ï¿½ï¿½", label: "ï¿½ï¿½ï¿½ï¿½ ASMR", tone: "ï¿½Îµå·¯ï¿½ï¿½ ï¿½ï¿½ï¿½ß¿ï¿½ ï¿½ï¿½ï¿½ï¿½" },
+  { name: "¹ÎÁØ", label: "³²¼º Ä³ÁÖ¾ó", tone: "½Å·Ú°¨ ÀÖ´Â ´ÙÅ¥ ½ºÅ¸ÀÏ" },
+  { name: "¼­¿¬", label: "¿©¼º ¾Æ³ª¿î¼­", tone: "Â÷ºÐÇÑ ´º½º Åæ" },
+  { name: "¼ÒÈñ", label: "¿©¼º ASMR", tone: "ºÎµå·¯¿î ÁýÁß¿ë À½¼º" },
 ];
 
 const imageStyles = [
-  "ï¿½Ì´Ï¸ï¿½ ï¿½Ö´Ï¸ï¿½ï¿½Ì¼ï¿½",
-  "ï¿½Ç»ï¿½ ï¿½ï¿½ï¿½ï¿½",
-  "Ä«ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½ï¿½",
-  "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½",
+  "¹Ì´Ï¸Ö ¾Ö´Ï¸ÞÀÌ¼Ç",
+  "½Ç»ç ´À³¦",
+  "Ä«Å÷ ½ºÅ¸ÀÏ",
+  "ÇÏÀÌÆÛ ¸®¾ó",
 ];
 
 const SCRIPT_USAGE_GUIDE =
-  "ï¿½ëº» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½\n1. ï¿½ï¿½ï¿½ï¿½ ï¿½ëº»ï¿½ï¿½ ï¿½å¸§ï¿½ï¿½ ï¿½×´ï¿½ï¿½ ï¿½Ù¿ï¿½ ï¿½Ö±ï¿½\n2. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ëº»ï¿½ï¿½ ï¿½Ð·ï¿½ ï¿½ï¿½ï¿½ï¿½\n3. ï¿½ï¿½Ãµ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ï³ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ëº» ï¿½ï¿½ï¿½ï¿½";
+  "´ëº» »ý¼º »ç¿ë¹ý\n1. ÇöÀç ´ëº»ÀÇ Èå¸§À» ±×´ë·Î ºÙ¿© ³Ö±â\n2. ¿µ»ó ±æÀÌ¸¦ ¼±ÅÃÇØ »õ ´ëº»ÀÇ ºÐ·® ¼³Á¤\n3. ÃßÃµ ÁÖÁ¦ Áß ÇÏ³ª¸¦ °ñ¶ó »õ ´ëº» »ý¼º";
 const steps: Step[] = [
   {
     id: "setup",
-    label: "ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½",
-    description: "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½âº» ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½",
+    label: "¿µ»ó ¼³Á¤",
+    description: "ÇÁ·ÎÁ§Æ® Á¦¸ñ¡¤Ãâ·Â ±âº» °ª ¼³Á¤",
     icon: <FiSettings />,
   },
   {
     id: "script",
-    label: "ï¿½ëº» ï¿½ï¿½ï¿½ï¿½",
-    description: "ï¿½Ô·ï¿½ ï¿½ëº» ï¿½Ð¼ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ëº» ï¿½Û¼ï¿½",
+    label: "´ëº» »ý¼º",
+    description: "ÀÔ·Â ´ëº» ºÐ¼®¡¤»õ ÁÖÁ¦ ´ëº» ÀÛ¼º",
     icon: <FiFileText />,
   },
   {
     id: "tts",
-    label: "ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½",
-    description: "AI ï¿½ï¿½ï¿½Ì½ï¿½ ï¿½ï¿½ï¿½Ã¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¼ï¿½ ï¿½ï¿½ï¿½ï¿½",
+    label: "À½¼º »ý¼º",
+    description: "AI º¸ÀÌ½º ¼±ÅÃ¡¤³»·¹ÀÌ¼Ç ÀúÀå",
     icon: <FiMic />,
   },
   {
     id: "image",
-    label: "ï¿½Ì¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½",
-    description: "ï¿½ï¿½ï¿½ä¸®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½",
+    label: "ÀÌ¹ÌÁö »ý¼º",
+    description: "½ºÅä¸®º¸µå ±â¹Ý ÀÌ¹ÌÁö ÇÁ·ÒÇÁÆ® ¼³Á¤",
     icon: <FiImage />,
   },
   {
     id: "generate",
-    label: "ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½",
-    description: "ï¿½Ì¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½",
+    label: "¿µ»ó »ý¼º",
+    description: "ÀÌ¹ÌÁö¡¤À½¼º¡¤ÅØ½ºÆ®·Î ¿µ»ó ±¸¼º",
     icon: <FiFilm />,
   },
   {
     id: "render",
-    label: "ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½",
-    description: "ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Â¡ï¿½ï¿½ï¿½Å°ï¿½ï¿½ ï¿½Ù¿ï¿½Îµï¿½",
+    label: "¿µ»ó ÆíÁý",
+    description: "ÃÖÁ¾ ¿µ»ó Ãâ·Â¡¤ÆÐÅ°Áö ´Ù¿î·Îµå",
     icon: <FiDownload />,
   },
 ];
@@ -145,12 +145,12 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     return stored === "short" ? "short" : "long";
   });
   const [projectTitle, setProjectTitle] = useState(() =>
-    getStoredString(STORAGE_KEYS.title, "È¯ï¿½ï¿½ 1500ï¿½ï¿½ ï¿½Ã´ï¿½, ï¿½ï¿½ ï¿½Ú»ï¿½ï¿½ï¿½ ï¿½î¶»ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½?")
+    getStoredString(STORAGE_KEYS.title, "È¯À² 1500¿ø ½Ã´ë, ³» ÀÚ»êÀº ¾î¶»°Ô ÁöÅ³±î?")
   );
   const [projectNotes, setProjectNotes] = useState(() =>
     getStoredString(
       STORAGE_KEYS.notes,
-      "2030 ï¿½ï¿½ï¿½à¸¦ Å¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ CTAï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½, ï¿½Ù½ï¿½ ï¿½Þ½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ò°Ô¿ï¿½."
+      "2030 ³²³à¸¦ Å¸°ÙÀ¸·Î CTA´Â ±¸µ¶ÇÏ±â·Î À¯µµ, ÇÙ½É ¸Þ½ÃÁö´Â °ð Á¤¸®ÇÒ°Ô¿ä."
     )
   );
   const [scriptDraft, setScriptDraft] = useState(() =>
@@ -159,7 +159,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [ttsScript, setTtsScript] = useState(() =>
     getStoredString(
       STORAGE_KEYS.tts,
-      "ï¿½Ì·ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ó¿ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¸ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ýºï¿½ï¿½ï¿½ ï¿½Ò°ï¿½ï¿½Õ´Ï´ï¿½."
+      "ÀÌ·± À§±â ¼Ó¿¡¼­µµ ±âÈ¸¸¦ Àâ´Â ¹æ¹ýÀ» Áö±ÝºÎÅÍ ¼Ò°³ÇÕ´Ï´Ù."
     )
   );
   const [selectedVoice, setSelectedVoice] = useState(voiceOptions[0].name);
@@ -179,7 +179,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [imagePrompt, setImagePrompt] = useState(() =>
     getStoredString(
       STORAGE_KEYS.imagePrompt,
-      "ï¿½Ì·ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½×·ï¿½ï¿½ï¿½ ï¿½Õ¿ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½"
+      "¹Ì·¡ µµ½Ã ¹è°æ ¼Ó °æÁ¦ ±×·¡ÇÁ ¾Õ¿¡ ¼­ ÀÖ´Â Ä³¸¯ÅÍ"
     )
   );
   const [imageStyle, setImageStyle] = useState(imageStyles[0]);
@@ -199,11 +199,11 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [renderNotes, setRenderNotes] = useState(() =>
     getStoredString(
       STORAGE_KEYS.renderNotes,
-      "ï¿½Æ´ï¿½ 3~4ï¿½ï¿½, ï¿½Ú¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½È¯. ï¿½Ú¸ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¼ï¿½ï¿½ï¿½."
+      "ÄÆ´ç 3~4ÃÊ, ÀÚ¿¬½º·¯¿î ÆäÀÌµå ÀüÈ¯. ÀÚ¸·Àº ²À Æ÷ÇÔÇÏ¼¼¿ä."
     )
   );
   const [editNotes, setEditNotes] = useState(() =>
-    getStoredString(STORAGE_KEYS.editNotes, "ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ 3ï¿½Ü°ï¿½, ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½.")
+    getStoredString(STORAGE_KEYS.editNotes, "ÄÆ º° Åæ 3´Ü°è, ÄÃ·¯´Â µû¶æÇÏ°Ô.")
   );
   const [assetFiles, setAssetFiles] = useState<File[]>([]);
   const [isPackaging, setIsPackaging] = useState(false);
@@ -266,7 +266,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
   const handleGenerateVideo = async () => {
     if (!videoPrompt.trim() && assetFiles.length === 0) {
-      alert("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½ï¿½Õ´Ï´ï¿½.");
+      alert("ÇÁ·ÒÇÁÆ®³ª ÂüÁ¶ ÀÌ¹ÌÁö°¡ ÇÊ¿äÇÕ´Ï´Ù.");
       return;
     }
 
@@ -298,7 +298,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     } catch (error: any) {
       console.error("Video generation failed:", error);
       const message =
-        error instanceof Error ? error.message : "ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ß½ï¿½ï¿½Ï´ï¿½.";
+        error instanceof Error ? error.message : "¿µ»ó »ý¼º¿¡ ½ÇÆÐÇß½À´Ï´Ù.";
       setVideoError(message);
     } finally {
       setIsGeneratingVideo(false);
@@ -337,11 +337,11 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       });
 
       const manifest = {
-        title: projectTitle || "ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®",
+        title: projectTitle || "ºñµð¿À ÇÁ·ÎÁ§Æ®",
         notes: projectNotes,
         createdAt: new Date().toISOString(),
         render: {
-          duration: `${renderDuration}ï¿½ï¿½`,
+          duration: `${renderDuration}ÃÊ`,
           ratio: renderRatio,
           fps: renderFps,
         },
@@ -361,21 +361,21 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       }
       zip.file(
         "README.txt",
-        "ï¿½ï¿½ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ©ï¿½ï¿½ï¿½ ï¿½ï¿½Å°ï¿½ï¿½ï¿½Ô´Ï´ï¿½.\nassets ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½Ò½ï¿½ï¿½ï¿½ ï¿½Ö¾ï¿½ï¿½Ö¼ï¿½ï¿½ï¿½.\nmanifest.jsonï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö½ï¿½ï¿½Ï´ï¿½."
+        "¿ÃÀÎ¿ø ¿µ»ó Á¦ÀÛ ½ºÆ©µð¿À ÆÐÅ°ÁöÀÔ´Ï´Ù.\nassets Æú´õ¿¡ ÀÌ¹ÌÁö¿Í À½¼º, ¿µ»ó ¼Ò½º¸¦ ³Ö¾îÁÖ¼¼¿ä.\nmanifest.json¿¡¼­ Ãâ·Â ¼³Á¤À» È®ÀÎÇÒ ¼ö ÀÖ½À´Ï´Ù."
       );
 
       const blob = await zip.generateAsync({ type: "blob" });
       downloadBlob(blob, `${projectTitle || "video"}-package.zip`);
     } catch (error) {
-      console.error("ï¿½ï¿½Å°ï¿½ï¿½ ï¿½Øºï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½", error);
-      alert("ï¿½ï¿½Å°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ß½ï¿½ï¿½Ï´ï¿½. ï¿½Ù½ï¿½ ï¿½Ãµï¿½ï¿½ï¿½ ï¿½Ö¼ï¿½ï¿½ï¿½.");
+      console.error("ÆÐÅ°Áö ÁØºñ Áß ¿À·ù", error);
+      alert("ÆÐÅ°Áö »ý¼º¿¡ ½ÇÆÐÇß½À´Ï´Ù. ´Ù½Ã ½ÃµµÇØ ÁÖ¼¼¿ä.");
     } finally {
       setIsPackaging(false);
     }
   };
 
   const handleDownloadEditNotes = () => {
-    const content = editNotes.trim() || "ï¿½ï¿½ï¿½ï¿½ ï¿½È³ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½â¿¡ ï¿½Û¼ï¿½ï¿½ï¿½ ï¿½Ö¼ï¿½ï¿½ï¿½.";
+    const content = editNotes.trim() || "ÆíÁý ¾È³»¸¦ ¿©±â¿¡ ÀÛ¼ºÇØ ÁÖ¼¼¿ä.";
     downloadBlob(new Blob([content], { type: "text/plain;charset=utf-8" }),
       `${projectTitle || "video"}-edit-notes.txt`
     );
@@ -383,35 +383,35 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
   const handleGenerateTts = () => {
     if (!ttsScript.trim()) {
-      alert("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯ï¿½ï¿½ ï¿½Ø½ï¿½Æ®ï¿½ï¿½ ï¿½Ô·ï¿½ï¿½ï¿½ ï¿½Ö¼ï¿½ï¿½ï¿½.");
+      alert("À½¼ºÀ¸·Î º¯È¯ÇÒ ÅØ½ºÆ®¸¦ ÀÔ·ÂÇØ ÁÖ¼¼¿ä.");
       return;
     }
     const newSample = {
       id: Date.now(),
       voice: selectedVoice,
       text: ttsScript.trim().slice(0, 60) + (ttsScript.trim().length > 60 ? "..." : ""),
-      status: "ï¿½ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½",
+      status: "»ý¼º ¿Ï·á",
     };
     setTtsSamples((prev) => [newSample, ...prev].slice(0, 3));
-    setRenderingStatus("AI ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Øºï¿½ï¿½ß½ï¿½ï¿½Ï´ï¿½.");
+    setRenderingStatus("AI À½¼º Ãâ·ÂÀ» ÁØºñÇß½À´Ï´Ù.");
   };
 
   const handleGenerateImages = () => {
     const previews = Array.from({ length: imageCount }, (_, index) => ({
       id: index,
-      title: `ï¿½ï¿½ ${index + 1}`,
+      title: `ÄÆ ${index + 1}`,
       hint: `${imagePrompt} / ${imageStyle}`,
       duration: `${4 + index}s`,
     }));
     setImagePreviews(previews);
-    setRenderingStatus(`ï¿½Ì¹ï¿½ï¿½ï¿½ ${imageCount}ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ß´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ß½ï¿½ï¿½Ï´ï¿½.`);
+    setRenderingStatus(`ÀÌ¹ÌÁö ${imageCount}°³¸¦ »ý¼ºÇß´ø ÇÁ·ÒÇÁÆ®¸¦ ±â¾ïÇß½À´Ï´Ù.`);
   };
 
   const startRendering = () => {
     if (rendering) return;
     setRendering(true);
     setRenderingProgress(0);
-    setRenderingStatus("ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½Ö½ï¿½ï¿½Ï´ï¿½.");
+    setRenderingStatus("Ãâ·ÂÀ» ¿¹¾àÇÏ°í ÀÖ½À´Ï´Ù.");
     const interval = window.setInterval(() => {
       setRenderingProgress((prev) => {
         const next = prev + 20;
@@ -419,7 +419,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
           window.clearInterval(interval);
           setRendering(false);
           setRenderingStatus(
-            "ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½Ï´ï¿½. ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù¿ï¿½Îµï¿½ï¿½Ï°Å³ï¿½ ï¿½ï¿½Å°ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½Ï¼ï¿½ï¿½ï¿½."
+            "Ãâ·ÂÀÌ ¿Ï·áµÇ¾ú½À´Ï´Ù. °á°ú¸¦ ´Ù¿î·ÎµåÇÏ°Å³ª ÆÐÅ°Áö¸¦ È®ÀÎÇÏ¼¼¿ä."
           );
           return 100;
         }
@@ -432,7 +432,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const handleVideoGenerate = async () => {
     const prompt = scriptDraft.trim() || projectNotes.trim() || projectTitle.trim();
     if (!prompt) {
-      setVideoError("ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì³ï¿½ ï¿½ëº»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô·ï¿½ï¿½ï¿½ ï¿½Ö¼ï¿½ï¿½ï¿½.");
+      setVideoError("¿µ»ó ¼³¸íÀÌ³ª ´ëº»À» ¸ÕÀú ÀÔ·ÂÇØ ÁÖ¼¼¿ä.");
       return;
     }
     setVideoGenerating(true);
@@ -446,7 +446,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       setVideoUrl(url);
     } catch (error) {
       setVideoError(
-        error instanceof Error ? error.message : "ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ß½ï¿½ï¿½Ï´ï¿½."
+        error instanceof Error ? error.message : "¿µ»ó »ý¼º¿¡ ½ÇÆÐÇß½À´Ï´Ù."
       );
     } finally {
       setVideoGenerating(false);
@@ -523,24 +523,24 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const formatOptions = [
     {
       value: "long" as VideoFormat,
-      title: "ï¿½ï¿½ï¿½ï¿½",
+      title: "·ÕÆû",
       icon: <FiMonitor className="text-lg" />,
     },
     {
       value: "short" as VideoFormat,
-      title: "ï¿½ï¿½ï¿½ï¿½",
+      title: "¼ôÆû",
       icon: <FiSmartphone className="text-lg" />,
     },
   ];
   const ratioOptions = [
     {
       value: "16:9",
-      title: "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½",
+      title: "°¡·ÎÇü",
       size: "1920 x 1080",
     },
     {
       value: "9:16",
-      title: "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½",
+      title: "¼¼·ÎÇü",
       size: "1080 x 1920",
     },
   ];
@@ -559,22 +559,22 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     }
   };
   const scriptLengthOptions = [
-    { value: "1", label: "1ï¿½ï¿½" },
-    { value: "8", label: "8ï¿½ï¿½" },
-    { value: "60", label: "1ï¿½Ã°ï¿½" },
-    { value: "custom", label: "ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô·ï¿½" },
+    { value: "1", label: "1ºÐ" },
+    { value: "8", label: "8ºÐ" },
+    { value: "60", label: "1½Ã°£" },
+    { value: "custom", label: "»ç¿ëÀÚ ÀÔ·Â" },
   ];
   const resolveScriptLengthMinutes = () => {
     return scriptLengthMinutes === "custom" ? customScriptLength : scriptLengthMinutes;
   };
   const formatScriptLengthLabel = () => {
     if (scriptLengthMinutes === "custom") {
-      return `${customScriptLength || "-"}ï¿½ï¿½`;
+      return `${customScriptLength || "-"}ºÐ`;
     }
     if (scriptLengthMinutes === "60") {
-      return "1ï¿½Ã°ï¿½";
+      return "1½Ã°£";
     }
-    return `${scriptLengthMinutes}ï¿½ï¿½`;
+    return `${scriptLengthMinutes}ºÐ`;
   };
   const handleSelectScriptLength = (minutes: string) => {
     setScriptLengthMinutes(minutes);
@@ -612,22 +612,22 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   };
   const handleAnalyzeScript = async () => {
     if (!scriptDraft.trim()) {
-      setScriptError("ï¿½Ð¼ï¿½ï¿½ï¿½ ï¿½ëº»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô·ï¿½ï¿½ï¿½ ï¿½Ö¼ï¿½ï¿½ï¿½.");
+      setScriptError("ºÐ¼®ÇÒ ´ëº»À» ¸ÕÀú ÀÔ·ÂÇØ ÁÖ¼¼¿ä.");
       return;
     }
     setScriptError("");
     setIsAnalyzingScript(true);
     try {
-      const analysis = await analyzeTranscript(scriptDraft.trim(), "ï¿½Ï¹ï¿½", "", projectTitle);
+      const analysis = await analyzeTranscript(scriptDraft.trim(), "ÀÏ¹Ý", "", projectTitle);
       setScriptAnalysis(analysis);
-      const ideas = await generateIdeas(analysis, "ï¿½Ï¹ï¿½", "");
+      const ideas = await generateIdeas(analysis, "ÀÏ¹Ý", "");
       setScriptIdeas(ideas);
       if (ideas.length > 0) {
         setSelectedTopic(ideas[0]);
       }
     } catch (error) {
       setScriptError(
-        error instanceof Error ? error.message : "ï¿½ëº» ï¿½Ð¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ß½ï¿½ï¿½Ï´ï¿½."
+        error instanceof Error ? error.message : "´ëº» ºÐ¼®¿¡ ½ÇÆÐÇß½À´Ï´Ù."
       );
     } finally {
       setIsAnalyzingScript(false);
@@ -635,11 +635,11 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   };
   const handleGenerateScript = async () => {
     if (!scriptAnalysis) {
-      setScriptError("ï¿½ëº» ï¿½ï¿½ï¿½ï¿½ ï¿½Ð¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¼ï¿½ï¿½ï¿½.");
+      setScriptError("´ëº» ±¸Á¶ ºÐ¼®À» ¸ÕÀú ÁøÇàÇØ ÁÖ¼¼¿ä.");
       return;
     }
     if (!selectedTopic) {
-      setScriptError("ï¿½ï¿½Ãµ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¼ï¿½ï¿½ï¿½.");
+      setScriptError("ÃßÃµ ÁÖÁ¦¸¦ ¼±ÅÃÇØ ÁÖ¼¼¿ä.");
       return;
     }
     setScriptError("");
@@ -649,12 +649,12 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         scriptAnalysis,
         selectedTopic,
         formatScriptLengthLabel(),
-        "ï¿½Ï¹ï¿½"
+        "ÀÏ¹Ý"
       );
       setGeneratedPlan(plan);
     } catch (error) {
       setScriptError(
-        error instanceof Error ? error.message : "ï¿½ëº» ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ß½ï¿½ï¿½Ï´ï¿½."
+        error instanceof Error ? error.message : "´ëº» »ý¼º¿¡ ½ÇÆÐÇß½À´Ï´Ù."
       );
     } finally {
       setIsGeneratingScript(false);
@@ -668,7 +668,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
           const lines = (chapter.script || [])
             .map((line) => `${line.character}: ${line.line}`)
             .join("\n");
-          return `# Ã©ï¿½ï¿½ ${index + 1}. ${chapter.title}\n${lines || chapter.purpose}`;
+          return `# Ã©ÅÍ ${index + 1}. ${chapter.title}\n${lines || chapter.purpose}`;
         })
         .join("\n\n");
     }
@@ -692,14 +692,14 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       .filter(Boolean);
     if (!lines.length) {
       return [
-        { id: 0, label: "ï¿½ï¿½ï¿½ï¿½", duration: "4ï¿½ï¿½", desc: "ï¿½ï¿½ï¿½ï¿½ ï¿½Ò°ï¿½" },
-        { id: 1, label: "ï¿½ï¿½ï¿½ï¿½", duration: "6ï¿½ï¿½", desc: "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½" },
-        { id: 2, label: "ï¿½Ø°ï¿½", duration: "5ï¿½ï¿½", desc: "ï¿½Ø°ï¿½Ã¥/ï¿½ï¿½ï¿½" },
+        { id: 0, label: "µµÀÔ", duration: "4ÃÊ", desc: "ÁÖÁ¦ ¼Ò°³" },
+        { id: 1, label: "Àü°³", duration: "6ÃÊ", desc: "¹®Á¦Á¡ ¾ð±Þ" },
+        { id: 2, label: "ÇØ°á", duration: "5ÃÊ", desc: "ÇØ°áÃ¥/»ç·Ê" },
       ];
     }
     return lines.slice(0, 4).map((line, index) => ({
       id: index,
-      label: `ï¿½ï¿½ ${index + 1}`,
+      label: `ÄÆ ${index + 1}`,
       duration: `${3 + index}s`,
       desc: line,
     }));
@@ -711,12 +711,12 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         return (
           <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
             <div className="rounded-[clamp(1rem,2vw,1.4rem)] border border-white/20 bg-black/40 p-[clamp(1rem,2vw,1.4rem)]">
-              <h3 className="text-2xl font-bold text-white">ï¿½ï¿½ï¿½ï¿½ ï¿½âº» ï¿½ï¿½ï¿½ï¿½</h3>
+              <h3 className="text-2xl font-bold text-white">¿µ»ó ±âº» ¼³Á¤</h3>
               <p className="mt-3 text-sm text-white/70">
-                ï¿½ï¿½ï¿½ï¿½/ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È­ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¼ï¿½ï¿½ï¿½.
+                ·ÕÆû/¼ôÆû°ú È­¸é ºñÀ²À» ¸ÕÀú ¼±ÅÃÇØ ÁÖ¼¼¿ä.
               </p>
               <div className="mt-4">
-                <p className="text-sm font-semibold text-white/80">ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½</p>
+                <p className="text-sm font-semibold text-white/80">¿µ»ó Çü½Ä</p>
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   {formatOptions.map((option) => (
                     <button
@@ -742,7 +742,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 </div>
               </div>
               <div className="mt-5">
-                <p className="text-sm font-semibold text-white/80">È­ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ & Å©ï¿½ï¿½</p>
+                <p className="text-sm font-semibold text-white/80">È­¸é ºñÀ² & Å©±â</p>
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   {ratioOptions.map((option) => (
                     <button
@@ -795,9 +795,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
             <div className="rounded-[clamp(1rem,2vw,1.6rem)] border border-white/10 bg-black/40 p-[clamp(1.25rem,2vw,1.8rem)] shadow-[0_18px_40px_rgba(0,0,0,0.45)]">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <h3 className="text-2xl font-bold text-white">ï¿½ëº» ï¿½Ô·ï¿½</h3>
+                  <h3 className="text-2xl font-bold text-white">´ëº» ÀÔ·Â</h3>
                   <p className="mt-2 text-sm text-white/60">
-                    ï¿½Ô·ï¿½ ï¿½ëº»ï¿½ï¿½ ï¿½Ð¼ï¿½ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½Ì¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Å©ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½å¸³ï¿½Ï´ï¿½.
+                    ÀÔ·Â ´ëº»À» ºÐ¼®ÇÏ°í ¿øÇÏ´Â ±æÀÌ¿¡ ¸ÂÃç »õ ½ºÅ©¸³Æ®¸¦ ¸¸µé¾î µå¸³´Ï´Ù.
                   </p>
                 </div>
                 <a
@@ -806,7 +806,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   rel="noreferrer"
                   className="rounded-full border border-red-500/30 px-4 py-1 text-sm font-semibold text-red-300 hover:border-red-400"
                 >
-                  ï¿½ëº» ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+                  ´ëº» ÆäÀÌÁö ¿­±â
                 </a>
               </div>
 
@@ -820,9 +820,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 />
                 <div className="flex flex-wrap items-center justify-between text-sm text-white/50">
                   <span>
-                    {scriptLineCount}ï¿½ï¿½ ï¿½ï¿½ {scriptDraft.length.toLocaleString()}ï¿½ï¿½
+                    {scriptLineCount}ÁÙ ¡¤ {scriptDraft.length.toLocaleString()}ÀÚ
                   </span>
-                  <span>ï¿½ëº» ï¿½ï¿½ï¿½ï¿½ ï¿½Ð¼ï¿½ï¿½ï¿½ ï¿½Ô·ï¿½</span>
+                  <span>´ëº» ±¸Á¶ ºÐ¼®¿ë ÀÔ·Â</span>
                 </div>
 
                 <div className="space-y-3">
@@ -850,13 +850,13 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         value={customScriptLength}
                         onChange={(event) => handleCustomScriptLengthChange(event.target.value)}
                         className="w-32 rounded-full border border-white/15 bg-black/30 px-4 py-2 text-sm text-white/80 focus:outline-none focus:ring-2 focus:ring-red-500"
-                        placeholder="ï¿½ï¿½"
+                        placeholder="ºÐ"
                       />
-                      <span className="text-sm text-white/60">ï¿½ï¿½</span>
+                      <span className="text-sm text-white/60">ºÐ</span>
                     </div>
                   )}
                   <p className="text-sm text-white/50">
-                    ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ëº»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½. ({formatScriptLengthLabel()} ï¿½ï¿½ï¿½ï¿½)
+                    ¼±ÅÃÇÑ ±æÀÌ¿¡ ¸ÂÃç ´ëº»À» ±¸¼ºÇÕ´Ï´Ù. ({formatScriptLengthLabel()} ±âÁØ)
                   </p>
                 </div>
 
@@ -867,11 +867,11 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     disabled={isAnalyzingScript || !isScriptStepReady(0)}
                     className="w-full rounded-full bg-gradient-to-r from-red-600 to-red-500 px-5 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(220,38,38,0.4)] disabled:opacity-60"
                   >
-                    {isAnalyzingScript ? "ï¿½ï¿½ï¿½ï¿½ ï¿½Ð¼ï¿½ ï¿½ï¿½..." : "ï¿½ëº» ï¿½ï¿½ï¿½ï¿½ ï¿½Ð¼ï¿½ï¿½Ï±ï¿½"}
+                    {isAnalyzingScript ? "±¸Á¶ ºÐ¼® Áß..." : "´ëº» ±¸Á¶ ºÐ¼®ÇÏ±â"}
                   </button>
                   {scriptAnalysis?.scriptStructure && (
                     <div className="rounded-2xl border border-white/10 bg-black/30 p-4 text-sm text-white/70">
-                      <p className="text-sm font-semibold text-white mb-3">ï¿½Ð¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½</p>
+                      <p className="text-sm font-semibold text-white mb-3">ºÐ¼®µÈ ±¸Á¶</p>
                       <div className="space-y-3">
                         {scriptAnalysis.scriptStructure.map((stage) => (
                           <div
@@ -890,7 +890,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 <div className="space-y-3">
                   {scriptIdeas.length === 0 ? (
                     <p className="text-sm text-white/60">
-                      ï¿½ï¿½ï¿½ï¿½ ï¿½Ð¼ï¿½ ï¿½ï¿½ ï¿½ï¿½Ãµ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ÃµË´Ï´ï¿½.
+                      ±¸Á¶ ºÐ¼® ÈÄ ÃßÃµ ÁÖÁ¦°¡ Ç¥½ÃµË´Ï´Ù.
                     </p>
                   ) : (
                     <div className="grid gap-2">
@@ -919,11 +919,11 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     disabled={isGeneratingScript || !isScriptStepReady(2)}
                     className="w-full rounded-full bg-gradient-to-r from-red-600 to-red-500 px-5 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(220,38,38,0.4)] disabled:opacity-60"
                   >
-                    {isGeneratingScript ? "ï¿½ëº» ï¿½Û¼ï¿½ ï¿½ï¿½..." : "ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ëº» ï¿½Û¼ï¿½ï¿½Ï±ï¿½"}
+                    {isGeneratingScript ? "´ëº» ÀÛ¼º Áß..." : "¼±ÅÃ ÁÖÁ¦·Î ´ëº» ÀÛ¼ºÇÏ±â"}
                   </button>
                   {generatedPlan && (
                     <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                      <p className="text-sm font-semibold text-white mb-2">ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ëº»</p>
+                      <p className="text-sm font-semibold text-white mb-2">»ý¼ºµÈ ´ëº»</p>
                       {generatedPlan.chapters && generatedPlan.chapters.length > 0 ? (
                         <div className="space-y-3 text-sm text-white/70">
                           {generatedPlan.chapters.map((chapter, index) => (
@@ -932,7 +932,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                               className="rounded-xl border border-white/10 bg-black/30 px-4 py-3"
                             >
                               <p className="font-semibold text-white">
-                                Ã©ï¿½ï¿½ {index + 1}. {chapter.title}
+                                Ã©ÅÍ {index + 1}. {chapter.title}
                               </p>
                               <p className="text-sm text-white/50 mt-1">{chapter.purpose}</p>
                               {chapter.script && chapter.script.length > 0 && (
@@ -956,11 +956,11 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   )}
                 </div>
 
-                <ErrorNotice error={scriptError} context="ï¿½ëº» ï¿½ï¿½ï¿½ï¿½" />
+                <ErrorNotice error={scriptError} context="´ëº» »ý¼º" />
                 {(generatedPlan || scriptDraft.trim()) && (
                   <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-black/30 px-4 py-3">
                     <p className="text-sm text-white/60">
-                      ï¿½ëº»ï¿½ï¿½ ï¿½Øºï¿½Ç¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ü°ï¿½ï¿½ ï¿½Ìµï¿½ï¿½Ï¼ï¿½ï¿½ï¿½.
+                      ´ëº»ÀÌ ÁØºñµÇ¸é ´ÙÀ½ ´Ü°è·Î ÀÌµ¿ÇÏ¼¼¿ä.
                     </p>
                     <button
                       type="button"
@@ -968,7 +968,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       disabled={!canGoNext}
                       className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-red-600 to-red-500 px-5 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(220,38,38,0.4)] disabled:opacity-60"
                     >
-                      ï¿½ï¿½ï¿½ï¿½ ï¿½Ü°ï¿½ï¿½ <FiChevronRight />
+                      ´ÙÀ½ ´Ü°è·Î <FiChevronRight />
                     </button>
                   </div>
                 )}
@@ -983,10 +983,10 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
             <div className="rounded-[clamp(1rem,2vw,1.6rem)] border border-white/10 bg-black/40 p-[clamp(1.25rem,2vw,1.8rem)] shadow-[0_18px_40px_rgba(0,0,0,0.45)]">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-semibold text-white/60">ï¿½ï¿½Å©ï¿½ï¿½Æ® & AI ï¿½ï¿½ï¿½Ì½ï¿½</p>
-                  <h3 className="text-2xl font-bold text-white mt-1">ï¿½ëº»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ö¼ï¿½ï¿½ï¿½.</h3>
+                  <p className="text-sm font-semibold text-white/60">½ºÅ©¸³Æ® & AI º¸ÀÌ½º</p>
+                  <h3 className="text-2xl font-bold text-white mt-1">´ëº»¿¡ À½¼ºÀ» ÀÔÇôÁÖ¼¼¿ä.</h3>
                   <p className="mt-2 text-sm text-white/60">
-                    ï¿½Ù½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Øµï¿½ ï¿½Ù·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯ï¿½Ë´Ï´ï¿½.
+                    ÇÙ½É ±¸°£¸¸ ¼±ÅÃÇØµµ ¹Ù·Î À½¼ºÀ¸·Î º¯È¯µË´Ï´Ù.
                   </p>
                 </div>
                 <a
@@ -995,25 +995,25 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   rel="noreferrer"
                   className="rounded-full border border-red-500/30 px-4 py-1 text-sm font-semibold text-red-300 hover:border-red-400"
                 >
-                  TTS ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+                  TTS ÆäÀÌÁö ¿­±â
                 </a>
               </div>
               <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
                 <div>
                   <div className="flex items-center justify-between text-sm text-white/50">
-                    <span>ï¿½ï¿½Å©ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½</span>
-                    <span>{ttsScript.length.toLocaleString()}ï¿½ï¿½</span>
+                    <span>½ºÅ©¸³Æ® ÆíÁý</span>
+                    <span>{ttsScript.length.toLocaleString()}ÀÚ</span>
                   </div>
                   <textarea
                     value={ttsScript}
                     onChange={(event) => setTtsScript(event.target.value)}
                     rows={7}
                     className="mt-2 w-full rounded-2xl border border-white/20 bg-white px-4 py-4 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500"
-                    placeholder="ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯ï¿½ï¿½ ï¿½ï¿½Å©ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ô·ï¿½ï¿½Ï¼ï¿½ï¿½ï¿½."
+                    placeholder="À½¼ºÀ¸·Î º¯È¯ÇÒ ½ºÅ©¸³Æ®¸¦ ÀÔ·ÂÇÏ¼¼¿ä."
                   />
                   <div className="mt-4 flex flex-wrap items-center gap-3">
                     <div className="flex-1 min-w-[160px]">
-                      <label className="text-sm font-semibold text-white/60">ï¿½ï¿½ï¿½Ì½ï¿½ ï¿½ï¿½ï¿½ï¿½</label>
+                      <label className="text-sm font-semibold text-white/60">º¸ÀÌ½º ¼±ÅÃ</label>
                       <select
                         value={selectedVoice}
                         onChange={(event) => setSelectedVoice(event.target.value)}
@@ -1021,13 +1021,13 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       >
                         {voiceOptions.map((voice) => (
                           <option key={voice.name} value={voice.name}>
-                            {voice.name} ï¿½ï¿½ {voice.label}
+                            {voice.name} ¡¤ {voice.label}
                           </option>
                         ))}
                       </select>
                     </div>
                     <div className="flex-1 min-w-[160px]">
-                      <label className="text-sm font-semibold text-white/60">ï¿½Óµï¿½</label>
+                      <label className="text-sm font-semibold text-white/60">¼Óµµ</label>
                       <input
                         type="range"
                         min={0.7}
@@ -1037,19 +1037,19 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         onChange={(event) => setTtsSpeed(Number(event.target.value))}
                         className="mt-2 w-full"
                       />
-                      <p className="text-sm text-white/50 text-right">{ttsSpeed.toFixed(1)}ï¿½ï¿½ï¿½</p>
+                      <p className="text-sm text-white/50 text-right">{ttsSpeed.toFixed(1)}¹è¼Ó</p>
                     </div>
                     <button
                       onClick={handleGenerateTts}
                       className="rounded-full bg-gradient-to-r from-red-600 to-red-500 px-4 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(220,38,38,0.4)]"
                     >
-                      ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+                      À½¼º »ý¼º
                     </button>
                   </div>
                 </div>
                 <div className="space-y-3">
                   <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/70">
-                    <p className="text-sm font-semibold text-white/60">AI ï¿½ï¿½ï¿½Ì½ï¿½ï¿½ï¿½ï¿½ï¿½</p>
+                    <p className="text-sm font-semibold text-white/60">AI º¸ÀÌ½º¿À¹ö</p>
                     <div className="mt-3 space-y-2">
                       {voiceOptions.map((voice) => (
                         <button
@@ -1063,15 +1063,15 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                           }`}
                         >
                           <p className="font-semibold text-white">{voice.name}</p>
-                          <p className="text-sm text-white/50">{voice.label} ï¿½ï¿½ {voice.tone}</p>
+                          <p className="text-sm text-white/50">{voice.label} ¡¤ {voice.tone}</p>
                         </button>
                       ))}
                     </div>
                   </div>
                   <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/70">
-                    <p className="text-sm font-semibold text-white/60">ï¿½Ö±ï¿½ ï¿½ï¿½ï¿½ï¿½</p>
+                    <p className="text-sm font-semibold text-white/60">ÃÖ±Ù »ý¼º</p>
                     {ttsSamples.length === 0 ? (
-                      <p className="mt-2 text-sm text-white/40">ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.</p>
+                      <p className="mt-2 text-sm text-white/40">¾ÆÁ÷ »ý¼ºÇÑ À½¼ºÀÌ ¾ø½À´Ï´Ù.</p>
                     ) : (
                       <div className="mt-2 space-y-2">
                         {ttsSamples.map((sample) => (
@@ -1093,19 +1093,19 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         return (
           <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
             <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-white/60 mb-4">
-              <span>ï¿½Ì¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È­ï¿½é¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½ä¸®ï¿½ï¿½ï¿½å¸¦ ï¿½Ù·ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö½ï¿½ï¿½Ï´ï¿½.</span>
+              <span>ÀÌ¹ÌÁö »ý¼º È­¸é¿¡¼­ ½ºÅä¸®º¸µå¸¦ ¹Ù·Î ¸¸µé ¼ö ÀÖ½À´Ï´Ù.</span>
               <a
                 href="/image?no_ads=true"
                 target="_blank"
                 rel="noreferrer"
                 className="rounded-full border border-red-500/30 px-4 py-1 text-sm font-semibold text-red-300 hover:border-red-400"
               >
-                ï¿½ï¿½ Ã¢ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+                »õ Ã¢¿¡¼­ ¿­±â
               </a>
             </div>
             <div className="overflow-hidden rounded-[clamp(1rem,2vw,1.5rem)] border border-white/20 bg-black/40">
               <iframe
-                title="ï¿½Ì¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½"
+                title="ÀÌ¹ÌÁö »ý¼º"
                 src="/image?no_ads=true"
                 className="h-[clamp(600px,72vh,800px)] w-full"
                 loading="lazy"
@@ -1119,10 +1119,10 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
             <div className="rounded-[clamp(1rem,2vw,1.4rem)] border border-white/20 bg-black/40 p-[clamp(1rem,2vw,1.4rem)]">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-semibold text-white/60">ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½</p>
-                  <h3 className="text-2xl font-bold text-white">ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½</h3>
+                  <p className="text-sm font-semibold text-white/60">¿µ»ó »ý¼º</p>
+                  <h3 className="text-2xl font-bold text-white">¾ÀÀ» ±¸¼ºÇØ º¼±î¿ä</h3>
                 </div>
-                <span className="text-sm font-semibold text-red-300">{imagePreviews.length}ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½</span>
+                <span className="text-sm font-semibold text-red-300">{imagePreviews.length}ÄÆ ¼±ÅÃ</span>
               </div>
               <div className="mt-4 space-y-3">
                 {timelineScenes.map((scene) => (
@@ -1140,16 +1140,16 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
               </div>
                   <div className="mb-8 border-b border-white/10 pb-8">
                     <h3 className="text-[clamp(1rem,1.6vw,1.2rem)] font-semibold text-white">
-                      AI ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (Seedance)
+                      AI ¿µ»ó »ý¼º (Seedance)
                     </h3>
                     <p className="mt-2 text-[clamp(0.8rem,1.4vw,0.95rem)] text-white/60">
-                      ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô·ï¿½ï¿½Ï¿ï¿½ Seedance AIï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¼ï¿½ï¿½ï¿½.
+                      ÇÁ·ÒÇÁÆ®³ª ÀÌ¹ÌÁö¸¦ ÀÔ·ÂÇÏ¿© Seedance AI·Î ¿µ»óÀ» »ý¼ºÇÏ¼¼¿ä.
                     </p>
                     <div className="mt-4 space-y-3">
                        <textarea
                          value={videoPrompt}
                          onChange={(e) => setVideoPrompt(e.target.value)}
-                         placeholder="ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô·ï¿½ï¿½Ï¼ï¿½ï¿½ï¿½ (ï¿½ï¿½: ï¿½ï¿½ï¿½ß´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½)"
+                         placeholder="¿µ»ó¿¡ ´ëÇÑ ¼³¸íÀ» ÀÔ·ÂÇÏ¼¼¿ä (¿¹: ÃãÃß´Â °í¾çÀÌ)"
                          className="w-full rounded-xl border border-white/20 bg-white px-4 py-3 text-sm text-black focus:outline-none focus:ring-2 focus:ring-red-500"
                          rows={3}
                        />
@@ -1158,23 +1158,23 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                          disabled={isGeneratingVideo}
                          className="rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-500 disabled:opacity-50"
                        >
-                         {isGeneratingVideo ? "ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½..." : "ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½"}
+                         {isGeneratingVideo ? "»ý¼º Áß..." : "¿µ»ó »ý¼ºÇÏ±â"}
                        </button>
                     </div>
                     {generatedVideoUrl && (
                       <div className="mt-4">
                         <video src={generatedVideoUrl} controls className="w-full rounded-lg" />
-                        <a href={generatedVideoUrl} download className="mt-2 inline-block text-sm text-red-400 hover:text-red-300">ï¿½Ù¿ï¿½Îµï¿½</a>
+                        <a href={generatedVideoUrl} download className="mt-2 inline-block text-sm text-red-400 hover:text-red-300">´Ù¿î·Îµå</a>
                       </div>
                     )}
                   </div>
 
                   <h3 className="text-[clamp(1rem,1.6vw,1.2rem)] font-semibold text-white">
-                    ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å°ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Îµï¿½
+                    ¿µ»ó ÆÐÅ°Áö Àç·á ¾÷·Îµå
                   </h3>
               <label className="mt-2 inline-flex cursor-pointer items-center gap-2 rounded-2xl border border-dashed border-white/40 px-4 py-3 text-sm text-white/60">
                 <FiUpload />
-                ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+                ÆÄÀÏ ¼±ÅÃ
                 <input
                   type="file"
                   multiple
@@ -1186,7 +1186,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
               <div className="mt-3 space-y-2">
                 {assetFiles.length === 0 ? (
                   <p className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/50">
-                    ï¿½ï¿½ï¿½Îµï¿½ï¿½ï¿½ ï¿½Ú»ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½.
+                    ¾÷·ÎµåÇÑ ÀÚ»êÀÌ ¾øÀ¸¸é ÇÁ·ÒÇÁÆ® ±â¹ÝÀ¸·Î »ý¼ºÇÕ´Ï´Ù.
                   </p>
                 ) : (
                   assetFiles.map((file, index) => (
@@ -1202,7 +1202,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         onClick={() => handleRemoveFile(index)}
                         className="text-white/50 underline-offset-2 hover:text-red-300"
                       >
-                        ï¿½ï¿½ï¿½ï¿½
+                        Á¦°Å
                       </button>
                     </div>
                   ))
@@ -1213,28 +1213,28 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 disabled={!assetFiles.length || isPackaging}
                 className="mt-6 w-full rounded-2xl bg-gradient-to-r from-red-600 to-red-500 px-5 py-3 text-sm font-bold text-white shadow-[0_10px_30px_rgba(220,38,38,0.4)] disabled:opacity-60"
               >
-                <FiDownload /> {isPackaging ? "ï¿½ï¿½Å°ï¿½ï¿½ï¿½ï¿½ ï¿½Øºï¿½ ï¿½ï¿½ï¿½Ô´Ï´ï¿½" : "ï¿½ï¿½ï¿½ ï¿½ï¿½Å°ï¿½ï¿½ ï¿½Ù¿ï¿½Îµï¿½"}
+                <FiDownload /> {isPackaging ? "ÆÐÅ°Áö¸¦ ÁØºñ ÁßÀÔ´Ï´Ù" : "Ãâ·Â ÆÐÅ°Áö ´Ù¿î·Îµå"}
               </button>
             </div>
             <div className="rounded-[clamp(1rem,2vw,1.4rem)] border border-white/20 bg-black/40 p-4">
-              <p className="text-sm font-semibold text-white/60">ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½ï¿½</p>
+              <p className="text-sm font-semibold text-white/60">¿µ»ó ½ºÅ¸ÀÏ</p>
               <div className="mt-4 space-y-2 text-sm text-white/70">
-                <p>?? ï¿½ï¿½Ã¼ ï¿½Ã°ï¿½: {renderDuration}ï¿½ï¿½</p>
-                <p>?? È­ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½: {renderRatio}</p>
+                <p>?? ÀüÃ¼ ½Ã°£: {renderDuration}ÃÊ</p>
+                <p>?? È­¸é ºñÀ²: {renderRatio}</p>
                 <p>?? FPS: {renderFps}</p>
-                <p>?? ï¿½Ì¹ï¿½ï¿½ï¿½ ï¿½ï¿½: {imagePreviews.length || imageCount}ï¿½ï¿½</p>
+                <p>?? ÀÌ¹ÌÁö ÄÆ: {imagePreviews.length || imageCount}°³</p>
               </div>
               <p className="mt-4 text-sm text-white/40">
-                ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½â¸¦ ï¿½Ù²Ù°ï¿½ ï¿½Í´Ù¸ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Æ°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¸ï¿½ ï¿½Ë´Ï´ï¿½.
+                ÅÛÆ÷³ª ºÐÀ§±â¸¦ ¹Ù²Ù°í ½Í´Ù¸é »ó´Ü ½ºÅÜÀ¸·Î µ¹¾Æ°¡ ¼öÁ¤ÇÏ¸é µË´Ï´Ù.
               </p>
               <button
                 onClick={handleVideoGenerate}
                 disabled={videoGenerating}
-                className="mt-5 w-full rounded-2xl bg-gradient-to-r from-red-600 to-red-500 px-4 py-2 text-sm font-bold text-white shadow-[0_8px_20px_rgba(220,38,38,0.35)] disabled:opacity-60"
+                className="mt-5 w-full rounded-2xl bg-gradient-to-r from-red-600 to-red-500 px-4 py-2 text-sm font-bold text-white shadow-[0_8px_20px_rgba(220,38,38,0.4)] disabled:opacity-60"
               >
-                {videoGenerating ? "ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã» ï¿½ï¿½..." : "ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã»ï¿½Ï±ï¿½"}
+                {videoGenerating ? "¿µ»ó »ý¼º ¿äÃ» Áß..." : "¿µ»ó »ý¼º ¿äÃ»ÇÏ±â"}
               </button>
-              <ErrorNotice error={videoError} context="ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" />
+              <ErrorNotice error={videoError} context="¿µ»ó »ý¼º" />
               {videoUrl && (
                 <div className="mt-4 overflow-hidden rounded-2xl border border-white/10 bg-black/40">
                   <video src={videoUrl} controls className="w-full" />
@@ -1249,10 +1249,10 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
             <div className="rounded-[clamp(1rem,2vw,1.6rem)] border border-white/10 bg-white/95 p-[clamp(1.25rem,2vw,1.8rem)] text-slate-900 shadow-[0_20px_40px_rgba(15,23,42,0.15)]">
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-sm font-semibold text-slate-400">ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½</p>
-                  <h3 className="text-2xl font-bold text-slate-900 mt-1">ï¿½ï¿½ï¿½ ï¿½ï¿½Ò¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½.</h3>
+                  <p className="text-sm font-semibold text-slate-400">¿µ»ó Ãâ·Â</p>
+                  <h3 className="text-2xl font-bold text-slate-900 mt-1">¸ðµç ¿ä¼Ò¸¦ Á¶ÇÕÇØ ÃÖÁ¾ ¿µ»óÀ» »ý¼ºÇÕ´Ï´Ù.</h3>
                 </div>
-                <span className="text-sm text-slate-500">ï¿½ï¿½ï¿½àµµ {renderingProgress}%</span>
+                <span className="text-sm text-slate-500">ÁøÇàµµ {renderingProgress}%</span>
               </div>
               <div className="mt-4 flex gap-3 overflow-x-auto pb-2">
                 {timelineScenes.map((scene) => (
@@ -1268,48 +1268,48 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
               </div>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 <div className="rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700">
-                  <p className="text-sm font-semibold text-slate-400">ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½</p>
+                  <p className="text-sm font-semibold text-slate-400">Ãâ·Â ¿ä¾à</p>
                   <div className="mt-2 space-y-1 text-sm">
                     <div className="flex justify-between">
-                      <span>ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½</span>
-                      <span>{renderDuration}ï¿½ï¿½</span>
+                      <span>¿¹»ó ±æÀÌ</span>
+                      <span>{renderDuration}ÃÊ</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½</span>
-                      <span>{timelineScenes.length}ï¿½ï¿½</span>
+                      <span>±¸°£ ¼ö</span>
+                      <span>{timelineScenes.length}°³</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>ï¿½ï¿½ï¿½ï¿½ Å©ï¿½ï¿½ï¿½ï¿½</span>
-                      <span>{timelineScenes.length} Å©ï¿½ï¿½ï¿½ï¿½</span>
+                      <span>¿¹»ó Å©·¹µ÷</span>
+                      <span>{timelineScenes.length} Å©·¹µ÷</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½</span>
+                      <span>Ãâ·Â Çü½Ä</span>
                       <span>MP4 (1080p)</span>
                     </div>
                   </div>
                 </div>
                 <div className="rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700">
-                  <p className="text-sm font-semibold text-slate-400">ï¿½ï¿½ï¿½ ï¿½Þ¸ï¿½</p>
+                  <p className="text-sm font-semibold text-slate-400">Ãâ·Â ¸Þ¸ð</p>
                   <textarea
                     value={editNotes}
                     onChange={(event) => setEditNotes(event.target.value)}
                     rows={4}
                     className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500"
-                    placeholder="ï¿½ï¿½ï¿½ï¿½ Å°ï¿½ï¿½ï¿½ï¿½, ï¿½Ú¸ï¿½ ï¿½ï¿½Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï¼ï¿½ï¿½ï¿½."
+                    placeholder="ÆíÁý Å°¿öµå, ÀÚ¸· ½ºÅ¸ÀÏ µîÀ» ±â·ÏÇÏ¼¼¿ä."
                   />
                 </div>
               </div>
               <div className="mt-4 flex flex-wrap items-center gap-3">
                 <label className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600">
                   <input type="checkbox" className="h-4 w-4 rounded border-slate-300" defaultChecked />
-                  ï¿½Ú¸ï¿½ ï¿½ï¿½ï¿½ï¿½
+                  ÀÚ¸· Æ÷ÇÔ
                 </label>
                 <button
                   type="button"
                   onClick={handleDownloadEditNotes}
                   className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600"
                 >
-                  ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ® ï¿½Ù¿ï¿½Îµï¿½
+                  ÆíÁý ³ëÆ® ´Ù¿î·Îµå
                 </button>
               </div>
               <div className="mt-6 h-2 w-full rounded-full bg-slate-200">
@@ -1319,14 +1319,14 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 />
               </div>
               <p className="mt-3 text-sm text-slate-500">
-                {renderingStatus || "ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¸ï¿½ ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¼ï¿½ï¿½Õ´Ï´ï¿½."}
+                {renderingStatus || "Ãâ·ÂÀ» ½ÃÀÛÇÏ¸é ÀÚµ¿À¸·Î ¸ðµç ÄÆÀ» Á¶ÇÕÇØ ¿µ»óÀ» ¿Ï¼ºÇÕ´Ï´Ù."}
               </p>
               <button
                 onClick={startRendering}
                 disabled={rendering}
-                className="mt-6 w-full rounded-2xl bg-gradient-to-r from-red-600 to-red-500 px-5 py-3 text-sm font-bold text-white shadow-[0_10px_30px_rgba(220,38,38,0.35)] disabled:opacity-60"
+                className="mt-6 w-full rounded-2xl bg-gradient-to-r from-red-600 to-red-500 px-5 py-3 text-sm font-bold text-white shadow-[0_10px_30px_rgba(220,38,38,0.4)] disabled:opacity-60"
               >
-                {rendering ? "ï¿½ï¿½ï¿½ ï¿½ï¿½..." : "ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½"}
+                {rendering ? "Ãâ·Â Áß..." : "¿µ»ó Ãâ·Â ½ÃÀÛ"}
               </button>
             </div>
           </div>
@@ -1362,10 +1362,10 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
               All-in-one studio
             </p>
             <h1 className="mt-3 text-[clamp(2.1rem,3.2vw,3.4rem)] font-black text-white">
-              ï¿½ï¿½ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ©ï¿½ï¿½ï¿½
+              ¿ÃÀÎ¿ø ¿µ»ó Á¦ÀÛ ½ºÆ©µð¿À
             </h1>
             <p className="mt-3 text-[clamp(0.95rem,1.6vw,1.1rem)] text-white/70 text-balance">
-              ï¿½Ê¿ï¿½ï¿½ï¿½ ï¿½Ü°è¸¦ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½Ï°ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¾î¼­ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö¾ï¿½ï¿½.
+              ÇÊ¿äÇÑ ´Ü°è¸¦ ½±°Ô È®ÀÎÇÏ°í, ºü¸£°Ô ¿µ»ó Á¦ÀÛ ±â´ÉÀ» ÀÌ¾î¼­ »ç¿ëÇÒ ¼ö ÀÖ¾î¿ä.
             </p>
           </div>
           <div className="grid w-full gap-2 text-xs text-white/70 sm:max-w-[520px] sm:grid-cols-3">
@@ -1418,15 +1418,15 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   disabled={!canGoPrev}
                   className="inline-flex items-center gap-2 rounded-full border border-white/20 px-5 py-2 text-sm font-semibold text-white/70 transition hover:border-white/40 disabled:opacity-40"
                 >
-                  <FiChevronLeft /> ï¿½ï¿½ï¿½ï¿½ ï¿½Ü°ï¿½
+                  <FiChevronLeft /> ÀÌÀü ´Ü°è
                 </button>
                 <button
                   type="button"
                   onClick={handleNext}
                   disabled={!canGoNext}
-                  className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-red-600 to-red-500 px-6 py-2 text-sm font-semibold text-white shadow-[0_10px_20px_rgba(220,38,38,0.35)] transition hover:translate-x-0.5 disabled:opacity-40"
+                  className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-red-600 to-red-500 px-6 py-2 text-sm font-semibold text-white shadow-[0_10px_20px_rgba(220,38,38,0.4)] transition hover:translate-x-0.5 disabled:opacity-40"
                 >
-                  ï¿½ï¿½ï¿½ï¿½ ï¿½Ü°ï¿½ <FiChevronRight />
+                  ´ÙÀ½ ´Ü°è <FiChevronRight />
                 </button>
               </div>
             </div>
