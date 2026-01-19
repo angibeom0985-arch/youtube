@@ -1,4 +1,4 @@
-﻿
+
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
@@ -55,55 +55,55 @@ type Step = {
 };
 
 const voiceOptions = [
-  { name: "민준", label: "남성 캐주얼", tone: "신뢰감 있는 다큐 스타일" },
-  { name: "서연", label: "여성 아나운서", tone: "차분한 뉴스 톤" },
-  { name: "소희", label: "여성 ASMR", tone: "부드러운 집중용 음성" },
+  { name: "����", label: "���� ĳ�־�", tone: "�ŷڰ� �ִ� ��ť ��Ÿ��" },
+  { name: "����", label: "���� �Ƴ��", tone: "������ ���� ��" },
+  { name: "����", label: "���� ASMR", tone: "�ε巯�� ���߿� ����" },
 ];
 
 const imageStyles = [
-  "미니멀 애니메이션",
-  "실사 느낌",
-  "카툰 스타일",
-  "하이퍼 리얼",
+  "�̴ϸ� �ִϸ��̼�",
+  "�ǻ� ����",
+  "ī�� ��Ÿ��",
+  "������ ����",
 ];
 
 const SCRIPT_USAGE_GUIDE =
-  "대본 생성 사용법\n1. 현재 대본의 흐름을 그대로 붙여 넣기\n2. 영상 길이를 선택해 새 대본의 분량 설정\n3. 추천 주제 중 하나를 골라 새 대본 생성";
+  "�뺻 ���� ����\n1. ���� �뺻�� �帧�� �״�� �ٿ� �ֱ�\n2. ���� ���̸� ������ �� �뺻�� �з� ����\n3. ��õ ���� �� �ϳ��� ��� �� �뺻 ����";
 const steps: Step[] = [
   {
     id: "setup",
-    label: "영상 설정",
-    description: "프로젝트 제목·출력 기본 값 설정",
+    label: "���� ����",
+    description: "������Ʈ ������� �⺻ �� ����",
     icon: <FiSettings />,
   },
   {
     id: "script",
-    label: "대본 생성",
-    description: "입력 대본 분석·새 주제 대본 작성",
+    label: "�뺻 ����",
+    description: "�Է� �뺻 �м����� ���� �뺻 �ۼ�",
     icon: <FiFileText />,
   },
   {
     id: "tts",
-    label: "음성 생성",
-    description: "AI 보이스 선택·내레이션 저장",
+    label: "���� ����",
+    description: "AI ���̽� ���á������̼� ����",
     icon: <FiMic />,
   },
   {
     id: "image",
-    label: "이미지 생성",
-    description: "스토리보드 기반 이미지 프롬프트 설정",
+    label: "�̹��� ����",
+    description: "���丮���� ��� �̹��� ������Ʈ ����",
     icon: <FiImage />,
   },
   {
     id: "generate",
-    label: "영상 생성",
-    description: "이미지·음성·텍스트로 영상 구성",
+    label: "���� ����",
+    description: "�̹������������ؽ�Ʈ�� ���� ����",
     icon: <FiFilm />,
   },
   {
     id: "render",
-    label: "영상 편집",
-    description: "최종 영상 출력·패키지 다운로드",
+    label: "���� ����",
+    description: "���� ���� ��¡���Ű�� �ٿ�ε�",
     icon: <FiDownload />,
   },
 ];
@@ -145,12 +145,12 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     return stored === "short" ? "short" : "long";
   });
   const [projectTitle, setProjectTitle] = useState(() =>
-    getStoredString(STORAGE_KEYS.title, "환율 1500원 시대, 내 자산은 어떻게 지킬까?")
+    getStoredString(STORAGE_KEYS.title, "ȯ�� 1500�� �ô�, �� �ڻ��� ��� ��ų��?")
   );
   const [projectNotes, setProjectNotes] = useState(() =>
     getStoredString(
       STORAGE_KEYS.notes,
-      "2030 남녀를 타겟으로 CTA는 구독하기로 유도, 핵심 메시지는 곧 정리할게요."
+      "2030 ���ฦ Ÿ������ CTA�� �����ϱ�� ����, �ٽ� �޽����� �� �����ҰԿ�."
     )
   );
   const [scriptDraft, setScriptDraft] = useState(() =>
@@ -159,7 +159,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [ttsScript, setTtsScript] = useState(() =>
     getStoredString(
       STORAGE_KEYS.tts,
-      "이런 위기 속에서도 기회를 잡는 방법을 지금부터 소개합니다."
+      "�̷� ���� �ӿ����� ��ȸ�� ��� ����� ���ݺ��� �Ұ��մϴ�."
     )
   );
   const [selectedVoice, setSelectedVoice] = useState(voiceOptions[0].name);
@@ -179,7 +179,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [imagePrompt, setImagePrompt] = useState(() =>
     getStoredString(
       STORAGE_KEYS.imagePrompt,
-      "미래 도시 배경 속 경제 그래프 앞에 서 있는 캐릭터"
+      "�̷� ���� ��� �� ���� �׷��� �տ� �� �ִ� ĳ����"
     )
   );
   const [imageStyle, setImageStyle] = useState(imageStyles[0]);
@@ -199,11 +199,11 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [renderNotes, setRenderNotes] = useState(() =>
     getStoredString(
       STORAGE_KEYS.renderNotes,
-      "컷당 3~4초, 자연스러운 페이드 전환. 자막은 꼭 포함하세요."
+      "�ƴ� 3~4��, �ڿ������� ���̵� ��ȯ. �ڸ��� �� �����ϼ���."
     )
   );
   const [editNotes, setEditNotes] = useState(() =>
-    getStoredString(STORAGE_KEYS.editNotes, "컷 별 톤 3단계, 컬러는 따뜻하게.")
+    getStoredString(STORAGE_KEYS.editNotes, "�� �� �� 3�ܰ�, �÷��� �����ϰ�.")
   );
   const [assetFiles, setAssetFiles] = useState<File[]>([]);
   const [isPackaging, setIsPackaging] = useState(false);
@@ -266,7 +266,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
   const handleGenerateVideo = async () => {
     if (!videoPrompt.trim() && assetFiles.length === 0) {
-      alert("프롬프트나 참조 이미지가 필요합니다.");
+      alert("������Ʈ�� ���� �̹����� �ʿ��մϴ�.");
       return;
     }
 
@@ -298,7 +298,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     } catch (error: any) {
       console.error("Video generation failed:", error);
       const message =
-        error instanceof Error ? error.message : "영상 생성에 실패했습니다.";
+        error instanceof Error ? error.message : "���� ������ �����߽��ϴ�.";
       setVideoError(message);
     } finally {
       setIsGeneratingVideo(false);
@@ -337,11 +337,11 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       });
 
       const manifest = {
-        title: projectTitle || "비디오 프로젝트",
+        title: projectTitle || "���� ������Ʈ",
         notes: projectNotes,
         createdAt: new Date().toISOString(),
         render: {
-          duration: `${renderDuration}초`,
+          duration: `${renderDuration}��`,
           ratio: renderRatio,
           fps: renderFps,
         },
@@ -361,21 +361,21 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       }
       zip.file(
         "README.txt",
-        "올인원 영상 제작 스튜디오 패키지입니다.\nassets 폴더에 이미지와 음성, 영상 소스를 넣어주세요.\nmanifest.json에서 출력 설정을 확인할 수 있습니다."
+        "���ο� ���� ���� ��Ʃ��� ��Ű���Դϴ�.\nassets ������ �̹����� ����, ���� �ҽ��� �־��ּ���.\nmanifest.json���� ��� ������ Ȯ���� �� �ֽ��ϴ�."
       );
 
       const blob = await zip.generateAsync({ type: "blob" });
       downloadBlob(blob, `${projectTitle || "video"}-package.zip`);
     } catch (error) {
-      console.error("패키지 준비 중 오류", error);
-      alert("패키지 생성에 실패했습니다. 다시 시도해 주세요.");
+      console.error("��Ű�� �غ� �� ����", error);
+      alert("��Ű�� ������ �����߽��ϴ�. �ٽ� �õ��� �ּ���.");
     } finally {
       setIsPackaging(false);
     }
   };
 
   const handleDownloadEditNotes = () => {
-    const content = editNotes.trim() || "편집 안내를 여기에 작성해 주세요.";
+    const content = editNotes.trim() || "���� �ȳ��� ���⿡ �ۼ��� �ּ���.";
     downloadBlob(new Blob([content], { type: "text/plain;charset=utf-8" }),
       `${projectTitle || "video"}-edit-notes.txt`
     );
@@ -383,35 +383,35 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
   const handleGenerateTts = () => {
     if (!ttsScript.trim()) {
-      alert("음성으로 변환할 텍스트를 입력해 주세요.");
+      alert("�������� ��ȯ�� �ؽ�Ʈ�� �Է��� �ּ���.");
       return;
     }
     const newSample = {
       id: Date.now(),
       voice: selectedVoice,
       text: ttsScript.trim().slice(0, 60) + (ttsScript.trim().length > 60 ? "..." : ""),
-      status: "생성 완료",
+      status: "���� �Ϸ�",
     };
     setTtsSamples((prev) => [newSample, ...prev].slice(0, 3));
-    setRenderingStatus("AI 음성 출력을 준비했습니다.");
+    setRenderingStatus("AI ���� ����� �غ��߽��ϴ�.");
   };
 
   const handleGenerateImages = () => {
     const previews = Array.from({ length: imageCount }, (_, index) => ({
       id: index,
-      title: `컷 ${index + 1}`,
+      title: `�� ${index + 1}`,
       hint: `${imagePrompt} / ${imageStyle}`,
       duration: `${4 + index}s`,
     }));
     setImagePreviews(previews);
-    setRenderingStatus(`이미지 ${imageCount}개를 생성했던 프롬프트를 기억했습니다.`);
+    setRenderingStatus(`�̹��� ${imageCount}���� �����ߴ� ������Ʈ�� ����߽��ϴ�.`);
   };
 
   const startRendering = () => {
     if (rendering) return;
     setRendering(true);
     setRenderingProgress(0);
-    setRenderingStatus("출력을 예약하고 있습니다.");
+    setRenderingStatus("����� �����ϰ� �ֽ��ϴ�.");
     const interval = window.setInterval(() => {
       setRenderingProgress((prev) => {
         const next = prev + 20;
@@ -419,7 +419,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
           window.clearInterval(interval);
           setRendering(false);
           setRenderingStatus(
-            "출력이 완료되었습니다. 결과를 다운로드하거나 패키지를 확인하세요."
+            "����� �Ϸ�Ǿ����ϴ�. ����� �ٿ�ε��ϰų� ��Ű���� Ȯ���ϼ���."
           );
           return 100;
         }
@@ -432,7 +432,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const handleVideoGenerate = async () => {
     const prompt = scriptDraft.trim() || projectNotes.trim() || projectTitle.trim();
     if (!prompt) {
-      setVideoError("영상 설명이나 대본을 먼저 입력해 주세요.");
+      setVideoError("���� �����̳� �뺻�� ���� �Է��� �ּ���.");
       return;
     }
     setVideoGenerating(true);
@@ -446,7 +446,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       setVideoUrl(url);
     } catch (error) {
       setVideoError(
-        error instanceof Error ? error.message : "영상 생성에 실패했습니다."
+        error instanceof Error ? error.message : "���� ������ �����߽��ϴ�."
       );
     } finally {
       setVideoGenerating(false);
@@ -523,24 +523,24 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const formatOptions = [
     {
       value: "long" as VideoFormat,
-      title: "롱폼",
+      title: "����",
       icon: <FiMonitor className="text-lg" />,
     },
     {
       value: "short" as VideoFormat,
-      title: "숏폼",
+      title: "����",
       icon: <FiSmartphone className="text-lg" />,
     },
   ];
   const ratioOptions = [
     {
       value: "16:9",
-      title: "가로형",
+      title: "������",
       size: "1920 x 1080",
     },
     {
       value: "9:16",
-      title: "세로형",
+      title: "������",
       size: "1080 x 1920",
     },
   ];
@@ -559,22 +559,22 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     }
   };
   const scriptLengthOptions = [
-    { value: "1", label: "1분" },
-    { value: "8", label: "8분" },
-    { value: "60", label: "1시간" },
-    { value: "custom", label: "사용자 입력" },
+    { value: "1", label: "1��" },
+    { value: "8", label: "8��" },
+    { value: "60", label: "1�ð�" },
+    { value: "custom", label: "����� �Է�" },
   ];
   const resolveScriptLengthMinutes = () => {
     return scriptLengthMinutes === "custom" ? customScriptLength : scriptLengthMinutes;
   };
   const formatScriptLengthLabel = () => {
     if (scriptLengthMinutes === "custom") {
-      return `${customScriptLength || "-"}분`;
+      return `${customScriptLength || "-"}��`;
     }
     if (scriptLengthMinutes === "60") {
-      return "1시간";
+      return "1�ð�";
     }
-    return `${scriptLengthMinutes}분`;
+    return `${scriptLengthMinutes}��`;
   };
   const handleSelectScriptLength = (minutes: string) => {
     setScriptLengthMinutes(minutes);
@@ -612,22 +612,22 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   };
   const handleAnalyzeScript = async () => {
     if (!scriptDraft.trim()) {
-      setScriptError("분석할 대본을 먼저 입력해 주세요.");
+      setScriptError("�м��� �뺻�� ���� �Է��� �ּ���.");
       return;
     }
     setScriptError("");
     setIsAnalyzingScript(true);
     try {
-      const analysis = await analyzeTranscript(scriptDraft.trim(), "일반", "", projectTitle);
+      const analysis = await analyzeTranscript(scriptDraft.trim(), "�Ϲ�", "", projectTitle);
       setScriptAnalysis(analysis);
-      const ideas = await generateIdeas(analysis, "일반", "");
+      const ideas = await generateIdeas(analysis, "�Ϲ�", "");
       setScriptIdeas(ideas);
       if (ideas.length > 0) {
         setSelectedTopic(ideas[0]);
       }
     } catch (error) {
       setScriptError(
-        error instanceof Error ? error.message : "대본 분석에 실패했습니다."
+        error instanceof Error ? error.message : "�뺻 �м��� �����߽��ϴ�."
       );
     } finally {
       setIsAnalyzingScript(false);
@@ -635,11 +635,11 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   };
   const handleGenerateScript = async () => {
     if (!scriptAnalysis) {
-      setScriptError("대본 구조 분석을 먼저 진행해 주세요.");
+      setScriptError("�뺻 ���� �м��� ���� ������ �ּ���.");
       return;
     }
     if (!selectedTopic) {
-      setScriptError("추천 주제를 선택해 주세요.");
+      setScriptError("��õ ������ ������ �ּ���.");
       return;
     }
     setScriptError("");
@@ -649,12 +649,12 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         scriptAnalysis,
         selectedTopic,
         formatScriptLengthLabel(),
-        "일반"
+        "�Ϲ�"
       );
       setGeneratedPlan(plan);
     } catch (error) {
       setScriptError(
-        error instanceof Error ? error.message : "대본 생성에 실패했습니다."
+        error instanceof Error ? error.message : "�뺻 ������ �����߽��ϴ�."
       );
     } finally {
       setIsGeneratingScript(false);
@@ -668,7 +668,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
           const lines = (chapter.script || [])
             .map((line) => `${line.character}: ${line.line}`)
             .join("\n");
-          return `# 챕터 ${index + 1}. ${chapter.title}\n${lines || chapter.purpose}`;
+          return `# é�� ${index + 1}. ${chapter.title}\n${lines || chapter.purpose}`;
         })
         .join("\n\n");
     }
@@ -692,14 +692,14 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       .filter(Boolean);
     if (!lines.length) {
       return [
-        { id: 0, label: "도입", duration: "4초", desc: "주제 소개" },
-        { id: 1, label: "전개", duration: "6초", desc: "문제점 언급" },
-        { id: 2, label: "해결", duration: "5초", desc: "해결책/사례" },
+        { id: 0, label: "����", duration: "4��", desc: "���� �Ұ�" },
+        { id: 1, label: "����", duration: "6��", desc: "������ ���" },
+        { id: 2, label: "�ذ�", duration: "5��", desc: "�ذ�å/���" },
       ];
     }
     return lines.slice(0, 4).map((line, index) => ({
       id: index,
-      label: `컷 ${index + 1}`,
+      label: `�� ${index + 1}`,
       duration: `${3 + index}s`,
       desc: line,
     }));
@@ -711,12 +711,12 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         return (
           <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
             <div className="rounded-[clamp(1rem,2vw,1.4rem)] border border-white/20 bg-black/40 p-[clamp(1rem,2vw,1.4rem)]">
-              <h3 className="text-2xl font-bold text-white">영상 기본 설정</h3>
+              <h3 className="text-2xl font-bold text-white">���� �⺻ ����</h3>
               <p className="mt-3 text-sm text-white/70">
-                롱폼/숏폼과 화면 비율을 먼저 선택해 주세요.
+                ����/������ ȭ�� ������ ���� ������ �ּ���.
               </p>
               <div className="mt-4">
-                <p className="text-sm font-semibold text-white/80">영상 형식</p>
+                <p className="text-sm font-semibold text-white/80">���� ����</p>
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   {formatOptions.map((option) => (
                     <button
@@ -742,7 +742,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 </div>
               </div>
               <div className="mt-5">
-                <p className="text-sm font-semibold text-white/80">화면 비율 & 크기</p>
+                <p className="text-sm font-semibold text-white/80">ȭ�� ���� & ũ��</p>
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   {ratioOptions.map((option) => (
                     <button
@@ -795,9 +795,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
             <div className="rounded-[clamp(1rem,2vw,1.6rem)] border border-white/10 bg-black/40 p-[clamp(1.25rem,2vw,1.8rem)] shadow-[0_18px_40px_rgba(0,0,0,0.45)]">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <h3 className="text-2xl font-bold text-white">대본 입력</h3>
+                  <h3 className="text-2xl font-bold text-white">�뺻 �Է�</h3>
                   <p className="mt-2 text-sm text-white/60">
-                    입력 대본을 분석하고 원하는 길이에 맞춰 새 스크립트를 만들어 드립니다.
+                    �Է� �뺻�� �м��ϰ� ���ϴ� ���̿� ���� �� ��ũ��Ʈ�� ����� �帳�ϴ�.
                   </p>
                 </div>
                 <a
@@ -806,7 +806,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   rel="noreferrer"
                   className="rounded-full border border-red-500/30 px-4 py-1 text-sm font-semibold text-red-300 hover:border-red-400"
                 >
-                  대본 페이지 열기
+                  �뺻 ������ ����
                 </a>
               </div>
 
@@ -820,9 +820,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 />
                 <div className="flex flex-wrap items-center justify-between text-sm text-white/50">
                   <span>
-                    {scriptLineCount}줄 · {scriptDraft.length.toLocaleString()}자
+                    {scriptLineCount}�� �� {scriptDraft.length.toLocaleString()}��
                   </span>
-                  <span>대본 구조 분석용 입력</span>
+                  <span>�뺻 ���� �м��� �Է�</span>
                 </div>
 
                 <div className="space-y-3">
@@ -850,13 +850,13 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         value={customScriptLength}
                         onChange={(event) => handleCustomScriptLengthChange(event.target.value)}
                         className="w-32 rounded-full border border-white/15 bg-black/30 px-4 py-2 text-sm text-white/80 focus:outline-none focus:ring-2 focus:ring-red-500"
-                        placeholder="분"
+                        placeholder="��"
                       />
-                      <span className="text-sm text-white/60">분</span>
+                      <span className="text-sm text-white/60">��</span>
                     </div>
                   )}
                   <p className="text-sm text-white/50">
-                    선택한 길이에 맞춰 대본을 구성합니다. ({formatScriptLengthLabel()} 기준)
+                    ������ ���̿� ���� �뺻�� �����մϴ�. ({formatScriptLengthLabel()} ����)
                   </p>
                 </div>
 
@@ -865,13 +865,13 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     type="button"
                     onClick={handleAnalyzeScript}
                     disabled={isAnalyzingScript || !isScriptStepReady(0)}
-                    className="w-full rounded-full bg-gradient-to-r from-red-500 to-orange-500 px-5 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(239,68,68,0.3)] disabled:opacity-60"
+                    className="w-full rounded-full bg-gradient-to-r from-red-600 to-red-500 px-5 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(220,38,38,0.4)] disabled:opacity-60"
                   >
-                    {isAnalyzingScript ? "구조 분석 중..." : "대본 구조 분석하기"}
+                    {isAnalyzingScript ? "���� �м� ��..." : "�뺻 ���� �м��ϱ�"}
                   </button>
                   {scriptAnalysis?.scriptStructure && (
                     <div className="rounded-2xl border border-white/10 bg-black/30 p-4 text-sm text-white/70">
-                      <p className="text-sm font-semibold text-white mb-3">분석된 구조</p>
+                      <p className="text-sm font-semibold text-white mb-3">�м��� ����</p>
                       <div className="space-y-3">
                         {scriptAnalysis.scriptStructure.map((stage) => (
                           <div
@@ -890,7 +890,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 <div className="space-y-3">
                   {scriptIdeas.length === 0 ? (
                     <p className="text-sm text-white/60">
-                      구조 분석 후 추천 주제가 표시됩니다.
+                      ���� �м� �� ��õ ������ ǥ�õ˴ϴ�.
                     </p>
                   ) : (
                     <div className="grid gap-2">
@@ -917,13 +917,13 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     type="button"
                     onClick={handleGenerateScript}
                     disabled={isGeneratingScript || !isScriptStepReady(2)}
-                    className="w-full rounded-full bg-gradient-to-r from-red-500 to-orange-500 px-5 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(239,68,68,0.3)] disabled:opacity-60"
+                    className="w-full rounded-full bg-gradient-to-r from-red-600 to-red-500 px-5 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(220,38,38,0.4)] disabled:opacity-60"
                   >
-                    {isGeneratingScript ? "대본 작성 중..." : "선택 주제로 대본 작성하기"}
+                    {isGeneratingScript ? "�뺻 �ۼ� ��..." : "���� ������ �뺻 �ۼ��ϱ�"}
                   </button>
                   {generatedPlan && (
                     <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                      <p className="text-sm font-semibold text-white mb-2">생성된 대본</p>
+                      <p className="text-sm font-semibold text-white mb-2">������ �뺻</p>
                       {generatedPlan.chapters && generatedPlan.chapters.length > 0 ? (
                         <div className="space-y-3 text-sm text-white/70">
                           {generatedPlan.chapters.map((chapter, index) => (
@@ -932,7 +932,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                               className="rounded-xl border border-white/10 bg-black/30 px-4 py-3"
                             >
                               <p className="font-semibold text-white">
-                                챕터 {index + 1}. {chapter.title}
+                                é�� {index + 1}. {chapter.title}
                               </p>
                               <p className="text-sm text-white/50 mt-1">{chapter.purpose}</p>
                               {chapter.script && chapter.script.length > 0 && (
@@ -956,19 +956,19 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   )}
                 </div>
 
-                <ErrorNotice error={scriptError} context="대본 생성" />
+                <ErrorNotice error={scriptError} context="�뺻 ����" />
                 {(generatedPlan || scriptDraft.trim()) && (
                   <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-black/30 px-4 py-3">
                     <p className="text-sm text-white/60">
-                      대본이 준비되면 다음 단계로 이동하세요.
+                      �뺻�� �غ�Ǹ� ���� �ܰ�� �̵��ϼ���.
                     </p>
                     <button
                       type="button"
                       onClick={handleNext}
                       disabled={!canGoNext}
-                      className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-red-500 to-orange-500 px-5 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(239,68,68,0.3)] disabled:opacity-60"
+                      className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-red-600 to-red-500 px-5 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(220,38,38,0.4)] disabled:opacity-60"
                     >
-                      다음 단계로 <FiChevronRight />
+                      ���� �ܰ�� <FiChevronRight />
                     </button>
                   </div>
                 )}
@@ -983,10 +983,10 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
             <div className="rounded-[clamp(1rem,2vw,1.6rem)] border border-white/10 bg-black/40 p-[clamp(1.25rem,2vw,1.8rem)] shadow-[0_18px_40px_rgba(0,0,0,0.45)]">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-semibold text-white/60">스크립트 & AI 보이스</p>
-                  <h3 className="text-2xl font-bold text-white mt-1">대본에 음성을 입혀주세요.</h3>
+                  <p className="text-sm font-semibold text-white/60">��ũ��Ʈ & AI ���̽�</p>
+                  <h3 className="text-2xl font-bold text-white mt-1">�뺻�� ������ �����ּ���.</h3>
                   <p className="mt-2 text-sm text-white/60">
-                    핵심 구간만 선택해도 바로 음성으로 변환됩니다.
+                    �ٽ� ������ �����ص� �ٷ� �������� ��ȯ�˴ϴ�.
                   </p>
                 </div>
                 <a
@@ -995,25 +995,25 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   rel="noreferrer"
                   className="rounded-full border border-red-500/30 px-4 py-1 text-sm font-semibold text-red-300 hover:border-red-400"
                 >
-                  TTS 페이지 열기
+                  TTS ������ ����
                 </a>
               </div>
               <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
                 <div>
                   <div className="flex items-center justify-between text-sm text-white/50">
-                    <span>스크립트 편집</span>
-                    <span>{ttsScript.length.toLocaleString()}자</span>
+                    <span>��ũ��Ʈ ����</span>
+                    <span>{ttsScript.length.toLocaleString()}��</span>
                   </div>
                   <textarea
                     value={ttsScript}
                     onChange={(event) => setTtsScript(event.target.value)}
                     rows={7}
                     className="mt-2 w-full rounded-2xl border border-white/20 bg-white px-4 py-4 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500"
-                    placeholder="음성으로 변환할 스크립트를 입력하세요."
+                    placeholder="�������� ��ȯ�� ��ũ��Ʈ�� �Է��ϼ���."
                   />
                   <div className="mt-4 flex flex-wrap items-center gap-3">
                     <div className="flex-1 min-w-[160px]">
-                      <label className="text-sm font-semibold text-white/60">보이스 선택</label>
+                      <label className="text-sm font-semibold text-white/60">���̽� ����</label>
                       <select
                         value={selectedVoice}
                         onChange={(event) => setSelectedVoice(event.target.value)}
@@ -1021,13 +1021,13 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       >
                         {voiceOptions.map((voice) => (
                           <option key={voice.name} value={voice.name}>
-                            {voice.name} · {voice.label}
+                            {voice.name} �� {voice.label}
                           </option>
                         ))}
                       </select>
                     </div>
                     <div className="flex-1 min-w-[160px]">
-                      <label className="text-sm font-semibold text-white/60">속도</label>
+                      <label className="text-sm font-semibold text-white/60">�ӵ�</label>
                       <input
                         type="range"
                         min={0.7}
@@ -1037,19 +1037,19 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         onChange={(event) => setTtsSpeed(Number(event.target.value))}
                         className="mt-2 w-full"
                       />
-                      <p className="text-sm text-white/50 text-right">{ttsSpeed.toFixed(1)}배속</p>
+                      <p className="text-sm text-white/50 text-right">{ttsSpeed.toFixed(1)}���</p>
                     </div>
                     <button
                       onClick={handleGenerateTts}
-                      className="rounded-full bg-gradient-to-r from-red-500 to-orange-500 px-4 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(239,68,68,0.25)]"
+                      className="rounded-full bg-gradient-to-r from-red-600 to-red-500 px-4 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(220,38,38,0.4)]"
                     >
-                      음성 생성
+                      ���� ����
                     </button>
                   </div>
                 </div>
                 <div className="space-y-3">
                   <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/70">
-                    <p className="text-sm font-semibold text-white/60">AI 보이스오버</p>
+                    <p className="text-sm font-semibold text-white/60">AI ���̽�����</p>
                     <div className="mt-3 space-y-2">
                       {voiceOptions.map((voice) => (
                         <button
@@ -1063,15 +1063,15 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                           }`}
                         >
                           <p className="font-semibold text-white">{voice.name}</p>
-                          <p className="text-sm text-white/50">{voice.label} · {voice.tone}</p>
+                          <p className="text-sm text-white/50">{voice.label} �� {voice.tone}</p>
                         </button>
                       ))}
                     </div>
                   </div>
                   <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/70">
-                    <p className="text-sm font-semibold text-white/60">최근 생성</p>
+                    <p className="text-sm font-semibold text-white/60">�ֱ� ����</p>
                     {ttsSamples.length === 0 ? (
-                      <p className="mt-2 text-sm text-white/40">아직 생성한 음성이 없습니다.</p>
+                      <p className="mt-2 text-sm text-white/40">���� ������ ������ �����ϴ�.</p>
                     ) : (
                       <div className="mt-2 space-y-2">
                         {ttsSamples.map((sample) => (
@@ -1093,19 +1093,19 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         return (
           <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
             <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-white/60 mb-4">
-              <span>이미지 생성 화면에서 스토리보드를 바로 만들 수 있습니다.</span>
+              <span>�̹��� ���� ȭ�鿡�� ���丮���带 �ٷ� ���� �� �ֽ��ϴ�.</span>
               <a
                 href="/image?no_ads=true"
                 target="_blank"
                 rel="noreferrer"
                 className="rounded-full border border-red-500/30 px-4 py-1 text-sm font-semibold text-red-300 hover:border-red-400"
               >
-                새 창에서 열기
+                �� â���� ����
               </a>
             </div>
             <div className="overflow-hidden rounded-[clamp(1rem,2vw,1.5rem)] border border-white/20 bg-black/40">
               <iframe
-                title="이미지 생성"
+                title="�̹��� ����"
                 src="/image?no_ads=true"
                 className="h-[clamp(600px,72vh,800px)] w-full"
                 loading="lazy"
@@ -1119,10 +1119,10 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
             <div className="rounded-[clamp(1rem,2vw,1.4rem)] border border-white/20 bg-black/40 p-[clamp(1rem,2vw,1.4rem)]">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-semibold text-white/60">영상 생성</p>
-                  <h3 className="text-2xl font-bold text-white">씬을 구성해 볼까요</h3>
+                  <p className="text-sm font-semibold text-white/60">���� ����</p>
+                  <h3 className="text-2xl font-bold text-white">���� ������ �����</h3>
                 </div>
-                <span className="text-sm font-semibold text-red-300">{imagePreviews.length}컷 선택</span>
+                <span className="text-sm font-semibold text-red-300">{imagePreviews.length}�� ����</span>
               </div>
               <div className="mt-4 space-y-3">
                 {timelineScenes.map((scene) => (
@@ -1140,16 +1140,16 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
               </div>
                   <div className="mb-8 border-b border-white/10 pb-8">
                     <h3 className="text-[clamp(1rem,1.6vw,1.2rem)] font-semibold text-white">
-                      AI 영상 생성 (Seedance)
+                      AI ���� ���� (Seedance)
                     </h3>
                     <p className="mt-2 text-[clamp(0.8rem,1.4vw,0.95rem)] text-white/60">
-                      프롬프트나 이미지를 입력하여 Seedance AI로 영상을 생성하세요.
+                      ������Ʈ�� �̹����� �Է��Ͽ� Seedance AI�� ������ �����ϼ���.
                     </p>
                     <div className="mt-4 space-y-3">
                        <textarea
                          value={videoPrompt}
                          onChange={(e) => setVideoPrompt(e.target.value)}
-                         placeholder="영상에 대한 설명을 입력하세요 (예: 춤추는 고양이)"
+                         placeholder="���� ���� ������ �Է��ϼ��� (��: ���ߴ� ������)"
                          className="w-full rounded-xl border border-white/20 bg-white px-4 py-3 text-sm text-black focus:outline-none focus:ring-2 focus:ring-red-500"
                          rows={3}
                        />
@@ -1158,23 +1158,23 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                          disabled={isGeneratingVideo}
                          className="rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-500 disabled:opacity-50"
                        >
-                         {isGeneratingVideo ? "생성 중..." : "영상 생성하기"}
+                         {isGeneratingVideo ? "���� ��..." : "���� �����ϱ�"}
                        </button>
                     </div>
                     {generatedVideoUrl && (
                       <div className="mt-4">
                         <video src={generatedVideoUrl} controls className="w-full rounded-lg" />
-                        <a href={generatedVideoUrl} download className="mt-2 inline-block text-sm text-red-400 hover:text-red-300">다운로드</a>
+                        <a href={generatedVideoUrl} download className="mt-2 inline-block text-sm text-red-400 hover:text-red-300">�ٿ�ε�</a>
                       </div>
                     )}
                   </div>
 
                   <h3 className="text-[clamp(1rem,1.6vw,1.2rem)] font-semibold text-white">
-                    영상 패키지 재료 업로드
+                    ���� ��Ű�� ��� ���ε�
                   </h3>
               <label className="mt-2 inline-flex cursor-pointer items-center gap-2 rounded-2xl border border-dashed border-white/40 px-4 py-3 text-sm text-white/60">
                 <FiUpload />
-                파일 선택
+                ���� ����
                 <input
                   type="file"
                   multiple
@@ -1186,7 +1186,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
               <div className="mt-3 space-y-2">
                 {assetFiles.length === 0 ? (
                   <p className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/50">
-                    업로드한 자산이 없으면 프롬프트 기반으로 생성합니다.
+                    ���ε��� �ڻ��� ������ ������Ʈ ������� �����մϴ�.
                   </p>
                 ) : (
                   assetFiles.map((file, index) => (
@@ -1202,7 +1202,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         onClick={() => handleRemoveFile(index)}
                         className="text-white/50 underline-offset-2 hover:text-red-300"
                       >
-                        제거
+                        ����
                       </button>
                     </div>
                   ))
@@ -1211,30 +1211,30 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
               <button
                 onClick={handlePackageDownload}
                 disabled={!assetFiles.length || isPackaging}
-                className="mt-6 w-full rounded-2xl bg-gradient-to-r from-red-500 to-orange-500 px-5 py-3 text-sm font-bold text-white shadow-[0_10px_30px_rgba(255,86,96,0.4)] disabled:opacity-60"
+                className="mt-6 w-full rounded-2xl bg-gradient-to-r from-red-600 to-red-500 px-5 py-3 text-sm font-bold text-white shadow-[0_10px_30px_rgba(220,38,38,0.4)] disabled:opacity-60"
               >
-                <FiDownload /> {isPackaging ? "패키지를 준비 중입니다" : "출력 패키지 다운로드"}
+                <FiDownload /> {isPackaging ? "��Ű���� �غ� ���Դϴ�" : "��� ��Ű�� �ٿ�ε�"}
               </button>
             </div>
             <div className="rounded-[clamp(1rem,2vw,1.4rem)] border border-white/20 bg-black/40 p-4">
-              <p className="text-sm font-semibold text-white/60">영상 스타일</p>
+              <p className="text-sm font-semibold text-white/60">���� ��Ÿ��</p>
               <div className="mt-4 space-y-2 text-sm text-white/70">
-                <p>?? 전체 시간: {renderDuration}초</p>
-                <p>?? 화면 비율: {renderRatio}</p>
+                <p>?? ��ü �ð�: {renderDuration}��</p>
+                <p>?? ȭ�� ����: {renderRatio}</p>
                 <p>?? FPS: {renderFps}</p>
-                <p>?? 이미지 컷: {imagePreviews.length || imageCount}개</p>
+                <p>?? �̹��� ��: {imagePreviews.length || imageCount}��</p>
               </div>
               <p className="mt-4 text-sm text-white/40">
-                템포나 분위기를 바꾸고 싶다면 상단 스텝으로 돌아가 수정하면 됩니다.
+                ������ �����⸦ �ٲٰ� �ʹٸ� ��� �������� ���ư� �����ϸ� �˴ϴ�.
               </p>
               <button
                 onClick={handleVideoGenerate}
                 disabled={videoGenerating}
-                className="mt-5 w-full rounded-2xl bg-gradient-to-r from-red-500 to-orange-500 px-4 py-2 text-sm font-bold text-white shadow-[0_8px_20px_rgba(255,86,96,0.35)] disabled:opacity-60"
+                className="mt-5 w-full rounded-2xl bg-gradient-to-r from-red-600 to-red-500 px-4 py-2 text-sm font-bold text-white shadow-[0_8px_20px_rgba(220,38,38,0.35)] disabled:opacity-60"
               >
-                {videoGenerating ? "영상 생성 요청 중..." : "영상 생성 요청하기"}
+                {videoGenerating ? "���� ���� ��û ��..." : "���� ���� ��û�ϱ�"}
               </button>
-              <ErrorNotice error={videoError} context="영상 생성" />
+              <ErrorNotice error={videoError} context="���� ����" />
               {videoUrl && (
                 <div className="mt-4 overflow-hidden rounded-2xl border border-white/10 bg-black/40">
                   <video src={videoUrl} controls className="w-full" />
@@ -1249,10 +1249,10 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
             <div className="rounded-[clamp(1rem,2vw,1.6rem)] border border-white/10 bg-white/95 p-[clamp(1.25rem,2vw,1.8rem)] text-slate-900 shadow-[0_20px_40px_rgba(15,23,42,0.15)]">
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-sm font-semibold text-slate-400">영상 출력</p>
-                  <h3 className="text-2xl font-bold text-slate-900 mt-1">모든 요소를 조합해 최종 영상을 생성합니다.</h3>
+                  <p className="text-sm font-semibold text-slate-400">���� ���</p>
+                  <h3 className="text-2xl font-bold text-slate-900 mt-1">��� ��Ҹ� ������ ���� ������ �����մϴ�.</h3>
                 </div>
-                <span className="text-sm text-slate-500">진행도 {renderingProgress}%</span>
+                <span className="text-sm text-slate-500">���൵ {renderingProgress}%</span>
               </div>
               <div className="mt-4 flex gap-3 overflow-x-auto pb-2">
                 {timelineScenes.map((scene) => (
@@ -1268,48 +1268,48 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
               </div>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 <div className="rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700">
-                  <p className="text-sm font-semibold text-slate-400">출력 요약</p>
+                  <p className="text-sm font-semibold text-slate-400">��� ���</p>
                   <div className="mt-2 space-y-1 text-sm">
                     <div className="flex justify-between">
-                      <span>예상 길이</span>
-                      <span>{renderDuration}초</span>
+                      <span>���� ����</span>
+                      <span>{renderDuration}��</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>구간 수</span>
-                      <span>{timelineScenes.length}개</span>
+                      <span>���� ��</span>
+                      <span>{timelineScenes.length}��</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>예상 크레딧</span>
-                      <span>{timelineScenes.length} 크레딧</span>
+                      <span>���� ũ����</span>
+                      <span>{timelineScenes.length} ũ����</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>출력 형식</span>
+                      <span>��� ����</span>
                       <span>MP4 (1080p)</span>
                     </div>
                   </div>
                 </div>
                 <div className="rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700">
-                  <p className="text-sm font-semibold text-slate-400">출력 메모</p>
+                  <p className="text-sm font-semibold text-slate-400">��� �޸�</p>
                   <textarea
                     value={editNotes}
                     onChange={(event) => setEditNotes(event.target.value)}
                     rows={4}
                     className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500"
-                    placeholder="편집 키워드, 자막 스타일 등을 기록하세요."
+                    placeholder="���� Ű����, �ڸ� ��Ÿ�� ���� ����ϼ���."
                   />
                 </div>
               </div>
               <div className="mt-4 flex flex-wrap items-center gap-3">
                 <label className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600">
                   <input type="checkbox" className="h-4 w-4 rounded border-slate-300" defaultChecked />
-                  자막 포함
+                  �ڸ� ����
                 </label>
                 <button
                   type="button"
                   onClick={handleDownloadEditNotes}
                   className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600"
                 >
-                  편집 노트 다운로드
+                  ���� ��Ʈ �ٿ�ε�
                 </button>
               </div>
               <div className="mt-6 h-2 w-full rounded-full bg-slate-200">
@@ -1319,14 +1319,14 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 />
               </div>
               <p className="mt-3 text-sm text-slate-500">
-                {renderingStatus || "출력을 시작하면 자동으로 모든 컷을 조합해 영상을 완성합니다."}
+                {renderingStatus || "����� �����ϸ� �ڵ����� ��� ���� ������ ������ �ϼ��մϴ�."}
               </p>
               <button
                 onClick={startRendering}
                 disabled={rendering}
-                className="mt-6 w-full rounded-2xl bg-gradient-to-r from-red-500 to-orange-500 px-5 py-3 text-sm font-bold text-white shadow-[0_10px_30px_rgba(255,86,96,0.35)] disabled:opacity-60"
+                className="mt-6 w-full rounded-2xl bg-gradient-to-r from-red-600 to-red-500 px-5 py-3 text-sm font-bold text-white shadow-[0_10px_30px_rgba(220,38,38,0.35)] disabled:opacity-60"
               >
-                {rendering ? "출력 중..." : "영상 출력 시작"}
+                {rendering ? "��� ��..." : "���� ��� ����"}
               </button>
             </div>
           </div>
@@ -1362,24 +1362,25 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
               All-in-one studio
             </p>
             <h1 className="mt-3 text-[clamp(2.1rem,3.2vw,3.4rem)] font-black text-white">
-              올인원 영상 제작 스튜디오
+              ���ο� ���� ���� ��Ʃ���
             </h1>
             <p className="mt-3 text-[clamp(0.95rem,1.6vw,1.1rem)] text-white/70 text-balance">
-              필요한 단계를 쉽게 확인하고, 빠르게 영상 제작 기능을 이어서 사용할 수 있어요.
+              �ʿ��� �ܰ踦 ���� Ȯ���ϰ�, ������ ���� ���� ����� �̾ ����� �� �־��.
             </p>
           </div>
           <div className="grid w-full gap-2 text-xs text-white/70 sm:max-w-[520px] sm:grid-cols-3">
             {steps.map((step, index) => (
-              <span
+              <button
                 key={step.id}
-                className={`rounded-full border px-3 py-1 text-center ${
+                onClick={() => goToStep(index)}
+                className={`rounded-full border px-3 py-1 text-center transition-all hover:scale-105 active:scale-95 cursor-pointer ${
                   index === currentStep
                     ? "border-red-400/50 bg-red-500/10 text-red-200"
-                    : "border-white/10 bg-white/5"
+                    : "border-white/10 bg-white/5 hover:border-red-400/30 hover:bg-red-500/5"
                 }`}
               >
                 {index + 1}. {step.label}
-              </span>
+              </button>
             ))}
           </div>
         </header>
@@ -1417,15 +1418,15 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   disabled={!canGoPrev}
                   className="inline-flex items-center gap-2 rounded-full border border-white/20 px-5 py-2 text-sm font-semibold text-white/70 transition hover:border-white/40 disabled:opacity-40"
                 >
-                  <FiChevronLeft /> 이전 단계
+                  <FiChevronLeft /> ���� �ܰ�
                 </button>
                 <button
                   type="button"
                   onClick={handleNext}
                   disabled={!canGoNext}
-                  className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-red-500 to-orange-500 px-6 py-2 text-sm font-semibold text-white shadow-[0_10px_20px_rgba(255,69,91,0.35)] transition hover:translate-x-0.5 disabled:opacity-40"
+                  className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-red-600 to-red-500 px-6 py-2 text-sm font-semibold text-white shadow-[0_10px_20px_rgba(220,38,38,0.35)] transition hover:translate-x-0.5 disabled:opacity-40"
                 >
-                  다음 단계 <FiChevronRight />
+                  ���� �ܰ� <FiChevronRight />
                 </button>
               </div>
             </div>

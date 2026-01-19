@@ -6,7 +6,7 @@
 CREATE TABLE IF NOT EXISTS public.profiles (
   id UUID REFERENCES auth.users NOT NULL PRIMARY KEY,
   email TEXT,
-  credits INTEGER DEFAULT 100,
+  credits INTEGER DEFAULT 12,
   last_reset_date TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   signup_ip TEXT,
   initial_credits_expiry TIMESTAMP WITH TIME ZONE,
@@ -32,14 +32,14 @@ BEGIN
   VALUES (
     NEW.id,
     NEW.email,
-    100,  -- 초기 크레딧
+    12,  -- 초기 크레딧 (100 → 12로 변경)
     NOW(),
     NOW() + INTERVAL '3 days',  -- 3일 유효기간
     NULL  -- IP는 첫 API 호출 시 설정
   )
   ON CONFLICT (id) DO UPDATE SET
     credits = CASE 
-      WHEN profiles.credits IS NULL THEN 100
+      WHEN profiles.credits IS NULL THEN 12
       ELSE profiles.credits
     END,
     initial_credits_expiry = CASE
@@ -97,6 +97,6 @@ LIMIT 10;
 
 -- ✅ 설정 완료!
 -- 이제 신규 회원가입 시 자동으로:
--- - 100 크레딧 지급
+-- - 12 크레딧 지급 (100 → 12로 변경)
 -- - 3일 유효기간 설정
 -- - profiles 테이블에 자동 등록

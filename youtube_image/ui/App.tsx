@@ -943,7 +943,15 @@ const App: React.FC<ImageAppProps> = ({
     setCharacters([]);
     setLoadingProgress("페르소나 분석 중...");
 
+    // 최대 예상 비용 (보통 1-3개 생성됨, 최대 5개로 가정)
+    const estimatedCost = 5 * IMAGE_CREDIT_COST;
+    let creditDeducted = false;
+
     try {
+      // 크레딧 선차감
+      await deductCredits(estimatedCost);
+      creditDeducted = true;
+
       const generatedCharacters = await generateCharacters(
         personaInput,
         apiKey,
@@ -962,22 +970,66 @@ const App: React.FC<ImageAppProps> = ({
       );
 
       if (generatedCharacters.length === 0) {
+        // 생성 실패 시 크레딧 환불
+        if (creditDeducted) {
+          try {
+            await fetch("/api/YOUTUBE/user/credits-refund", {
+              method: "POST",
+              headers: await getAuthHeaders().then(r => r.headers),
+              body: JSON.stringify({ cost: estimatedCost }),
+            });
+          } catch (refundError) {
+            console.error("크레딧 환불 실패:", refundError);
+          }
+        }
         setPersonaError(
-          "페르소나 생성에 실패했습니다. 입력을 바꿔 다시 시도해주세요."
+          "페르소나 생성에 실패했습니다. 크레딧이 환불되었습니다. 입력을 바꿔 다시 시도해주세요."
         );
       } else {
-        await deductCredits(generatedCharacters.length * IMAGE_CREDIT_COST);
+        // 실제 사용한 만큼만 차감하고 나머지 환불
+        const actualCost = generatedCharacters.length * IMAGE_CREDIT_COST;
+        const refundAmount = estimatedCost - actualCost;
+        
+        if (refundAmount > 0) {
+          try {
+            await fetch("/api/YOUTUBE/user/credits-refund", {
+              method: "POST",
+              headers: await getAuthHeaders().then(r => r.headers),
+              body: JSON.stringify({ cost: refundAmount }),
+            });
+          } catch (refundError) {
+            console.error("크레딧 환불 실패:", refundError);
+          }
+        }
+
         setCharacters(generatedCharacters);
-        setPersonaError(`✅ 페르소나 ${generatedCharacters.length}개 생성 완료`);
+        setPersonaError(`✅ 페르소나 ${generatedCharacters.length}개 생성 완료 (${actualCost} ⚡ 사용)`);
         setTimeout(() => saveDataToStorage(true), 100);
+        window.dispatchEvent(new Event("creditRefresh"));
       }
     } catch (e) {
       console.error("[개발자용] 페르소나 생성 오류:", e);
+      
+      // 오류 발생 시 크레딧 환불
+      if (creditDeducted) {
+        try {
+          await fetch("/api/YOUTUBE/user/credits-refund", {
+            method: "POST",
+            headers: await getAuthHeaders().then(r => r.headers),
+            body: JSON.stringify({ cost: estimatedCost }),
+          });
+          window.dispatchEvent(new Event("creditRefresh"));
+        } catch (refundError) {
+          console.error("크레딧 환불 실패:", refundError);
+        }
+      }
+
       const message =
         e instanceof Error
           ? e.message
           : "페르소나 생성 중 오류가 발생했습니다.";
-      setPersonaError(message.startsWith('❌') || message.startsWith('✅') ? message : `❌ ${message}`);
+      const displayMessage = message.startsWith('❌') || message.startsWith('✅') ? message : `❌ ${message}`;
+      setPersonaError(creditDeducted ? `${displayMessage} (크레딧이 환불되었습니다)` : displayMessage);
     } finally {
       setIsLoadingCharacters(false);
       setLoadingProgress("");
@@ -998,6 +1050,8 @@ const App: React.FC<ImageAppProps> = ({
     personaReferenceImage,
     checkAndReplaceContent,
     saveDataToStorage,
+    deductCredits,
+    getAuthHeaders,
   ]);
 
   const handleRegenerateCharacter = useCallback(
@@ -1013,8 +1067,12 @@ const App: React.FC<ImageAppProps> = ({
         );
         return;
       }
+      let creditDeducted = false;
       try {
+        // 크레딧 선차감
         await deductCredits(IMAGE_CREDIT_COST);
+        creditDeducted = true;
+
         const mergedDescription = customPrompt
           ? `${description}\n추가 요청: ${customPrompt}`
           : description;
@@ -1031,16 +1089,33 @@ const App: React.FC<ImageAppProps> = ({
             char.id === characterId ? { ...char, image: newImage } : char
           )
         );
-        setPersonaError(`✅ ${name} 이미지가 업데이트되었습니다.`);
+        setPersonaError(`✅ ${name} 이미지가 업데이트되었습니다. (${IMAGE_CREDIT_COST} ⚡ 사용)`);
         setTimeout(() => saveDataToStorage(true), 100);
+        window.dispatchEvent(new Event("creditRefresh"));
       } catch (e) {
         console.error("[개발자용] 페르소나 재생성 오류:", e);
+        
+        // 오류 발생 시 크레딧 환불
+        if (creditDeducted) {
+          try {
+            await fetch("/api/YOUTUBE/user/credits-refund", {
+              method: "POST",
+              headers: await getAuthHeaders().then(r => r.headers),
+              body: JSON.stringify({ cost: IMAGE_CREDIT_COST }),
+            });
+            window.dispatchEvent(new Event("creditRefresh"));
+          } catch (refundError) {
+            console.error("크레딧 환불 실패:", refundError);
+          }
+        }
+
         const message =
           e instanceof Error ? e.message : "페르소나 재생성에 실패했습니다.";
-        setPersonaError(message.startsWith('❌') || message.startsWith('✅') ? message : `❌ ${message}`);
+        const displayMessage = message.startsWith('❌') || message.startsWith('✅') ? message : `❌ ${message}`;
+        setPersonaError(creditDeducted ? `${displayMessage} (크레딧이 환불되었습니다)` : displayMessage);
       }
     },
-    [apiKey, imageStyle, aspectRatio, personaStyle, saveDataToStorage]
+    [apiKey, imageStyle, aspectRatio, personaStyle, saveDataToStorage, deductCredits, getAuthHeaders]
   );
 
   const handleGenerateVideoSource = useCallback(async () => {
@@ -1068,8 +1143,14 @@ const App: React.FC<ImageAppProps> = ({
     setVideoSource([]);
     setLoadingProgress("대본 분석 중...");
 
+    const estimatedCost = imageCount * IMAGE_CREDIT_COST;
+    let creditDeducted = false;
+
     try {
-      await deductCredits(imageCount * IMAGE_CREDIT_COST);
+      // 크레딧 선차감
+      await deductCredits(estimatedCost);
+      creditDeducted = true;
+
       const generatedVideoSource = await generateStoryboard(
         videoSourceScript,
         characters,
@@ -1082,15 +1163,65 @@ const App: React.FC<ImageAppProps> = ({
         (progress) => setLoadingProgress(progress)
       );
 
-      setVideoSource(generatedVideoSource);
-      setTimeout(() => saveDataToStorage(true), 100);
+      if (!generatedVideoSource || generatedVideoSource.length === 0) {
+        // 생성 실패 시 크레딧 환불
+        if (creditDeducted) {
+          try {
+            await fetch("/api/YOUTUBE/user/credits-refund", {
+              method: "POST",
+              headers: await getAuthHeaders().then(r => r.headers),
+              body: JSON.stringify({ cost: estimatedCost }),
+            });
+            window.dispatchEvent(new Event("creditRefresh"));
+          } catch (refundError) {
+            console.error("크레딧 환불 실패:", refundError);
+          }
+        }
+        setError("영상 소스 생성에 실패했습니다. 크레딧이 환불되었습니다.");
+      } else {
+        // 실제 생성된 이미지 수에 따른 크레딧 조정
+        const actualCost = generatedVideoSource.length * IMAGE_CREDIT_COST;
+        const refundAmount = estimatedCost - actualCost;
+        
+        if (refundAmount > 0) {
+          try {
+            await fetch("/api/YOUTUBE/user/credits-refund", {
+              method: "POST",
+              headers: await getAuthHeaders().then(r => r.headers),
+              body: JSON.stringify({ cost: refundAmount }),
+            });
+          } catch (refundError) {
+            console.error("크레딧 환불 실패:", refundError);
+          }
+        }
+
+        setVideoSource(generatedVideoSource);
+        setTimeout(() => saveDataToStorage(true), 100);
+        window.dispatchEvent(new Event("creditRefresh"));
+      }
     } catch (e) {
       console.error("[개발자용] 영상 소스 생성 오류:", e);
+      
+      // 오류 발생 시 크레딧 환불
+      if (creditDeducted) {
+        try {
+          await fetch("/api/YOUTUBE/user/credits-refund", {
+            method: "POST",
+            headers: await getAuthHeaders().then(r => r.headers),
+            body: JSON.stringify({ cost: estimatedCost }),
+          });
+          window.dispatchEvent(new Event("creditRefresh"));
+        } catch (refundError) {
+          console.error("크레딧 환불 실패:", refundError);
+        }
+      }
+
       const message =
         e instanceof Error
           ? e.message
           : "영상 소스 생성 중 오류가 발생했습니다.";
-      setError(message.startsWith('❌') || message.startsWith('✅') ? message : `❌ ${message}`);
+      const displayMessage = message.startsWith('❌') || message.startsWith('✅') ? message : `❌ ${message}`;
+      setError(creditDeducted ? `${displayMessage} (크레딧이 환불되었습니다)` : displayMessage);
     } finally {
       setIsLoadingVideoSource(false);
       setLoadingProgress("");
@@ -1106,6 +1237,8 @@ const App: React.FC<ImageAppProps> = ({
     aspectRatio,
     checkAndReplaceContent,
     saveDataToStorage,
+    deductCredits,
+    getAuthHeaders,
   ]);
 
   const handleRegenerateVideoSourceImage = useCallback(
@@ -1118,8 +1251,12 @@ const App: React.FC<ImageAppProps> = ({
       const target = videoSource.find((item) => item.id === storyboardItemId);
       if (!target) return;
 
+      let creditDeducted = false;
       try {
+        // 크레딧 선차감
         await deductCredits(IMAGE_CREDIT_COST);
+        creditDeducted = true;
+
         const mergedScene = customPrompt
           ? `${target.sceneDescription}\n추가 요청: ${customPrompt}`
           : target.sceneDescription;
@@ -1139,11 +1276,28 @@ const App: React.FC<ImageAppProps> = ({
           )
         );
         setTimeout(() => saveDataToStorage(true), 100);
+        window.dispatchEvent(new Event("creditRefresh"));
       } catch (e) {
         console.error("[개발자용] 영상 소스 재생성 오류:", e);
+        
+        // 오류 발생 시 크레딧 환불
+        if (creditDeducted) {
+          try {
+            await fetch("/api/YOUTUBE/user/credits-refund", {
+              method: "POST",
+              headers: await getAuthHeaders().then(r => r.headers),
+              body: JSON.stringify({ cost: IMAGE_CREDIT_COST }),
+            });
+            window.dispatchEvent(new Event("creditRefresh"));
+          } catch (refundError) {
+            console.error("크레딧 환불 실패:", refundError);
+          }
+        }
+
         const message =
           e instanceof Error ? e.message : "영상 소스 재생성에 실패했습니다.";
-        setError(message.startsWith('❌') || message.startsWith('✅') ? message : `❌ ${message}`);
+        const displayMessage = message.startsWith('❌') || message.startsWith('✅') ? message : `❌ ${message}`;
+        setError(creditDeducted ? `${displayMessage} (크레딧이 환불되었습니다)` : displayMessage);
       }
     },
     [
@@ -1155,6 +1309,8 @@ const App: React.FC<ImageAppProps> = ({
       referenceImage,
       aspectRatio,
       saveDataToStorage,
+      deductCredits,
+      getAuthHeaders,
     ]
   );
 
@@ -1179,8 +1335,14 @@ const App: React.FC<ImageAppProps> = ({
     setCameraAngles([]);
     setCameraAngleProgress("원본 이미지 분석 중...");
 
+    const estimatedCost = selectedCameraAngles.length * IMAGE_CREDIT_COST;
+    let creditDeducted = false;
+
     try {
-      await deductCredits(selectedCameraAngles.length * IMAGE_CREDIT_COST);
+      // 크레딧 선차감
+      await deductCredits(estimatedCost);
+      creditDeducted = true;
+
       const generatedAngles = await generateCameraAngles(
         cameraAngleSourceImage,
         selectedCameraAngles,
@@ -1191,30 +1353,64 @@ const App: React.FC<ImageAppProps> = ({
         }
       );
 
-      setCameraAngles(generatedAngles);
-      setTimeout(() => saveDataToStorage(true), 100);
-
       const successCount = generatedAngles.filter(
         (angle) => angle.image && angle.image.trim() !== ""
       ).length;
       const totalSelected = selectedCameraAngles.length;
 
+      // 실제 성공한 개수만큼만 차감하고 나머지 환불
+      const actualCost = successCount * IMAGE_CREDIT_COST;
+      const refundAmount = estimatedCost - actualCost;
+      
+      if (refundAmount > 0) {
+        try {
+          await fetch("/api/YOUTUBE/user/credits-refund", {
+            method: "POST",
+            headers: await getAuthHeaders().then(r => r.headers),
+            body: JSON.stringify({ cost: refundAmount }),
+          });
+        } catch (refundError) {
+          console.error("크레딧 환불 실패:", refundError);
+        }
+      }
+
+      setCameraAngles(generatedAngles);
+      setTimeout(() => saveDataToStorage(true), 100);
+      window.dispatchEvent(new Event("creditRefresh"));
+
       if (successCount === 0) {
         setCameraAngleError(
-          "모든 앵글 생성에 실패했습니다. 잠시 후 다시 시도해주세요."
+          "모든 앵글 생성에 실패했습니다. 크레딧이 환불되었습니다. 잠시 후 다시 시도해주세요."
         );
       } else if (successCount < totalSelected) {
         setCameraAngleError(
-          `⚠️ ${successCount}/${totalSelected}개 앵글만 생성되었습니다. 실패한 앵글은 다시 시도해주세요.`
+          `⚠️ ${successCount}/${totalSelected}개 앵글만 생성되었습니다. (${actualCost} ⚡ 사용, ${refundAmount} ⚡ 환불됨)`
         );
+      } else {
+        setCameraAngleError(`✅ ${successCount}개 앵글 생성 완료 (${actualCost} ⚡ 사용)`);
       }
     } catch (e) {
       console.error("[개발자용] 카메라 앵글 생성 오류:", e);
+      
+      // 오류 발생 시 크레딧 환불
+      if (creditDeducted) {
+        try {
+          await fetch("/api/YOUTUBE/user/credits-refund", {
+            method: "POST",
+            headers: await getAuthHeaders().then(r => r.headers),
+            body: JSON.stringify({ cost: estimatedCost }),
+          });
+          window.dispatchEvent(new Event("creditRefresh"));
+        } catch (refundError) {
+          console.error("크레딧 환불 실패:", refundError);
+        }
+      }
+
       const message =
         e instanceof Error
           ? e.message
           : "카메라 앵글 생성 중 오류가 발생했습니다.";
-      setCameraAngleError(message);
+      setCameraAngleError(creditDeducted ? `${message} (크레딧이 환불되었습니다)` : message);
     } finally {
       setIsLoadingCameraAngles(false);
       setCameraAngleProgress("");
@@ -1225,6 +1421,8 @@ const App: React.FC<ImageAppProps> = ({
     selectedCameraAngles,
     aspectRatio,
     saveDataToStorage,
+    deductCredits,
+    getAuthHeaders,
   ]);
 
   const handleResetAll = useCallback(() => {
