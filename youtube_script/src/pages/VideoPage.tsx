@@ -504,7 +504,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     if (normalizedPath !== targetPath) {
       navigate(targetPath, { replace: true });
     }
-  }, [location.pathname, navigate, stepPaths, currentStep]);
+  }, [location.pathname, navigate, stepPaths]);
 
   const canGoPrev = currentStep > 0;
   const canGoNext = currentStep < steps.length - 1;
