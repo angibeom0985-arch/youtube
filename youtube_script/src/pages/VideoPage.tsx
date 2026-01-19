@@ -34,6 +34,7 @@ const STORAGE_KEYS = {
   renderDuration: "video_project_render_duration",
   renderRatio: "video_project_render_ratio",
   renderFps: "video_project_render_fps",
+  geminiApiKey: "video_project_gemini_api_key",
   renderNotes: "video_project_render_notes",
   editNotes: "video_project_edit_notes",
   format: "video_project_format",
@@ -196,6 +197,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [renderFps, setRenderFps] = useState(() =>
     getStoredString(STORAGE_KEYS.renderFps, "30")
   );
+  const [geminiApiKey, setGeminiApiKey] = useState(() =>
+    getStoredString(STORAGE_KEYS.geminiApiKey, "")
+  );
   const [renderNotes, setRenderNotes] = useState(() =>
     getStoredString(
       STORAGE_KEYS.renderNotes,
@@ -255,6 +259,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     [renderRatio]
   );
   useEffect(() => setStoredValue(STORAGE_KEYS.renderFps, renderFps), [renderFps]);
+  useEffect(() => setStoredValue(STORAGE_KEYS.geminiApiKey, geminiApiKey), [geminiApiKey]);
   useEffect(() => setStoredValue(STORAGE_KEYS.renderNotes, renderNotes), [renderNotes]);
   useEffect(() => setStoredValue(STORAGE_KEYS.editNotes, editNotes), [editNotes]);
   useEffect(() => setStoredValue(STORAGE_KEYS.format, videoFormat), [videoFormat]);
@@ -781,6 +786,33 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     </button>
                   ))}
                 </div>
+              </div>
+              
+              <div className="mt-5">
+                <p className="text-sm font-semibold text-white/80">Gemini API 키</p>
+                <p className="mt-1 text-xs text-white/50">
+                  대본 생성 및 분석을 위해 본인의 Gemini API 키를 입력해주세요.{" "}
+                  <a
+                    href="https://aistudio.google.com/app/apikey"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-red-400 hover:text-red-300 underline"
+                  >
+                    API 키 발급받기
+                  </a>
+                </p>
+                <input
+                  type="password"
+                  value={geminiApiKey}
+                  onChange={(e) => setGeminiApiKey(e.target.value)}
+                  placeholder="AIzaSy..."
+                  className="mt-2 w-full rounded-lg border border-white/15 bg-black/40 px-4 py-2.5 text-sm text-white placeholder-white/30 focus:border-red-400/50 focus:outline-none focus:ring-2 focus:ring-red-500/20"
+                />
+                {!geminiApiKey && (
+                  <p className="mt-2 text-xs text-yellow-400/80">
+                    ⚠️ API 키가 없으면 대본 생성 기능을 사용할 수 없습니다.
+                  </p>
+                )}
               </div>
             </div>
           </div>
