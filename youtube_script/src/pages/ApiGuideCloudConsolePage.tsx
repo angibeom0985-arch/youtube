@@ -84,15 +84,9 @@ const ApiGuideCloudConsolePage: React.FC = () => {
                   {hasApiKey ? '✅ API 키가 등록되어 있습니다' : '⚠️ API 키가 등록되지 않았습니다'}
                 </p>
                 <p className="text-sm text-neutral-400 mt-1">
-                  {hasApiKey ? 'API 키가 브라우저에 저장되어 있습니다.' : '아래 가이드를 따라 API 키를 발급받고 등록해주세요.'}
+                  {hasApiKey ? 'API 키가 브라우저에 저장되어 있습니다. 각 기능 페이지에서 수정할 수 있습니다.' : '아래 가이드를 따라 API 키를 발급받고, 각 기능 페이지에서 등록해주세요.'}
                 </p>
               </div>
-              <button
-                onClick={() => setShowApiKeyModal(true)}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-lg transition-colors"
-              >
-                {hasApiKey ? 'API 키 변경' : 'API 키 등록'}
-              </button>
             </div>
           </div>
 
@@ -297,13 +291,8 @@ const ApiGuideCloudConsolePage: React.FC = () => {
               <code className="block bg-zinc-900 p-3 rounded-lg text-sm font-mono">
                 AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
               </code>
-              <div className="mt-4">
-                <button
-                  onClick={() => setShowApiKeyModal(true)}
-                  className="w-full bg-gradient-to-br from-blue-600 to-blue-500 text-white font-bold py-3 px-6 rounded-lg hover:from-blue-500 hover:to-blue-400 transition-all"
-                >
-                  🔑 지금 API 키 등록하기
-                </button>
+              <div className="mt-4 text-center text-sm text-neutral-400">
+                <p>🔑 발급받은 API 키는 각 기능 페이지에서 직접 입력하실 수 있습니다.</p>
               </div>
             </div>
           </section>

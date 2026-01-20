@@ -97,15 +97,9 @@ const ApiGuideAiStudioPage: React.FC = () => {
                   {hasApiKey ? '✅ API 키가 등록되어 있습니다' : '⚠️ API 키가 등록되지 않았습니다'}
                 </p>
                 <p className="text-sm text-neutral-400 mt-1">
-                  {hasApiKey ? 'API 키가 브라우저에 저장되어 있습니다.' : '아래 가이드를 따라 API 키를 발급받고 등록해주세요.'}
+                  {hasApiKey ? 'API 키가 브라우저에 저장되어 있습니다. 각 기능 페이지에서 수정할 수 있습니다.' : '아래 가이드를 따라 API 키를 발급받고, 각 기능 페이지에서 등록해주세요.'}
                 </p>
               </div>
-              <button
-                onClick={() => setShowApiKeyModal(true)}
-                className="px-4 py-2 bg-orange-600 hover:bg-orange-500 text-white font-semibold rounded-lg transition-colors"
-              >
-                {hasApiKey ? 'API 키 변경' : 'API 키 등록'}
-              </button>
             </div>
           </div>
 
