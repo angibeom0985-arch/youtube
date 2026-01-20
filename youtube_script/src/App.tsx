@@ -51,6 +51,7 @@ import AdBlockDetector from "./components/AdBlockDetector";
 import AdBlockWarningModal from "./components/AdBlockWarningModal";
 import FloatingAnchorAd from "./components/FloatingAnchorAd";
 import UserCreditToolbar from "./components/UserCreditToolbar";
+import ApiKeyInput from "./components/ApiKeyInput";
 import { highlightImportantText } from "./utils/textHighlight.tsx";
 import { useNavigate, useLocation } from "react-router-dom";
 import { evaluateAbuseRisk, type AbuseDecision } from "./services/abuseService";
@@ -1489,49 +1490,21 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
             유튜브 떡상 대본의 비밀 파헤치기+모방
           </h1>
           <p className="text-neutral-300 mb-4">
-            당신만 "이것"을 모릅니다. 떡상 비밀 파헤치고, 나만의 새로운 대본을
-            1분만에 작성해보세요!
+            당신만 "이것"을 모릅니다. 떡상한 유튜브 영상의 숨겨진 비밀을 완벽하게 파헤치고, 
+            그 핵심 전략을 바탕으로 나만의 색깔을 입힌 새로운 대본을 1분만에 빠르게 작성해보세요!
           </p>
 
           {/* API 키 입력 */}
           <div className="max-w-2xl mx-auto mb-6">
-            <div className="bg-gradient-to-r from-orange-950/40 to-orange-900/30 border border-orange-800/40 rounded-lg p-4 shadow-sm">
-              <div className="flex items-center gap-2 mb-3">
-                <svg className="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                </svg>
-                <label className="text-sm font-semibold text-orange-200">
-                  Gemini API 키
-                </label>
-                <div className="ml-auto flex gap-2">
-                  <a
-                    href="/api-guide-aistudio"
-                    className="px-3 py-1.5 bg-orange-600/20 hover:bg-orange-600/30 border border-orange-500/40 text-orange-100 rounded-lg text-sm font-medium transition-all"
-                  >
-                    발급방법
-                  </a>
-                </div>
-              </div>
-              
-              <input
-                type="password"
-                value={localStorage.getItem('gemini_api_key_script') || ''}
-                onChange={(e) => localStorage.setItem('gemini_api_key_script', e.target.value)}
-                placeholder="AIzaSy..."
-                className="w-full px-4 py-2.5 border bg-[#1A1A1A] border-orange-800/40 text-neutral-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 placeholder-neutral-500 transition-all text-sm"
-              />
-
-              {!localStorage.getItem('gemini_api_key_script') && (
-                <p className="mt-2 text-xs text-orange-400 flex items-center gap-1">
-                  <span>⚠️</span>
-                  <span>API 키 필요</span>
-                </p>
-              )}
-              
-              <p className="mt-2 text-xs text-neutral-400">
-                브라우저에만 저장됩니다.
-              </p>
-            </div>
+            <ApiKeyInput
+              storageKey="gemini_api_key_script"
+              label="Gemini API 키"
+              placeholder="AIzaSy..."
+              helpText="브라우저에만 저장됩니다."
+              guideRoute="/api-guide-aistudio"
+              theme="orange"
+              apiType="gemini"
+            />
           </div>
 
           <nav className="flex justify-center gap-3 flex-wrap">
