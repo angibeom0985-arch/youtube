@@ -77,12 +77,14 @@ YOUTUBE_API_KEY=AIzaSy...xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 ```env
 # 필수 API 키
-GEMINI_API_KEY=AIzaSyC1234abcd5678efgh9012ijkl3456mnop
-YOUTUBE_API_KEY=AIzaSyD5678efgh1234abcd9012ijkl5678mnop
+GEMINI_API_KEY=AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+YOUTUBE_API_KEY=AIzaSyYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
 
 # 선택 API 키 (사용하는 것만 주석 해제)
-GROQ_API_KEY=gsk_1234567890abcdefghijklmnopqrstuvwxyz
+GROQ_API_KEY=gsk_ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ
 ```
+
+> ⚠️ **주의**: 위 키는 예시입니다. 실제 발급받은 API 키로 교체하세요.
 
 ## ✅ .gitignore 설정
 
