@@ -20,7 +20,6 @@ import type { User } from "@supabase/supabase-js";
 import UserCreditToolbar from "../components/UserCreditToolbar";
 import HomeBackButton from "../components/HomeBackButton";
 import ErrorNotice from "../components/ErrorNotice";
-import ApiKeyRequiredModal from "../components/ApiKeyRequiredModal";
 import ApiKeyInput from "../components/ApiKeyInput";
 import type { AnalysisResult, NewPlan } from "../types";
 import { analyzeTranscript, generateIdeas, generateNewPlan } from "../services/geminiService";
@@ -225,9 +224,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [videoError, setVideoError] = useState<string | null>(null);
   const progressTimerRef = useRef<number | null>(null);
-  
-  // API Key Required Modal State
-  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -269,13 +265,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   useEffect(() => setStoredValue(STORAGE_KEYS.editNotes, editNotes), [editNotes]);
   useEffect(() => setStoredValue(STORAGE_KEYS.format, videoFormat), [videoFormat]);
   useEffect(() => setStoredValue(STORAGE_KEYS.step, String(currentStep)), [currentStep]);
-  
-  // Check for API key on mount
-  useEffect(() => {
-    if (!geminiApiKey) {
-      setShowApiKeyModal(true);
-    }
-  }, [geminiApiKey]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -1461,14 +1450,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
           </main>
         </div>
       </div>
-      
-      {/* API Key Required Modal */}
-      <ApiKeyRequiredModal
-        isOpen={showApiKeyModal}
-        onClose={() => setShowApiKeyModal(false)}
-        apiType="gemini"
-        featureName="영상 제작 올인원 스튜디오"
-      />
     </div>
   );
 };

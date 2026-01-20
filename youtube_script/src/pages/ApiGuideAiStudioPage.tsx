@@ -34,10 +34,6 @@ const ApiGuideAiStudioPage: React.FC = () => {
     // API 키 확인
     const apiKey = getStoredApiKey('gemini');
     setHasApiKey(!!apiKey);
-    if (!apiKey) {
-      // 3초 후 모달 표시
-      setTimeout(() => setShowApiKeyModal(true), 3000);
-    }
 
     // 페이지 제목 설정
     document.title = 'Google AI Studio API 키 발급 가이드 - 대본/이미지 생성';

@@ -593,6 +593,11 @@ const App: React.FC<ImageAppProps> = ({
 
   // 보안: 드래그, 우클릭, 캡처 방지
   useEffect(() => {
+    // 디버그 페이지에서는 보호 기능 비활성화
+    if (basePath === "/debug/image") {
+      return;
+    }
+
     // 입력 필드인지 확인하는 헬퍼 함수
     const isInputField = (target: EventTarget | null): boolean => {
       if (!target || !(target instanceof HTMLElement)) return false;
@@ -1471,6 +1476,47 @@ const App: React.FC<ImageAppProps> = ({
               스크립트를 입력하고 일관된 캐릭터와 영상 소스 이미지를 생성하세요!
             </p>
 
+            {/* API 키 입력 */}
+            <div className="max-w-2xl mx-auto mt-6">
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4 shadow-sm">
+                <div className="flex items-center gap-2 mb-3">
+                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                  </svg>
+                  <label className="text-sm font-semibold text-gray-800">
+                    Gemini API 키
+                  </label>
+                  <a
+                    href="/api-guide-aistudio"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="ml-auto text-xs text-blue-600 hover:text-blue-800 underline"
+                  >
+                    API 키 발급받기 →
+                  </a>
+                </div>
+                
+                <input
+                  type="password"
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  placeholder="AIzaSy..."
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm text-gray-900"
+                />
+
+                {!apiKey && (
+                  <p className="mt-2 text-xs text-orange-600 flex items-center gap-1">
+                    <span>⚠️</span>
+                    <span>API 키가 필요합니다. 위 링크에서 발급받아 입력해주세요.</span>
+                  </p>
+                )}
+                
+                <p className="mt-2 text-xs text-gray-600">
+                  API 키는 브라우저에만 저장되며 외부로 전송되지 않습니다.
+                </p>
+              </div>
+            </div>
+
             {/* 데이터 복원 안내 (복원된 데이터가 있을 때만 표시) */}
             {(characters.length > 0 || videoSource.length > 0 || cameraAngles.length > 0) && (
               <div className="mt-4 bg-green-900/20 border border-green-500/50 rounded-lg p-3 max-w-2xl mx-auto">
@@ -1500,7 +1546,6 @@ const App: React.FC<ImageAppProps> = ({
 
             <section className="bg-gray-800 p-6 rounded-xl shadow-2xl border-2 border-blue-500">
               <h2 className="text-2xl font-bold mb-4 text-blue-400 flex items-center">
-                <span className="mr-2">1️⃣</span>
                 페르소나 생성
               </h2>
               <div className="mb-4">
@@ -2098,7 +2143,6 @@ const App: React.FC<ImageAppProps> = ({
             {/* 3단계는 항상 표시 */}
             <section className="bg-gray-800 p-6 rounded-xl shadow-2xl border-2 border-green-500">
               <h2 className="text-2xl font-bold mb-4 text-green-400 flex items-center">
-                <span className="mr-2">2️⃣</span>
                 영상 소스 생성
               </h2>
               <div className="mb-4">
@@ -2367,7 +2411,6 @@ const App: React.FC<ImageAppProps> = ({
             {/* 4단계: 카메라 앵글 확장 */}
             <section className="bg-gray-800 p-6 rounded-xl shadow-2xl border-2 border-orange-500">
               <h2 className="text-2xl font-bold mb-4 text-orange-400 flex items-center">
-                <span className="mr-2">3️⃣</span>
                 사진 구도 확장 (최대 6가지 앵글)
               </h2>
               <p className="text-orange-200 text-sm mb-4">

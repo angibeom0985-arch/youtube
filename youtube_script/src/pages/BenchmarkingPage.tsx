@@ -4,7 +4,6 @@ import { supabase } from "../services/supabase";
 import type { User } from "@supabase/supabase-js";
 import UserCreditToolbar from "../components/UserCreditToolbar";
 import HomeBackButton from "../components/HomeBackButton";
-import ApiKeyRequiredModal from "../components/ApiKeyRequiredModal";
 import ApiKeyInput from "../components/ApiKeyInput";
 
 interface DateOption {
@@ -76,7 +75,6 @@ const BenchmarkingPage: React.FC = () => {
   const [error, setError] = useState("");
   const [summary, setSummary] = useState<SearchSummary | null>(null);
   const [results, setResults] = useState<VideoResult[]>([]);
-  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
 
   // Auth
   useEffect(() => {
@@ -95,18 +93,6 @@ const BenchmarkingPage: React.FC = () => {
     await supabase.auth.signOut();
   };
   
-  // Check for YouTube API key on page load
-  useEffect(() => {
-    // YouTube API 키는 환경변수나 서버에서 관리하므로, 
-    // 실제로는 검색 시도 시 에러가 발생하면 모달을 표시
-    // 여기서는 페이지 진입 시 안내를 보여주도록 설정
-    const hasShownWarning = sessionStorage.getItem('youtube_api_warning_shown');
-    if (!hasShownWarning) {
-      setShowApiKeyModal(true);
-      sessionStorage.setItem('youtube_api_warning_shown', 'true');
-    }
-  }, []);
-
   // 클라이언트 측 필터링 적용 (모멘텀 레벨 등)
   const filteredResults = useMemo(() => {
     if (momentumLevel === 0) return results;
@@ -220,13 +206,50 @@ const BenchmarkingPage: React.FC = () => {
         </div>
 
         {/* API 키 입력 */}
-        <ApiKeyInput
-          storageKey="youtube_api_key"
-          label="YouTube Data API 키"
-          placeholder="YouTube Data API v3 키를 입력하세요"
-          helpText="YouTube 영상 검색을 위해 YouTube Data API 키가 필요합니다. API 키는 브라우저에만 저장됩니다."
-          apiKeyLink="https://console.cloud.google.com/apis/credentials"
-        />
+        <div className="relative">
+          <ApiKeyInput
+            storageKey="youtube_api_key"
+            label="YouTube Data API 키"
+            placeholder="YouTube Data API v3 키를 입력하세요"
+            helpText="YouTube 영상 검색을 위해 YouTube Data API 키가 필요합니다. API 키는 브라우저에만 저장됩니다."
+            apiKeyLink="https://console.cloud.google.com/apis/credentials"
+          />
+          
+          <div className="absolute top-4 right-4 flex gap-2">
+            <a
+              href="/api-guide-cloudconsole"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 text-blue-100 rounded-lg text-sm font-medium transition-all"
+            >
+              API 발급방법
+            </a>
+            <button
+              onClick={async () => {
+                const apiKey = localStorage.getItem('youtube_api_key');
+                if (!apiKey) {
+                  alert('⚠️ API 키를 먼저 입력해주세요.');
+                  return;
+                }
+                try {
+                  const testUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=test&type=video&maxResults=1&key=${apiKey}`;
+                  const response = await fetch(testUrl);
+                  if (response.ok) {
+                    alert('✅ API 키가 정상적으로 작동합니다!');
+                  } else {
+                    const error = await response.json();
+                    alert(`❌ API 키 오류: ${error.error?.message || '알 수 없는 오류'}`);
+                  }
+                } catch (err) {
+                  alert('❌ 테스트 실패: 네트워크 연결을 확인해주세요.');
+                }
+              }}
+              className="px-3 py-1.5 bg-green-600/20 hover:bg-green-600/30 border border-green-500/40 text-green-100 rounded-lg text-sm font-medium transition-all"
+            >
+              테스트
+            </button>
+          </div>
+        </div>
 
         {/* Search Form */}
         <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-8 mb-10 shadow-2xl backdrop-blur-sm">

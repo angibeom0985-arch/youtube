@@ -6,7 +6,6 @@ import { supabase } from "../services/supabase";
 import type { User } from "@supabase/supabase-js";
 import UserCreditToolbar from "../components/UserCreditToolbar";
 import ErrorNotice from "../components/ErrorNotice";
-import ApiKeyRequiredModal from "../components/ApiKeyRequiredModal";
 import ApiKeyInput from "../components/ApiKeyInput";
 
 const STORAGE_KEYS = {
@@ -100,7 +99,6 @@ const TtsPage: React.FC = () => {
   const [copyStatus, setCopyStatus] = useState("");
   const [previewAudio, setPreviewAudio] = useState<HTMLAudioElement | null>(null);
   const [playingPreview, setPlayingPreview] = useState<string | null>(null);
-  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
   const [useAIActing, setUseAIActing] = useState(false); // AI 연기 모드 토글
 
   // Auth
@@ -141,15 +139,6 @@ const TtsPage: React.FC = () => {
 
   useEffect(() => setStoredValue(STORAGE_KEYS.error, error), [error]);
   useEffect(() => setStoredValue(STORAGE_KEYS.prompt, actingPrompt), [actingPrompt]);
-  
-  // Check for Google Cloud TTS API key on page load
-  useEffect(() => {
-    const hasShownWarning = sessionStorage.getItem('tts_api_warning_shown');
-    if (!hasShownWarning) {
-      setShowApiKeyModal(true);
-      sessionStorage.setItem('tts_api_warning_shown', 'true');
-    }
-  }, []);
 
   const handleReset = () => {
     if (!window.confirm("모든 입력을 초기화하시겠습니까?")) return;
@@ -574,14 +563,6 @@ const TtsPage: React.FC = () => {
           animation: fadeIn 0.4s ease-out forwards;
         }
       `}</style>
-      
-      {/* API Key Required Modal */}
-      <ApiKeyRequiredModal
-        isOpen={showApiKeyModal}
-        onClose={() => setShowApiKeyModal(false)}
-        apiType="google-cloud"
-        featureName="TTS 생성"
-      />
     </div>
   );
 };
