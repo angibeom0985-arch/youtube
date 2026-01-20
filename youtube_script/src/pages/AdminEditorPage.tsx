@@ -1,38 +1,18 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { renderToStaticMarkup } from 'react-dom/server';
-import ApiGuideCloudConsolePage from './ApiGuideCloudConsolePage';
-import ApiGuideAiStudioPage from './ApiGuideAiStudioPage';
+import React, { useState, useEffect } from 'react';
 import GuideEditor from '../components/GuideEditor';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-
-interface PageContent {
-  name: string;
-  path: string;
-  content: string;
-}
 
 const AdminEditorPage: React.FC = () => {
-  const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
-
   const [selectedPage, setSelectedPage] = useState('');
-  const [editMode, setEditMode] = useState<'basic' | 'html'>('basic');
-  const [content, setContent] = useState('');
-  const [htmlContent, setHtmlContent] = useState('');
-  const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
 
-  const editorRef = useRef<HTMLDivElement>(null);
-
   // 편집 가능한 페이지 목록
-  const pages: PageContent[] = [
-    { name: 'AI 스튜디오 API 발급방법', path: '/api-guide-aistudio', content: '' },
-    { name: '클라우드 콘솔 API 발급방법', path: '/api-guide-cloudconsole', content: '' },
+  const pages = [
+    { name: 'AI 스튜디오 API 발급방법', path: '/api-guide-aistudio' },
+    { name: '클라우드 콘솔 API 발급방법', path: '/api-guide-cloudconsole' },
   ];
 
   // 로그인 확인
@@ -64,152 +44,10 @@ const AdminEditorPage: React.FC = () => {
   };
 
   // 페이지 선택 시 내용 로드
-  const handlePageSelect = async (pagePath: string) => {
+  const handlePageSelect = (pagePath: string) => {
     setSelectedPage(pagePath);
-    setSaveMessage('');
-    try {
-      let markup = '';
-      if (pagePath === '/api-guide-cloudconsole') {
-        markup = renderToStaticMarkup(<ApiGuideCloudConsolePage />);
-      } else if (pagePath === '/api-guide-aistudio') {
-        markup = renderToStaticMarkup(<ApiGuideAiStudioPage />);
-      }
-      if (!markup) {
-        throw new Error('지원하지 않는 페이지입니다.');
-      }
-      setContent(markup);
-      setHtmlContent(markup);
-    } catch (error) {
-      setContent('<p>페이지 렌더링에 실패했습니다.</p>');
-      setHtmlContent('<p>페이지 렌더링에 실패했습니다.</p>');
-      setSaveMessage('❌ 실제 페이지를 불러오는 데 실패했습니다.');
-    }
-  };
-
-  // 모드 전환 시 내용 동기화
-  useEffect(() => {
-    if (editMode === 'html') {
-      setHtmlContent(content);
-    } else {
-      setContent(htmlContent);
-      if (editorRef.current) {
-        editorRef.current.innerHTML = htmlContent;
-      }
-    }
-  }, [editMode]);
-
-  const handleContentSync = () => {
-    const html = editorRef.current?.innerHTML ?? '';
-    setContent(html);
-    setHtmlContent(html);
-  };
-
-  const handleAction = (command: string, value?: string) => {
-    document.execCommand(command, false, value);
-    handleContentSync();
-  };
-
-  // 이미지 업로드 핸들러
-  const handleImageUpload = () => {
-    const input = document.createElement('input');
-    input.setAttribute('type', 'file');
-    input.setAttribute('accept', 'image/*');
-    input.click();
-
-    input.onchange = async () => {
-      const file = input.files?.[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const imageUrl = e.target?.result as string;
-          if (editMode === 'basic') {
-            document.execCommand('insertImage', false, imageUrl);
-            handleContentSync();
-          } else {
-            const imgTag = `<img src="${imageUrl}" alt="Uploaded image" style="max-width: 100%;" />`;
-            setHtmlContent((prev) => prev + imgTag);
-          }
-        };
-        reader.readAsDataURL(file);
-      }
-    };
-  };
-
-  // 미리보기
-  const handlePreview = () => {
-    const previewContent = editMode === 'basic'
-      ? editorRef.current?.innerHTML ?? ''
-      : htmlContent;
-    
-    const previewWindow = window.open('', '_blank');
-    if (previewWindow) {
-      previewWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="UTF-8">
-          <title>미리보기</title>
-          <style>
-            body {
-              font-family: system-ui, -apple-system, sans-serif;
-              padding: 20px;
-              background: #121212;
-              color: white;
-            }
-            img {
-              max-width: 100%;
-              height: auto;
-            }
-          </style>
-        </head>
-        <body>
-          ${previewContent}
-        </body>
-        </html>
-      `);
-      previewWindow.document.close();
-    }
-  };
-
-  // 저장
-  const handleSave = async () => {
-    setIsSaving(true);
-    setSaveMessage('');
-
-    try {
-      const contentToSave = editMode === 'basic'
-        ? editorRef.current?.innerHTML ?? ''
-        : htmlContent;
-
-      // TODO: 실제 저장 API 구현 필요
-      // 여기서는 시뮬레이션
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setSaveMessage('✅ 저장되었습니다!');
-      setTimeout(() => setSaveMessage(''), 3000);
-    } catch (error) {
-      setSaveMessage('❌ 저장 실패');
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  // Quill 에디터 설정
-  const modules = {
-    toolbar: {
-      container: [
-        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-        ['bold', 'italic', 'underline', 'strike'],
-        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-        [{ 'color': [] }, { 'background': [] }],
-        [{ 'align': [] }],
-        ['link', 'image'],
-        ['clean']
-      ],
-      handlers: {
-        image: handleImageUpload
-      }
-    }
+    setSaveMessage('✅ 저장된 내용을 불러왔습니다.');
+    setTimeout(() => setSaveMessage(''), 3000);
   };
 
   // 로그인하지 않은 경우
@@ -282,7 +120,7 @@ const AdminEditorPage: React.FC = () => {
 
       {/* 메인 컨텐츠 */}
       <div className="max-w-7xl mx-auto p-6 space-y-6">
-        {/* 페이지 선택 및 모드 선택 */}
+        {/* 페이지 선택 */}
         <div className="bg-gray-900/50 border border-red-500/20 rounded-xl p-6 backdrop-blur-sm">
           <div>
             <label className="block text-sm font-medium mb-2">수정할 페이지:</label>
@@ -301,10 +139,21 @@ const AdminEditorPage: React.FC = () => {
           </div>
         </div>
 
+        {/* 메시지 표시 */}
+        {saveMessage && (
+          <div className={`p-4 rounded-xl ${
+            saveMessage.includes('✅') 
+              ? 'bg-green-900/20 border border-green-700 text-green-300' 
+              : 'bg-red-900/20 border border-red-700 text-red-300'
+          }`}>
+            {saveMessage}
+          </div>
+        )}
+
         {/* 에디터 영역 */}
         {selectedPage && (
           <div className="bg-gray-900/50 border border-red-500/20 rounded-xl p-6 backdrop-blur-sm">
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold">
                 {selectedPage === '/api-guide-aistudio' ? 'AI 스튜디오 API 발급방법 편집' : '클라우드 콘솔 API 발급방법 편집'}
               </h2>
