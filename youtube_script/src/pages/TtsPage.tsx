@@ -446,20 +446,20 @@ const TtsPage: React.FC = () => {
             {/* Acting Prompt Section */}
             <div className={`border rounded-2xl p-6 transition-all duration-500 ${useAIActing ? 'bg-emerald-900/10 border-emerald-500/40 shadow-[0_0_20px_rgba(16,185,129,0.1)]' : 'bg-white/5 border-white/10'}`}>
               <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-xl ${useAIActing ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'bg-slate-800 text-slate-400'}`}>
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className={`p-2 rounded-xl ${useAIActing ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'bg-slate-800 text-slate-400'} flex-shrink-0`}>
                     <FiCpu size={20} />
                   </div>
-                  <div>
+                  <div className="flex-1 min-w-0">
                     <h3 className="text-base font-bold text-slate-200">AI 연기 모드</h3>
                     <p className="text-xs text-slate-500">텍스트에 감정과 연기를 더합니다</p>
                   </div>
                 </div>
                 <button
                   onClick={() => setUseAIActing(!useAIActing)}
-                  className={`relative h-6 w-12 rounded-full transition-colors focus:outline-none ${useAIActing ? 'bg-emerald-500' : 'bg-slate-700'}`}
+                  className={`relative h-6 w-12 rounded-full transition-colors focus:outline-none flex-shrink-0 ml-4 ${useAIActing ? 'bg-emerald-500' : 'bg-slate-700'}`}
                 >
-                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${useAIActing ? 'translate-x-6' : 'translate-x-1'}`} />
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${useAIActing ? 'translate-x-[1.75rem]' : 'translate-x-1'}`} />
                 </button>
               </div>
 
