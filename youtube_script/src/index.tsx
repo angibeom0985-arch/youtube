@@ -9,6 +9,8 @@ import ImageErrorBoundary from '../../youtube_image/ui/components/ErrorBoundary'
 import HomePage from './pages/HomePage.tsx';
 import GuidePage from './pages/GuidePage.tsx';
 import ApiGuidePage from './pages/ApiGuidePage.tsx';
+import ApiGuideAiStudioPage from './pages/ApiGuideAiStudioPage.tsx';
+import ApiGuideCloudConsolePage from './pages/ApiGuideCloudConsolePage.tsx';
 import ScriptGuidePage from './pages/ScriptGuidePage.tsx';
 import ImageGuidePage from './pages/ImageGuidePage.tsx';
 import TtsGuidePage from './pages/TtsGuidePage.tsx';
@@ -56,6 +58,8 @@ root.render(
         <Route path="/tts/guide" element={<TtsGuidePage />} />
         <Route path="/api-guide" element={<ApiGuidePage />} />
         <Route path="/api_guide" element={<ApiGuidePage />} />
+        <Route path="/api-guide-aistudio" element={<ApiGuideAiStudioPage />} />
+        <Route path="/api-guide-cloudconsole" element={<ApiGuideCloudConsolePage />} />
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/debug" element={<DebugPage mode="home" />} />
         <Route path="/debug/script" element={<DebugPage mode="script" />} />
