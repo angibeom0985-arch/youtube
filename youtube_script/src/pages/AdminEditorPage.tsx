@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
@@ -25,7 +23,7 @@ const AdminEditorPage: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
 
-  const quillRef = useRef<ReactQuill>(null);
+  const editorRef = useRef<HTMLDivElement>(null);
 
   // 편집 가능한 페이지 목록
   const pages: PageContent[] = [
@@ -72,13 +70,26 @@ const AdminEditorPage: React.FC = () => {
 
   // 모드 전환 시 내용 동기화
   useEffect(() => {
-    if (editMode === 'html' && quillRef.current) {
-      const editor = quillRef.current.getEditor();
-      setHtmlContent(editor.root.innerHTML);
-    } else if (editMode === 'basic' && htmlContent) {
+    if (editMode === 'html') {
+      setHtmlContent(content);
+    } else {
       setContent(htmlContent);
+      if (editorRef.current) {
+        editorRef.current.innerHTML = htmlContent;
+      }
     }
   }, [editMode]);
+
+  const handleContentSync = () => {
+    const html = editorRef.current?.innerHTML ?? '';
+    setContent(html);
+    setHtmlContent(html);
+  };
+
+  const handleAction = (command: string, value?: string) => {
+    document.execCommand(command, false, value);
+    handleContentSync();
+  };
 
   // 이미지 업로드 핸들러
   const handleImageUpload = () => {
@@ -90,21 +101,15 @@ const AdminEditorPage: React.FC = () => {
     input.onchange = async () => {
       const file = input.files?.[0];
       if (file) {
-        // 이미지를 base64로 변환
         const reader = new FileReader();
         reader.onload = (e) => {
           const imageUrl = e.target?.result as string;
-          
-          if (editMode === 'basic' && quillRef.current) {
-            const editor = quillRef.current.getEditor();
-            const range = editor.getSelection();
-            if (range) {
-              editor.insertEmbed(range.index, 'image', imageUrl);
-            }
+          if (editMode === 'basic') {
+            document.execCommand('insertImage', false, imageUrl);
+            handleContentSync();
           } else {
-            // HTML 모드에서는 img 태그로 삽입
             const imgTag = `<img src="${imageUrl}" alt="Uploaded image" style="max-width: 100%;" />`;
-            setHtmlContent(prev => prev + imgTag);
+            setHtmlContent((prev) => prev + imgTag);
           }
         };
         reader.readAsDataURL(file);
@@ -114,8 +119,8 @@ const AdminEditorPage: React.FC = () => {
 
   // 미리보기
   const handlePreview = () => {
-    const previewContent = editMode === 'basic' && quillRef.current 
-      ? quillRef.current.getEditor().root.innerHTML 
+    const previewContent = editMode === 'basic'
+      ? editorRef.current?.innerHTML ?? ''
       : htmlContent;
     
     const previewWindow = window.open('', '_blank');
@@ -154,8 +159,8 @@ const AdminEditorPage: React.FC = () => {
     setSaveMessage('');
 
     try {
-      const contentToSave = editMode === 'basic' && quillRef.current 
-        ? quillRef.current.getEditor().root.innerHTML 
+      const contentToSave = editMode === 'basic'
+        ? editorRef.current?.innerHTML ?? ''
         : htmlContent;
 
       // TODO: 실제 저장 API 구현 필요
@@ -344,14 +349,68 @@ const AdminEditorPage: React.FC = () => {
 
             {/* 기본모드 (WYSIWYG) */}
             {editMode === 'basic' && (
-              <div className="bg-white rounded-lg">
-                <ReactQuill
-                  ref={quillRef}
-                  theme="snow"
-                  value={content}
-                  onChange={setContent}
-                  modules={modules}
-                  style={{ minHeight: '500px' }}
+              <div className="space-y-3">
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleAction('bold')}
+                    className="px-3 py-1 rounded-full bg-red-500/20 text-red-200 border border-red-500/30"
+                  >
+                    Bold
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleAction('italic')}
+                    className="px-3 py-1 rounded-full bg-red-500/20 text-red-200 border border-red-500/30"
+                  >
+                    Italic
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleAction('underline')}
+                    className="px-3 py-1 rounded-full bg-red-500/20 text-red-200 border border-red-500/30"
+                  >
+                    Underline
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleAction('formatBlock', '<h3>')}
+                    className="px-3 py-1 rounded-full bg-red-500/20 text-red-200 border border-red-500/30"
+                  >
+                    H3
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleAction('insertUnorderedList')}
+                    className="px-3 py-1 rounded-full bg-red-500/20 text-red-200 border border-red-500/30"
+                  >
+                    • List
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleAction('insertOrderedList')}
+                    className="px-3 py-1 rounded-full bg-red-500/20 text-red-200 border border-red-500/30"
+                  >
+                    1. List
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const url = window.prompt('링크 URL을 입력하세요');
+                      if (url) handleAction('createLink', url);
+                    }}
+                    className="px-3 py-1 rounded-full bg-red-500/20 text-red-200 border border-red-500/30"
+                  >
+                    🔗 링크
+                  </button>
+                </div>
+                <div
+                  ref={editorRef}
+                  contentEditable
+                  suppressContentEditableWarning
+                  className="min-h-[500px] bg-black border border-red-500/40 rounded-lg p-6 text-white text-sm leading-relaxed focus-visible:outline-none"
+                  onInput={handleContentSync}
+                  dangerouslySetInnerHTML={{ __html: content }}
                 />
               </div>
             )}
