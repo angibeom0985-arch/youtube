@@ -154,6 +154,11 @@ const ApiGuideCloudConsolePage: React.FC = () => {
                 <span>https://console.cloud.google.com</span>
                 <FiExternalLink size={16} />
               </a>
+              <img 
+                src="/images/api-guide-cloudconsole/api-guide-cloudeconsole 1.png" 
+                alt="Google Cloud Console 메인 화면" 
+                className="w-full rounded-lg border border-[#2A2A2A] mt-4"
+              />
             </div>
           </section>
 
@@ -165,8 +170,19 @@ const ApiGuideCloudConsolePage: React.FC = () => {
             </div>
             <div className="space-y-3 text-neutral-300">
               <p>상단의 프로젝트 선택 드롭다운에서 <strong>"새 프로젝트"</strong> 클릭</p>
-              <div className="bg-green-900/20 border border-green-700/50 rounded-lg p-3">
-                <p className="text-green-300 text-sm">✅ 프로젝트 이름을 입력하고 "만들기" 클릭</p>
+              <img 
+                src="/images/api-guide-cloudconsole/api-guide-cloudeconsole 2.png" 
+                alt="프로젝트 선택 드롭다운" 
+                className="w-full rounded-lg border border-[#2A2A2A]"
+              />
+              <p className="mt-4">프로젝트 이름을 입력하고 "만들기" 버튼을 클릭합니다.</p>
+              <img 
+                src="/images/api-guide-cloudconsole/api-guide-cloudeconsole 3.png" 
+                alt="새 프로젝트 만들기 화면" 
+                className="w-full rounded-lg border border-[#2A2A2A]"
+              />
+              <div className="bg-green-900/20 border border-green-700/50 rounded-lg p-3 mt-3">
+                <p className="text-green-300 text-sm">✅ 프로젝트가 생성되면 자동으로 선택됩니다</p>
               </div>
             </div>
           </section>
@@ -181,14 +197,37 @@ const ApiGuideCloudConsolePage: React.FC = () => {
             </div>
             <div className="space-y-3 text-neutral-300">
               <p>좌측 메뉴에서 <strong>"API 및 서비스" → "라이브러리"</strong> 선택</p>
-              <p className="font-semibold">활성화할 API:</p>
+              <img 
+                src="/images/api-guide-cloudconsole/api-guide-cloudeconsole 4.png" 
+                alt="API 및 서비스 메뉴" 
+                className="w-full rounded-lg border border-[#2A2A2A]"
+              />
+              <p className="mt-4 font-semibold">활성화할 API:</p>
               <ul className="list-disc list-inside space-y-2 ml-4">
                 <li><strong>YouTube Data API v3</strong> (벤치마킹용)</li>
                 <li><strong>Cloud Text-to-Speech API</strong> (TTS용)</li>
                 <li><strong>Cloud Speech-to-Text API</strong> (STT용)</li>
               </ul>
-              <div className="bg-yellow-900/20 border border-yellow-700/50 rounded-lg p-3 mt-3">
-                <p className="text-yellow-300 text-sm">⚠️ 각 API를 검색하여 "사용" 버튼 클릭</p>
+              <p className="mt-4">API 라이브러리에서 "YouTube"를 검색합니다.</p>
+              <img 
+                src="/images/api-guide-cloudconsole/api-guide-cloudeconsole 5.png" 
+                alt="YouTube Data API v3 검색" 
+                className="w-full rounded-lg border border-[#2A2A2A]"
+              />
+              <p className="mt-4"><strong>YouTube Data API v3</strong>를 선택합니다.</p>
+              <img 
+                src="/images/api-guide-cloudconsole/api-guide-cloudeconsole 6.png" 
+                alt="YouTube Data API v3 선택" 
+                className="w-full rounded-lg border border-[#2A2A2A]"
+              />
+              <p className="mt-4">"사용" 버튼을 클릭하여 API를 활성화합니다.</p>
+              <img 
+                src="/images/api-guide-cloudconsole/api-guide-cloudeconsole 7.png" 
+                alt="YouTube Data API v3 활성화" 
+                className="w-full rounded-lg border border-[#2A2A2A]"
+              />
+              <div className="bg-yellow-900/20 border border-yellow-700/50 rounded-lg p-3 mt-4">
+                <p className="text-yellow-300 text-sm">⚠️ 같은 방법으로 Cloud Text-to-Speech API와 Cloud Speech-to-Text API도 활성화해주세요</p>
               </div>
             </div>
           </section>
@@ -200,11 +239,32 @@ const ApiGuideCloudConsolePage: React.FC = () => {
               <h2 className="text-2xl font-bold text-white">API 키 생성</h2>
             </div>
             <div className="space-y-3 text-neutral-300">
-              <p><strong>"API 및 서비스" → "사용자 인증 정보"</strong> 선택</p>
-              <p><strong>"+ 사용자 인증 정보 만들기" → "API 키"</strong> 클릭</p>
-              <div className="bg-green-900/20 border border-green-700/50 rounded-lg p-3">
+              <p>좌측 메뉴에서 <strong>"API 및 서비스" → "사용자 인증 정보"</strong> 선택</p>
+              <img 
+                src="/images/api-guide-cloudconsole/api-guide-cloudeconsole 8.png" 
+                alt="사용자 인증 정보 메뉴" 
+                className="w-full rounded-lg border border-[#2A2A2A]"
+              />
+              <p className="mt-4">상단의 <strong>"+ 사용자 인증 정보 만들기"</strong> 버튼을 클릭합니다.</p>
+              <img 
+                src="/images/api-guide-cloudconsole/api-guide-cloudeconsole 9.png" 
+                alt="사용자 인증 정보 만들기 버튼" 
+                className="w-full rounded-lg border border-[#2A2A2A]"
+              />
+              <p className="mt-4"><strong>"API 키"</strong> 옵션을 선택합니다.</p>
+              <img 
+                src="/images/api-guide-cloudconsole/api-guide-cloudeconsole 10.png" 
+                alt="API 키 옵션 선택" 
+                className="w-full rounded-lg border border-[#2A2A2A]"
+              />
+              <div className="bg-green-900/20 border border-green-700/50 rounded-lg p-3 mt-3">
                 <p className="text-green-300 text-sm">✅ API 키가 자동으로 생성됩니다</p>
               </div>
+              <img 
+                src="/images/api-guide-cloudconsole/api-guide-cloudeconsole 11.png" 
+                alt="API 키 생성 완료" 
+                className="w-full rounded-lg border border-[#2A2A2A] mt-3"
+              />
             </div>
           </section>
 
@@ -216,11 +276,23 @@ const ApiGuideCloudConsolePage: React.FC = () => {
             </div>
             <div className="space-y-3 text-neutral-300">
               <p>보안을 위해 API 키 사용 범위를 제한할 수 있습니다.</p>
-              <ul className="list-disc list-inside space-y-1 ml-4">
-                <li>애플리케이션 제한: HTTP 리퍼러 제한</li>
-                <li>API 제한: 위에서 활성화한 3개 API만 선택</li>
+              <p className="mt-4">"API 키 제한" 버튼을 클릭합니다.</p>
+              <img 
+                src="/images/api-guide-cloudconsole/api-guide-cloudeconsole 12.png" 
+                alt="API 키 제한 버튼" 
+                className="w-full rounded-lg border border-[#2A2A2A]"
+              />
+              <p className="mt-4">API 키 이름을 설정하고, API 제한에서 사용할 API들을 선택합니다.</p>
+              <img 
+                src="/images/api-guide-cloudconsole/api-guide-cloudeconsole 13.png" 
+                alt="API 키 제한 설정 화면" 
+                className="w-full rounded-lg border border-[#2A2A2A]"
+              />
+              <ul className="list-disc list-inside space-y-1 ml-4 mt-4">
+                <li>애플리케이션 제한: HTTP 리퍼러 제한 (선택사항)</li>
+                <li>API 제한: YouTube Data API v3, Cloud TTS, Cloud STT 선택</li>
               </ul>
-              <div className="bg-blue-900/20 border border-blue-700/50 rounded-lg p-3">
+              <div className="bg-blue-900/20 border border-blue-700/50 rounded-lg p-3 mt-3">
                 <p className="text-blue-300 text-sm">💡 선택사항이지만 보안을 위해 권장됩니다</p>
               </div>
             </div>
@@ -236,7 +308,12 @@ const ApiGuideCloudConsolePage: React.FC = () => {
             </div>
             <div className="space-y-3 text-neutral-300">
               <p>생성된 API 키를 복사합니다.</p>
-              <p className="font-semibold">API 키 형태:</p>
+              <img 
+                src="/images/api-guide-cloudconsole/api-guide-cloudeconsole 14.png" 
+                alt="API 키 복사" 
+                className="w-full rounded-lg border border-[#2A2A2A]"
+              />
+              <p className="mt-4 font-semibold">API 키 형태:</p>
               <code className="block bg-zinc-900 p-3 rounded-lg text-sm font-mono">
                 AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
               </code>
@@ -259,11 +336,17 @@ const ApiGuideCloudConsolePage: React.FC = () => {
             </div>
             <div className="space-y-3 text-neutral-300">
               <p>TTS(텍스트 음성 변환) 기능을 사용하려면 결제 정보를 등록해야 합니다.</p>
-              <p><strong>"결제" → "결제 계정 만들기"</strong> 선택</p>
-              <div className="bg-amber-900/20 border border-amber-700/50 rounded-lg p-3">
+              <p className="mt-4">좌측 메뉴에서 <strong>"결제"</strong>를 선택합니다.</p>
+              <img 
+                src="/images/api-guide-cloudconsole/api-guide-cloudeconsole 15.png" 
+                alt="결제 메뉴" 
+                className="w-full rounded-lg border border-[#2A2A2A]"
+              />
+              <p className="mt-4"><strong>"결제 계정 만들기"</strong>를 클릭하고 안내에 따라 결제 정보를 입력합니다.</p>
+              <div className="bg-amber-900/20 border border-amber-700/50 rounded-lg p-3 mt-3">
                 <p className="text-amber-300 text-sm">💳 신용카드 정보 입력 필요 (사용량 기반 과금)</p>
               </div>
-              <div className="bg-green-900/20 border border-green-700/50 rounded-lg p-3">
+              <div className="bg-green-900/20 border border-green-700/50 rounded-lg p-3 mt-3">
                 <p className="text-green-300 text-sm">✅ YouTube API는 결제 정보 없이 무료 사용 가능</p>
               </div>
             </div>
