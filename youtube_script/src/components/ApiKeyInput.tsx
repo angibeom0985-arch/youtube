@@ -206,7 +206,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
       {!apiKey && (
         <p className={`mt-2 text-xs ${styles.warning} flex items-center gap-1`}>
           <span>⚠️</span>
-          <span>API 키 필요</span>
+          <span>API 키를 입력해주세요.</span>
         </p>
       )}
       

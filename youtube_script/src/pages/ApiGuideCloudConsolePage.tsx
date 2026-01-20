@@ -90,25 +90,6 @@ const ApiGuideCloudConsolePage: React.FC = () => {
             </div>
           </div>
 
-          {/* 보안 및 비용 안내 */}
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="bg-blue-900/20 border border-blue-700/50 rounded-lg p-4">
-              <h3 className="text-blue-300 font-bold mb-2">🔒 보안 안내</h3>
-              <ul className="text-sm space-y-1 text-neutral-300">
-                <li>• API 키는 브라우저에만 저장</li>
-                <li>• 공용 컴퓨터에서는 '기억하기' 체크 해제</li>
-                <li>• 유출 시 Cloud Console에서 즉시 재발급</li>
-              </ul>
-            </div>
-            <div className="bg-amber-900/20 border border-amber-700/50 rounded-lg p-4">
-              <h3 className="text-amber-300 font-bold mb-2">💰 비용 안내</h3>
-              <ul className="text-sm space-y-1 text-neutral-300">
-                <li>• YouTube API: 일일 10,000 할당량 무료</li>
-                <li>• TTS API: 결제 정보 필요 (사용량 기반)</li>
-              </ul>
-            </div>
-          </div>
-
           <AdSense />
 
           {/* 1단계: Google Cloud Console 접속 */}
@@ -322,6 +303,25 @@ const ApiGuideCloudConsolePage: React.FC = () => {
           </section>
 
           <AdSense />
+
+          {/* 보안 및 비용 안내 */}
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="bg-blue-900/20 border border-blue-700/50 rounded-lg p-4">
+              <h3 className="text-blue-300 font-bold mb-2">🔒 보안 안내</h3>
+              <ul className="text-sm space-y-1 text-neutral-300">
+                <li>• API 키는 브라우저에만 저장</li>
+                <li>• 공용 컴퓨터에서는 '기억하기' 체크 해제</li>
+                <li>• 유출 시 Cloud Console에서 즉시 재발급</li>
+              </ul>
+            </div>
+            <div className="bg-amber-900/20 border border-amber-700/50 rounded-lg p-4">
+              <h3 className="text-amber-300 font-bold mb-2">💰 비용 안내</h3>
+              <ul className="text-sm space-y-1 text-neutral-300">
+                <li>• YouTube API: 일일 10,000 할당량 무료</li>
+                <li>• TTS API: 결제 정보 필요 (사용량 기반)</li>
+              </ul>
+            </div>
+          </div>
 
           {/* FAQ */}
           <section className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6">

@@ -103,30 +103,6 @@ const ApiGuideAiStudioPage: React.FC = () => {
             </div>
           </div>
 
-          {/* 보안 및 비용 안내 */}
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="bg-blue-900/20 border border-blue-700/50 rounded-lg p-4">
-              <h3 className="text-blue-300 font-bold mb-2 flex items-center gap-2">
-                🔒 보안 안내
-              </h3>
-              <ul className="text-sm space-y-1 text-neutral-300">
-                <li>• API 키는 브라우저에만 저장되며, 외부 서버로 전송되지 않습니다.</li>
-                <li>• 공용 컴퓨터를 사용하는 경우 '기억하기'를 체크하지 마세요.</li>
-                <li>• API 키가 유출된 경우 즉시 Google AI Studio에서 재발급 받으세요.</li>
-              </ul>
-            </div>
-            <div className="bg-green-900/20 border border-green-700/50 rounded-lg p-4">
-              <h3 className="text-green-300 font-bold mb-2 flex items-center gap-2">
-                💰 API 비용 안내
-              </h3>
-              <ul className="text-sm space-y-1 text-neutral-300">
-                <li>• Gemini API 무료 등급에서 기능 제공</li>
-                <li>• 분당 15회 요청 제한, 결제나 비용 발생 없음</li>
-                <li>• 신용카드 등록 불필요, 완전 무료</li>
-              </ul>
-            </div>
-          </div>
-
           <AdSense />
 
           {/* 동적 단계 렌더링 */}
@@ -164,6 +140,30 @@ const ApiGuideAiStudioPage: React.FC = () => {
               {(index === 1 || index === 4) && <AdSense />}
             </React.Fragment>
           ))}
+
+          {/* 보안 및 비용 안내 */}
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="bg-blue-900/20 border border-blue-700/50 rounded-lg p-4">
+              <h3 className="text-blue-300 font-bold mb-2 flex items-center gap-2">
+                🔒 보안 안내
+              </h3>
+              <ul className="text-sm space-y-1 text-neutral-300">
+                <li>• API 키는 브라우저에만 저장되며, 외부 서버로 전송되지 않습니다.</li>
+                <li>• 공용 컴퓨터를 사용하는 경우 '기억하기'를 체크하지 마세요.</li>
+                <li>• API 키가 유출된 경우 즉시 Google AI Studio에서 재발급 받으세요.</li>
+              </ul>
+            </div>
+            <div className="bg-green-900/20 border border-green-700/50 rounded-lg p-4">
+              <h3 className="text-green-300 font-bold mb-2 flex items-center gap-2">
+                💰 API 비용 안내
+              </h3>
+              <ul className="text-sm space-y-1 text-neutral-300">
+                <li>• Gemini API 무료 등급에서 기능 제공</li>
+                <li>• 분당 15회 요청 제한, 결제나 비용 발생 없음</li>
+                <li>• 신용카드 등록 불필요, 완전 무료</li>
+              </ul>
+            </div>
+          </div>
 
           {/* FAQ */}
           <section className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6">
