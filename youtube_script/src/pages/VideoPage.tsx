@@ -21,6 +21,7 @@ import UserCreditToolbar from "../components/UserCreditToolbar";
 import HomeBackButton from "../components/HomeBackButton";
 import ErrorNotice from "../components/ErrorNotice";
 import ApiKeyRequiredModal from "../components/ApiKeyRequiredModal";
+import ApiKeyInput from "../components/ApiKeyInput";
 import type { AnalysisResult, NewPlan } from "../types";
 import { analyzeTranscript, generateIdeas, generateNewPlan } from "../services/geminiService";
 import { generateVideo } from "../services/videoService";
@@ -799,39 +800,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 </div>
               </div>
             </div>
-
-            <div className="mt-6 rounded-[clamp(1rem,2vw,1.4rem)] border border-white/20 bg-black/40 p-[clamp(1rem,2vw,1.4rem)]">
-              <h3 className="text-2xl font-bold text-white">API 키</h3>
-              <p className="mt-3 text-sm text-white/70">
-                대본 생성 및 분석을 위해 본인의 Gemini API 키를 입력해주세요.
-              </p>
-              <div className="mt-4">
-                <p className="text-sm font-semibold text-white/80">Gemini API 키</p>
-                <p className="mt-1 text-xs text-white/50">
-                  무료로 발급받을 수 있으며, 사용량에 따라 과금됩니다.{" "}
-                  <a
-                    href="https://aistudio.google.com/app/apikey"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-red-400 hover:text-red-300 underline"
-                  >
-                    API 키 발급받기
-                  </a>
-                </p>
-                <input
-                  type="password"
-                  value={geminiApiKey}
-                  onChange={(e) => setGeminiApiKey(e.target.value)}
-                  placeholder="AIzaSy..."
-                  className="mt-2 w-full rounded-lg border border-white/15 bg-black/40 px-4 py-2.5 text-sm text-white placeholder-white/30 focus:border-red-400/50 focus:outline-none focus:ring-2 focus:ring-red-500/20"
-                />
-                {!geminiApiKey && (
-                  <p className="mt-2 text-xs text-yellow-400/80">
-                    ⚠️ API 키가 없으면 대본 생성 기능을 사용할 수 없습니다.
-                  </p>
-                )}
-              </div>
-            </div>
           </div>
         );
       case "script": {
@@ -1433,6 +1401,17 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
             ))}
           </div>
         </header>
+
+        {/* API 키 입력 섹션 */}
+        <div className="mt-6">
+          <ApiKeyInput
+            storageKey={STORAGE_KEYS.geminiApiKey}
+            label="Gemini API 키"
+            placeholder="AIzaSy..."
+            helpText="대본 생성 및 분석을 위해 본인의 Gemini API 키를 입력해주세요. API 키는 브라우저에만 저장됩니다."
+            apiKeyLink="https://aistudio.google.com/app/apikey"
+          />
+        </div>
 
         <div className="mt-[clamp(2rem,4vw,3rem)]">
           <main className="rounded-[clamp(1.2rem,2.5vw,2rem)] border border-white/10 bg-white/5 shadow-[0_18px_40px_rgba(0,0,0,0.6)] backdrop-blur-2xl">

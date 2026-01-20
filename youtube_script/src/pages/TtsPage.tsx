@@ -7,6 +7,7 @@ import type { User } from "@supabase/supabase-js";
 import UserCreditToolbar from "../components/UserCreditToolbar";
 import ErrorNotice from "../components/ErrorNotice";
 import ApiKeyRequiredModal from "../components/ApiKeyRequiredModal";
+import ApiKeyInput from "../components/ApiKeyInput";
 
 const STORAGE_KEYS = {
   text: "tts_text",
@@ -313,6 +314,15 @@ const TtsPage: React.FC = () => {
             초기화
           </button>
         </div>
+
+        {/* API 키 입력 */}
+        <ApiKeyInput
+          storageKey="google_cloud_tts_api_key"
+          label="Google Cloud TTS API 키"
+          placeholder="Google Cloud TTS API 키를 입력하세요"
+          helpText="음성 생성을 위해 Google Cloud TTS API 키가 필요합니다. API 키는 브라우저에만 저장됩니다."
+          apiKeyLink="https://console.cloud.google.com/apis/credentials"
+        />
 
         <div className="grid lg:grid-cols-12 gap-8">
           {/* Left Column: Controls */}

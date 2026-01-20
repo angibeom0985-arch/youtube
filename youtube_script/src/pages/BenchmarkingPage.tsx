@@ -5,6 +5,7 @@ import type { User } from "@supabase/supabase-js";
 import UserCreditToolbar from "../components/UserCreditToolbar";
 import HomeBackButton from "../components/HomeBackButton";
 import ApiKeyRequiredModal from "../components/ApiKeyRequiredModal";
+import ApiKeyInput from "../components/ApiKeyInput";
 
 interface DateOption {
   label: string;
@@ -217,6 +218,15 @@ const BenchmarkingPage: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* API 키 입력 */}
+        <ApiKeyInput
+          storageKey="youtube_api_key"
+          label="YouTube Data API 키"
+          placeholder="YouTube Data API v3 키를 입력하세요"
+          helpText="YouTube 영상 검색을 위해 YouTube Data API 키가 필요합니다. API 키는 브라우저에만 저장됩니다."
+          apiKeyLink="https://console.cloud.google.com/apis/credentials"
+        />
 
         {/* Search Form */}
         <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-8 mb-10 shadow-2xl backdrop-blur-sm">
