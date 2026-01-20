@@ -142,34 +142,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const normalizedBasePath = basePath && basePath !== "/" ? basePath.replace(/\/$/, "") : "";
   const [user, setUser] = useState<User | null>(null);
   
-  // URL 경로에서 초기 step 결정
-  const getInitialStep = (): number => {
-    const pathname = location.pathname;
-    const stepMap: Record<string, number> = {
-      'setup': 0,
-      'script': 1,
-      'tts': 2,
-      'image': 3,
-      'generate': 4,
-      'render': 5,
-    };
-    
-    // /video/script, /video/tts 등의 형태에서 step 추출
-    const pathParts = pathname.split('/').filter(Boolean);
-    const lastPart = pathParts[pathParts.length - 1];
-    
-    if (lastPart && stepMap[lastPart] !== undefined) {
-      return stepMap[lastPart];
-    }
-    
-    // localStorage에서 저장된 step 확인
-    const savedStep = getStoredString(STORAGE_KEYS.step, "0", true);
-    const parsedStep = parseInt(savedStep, 10);
-    const maxStep = 5; // steps.length - 1
-    return !isNaN(parsedStep) && parsedStep >= 0 && parsedStep <= maxStep ? parsedStep : 0;
-  };
-  
-  const [currentStep, setCurrentStep] = useState(getInitialStep);
+  // currentStep은 useEffect에서 URL 기반으로 설정됨
+  const [currentStep, setCurrentStep] = useState(0);
   const [videoFormat, setVideoFormat] = useState<VideoFormat>(() => {
     const stored = getStoredString(STORAGE_KEYS.format, "long");
     return stored === "short" ? "short" : "long";
@@ -493,12 +467,12 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
   const stepPaths = useMemo(
     () => [
-      `${normalizedBasePath}/video`,
+      `${normalizedBasePath}/video/setup`,
       `${normalizedBasePath}/video/script`,
       `${normalizedBasePath}/video/tts`,
       `${normalizedBasePath}/video/image`,
       `${normalizedBasePath}/video/generate`,
-      `${normalizedBasePath}/video/edit`,
+      `${normalizedBasePath}/video/render`,
     ],
     [normalizedBasePath]
   );
@@ -528,17 +502,20 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     const normalizedPath = normalizePath(location.pathname);
     const pathIndex = getStepIndexFromPath(normalizedPath);
     const storedIndex = getStoredStepIndex();
-    const shouldUseStored =
-      normalizedPath === `${normalizedBasePath}/video` && storedIndex !== 0;
-    const nextIndex = shouldUseStored ? storedIndex : pathIndex ?? storedIndex;
+    
+    // /video 경로는 저장된 step이 있으면 그걸 사용하고, 없으면 /video/setup으로
+    const isBaseVideoPath = normalizedPath === `${normalizedBasePath}/video` || normalizedPath === normalizedBasePath + '/video';
+    const shouldUseStored = isBaseVideoPath && storedIndex !== 0;
+    const nextIndex = shouldUseStored ? storedIndex : (pathIndex ?? (isBaseVideoPath ? 0 : storedIndex));
+    
     if (nextIndex !== currentStep) {
       setCurrentStep(nextIndex);
     }
-    const targetPath = stepPaths[nextIndex] ?? `${normalizedBasePath}/video`;
+    const targetPath = stepPaths[nextIndex];
     if (normalizedPath !== targetPath) {
       navigate(targetPath, { replace: true });
     }
-  }, [location.pathname, navigate, stepPaths]);
+  }, [location.pathname, navigate, stepPaths, normalizedBasePath, currentStep]);
 
   const canGoPrev = currentStep > 0;
   
