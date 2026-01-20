@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { renderToStaticMarkup } from 'react-dom/server';
+import ApiGuideCloudConsolePage from './ApiGuideCloudConsolePage';
+import ApiGuideAiStudioPage from './ApiGuideAiStudioPage';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
@@ -27,8 +30,8 @@ const AdminEditorPage: React.FC = () => {
 
   // 편집 가능한 페이지 목록
   const pages: PageContent[] = [
-    { name: 'API 키 발급 가이드', path: '/api-guide-cloudconsole', content: '' },
-    { name: '사용법 가이드', path: '/api-guide-aistudio', content: '' },
+    { name: '클라우드 콘솔 API 발급방법', path: '/api-guide-cloudconsole', content: '' },
+    { name: 'AI 스튜디오 API 발급방법', path: '/api-guide-aistudio', content: '' },
   ];
 
   // 로그인 확인
@@ -62,10 +65,24 @@ const AdminEditorPage: React.FC = () => {
   // 페이지 선택 시 내용 로드
   const handlePageSelect = async (pagePath: string) => {
     setSelectedPage(pagePath);
-    // TODO: 실제로는 파일에서 읽어와야 하지만, 여기서는 현재 렌더링된 내용을 가져옴
-    // 실제 구현 시 서버 API가 필요합니다
-    setContent('<h1>페이지 내용을 여기에 불러옵니다</h1><p>실제 구현 시 해당 페이지의 HTML을 불러와야 합니다.</p>');
-    setHtmlContent('<h1>페이지 내용을 여기에 불러옵니다</h1><p>실제 구현 시 해당 페이지의 HTML을 불러와야 합니다.</p>');
+    setSaveMessage('');
+    try {
+      let markup = '';
+      if (pagePath === '/api-guide-cloudconsole') {
+        markup = renderToStaticMarkup(<ApiGuideCloudConsolePage />);
+      } else if (pagePath === '/api-guide-aistudio') {
+        markup = renderToStaticMarkup(<ApiGuideAiStudioPage />);
+      }
+      if (!markup) {
+        throw new Error('지원하지 않는 페이지입니다.');
+      }
+      setContent(markup);
+      setHtmlContent(markup);
+    } catch (error) {
+      setContent('<p>페이지 렌더링에 실패했습니다.</p>');
+      setHtmlContent('<p>페이지 렌더링에 실패했습니다.</p>');
+      setSaveMessage('❌ 실제 페이지를 불러오는 데 실패했습니다.');
+    }
   };
 
   // 모드 전환 시 내용 동기화
