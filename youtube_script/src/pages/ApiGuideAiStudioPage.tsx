@@ -7,13 +7,19 @@ import UserCreditToolbar from '../components/UserCreditToolbar';
 import HomeBackButton from "../components/HomeBackButton";
 import ApiKeySetupModal from '../components/ApiKeySetupModal';
 import { getStoredApiKey } from '../services/apiKeyValidation';
+import { loadGuideData, type GuidePageData } from '../services/guideDataService';
 
 const ApiGuideAiStudioPage: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
   const [hasApiKey, setHasApiKey] = useState(false);
+  const [guideData, setGuideData] = useState<GuidePageData | null>(null);
 
   useEffect(() => {
+    // 가이드 데이터 로드
+    const data = loadGuideData('aistudio');
+    setGuideData(data);
+
     // 사용자 세션 확인
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
@@ -63,6 +69,12 @@ const ApiGuideAiStudioPage: React.FC = () => {
     setHasApiKey(true);
   };
 
+  if (!guideData) {
+    return <div className="min-h-screen bg-[#121212] text-white flex items-center justify-center">
+      <p>로딩 중...</p>
+    </div>;
+  }
+
   return (
     <div className="api-guide-page min-h-screen bg-[#121212] text-white font-sans p-4 sm:p-8">
       <ApiKeySetupModal 
@@ -80,14 +92,15 @@ const ApiGuideAiStudioPage: React.FC = () => {
         <header className="mb-8">
           <HomeBackButton tone="orange" className="mb-4" />
           <h1 className="text-4xl sm:text-5xl font-extrabold bg-gradient-to-r from-orange-500 to-orange-400 bg-clip-text text-transparent mb-4">
-            Google AI Studio API 키 발급 가이드
+            {guideData.title}
           </h1>
-          <p className="text-neutral-300">대본 분석 및 이미지 생성에 사용되는 Gemini API 키를 발급받는 방법을 안내합니다.</p>
+          <p className="text-neutral-300">{guideData.subtitle}</p>
           <div className="mt-4 p-4 bg-orange-900/20 border border-orange-700/50 rounded-lg">
             <p className="text-orange-300 text-sm font-semibold mb-2">📌 이 API 키가 필요한 기능:</p>
             <ul className="text-orange-200 text-sm space-y-1">
-              <li>• 유튜브 대본 분석 및 기획안 생성</li>
-              <li>• AI 이미지 생성</li>
+              {guideData.features.map((feature, index) => (
+                <li key={index}>• {feature}</li>
+              ))}
             </ul>
           </div>
         </header>
@@ -139,122 +152,55 @@ const ApiGuideAiStudioPage: React.FC = () => {
 
           <AdSense />
 
-          {/* 1단계: Google AI Studio 접속 */}
-          <section className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <span className="flex items-center justify-center w-10 h-10 rounded-full bg-orange-600 text-white font-bold text-lg">1</span>
-              <h2 className="text-2xl font-bold text-white">Google AI Studio 접속</h2>
-            </div>
-            <div className="mb-4">
-              <img src="/images/api 1.png" alt="Google AI Studio 메인 화면" className="w-full rounded-lg border border-[#2A2A2A]" />
-            </div>
-            <div className="space-y-3 text-neutral-300">
-              <p>Google AI Studio 웹사이트에 접속합니다.</p>
-              <p className="font-semibold">접속 주소:</p>
-              <a
-                href="https://aistudio.google.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
-              >
-                <span>https://aistudio.google.com</span>
-                <FiExternalLink size={16} />
-              </a>
-              <div className="bg-blue-900/20 border border-blue-700/50 rounded-lg p-3 mt-3">
-                <p className="text-blue-300 text-sm">💡 Google 계정으로 로그인하면 됩니다. 별도 계정 생성 불필요.</p>
-              </div>
-            </div>
-          </section>
-
-          {/* 2-5단계는 기존과 동일 */}
-          <section className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <span className="flex items-center justify-center w-10 h-10 rounded-full bg-orange-600 text-white font-bold text-lg">2</span>
-              <h2 className="text-2xl font-bold text-white">Get API key 클릭</h2>
-            </div>
-            <div className="mb-4">
-              <img src="/images/api 2.png" alt="Get API key 버튼" className="w-full rounded-lg border border-[#2A2A2A]" />
-            </div>
-            <div className="space-y-3 text-neutral-300">
-              <p>왼쪽 사이드바에서 <strong>"Get API key"</strong> 클릭</p>
-            </div>
-          </section>
-
-          <AdSense />
-
-          <section className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <span className="flex items-center justify-center w-10 h-10 rounded-full bg-orange-600 text-white font-bold text-lg">3</span>
-              <h2 className="text-2xl font-bold text-white">프로젝트 생성</h2>
-            </div>
-            <div className="mb-4">
-              <img src="/images/api 3.png" alt="프로젝트 생성" className="w-full rounded-lg border border-[#2A2A2A]" />
-            </div>
-            <div className="space-y-3 text-neutral-300">
-              <div className="bg-green-900/20 border border-green-700/50 rounded-lg p-3">
-                <p className="text-green-300 text-sm">✅ 프로젝트 이름은 구별하기 쉬운 이름으로 작성</p>
-              </div>
-            </div>
-          </section>
-
-          <section className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <span className="flex items-center justify-center w-10 h-10 rounded-full bg-orange-600 text-white font-bold text-lg">4</span>
-              <h2 className="text-2xl font-bold text-white">API 키 생성</h2>
-            </div>
-            <div className="mb-4">
-              <img src="/images/api 4.png" alt="API 키 생성" className="w-full rounded-lg border border-[#2A2A2A]" />
-            </div>
-            <div className="space-y-3 text-neutral-300">
-              <div className="bg-green-900/20 border border-green-700/50 rounded-lg p-3">
-                <p className="text-green-300 text-sm">✅ 키 이름을 입력하고 프로젝트 선택</p>
-              </div>
-            </div>
-          </section>
-
-          <section className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <span className="flex items-center justify-center w-10 h-10 rounded-full bg-orange-600 text-white font-bold text-lg">5</span>
-              <h2 className="text-2xl font-bold text-white">API 키 복사 및 등록</h2>
-            </div>
-            <div className="mb-4">
-              <img src="/images/api 5.png" alt="API 키 복사" className="w-full rounded-lg border border-[#2A2A2A]" />
-            </div>
-            <div className="space-y-3 text-neutral-300">
-              <p>생성된 API 키를 복사합니다.</p>
-              <p className="font-semibold">API 키 형태:</p>
-              <code className="block bg-zinc-900 p-3 rounded-lg text-sm font-mono">
-                AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-              </code>
-              <div className="mt-4">
-                <button
-                  onClick={() => setShowApiKeyModal(true)}
-                  className="w-full bg-gradient-to-br from-orange-600 to-orange-500 text-white font-bold py-3 px-6 rounded-lg hover:from-orange-500 hover:to-orange-400 transition-all"
-                >
-                  🔑 지금 API 키 등록하기
-                </button>
-              </div>
-            </div>
-          </section>
-
-          <AdSense />
+          {/* 동적 단계 렌더링 */}
+          {guideData.steps.map((step, index) => (
+            <React.Fragment key={step.id}>
+              <section className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="flex items-center justify-center w-10 h-10 rounded-full bg-orange-600 text-white font-bold text-lg">
+                    {step.id}
+                  </span>
+                  <h2 className="text-2xl font-bold text-white">{step.title}</h2>
+                </div>
+                {step.imageSrc && (
+                  <div className="mb-4">
+                    <img 
+                      src={step.imageSrc} 
+                      alt={step.title} 
+                      className="w-full rounded-lg border border-[#2A2A2A]" 
+                    />
+                  </div>
+                )}
+                <div className="space-y-3 text-neutral-300">
+                  {step.description.map((desc, i) => (
+                    <p key={i} dangerouslySetInnerHTML={{ __html: desc }} />
+                  ))}
+                  {step.tips && step.tips.length > 0 && (
+                    <div className="bg-blue-900/20 border border-blue-700/50 rounded-lg p-3 mt-3">
+                      {step.tips.map((tip, i) => (
+                        <p key={i} className="text-blue-300 text-sm">💡 {tip}</p>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </section>
+              {(index === 1 || index === 4) && <AdSense />}
+            </React.Fragment>
+          ))}
 
           {/* FAQ */}
           <section className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6">
             <h2 className="text-2xl font-bold text-orange-500 mb-6">자주 묻는 질문</h2>
             <div className="space-y-4">
-              <div className="border-b border-[#2A2A2A] pb-4">
-                <h3 className="font-bold text-white mb-2">Q: API 키 비용이 발생하나요?</h3>
-                <p className="text-neutral-300 text-sm">A: 아니요. Gemini API는 무료 등급에서 충분히 사용 가능하며, 결제 정보 입력도 필요 없습니다.</p>
-              </div>
-              <div className="border-b border-[#2A2A2A] pb-4">
-                <h3 className="font-bold text-white mb-2">Q: API 키가 작동하지 않아요</h3>
-                <p className="text-neutral-300 text-sm">A: API 키를 정확히 복사했는지 확인하고, 위의 'API 키 등록' 버튼으로 검증해보세요.</p>
-              </div>
-              <div>
-                <h3 className="font-bold text-white mb-2">Q: Cloud Console API와 다른가요?</h3>
-                <p className="text-neutral-300 text-sm">A: 네, Gemini API는 AI Studio에서, YouTube/TTS API는 Cloud Console에서 각각 발급받아야 합니다.</p>
-              </div>
+              {guideData.faqs.map((faq, index) => (
+                <div 
+                  key={index} 
+                  className={index < guideData.faqs.length - 1 ? "border-b border-[#2A2A2A] pb-4" : ""}
+                >
+                  <h3 className="font-bold text-white mb-2">Q: {faq.question}</h3>
+                  <p className="text-neutral-300 text-sm">A: {faq.answer}</p>
+                </div>
+              ))}
             </div>
           </section>
 

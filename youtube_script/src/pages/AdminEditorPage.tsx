@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { renderToStaticMarkup } from 'react-dom/server';
 import ApiGuideCloudConsolePage from './ApiGuideCloudConsolePage';
 import ApiGuideAiStudioPage from './ApiGuideAiStudioPage';
+import GuideEditor from '../components/GuideEditor';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
@@ -30,8 +31,8 @@ const AdminEditorPage: React.FC = () => {
 
   // 편집 가능한 페이지 목록
   const pages: PageContent[] = [
-    { name: '클라우드 콘솔 API 발급방법', path: '/api-guide-cloudconsole', content: '' },
     { name: 'AI 스튜디오 API 발급방법', path: '/api-guide-aistudio', content: '' },
+    { name: '클라우드 콘솔 API 발급방법', path: '/api-guide-cloudconsole', content: '' },
   ];
 
   // 로그인 확인
@@ -283,48 +284,20 @@ const AdminEditorPage: React.FC = () => {
       <div className="max-w-7xl mx-auto p-6 space-y-6">
         {/* 페이지 선택 및 모드 선택 */}
         <div className="bg-gray-900/50 border border-red-500/20 rounded-xl p-6 backdrop-blur-sm">
-          <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">편집할 페이지 선택</label>
-              <select
-                value={selectedPage}
-                onChange={(e) => handlePageSelect(e.target.value)}
-                className="w-full bg-black border border-red-500/40 rounded-lg p-3 text-white focus:ring-2 focus:ring-red-500/60 hover:border-red-500/60 transition-colors"
-              >
-                <option value="">-- 페이지 선택 --</option>
-                {pages.map((page) => (
-                  <option key={page.path} value={page.path}>
-                    {page.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">편집 모드</label>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setEditMode('basic')}
-                  className={`flex-1 py-3 rounded-lg font-bold transition ${
-                    editMode === 'basic'
-                      ? 'bg-gradient-to-r from-red-600 via-red-500 to-orange-500 text-white shadow-[0_0_20px_rgba(239,68,68,0.4)]'
-                      : 'bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700'
-                  }`}
-                >
-                  기본모드
-                </button>
-                <button
-                  onClick={() => setEditMode('html')}
-                  className={`flex-1 py-3 rounded-lg font-bold transition ${
-                    editMode === 'html'
-                      ? 'bg-gradient-to-r from-red-600 via-red-500 to-orange-500 text-white shadow-[0_0_20px_rgba(239,68,68,0.4)]'
-                      : 'bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700'
-                  }`}
-                >
-                  HTML모드
-                </button>
-              </div>
-            </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">수정할 페이지:</label>
+            <select
+              value={selectedPage}
+              onChange={(e) => handlePageSelect(e.target.value)}
+              className="w-full bg-black border border-red-500/40 rounded-lg p-3 text-white focus:ring-2 focus:ring-red-500/60 hover:border-red-500/60 transition-colors"
+            >
+              <option value="">-- 페이지 선택 --</option>
+              {pages.map((page) => (
+                <option key={page.path} value={page.path}>
+                  {page.name}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 
@@ -332,123 +305,23 @@ const AdminEditorPage: React.FC = () => {
         {selectedPage && (
           <div className="bg-gray-900/50 border border-red-500/20 rounded-xl p-6 backdrop-blur-sm">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">콘텐츠 편집</h2>
-              <div className="flex gap-2">
-                <button
-                  onClick={handleImageUpload}
-                  className="px-4 py-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 hover:border-blue-500/60 text-blue-100 rounded-lg transition font-bold"
-                >
-                  🖼️ 이미지 추가
-                </button>
-                <button
-                  onClick={handlePreview}
-                  className="px-4 py-2 bg-green-600/20 hover:bg-green-600/30 border border-green-500/40 hover:border-green-500/60 text-green-100 rounded-lg transition font-bold"
-                >
-                  👁️ 미리보기
-                </button>
-                <button
-                  onClick={handleSave}
-                  disabled={isSaving}
-                  className="px-4 py-2 bg-gradient-to-r from-red-600 via-red-500 to-orange-500 hover:from-red-500 hover:via-red-400 hover:to-orange-400 text-white rounded-lg transition font-bold shadow-[0_0_20px_rgba(239,68,68,0.4)] disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isSaving ? '저장 중...' : '💾 저장'}
-                </button>
-              </div>
+              <h2 className="text-xl font-bold">
+                {selectedPage === '/api-guide-aistudio' ? 'AI 스튜디오 API 발급방법 편집' : '클라우드 콘솔 API 발급방법 편집'}
+              </h2>
+              <a
+                href={selectedPage}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 hover:border-blue-500/60 text-blue-100 rounded-lg transition font-bold"
+              >
+                👁️ 페이지 보기
+              </a>
             </div>
 
-            {saveMessage && (
-              <div className={`mb-4 p-3 rounded-lg ${
-                saveMessage.includes('✅') ? 'bg-green-900/20 border border-green-700 text-green-300' : 'bg-red-900/20 border border-red-700 text-red-300'
-              }`}>
-                {saveMessage}
-              </div>
-            )}
-
-            {/* 기본모드 (WYSIWYG) */}
-            {editMode === 'basic' && (
-              <div className="space-y-3">
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleAction('bold')}
-                    className="px-3 py-1 rounded-full bg-red-500/20 text-red-200 border border-red-500/30"
-                  >
-                    Bold
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleAction('italic')}
-                    className="px-3 py-1 rounded-full bg-red-500/20 text-red-200 border border-red-500/30"
-                  >
-                    Italic
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleAction('underline')}
-                    className="px-3 py-1 rounded-full bg-red-500/20 text-red-200 border border-red-500/30"
-                  >
-                    Underline
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleAction('formatBlock', '<h3>')}
-                    className="px-3 py-1 rounded-full bg-red-500/20 text-red-200 border border-red-500/30"
-                  >
-                    H3
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleAction('insertUnorderedList')}
-                    className="px-3 py-1 rounded-full bg-red-500/20 text-red-200 border border-red-500/30"
-                  >
-                    • List
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleAction('insertOrderedList')}
-                    className="px-3 py-1 rounded-full bg-red-500/20 text-red-200 border border-red-500/30"
-                  >
-                    1. List
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const url = window.prompt('링크 URL을 입력하세요');
-                      if (url) handleAction('createLink', url);
-                    }}
-                    className="px-3 py-1 rounded-full bg-red-500/20 text-red-200 border border-red-500/30"
-                  >
-                    🔗 링크
-                  </button>
-                </div>
-                <div
-                  ref={editorRef}
-                  contentEditable
-                  suppressContentEditableWarning
-                  className="min-h-[500px] bg-black border border-red-500/40 rounded-lg p-6 text-white text-sm leading-relaxed focus-visible:outline-none"
-                  onInput={handleContentSync}
-                  dangerouslySetInnerHTML={{ __html: content }}
-                />
-              </div>
-            )}
-
-            {/* HTML모드 */}
-            {editMode === 'html' && (
-              <div className="space-y-4">
-                <textarea
-                  value={htmlContent}
-                  onChange={(e) => setHtmlContent(e.target.value)}
-                  className="w-full h-[500px] bg-black border border-red-500/40 rounded-lg p-4 text-white font-mono text-sm resize-none focus:ring-2 focus:ring-red-500/60 hover:border-red-500/60 transition-colors"
-                  spellCheck={false}
-                />
-                <div className="bg-gray-950 border border-red-500/20 rounded-lg p-4 overflow-x-auto">
-                  <p className="text-sm text-gray-400 mb-2">코드 미리보기:</p>
-                  <SyntaxHighlighter language="html" style={vscDarkPlus} customStyle={{ margin: 0, background: 'transparent' }}>
-                    {htmlContent}
-                  </SyntaxHighlighter>
-                </div>
-              </div>
-            )}
+            {/* 가이드 에디터 */}
+            <GuideEditor 
+              pageType={selectedPage === '/api-guide-aistudio' ? 'aistudio' : 'cloudconsole'} 
+            />
           </div>
         )}
 

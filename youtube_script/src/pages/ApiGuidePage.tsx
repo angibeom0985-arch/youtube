@@ -80,12 +80,15 @@ const ApiGuidePage: React.FC = () => {
               <p className="text-neutral-300 mb-4">
                 Gemini API 키를 발급받아 대본 분석 및 이미지 생성 기능을 사용하세요.
               </p>
-              <div className="space-y-2">
-                <p className="text-sm text-orange-300 font-semibold">사용 가능한 기능:</p>
-                <ul className="text-sm text-neutral-400 space-y-1">
-                  <li>✓ 유튜브 대본 분석</li>
-                  <li>✓ 떡상 기획안 생성</li>
-                  <li>✓ AI 이미지 생성</li>
+              <div className="bg-orange-900/30 border border-orange-700/50 rounded-lg p-4 space-y-2">
+                <p className="text-sm text-orange-300 font-bold flex items-center gap-2">
+                  <span className="text-lg">🎯</span>
+                  대본 분석 및 이미지 생성 기능
+                </p>
+                <ul className="text-sm text-orange-100 space-y-1 ml-6">
+                  <li>• 유튜브 대본 분석</li>
+                  <li>• 떡상 기획안 생성</li>
+                  <li>• AI 이미지 생성</li>
                 </ul>
               </div>
               <div className="mt-4 pt-4 border-t border-orange-700/30">
@@ -107,12 +110,15 @@ const ApiGuidePage: React.FC = () => {
               <p className="text-neutral-300 mb-4">
                 YouTube Data API 및 TTS API 키를 발급받아 벤치마킹과 음성 변환 기능을 사용하세요.
               </p>
-              <div className="space-y-2">
-                <p className="text-sm text-blue-300 font-semibold">사용 가능한 기능:</p>
-                <ul className="text-sm text-neutral-400 space-y-1">
-                  <li>✓ YouTube 영상 벤치마킹</li>
-                  <li>✓ 텍스트 음성 변환 (TTS)</li>
-                  <li>✓ 음성 텍스트 변환 (STT)</li>
+              <div className="bg-blue-900/30 border border-blue-700/50 rounded-lg p-4 space-y-2">
+                <p className="text-sm text-blue-300 font-bold flex items-center gap-2">
+                  <span className="text-lg">🎯</span>
+                  벤치마킹과 음성 변환 기능
+                </p>
+                <ul className="text-sm text-blue-100 space-y-1 ml-6">
+                  <li>• YouTube 영상 벤치마킹</li>
+                  <li>• 텍스트 음성 변환 (TTS)</li>
+                  <li>• 음성 텍스트 변환 (STT)</li>
                 </ul>
               </div>
               <div className="mt-4 pt-4 border-t border-blue-700/30">
