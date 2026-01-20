@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
-import { generateSsml } from "../services/geminiService";
+import { generateSsml, generateActingPrompt } from "../services/geminiService";
 import { FiPlay, FiPause, FiMic, FiSliders, FiCpu, FiInfo, FiUser } from "react-icons/fi";
 import { supabase } from "../services/supabase";
 import type { User } from "@supabase/supabase-js";
@@ -100,6 +100,7 @@ const TtsPage: React.FC = () => {
   const [previewAudio, setPreviewAudio] = useState<HTMLAudioElement | null>(null);
   const [playingPreview, setPlayingPreview] = useState<string | null>(null);
   const [useAIActing, setUseAIActing] = useState(false); // AI 연기 모드 토글
+  const [generatingPrompt, setGeneratingPrompt] = useState(false); // 프롬프트 생성 중
 
   // Auth
   useEffect(() => {
@@ -195,6 +196,23 @@ const TtsPage: React.FC = () => {
     } catch (e) {
       console.error(e);
       alert("미리보기를 재생할 수 없습니다.");
+    }
+  };
+
+  const handleAutoGeneratePrompt = async () => {
+    if (!text.trim()) {
+      alert("대본을 먼저 입력해주세요.");
+      return;
+    }
+
+    setGeneratingPrompt(true);
+    try {
+      const prompt = await generateActingPrompt(text, "");
+      setActingPrompt(prompt);
+    } catch (error: any) {
+      alert(error.message || "프롬프트 자동 생성에 실패했습니다.");
+    } finally {
+      setGeneratingPrompt(false);
     }
   };
 
@@ -431,16 +449,26 @@ const TtsPage: React.FC = () => {
                 <div className="flex items-center gap-3">
                   <div className={`p-2 rounded-xl ${useAIActing ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'bg-slate-800 text-slate-400'}`}>
                     <FiCpu size={20} />
+                  <div className="flex gap-2 mb-2">
+                    <textarea
+                      value={actingPrompt}
+                      onChange={(e) => setActingPrompt(e.target.value)}
+                      placeholder="예: 뉴스 앵커처럼 신뢰감 있게, 슬픈 드라마 주인공처럼 애절하게 (비워두면 대본 분석하여 자동 완성)"
+                      className="flex-1 bg-black/40 border border-emerald-500/20 rounded-xl p-4 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 transition-all leading-relaxed"
+                      rows={2}
+                    />
+                    <button
+                      onClick={handleAutoGeneratePrompt}
+                      disabled={generatingPrompt || !text.trim()}
+                      className="px-4 py-2 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-100 rounded-xl text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed self-start"
+                      title="대본을 분석하여 연기 톤 자동 완성"
+                    >
+                      {generatingPrompt ? "분석 중..." : "자동 완성"}
+                    </button>
                   </div>
-                  <div>
-                    <h2 className={`font-bold ${useAIActing ? 'text-emerald-300' : 'text-slate-200'}`}>AI 감정 연기 가이드</h2>
-                    <p className="text-xs text-slate-500 mt-0.5">Gemini가 텍스트를 분석하여 최적의 호흡과 억양을 입힙니다.</p>
-                  </div>
-                </div>
-                
-                <button
-                  onClick={() => setUseAIActing(!useAIActing)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${useAIActing ? 'bg-emerald-500' : 'bg-slate-700'}`}
+                  <div className="flex items-start gap-2 mt-3 text-xs text-emerald-400/70">
+                    <FiInfo className="mt-0.5 flex-shrink-0" />
+                    <p>AI가 대본을 분석하여 최적의 연기 톤을 제안합니다. 프롬프트를 비워두면 대본 내용에 따라 자연스러운 톤으로 읽습unded-full transition-colors focus:outline-none ${useAIActing ? 'bg-emerald-500' : 'bg-slate-700'}`}
                 >
                   <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${useAIActing ? 'translate-x-6' : 'translate-x-1'}`} />
                 </button>

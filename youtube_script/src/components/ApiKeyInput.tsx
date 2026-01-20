@@ -87,6 +87,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
   const handleApiKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setApiKey(value);
+    // 입력할 때마다 자동 저장은 유지
     try {
       localStorage.setItem(storageKey, value);
     } catch (error) {
@@ -98,12 +99,22 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
     setShowApiKey(!showApiKey);
   };
 
-  const testApiKey = async () => {
+  const saveAndTestApiKey = async () => {
     if (!apiKey) {
       alert('⚠️ API 키를 먼저 입력해주세요.');
       return;
     }
 
+    // 1. 먼저 저장
+    try {
+      localStorage.setItem(storageKey, apiKey);
+    } catch (error) {
+      alert('❌ API 키 저장에 실패했습니다.');
+      console.error("API 키 저장 실패:", error);
+      return;
+    }
+
+    // 2. 그 다음 테스트
     setTestLoading(true);
     setTestResult(null);
 
@@ -122,7 +133,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
       
       if (response.ok) {
         setTestResult("success");
-        alert('✅ API 키가 정상 작동합니다!');
+        alert('✅ API 키가 저장되고 정상 작동합니다!');
       } else {
         setTestResult("error");
         const error = await response.json();
@@ -175,17 +186,17 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
           </button>
           {apiType && (
             <button
-              onClick={testApiKey}
+              onClick={saveAndTestApiKey}
               disabled={testLoading || !apiKey}
-              className={`px-2 py-1 bg-green-600/20 hover:bg-green-600/30 border border-green-500/40 text-green-100 rounded text-xs font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1`}
-              title="API 키 테스트"
+              className={`px-2 py-1 bg-green-600/20 hover:bg-green-600/30 border border-green-500/40 text-green-100 rounded text-xs font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 whitespace-nowrap`}
+              title="API 키 저장 및 테스트"
             >
               {testLoading ? (
                 "..."
               ) : testResult === "success" ? (
                 <FiCheckCircle size={12} />
               ) : (
-                "테스트"
+                "저장·테스트"
               )}
             </button>
           )}

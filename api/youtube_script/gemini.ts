@@ -128,6 +128,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     case "generateSsml":
       cost = CREDIT_COSTS.ANALYSIS; // Low cost
       break;
+    case "generateActingPrompt":
+      cost = CREDIT_COSTS.ANALYSIS; // Low cost
+      break;
     default:
       cost = 1; // Default low cost
   }
@@ -266,6 +269,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
         const result = await generateSsml(text, prompt || "", apiKey);
         res.status(200).json(result);
+        return;
+      }
+      case "generateActingPrompt": {
+        const text = payload.text as string;
+        if (!text) {
+          res.status(400).send("missing_fields");
+          return;
+        }
+        const result = await generateActingPrompt(text, apiKey);
+        res.status(200).json({ prompt: result });
         return;
       }
       default:

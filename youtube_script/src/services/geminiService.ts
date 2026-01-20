@@ -8,7 +8,8 @@ type GeminiAction =
   | "generateNewPlan"
   | "generateChapterOutline"
   | "generateChapterScript"
-  | "generateSsml";
+  | "generateSsml"
+  | "generateActingPrompt";
 
 const toUserMessage = (raw: string): string => {
   const text = (raw || "").trim();
@@ -133,4 +134,14 @@ export const generateSsml = async (
     prompt,
   });
   return data.ssml;
+};
+
+export const generateActingPrompt = async (
+  text: string,
+  _apiKey: string
+): Promise<string> => {
+  const data = await callGemini<{ prompt: string }>("generateActingPrompt", {
+    text,
+  });
+  return data.prompt;
 };

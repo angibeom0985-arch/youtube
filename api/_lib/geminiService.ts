@@ -919,3 +919,37 @@ export const generateSsml = async (
     throw new Error("SSML 생성 중 오류가 발생했습니다: " + (error.message || "Unknown error"));
   }
 };
+
+export const generateActingPrompt = async (
+  text: string,
+  apiKey: string
+): Promise<string> => {
+  try {
+    const ai = createAI(apiKey);
+    
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: `다음 대본을 분석하여, TTS 음성 합성에 가장 어울리는 연기 톤과 감정을 한 문장으로 간결하게 표현해주세요.
+
+대본:
+${text}
+
+예시 출력:
+- "차분하고 신뢰감 있는 톤으로, 전문가가 설명하듯이 읽어주세요."
+- "밝고 경쾌한 톤으로, 친근한 친구처럼 이야기해주세요."
+- "극적이고 긴장감 있는 톤으로, 이야기에 몰입하도록 읽어주세요."
+- "부드럽고 따뜻한 톤으로, 위로하듯이 천천히 읽어주세요."
+
+출력은 반드시 한 문장으로 작성하고, 연기 지시만 포함해주세요.`,
+      config: {
+        maxOutputTokens: 100,
+        temperature: 0.7,
+      },
+    });
+
+    return response.text.trim().replace(/^["']|["']$/g, ''); // 따옴표 제거
+  } catch (error: any) {
+    console.error("Error generating acting prompt:", error);
+    throw new Error("연기 프롬프트 생성 중 오류가 발생했습니다: " + (error.message || "Unknown error"));
+  }
+};
