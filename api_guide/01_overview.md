@@ -9,18 +9,19 @@
 
 이 웹사이트를 운영하려면 다음 API 키가 필요합니다:
 
-### ✅ 필수 API 키
+### ✅ 필수 API 키 (2개만!)
 
 | API 키 | 용도 | 발급처 | 예상 비용 |
 |--------|------|--------|----------|
-| **Gemini API** | AI 대본 생성, 분석 | Google AI Studio | 무료~저렴 |
-| **YouTube Data API** | 영상 검색, 정보 조회 | Google Cloud Console | 무료 (할당량 있음) |
+| **1. Gemini API** | AI 대본 생성, 분석 | Google AI Studio | 무료~저렴 |
+| **2. Google Cloud API** | YouTube 검색 + TTS/STT | Google Cloud Console | 무료~저렴 |
+
+> 💡 **중요**: Google Cloud Console에서 발급한 **하나의 API 키**로 YouTube Data API, Text-to-Speech, Speech-to-Text를 **모두** 사용할 수 있습니다!
 
 ### ⚪ 선택 API 키 (고급 기능용)
 
 | API 키 | 용도 | 발급처 | 예상 비용 |
 |--------|------|--------|----------|
-| **Google Cloud API** | 음성 변환(TTS/STT) | Google Cloud Console | 사용량 기반 과금 |
 | **Groq API** | 콘텐츠 안전 검사 | Groq Console | 무료 할당량 제공 |
 | **Supabase** | 사용자 데이터 관리 | Supabase | 무료 플랜 가능 |
 
@@ -33,14 +34,15 @@
    - 대본 생성 및 AI 분석 기능에 필요
    - 무료 할당량으로 시작 가능
 
-2. **[필수] YouTube Data API 키 발급** (`03_youtube_api.md`)
+2. **[필수] Google Cloud API 키 발급** (`03_youtube_api.md`)
    - Google Cloud Console에서 발급
-   - 영상 검색 및 메타데이터 조회에 필요
+   - **하나의 키**로 YouTube + TTS/STT 모두 사용
+   - 영상 검색, 음성 변환 등 모든 기능 포함
    - 무료 할당량으로 시작 가능
 
-3. **[선택] Google Cloud API 키 발급** (`04_google_cloud_api.md`)
-   - Text-to-Speech, Speech-to-Text 기능용
-   - 결제 계정 연결 필요
+3. **[고급] Google Cloud API 추가 설정** (`04_google_cloud_api.md`)
+   - TTS/STT 사용 시 결제 계정 연결 방법
+   - 음성 변환 기능이 필요한 경우만 참고
    - 사용한 만큼만 과금
 
 4. **[선택] 기타 API 키 발급** (`05_optional_apis.md`)

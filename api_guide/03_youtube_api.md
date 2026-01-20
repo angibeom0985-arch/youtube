@@ -8,14 +8,24 @@
 - 신용카드: 불필요 (무료 할당량만 사용 시)
 - 용도: YouTube 영상 검색, 정보 조회, 모멘텀 분석
 
-## 🎯 YouTube Data API의 역할
+## 🎯 Google Cloud API의 역할
 
-이 웹사이트에서 YouTube Data API는 다음 기능에 사용됩니다:
+하나의 API 키로 다음 모든 기능을 사용할 수 있습니다:
 
+### YouTube Data API v3 (/benchmarking)
 - ✅ YouTube 영상 검색
 - ✅ 영상 메타데이터 조회 (조회수, 좋아요, 댓글 수)
 - ✅ 채널 구독자 수 확인
 - ✅ 모멘텀 분석 (조회수 증가 추세)
+
+### Cloud Text-to-Speech API (/tts)
+- 🔊 텍스트를 음성으로 변환
+- 한국어/영어 다양한 목소리
+- 결제 계정 연결 필요 (무료 크레딧 제공)
+
+### Cloud Speech-to-Text API
+- 🎤 음성을 텍스트로 변환
+- 실시간 음성 인식
 
 ## 📝 발급 절차
 
@@ -48,17 +58,41 @@
 
 6. 상단 드롭다운에서 방금 만든 프로젝트 선택
 
-### 3단계: YouTube Data API v3 활성화
+### 3단계: 필요한 API 활성화
 
-1. 왼쪽 메뉴에서 "API 및 서비스" > "라이브러리" 클릭
+#### 3-1. YouTube Data API v3 활성화 (필수)
+
+1. 왼쪽 메뉴에서 **"API 및 서비스" > "라이브러리"** 클릭
 
 2. 검색창에 `YouTube Data API v3` 입력
 
-3. "YouTube Data API v3" 클릭 (YouTube 로고가 있는 것)
+3. **"YouTube Data API v3"** 클릭 (YouTube 로고가 있는 것)
 
-4. "사용 설정" 버튼 클릭
+4. **"사용 설정"** 버튼 클릭
 
 5. API 활성화 완료 (약 10초)
+
+#### 3-2. Cloud Text-to-Speech API 활성화 (선택 - TTS 사용 시)
+
+1. 다시 **"라이브러리"**로 이동
+
+2. 검색창에 `Cloud Text-to-Speech API` 입력
+
+3. **"Cloud Text-to-Speech API"** 클릭
+
+4. **"사용 설정"** 버튼 클릭
+
+> ⚠️ **주의**: TTS/STT 사용 시 결제 계정 연결 필요 (무료 크레딧 $300 제공)
+
+#### 3-3. Cloud Speech-to-Text API 활성화 (선택 - STT 사용 시)
+
+1. 다시 **"라이브러리"**로 이동
+
+2. 검색창에 `Cloud Speech-to-Text API` 입력
+
+3. **"Cloud Speech-to-Text API"** 클릭
+
+4. **"사용 설정"** 버튼 클릭
 
 ### 4단계: API 키 생성
 
@@ -83,12 +117,15 @@
 
 보안을 위해 API 키에 제한을 설정하는 것이 좋습니다:
 
-1. 생성된 키 이름 옆의 연필 아이콘 클릭
+1. 생성된 키 이름 옆의 **연필 아이콘** 클릭
 
-2. "API 제한사항" 섹션:
-   - "키 제한" 선택
-   - "YouTube Data API v3" 체크
-   - (다른 API는 체크 해제)
+2. **"API 제한사항"** 섹션:
+   - **"키 제한"** 선택
+   - 사용할 API 모두 체크:
+     - ✅ **YouTube Data API v3**
+     - ✅ **Cloud Text-to-Speech API** (TTS 사용 시)
+     - ✅ **Cloud Speech-to-Text API** (STT 사용 시)
+   - 사용하지 않는 다른 API는 체크 해제
 
 3. "애플리케이션 제한사항" (선택):
    

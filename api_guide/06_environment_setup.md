@@ -34,25 +34,30 @@ c:\KB\Website\Youtube\
 
 ```env
 # ===========================================
-# 필수 API 키
+# 필수 API 키 (2개만!)
 # ===========================================
 
-# Gemini API (Google AI Studio)
+# 1. Gemini API (Google AI Studio)
 # 발급처: https://aistudio.google.com/app/apikey
+# 용도: AI 대본 생성, 분석
 GEMINI_API_KEY=AIzaSy...xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
-# YouTube Data API (Google Cloud Console)
+# 2. Google Cloud API (Google Cloud Console)
 # 발급처: https://console.cloud.google.com/
+# 용도: YouTube 검색 + TTS/STT (하나의 키로 모두 사용)
 YOUTUBE_API_KEY=AIzaSy...xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+GOOGLE_CLOUD_API_KEY=AIzaSy...xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx  # YOUTUBE_API_KEY와 같은 값
+
+# 💡 팁: YOUTUBE_API_KEY와 GOOGLE_CLOUD_API_KEY는 같은 값을 입력하세요!
 
 
 # ===========================================
 # 선택 API 키 (필요한 경우만)
 # ===========================================
 
-# Google Cloud API (TTS/STT) - 선택사항
-# YouTube API 키와 같은 키 사용 가능
-# GOOGLE_CLOUD_API_KEY=AIzaSy...xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+# Google Cloud 서비스 계정 (TTS/STT 고급 설정)
+# 서비스 계정 JSON 파일 경로
+# GOOGLE_APPLICATION_CREDENTIALS=./gen-lang-client-xxx.json
 
 # Groq API (콘텐츠 안전 검사) - 선택사항
 # 발급처: https://console.groq.com/

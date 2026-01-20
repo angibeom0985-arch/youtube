@@ -1,21 +1,28 @@
-# ☁️ Google Cloud API 키 발급하기
+# 🔊 Google Cloud TTS/STT 추가 설정
 
 ## 📌 개요
 
-- **발급처**: Google Cloud Console
-- **비용**: 사용량 기반 과금 (무료 크레딧 제공)
-- **소요 시간**: 약 15분
-- **신용카드**: ✅ **필수** (결제 계정 연결)
+- **전제 조건**: [03_youtube_api.md](03_youtube_api.md)에서 Google Cloud API 키 발급 완료
+- **비용**: 사용량 기반 과금 (무료 크레딧 $300 제공)
+- **소요 시간**: 약 5~10분 (결제 계정 연결만)
+- **신용카드**: ✅ **필수**
 - **용도**: Text-to-Speech (TTS), Speech-to-Text (STT)
 
 ## ⚠️ 중요 안내
 
-이 섹션은 **선택사항**입니다. 다음 기능이 필요한 경우에만 진행하세요:
+### YouTube API 키와 같은 키를 사용합니다!
+
+이미 [03_youtube_api.md](03_youtube_api.md)에서 발급한 **Google Cloud API 키**를 그대로 사용하면 됩니다.
+새로운 키를 발급할 필요 없이, **결제 계정만 연결**하면 TTS/STT 기능을 사용할 수 있습니다.
+
+### 선택사항
+
+다음 기능이 필요한 경우에만 이 가이드를 진행하세요:
 
 - 🔊 **Text-to-Speech (TTS)**: 텍스트를 음성으로 변환
 - 🎤 **Speech-to-Text (STT)**: 음성을 텍스트로 변환
 
-기본 대본 생성 기능만 필요하다면 이 단계를 건너뛰어도 됩니다.
+YouTube 검색 기능만 필요하다면 이 단계를 건너뛰어도 됩니다.
 
 ## 🎯 Google Cloud API의 역할
 
@@ -82,40 +89,28 @@
 
 4. **"사용 설정"** 버튼 클릭
 
-### 3단계: API 키 생성
+### 3단계: 기존 API 키 확인
 
-⚠️ **YouTube API와 같은 키 사용 가능**
+⚠️ **새 키 발급 불필요!**
 
-이미 YouTube Data API 발급 시 만든 API 키가 있다면:
-- **같은 키 재사용 가능**
-- 단, API 제한사항 업데이트 필요
+[03_youtube_api.md](03_youtube_api.md)에서 이미 발급한 API 키를 사용하면 됩니다.
 
-#### 기존 키 업데이트 (권장)
+#### API 제한사항 확인 (선택)
+
+기존 키에 TTS/STT API가 포함되어 있는지 확인하려면:
 
 1. **"API 및 서비스" > "사용자 인증 정보"** 클릭
 
 2. 기존 API 키 이름 옆 **연필 아이콘** 클릭
 
-3. **"API 제한사항"** 섹션:
-   - "키 제한" 선택
-   - 다음 API 모두 체크:
-     - ✅ YouTube Data API v3
-     - ✅ Cloud Text-to-Speech API
-     - ✅ Cloud Speech-to-Text API
+3. **"API 제한사항"** 섹션 확인:
+   - ✅ YouTube Data API v3
+   - ✅ Cloud Text-to-Speech API (2단계에서 활성화한 경우)
+   - ✅ Cloud Speech-to-Text API (2단계에서 활성화한 경우)
 
-4. **"저장"** 클릭
+4. 누락된 API가 있다면 체크 후 **"저장"** 클릭
 
-#### 새 키 생성 (선택)
-
-TTS/STT 전용 키를 따로 만들고 싶다면:
-
-1. **"+ 사용자 인증 정보 만들기" > "API 키"** 클릭
-
-2. API 키 복사 및 저장
-
-3. **"API 제한사항"** 설정:
-   - Cloud Text-to-Speech API
-   - Cloud Speech-to-Text API
+> 💡 **팁**: API 제한을 "제한 안함"으로 설정했다면, 활성화된 모든 API를 자동으로 사용할 수 있습니다.
 
 ## 💰 비용 및 가격
 
