@@ -308,10 +308,11 @@ const TtsPage: React.FC = () => {
         <ApiKeyInput
           storageKey="google_cloud_tts_api_key"
           label="Google Cloud TTS API 키"
-          placeholder="Google Cloud TTS API 키를 입력하세요"
-          helpText="음성 생성을 위해 Google Cloud TTS API 키가 필요합니다. API 키는 브라우저에만 저장됩니다."
+          placeholder="Google Cloud TTS API 키"
+          helpText="브라우저에만 저장됩니다."
           guideRoute="/api-guide-cloudconsole"
           theme="emerald"
+          apiType="googleCloud"
         />
 
         <div className="grid lg:grid-cols-12 gap-8">

@@ -206,43 +206,15 @@ const BenchmarkingPage: React.FC = () => {
         </div>
 
         {/* API 키 입력 */}
-        <div className="relative">
-          <ApiKeyInput
-            storageKey="youtube_api_key"
-            label="YouTube Data API 키"
-            placeholder="YouTube Data API v3 키를 입력하세요"
-            helpText="YouTube 영상 검색을 위해 YouTube Data API 키가 필요합니다. API 키는 브라우저에만 저장됩니다."
-            guideRoute="/api-guide-cloudconsole"
-            theme="blue"
-          />
-          
-          <div className="absolute top-4 right-[128px] flex gap-2">
-            <button
-              onClick={async () => {
-                const apiKey = localStorage.getItem('youtube_api_key');
-                if (!apiKey) {
-                  alert('⚠️ API 키를 먼저 입력해주세요.');
-                  return;
-                }
-                try {
-                  const testUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=test&type=video&maxResults=1&key=${apiKey}`;
-                  const response = await fetch(testUrl);
-                  if (response.ok) {
-                    alert('✅ API 키가 정상적으로 작동합니다!');
-                  } else {
-                    const error = await response.json();
-                    alert(`❌ API 키 오류: ${error.error?.message || '알 수 없는 오류'}`);
-                  }
-                } catch (err) {
-                  alert('❌ 테스트 실패: 네트워크 연결을 확인해주세요.');
-                }
-              }}
-              className="px-3 py-1.5 bg-green-600/20 hover:bg-green-600/30 border border-green-500/40 text-green-100 rounded-lg text-sm font-medium transition-all"
-            >
-              테스트
-            </button>
-          </div>
-        </div>
+        <ApiKeyInput
+          storageKey="youtube_api_key"
+          label="YouTube Data API 키"
+          placeholder="YouTube Data API v3 키"
+          helpText="브라우저에만 저장됩니다."
+          guideRoute="/api-guide-cloudconsole"
+          theme="blue"
+          apiType="youtube"
+        />
 
         {/* Search Form */}
         <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-8 mb-10 shadow-2xl backdrop-blur-sm">

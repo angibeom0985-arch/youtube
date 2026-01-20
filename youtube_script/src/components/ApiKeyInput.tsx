@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { FiKey, FiEye, FiEyeOff } from "react-icons/fi";
+import { FiKey, FiEye, FiEyeOff, FiCheckCircle } from "react-icons/fi";
 import { Link } from "react-router-dom";
 
 interface ApiKeyInputProps {
@@ -10,6 +10,7 @@ interface ApiKeyInputProps {
   apiKeyLink?: string;
   guideRoute?: string; // 내부 가이드 페이지 경로
   theme?: "orange" | "blue" | "emerald" | "indigo";
+  apiType?: "gemini" | "youtube" | "googleCloud"; // API 테스트용
 }
 
 const themeStyles = {
@@ -59,13 +60,16 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
   storageKey,
   label = "Gemini API 키",
   placeholder = "API 키를 입력하세요",
-  helpText = "API 키는 브라우저에만 저장되며 외부로 전송되지 않습니다.",
+  helpText = "브라우저에만 저장됩니다.",
   apiKeyLink = "https://aistudio.google.com/app/apikey",
   guideRoute,
   theme = "orange",
+  apiType,
 }) => {
   const [apiKey, setApiKey] = useState("");
   const [showApiKey, setShowApiKey] = useState(false);
+  const [testLoading, setTestLoading] = useState(false);
+  const [testResult, setTestResult] = useState<"success" | "error" | null>(null);
   
   const styles = themeStyles[theme];
 
@@ -91,10 +95,69 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
   };
 
   const toggleShowApiKey = () => {
-    setShowApiKey(!showApiKey);
-  };
+  const testApiKey = async () => {
+    if (!apiKey) {
+      alert('⚠️ API 키를 먼저 입력해주세요.');
+      return;
+    }
 
-  return (
+    setTestLoading(true);
+    setTestResult(null);
+
+    try {
+      let testUrl = "";
+      
+      if (apiType === "gemini") {
+        testUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
+      } else if (apiType === "youtube") {
+        testUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=test&type=video&maxResults=1&key=${apiKey}`;
+      } else i발급방법
+            </Link>
+          )}
+          {apiType && (
+            <button
+              onClick={testApiKey}
+              disabled={testLoading || !apiKey}
+              className={`px-3 py-1.5 bg-green-600/20 hover:bg-green-600/30 border border-green-500/40 text-green-100 rounded-lg text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1`}
+              title="API 키 테스트"
+            >
+              {testLoading ? (
+                "테스트 중..."
+              ) : testResult === "success" ? (
+                <>
+                  <FiCheckCircle size={14} />
+                  성공
+                </>
+              ) : (
+                "테스트"
+              )}
+            </button>
+          )}
+        </div>
+      </div>
+      
+      <div className="relative">
+        <input
+          type={showApiKey ? "text" : "password"}
+          value={apiKey}
+          onChange={handleApiKeyChange}
+          placeholder={placeholder}
+          className={`w-full px-4 py-2.5 pr-12 border rounded-md focus:ring-2 transition-all text-sm ${styles.input}`}
+        />
+        <button
+          type="button"
+          onClick={toggleShowApiKey}
+          className={`absolute right-3 top-1/2 -translate-y-1/2 transition-colors ${styles.button}`}
+          title={showApiKey ? "숨기기" : "보기"}
+        >
+          {showApiKey ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+        </button>
+      </div>
+
+      {!apiKey && (
+        <p className={`mt-2 text-xs ${styles.warning} flex items-center gap-1`}>
+          <span>⚠️</span>
+          <span>API 키 필요
     <div className={`${styles.container} rounded-lg p-4 mb-6 shadow-sm`}>
       <div className="flex items-center gap-2 mb-3">
         <FiKey className={`${styles.icon} text-lg`} />

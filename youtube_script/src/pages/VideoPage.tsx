@@ -1397,9 +1397,10 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
             storageKey={STORAGE_KEYS.geminiApiKey}
             label="Gemini API 키"
             placeholder="AIzaSy..."
-            helpText="대본 생성 및 분석을 위해 본인의 Gemini API 키를 입력해주세요. API 키는 브라우저에만 저장됩니다."
+            helpText="브라우저에만 저장됩니다."
             guideRoute="/api-guide-aistudio"
             theme="orange"
+            apiType="gemini"
           />
         </div>
 

@@ -1491,7 +1491,7 @@ const App: React.FC<ImageAppProps> = ({
                       href="/api-guide-aistudio"
                       className="px-3 py-1.5 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-indigo-100 rounded-lg text-sm font-medium transition-all"
                     >
-                      API 발급방법
+                      발급방법
                     </a>
                   </div>
                 </div>
@@ -1507,12 +1507,12 @@ const App: React.FC<ImageAppProps> = ({
                 {!apiKey && (
                   <p className="mt-2 text-xs text-indigo-400 flex items-center gap-1">
                     <span>⚠️</span>
-                    <span>API 키가 필요합니다. API 발급방법 버튼을 눌러 발급받아주세요.</span>
+                    <span>API 키 필요</span>
                   </p>
                 )}
                 
                 <p className="mt-2 text-xs text-neutral-400">
-                  API 키는 브라우저에만 저장되며 외부로 전송되지 않습니다.
+                  브라우저에만 저장됩니다.
                 </p>
               </div>
             </div>
