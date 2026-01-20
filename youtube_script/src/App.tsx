@@ -589,7 +589,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
     };
 
     const preventKeyboardShortcuts = (e: KeyboardEvent) => {
-      // API 키 모달, 유튜브 URL 입력, 대본 입력, 새 아이디어 입력, 새 제목 입력, API 가이드 페이지 내부는 허용
+      // API 키 모달, 유튜브 URL 입력, 대본 입력, 새 아이디어 입력, 새 제목 입력, API 가이드 페이지 내부는 허용 (F12 개발자 도구 포함)
       const target = e.target as HTMLElement;
       if (
         target?.closest(".api-key-modal") ||
@@ -600,7 +600,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
         target?.closest(".tts-text-input") ||
         target?.closest(".api-guide-page")
       ) {
-        return;
+        return; // API 가이드 페이지에서는 모든 단축키 허용 (F12, Ctrl+Shift+I 등)
       }
 
       // Ctrl+C, Ctrl+X, Ctrl+A, Ctrl+U, Ctrl+S, Ctrl+P, F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C, Ctrl+Shift+S, PrintScreen, Win+Shift+S
