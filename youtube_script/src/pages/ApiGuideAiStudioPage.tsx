@@ -5,13 +5,11 @@ import { supabase } from '../services/supabase';
 import type { User } from '@supabase/supabase-js';
 import UserCreditToolbar from '../components/UserCreditToolbar';
 import HomeBackButton from "../components/HomeBackButton";
-import ApiKeySetupModal from '../components/ApiKeySetupModal';
 import { getStoredApiKey } from '../services/apiKeyValidation';
 import { loadGuideData, type GuidePageData } from '../services/guideDataService';
 
 const ApiGuideAiStudioPage: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
-  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
   const [hasApiKey, setHasApiKey] = useState(false);
   const [guideData, setGuideData] = useState<GuidePageData | null>(null);
 
@@ -61,10 +59,6 @@ const ApiGuideAiStudioPage: React.FC = () => {
     await supabase.auth.signOut();
   };
 
-  const handleApiKeySuccess = () => {
-    setHasApiKey(true);
-  };
-
   if (!guideData) {
     return <div className="min-h-screen bg-[#121212] text-white flex items-center justify-center">
       <p>로딩 중...</p>
@@ -73,13 +67,6 @@ const ApiGuideAiStudioPage: React.FC = () => {
 
   return (
     <div className="api-guide-page min-h-screen bg-[#121212] text-white font-sans p-4 sm:p-8">
-      <ApiKeySetupModal 
-        isOpen={showApiKeyModal}
-        onClose={() => setShowApiKeyModal(false)}
-        keyType="gemini"
-        onSuccess={handleApiKeySuccess}
-      />
-
       <div className="absolute top-0 right-0 p-4 sm:p-6 flex gap-3 z-50 items-center">
         <UserCreditToolbar user={user} onLogout={handleLogout} tone="orange" />
       </div>

@@ -5,12 +5,10 @@ import { supabase } from '../services/supabase';
 import type { User } from '@supabase/supabase-js';
 import UserCreditToolbar from '../components/UserCreditToolbar';
 import HomeBackButton from "../components/HomeBackButton";
-import ApiKeySetupModal from '../components/ApiKeySetupModal';
 import { getStoredApiKey } from '../services/apiKeyValidation';
 
 const ApiGuideCloudConsolePage: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
-  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
   const [hasApiKey, setHasApiKey] = useState(false);
 
   useEffect(() => {
@@ -55,19 +53,8 @@ const ApiGuideCloudConsolePage: React.FC = () => {
     await supabase.auth.signOut();
   };
 
-  const handleApiKeySuccess = () => {
-    setHasApiKey(true);
-  };
-
   return (
     <div className="api-guide-page min-h-screen bg-[#121212] text-white font-sans p-4 sm:p-8">
-      <ApiKeySetupModal 
-        isOpen={showApiKeyModal}
-        onClose={() => setShowApiKeyModal(false)}
-        keyType="googleCloud"
-        onSuccess={handleApiKeySuccess}
-      />
-
       <div className="absolute top-0 right-0 p-4 sm:p-6 flex gap-3 z-50 items-center">
         <UserCreditToolbar user={user} onLogout={handleLogout} tone="orange" />
       </div>
