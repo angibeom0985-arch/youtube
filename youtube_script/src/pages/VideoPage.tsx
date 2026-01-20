@@ -503,10 +503,26 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     const pathIndex = getStepIndexFromPath(normalizedPath);
     const storedIndex = getStoredStepIndex();
     
+    console.log('[VideoPage] URL 라우팅:', {
+      pathname: location.pathname,
+      normalizedPath,
+      pathIndex,
+      storedIndex,
+      currentStep,
+      stepPaths
+    });
+    
     // /video 경로는 저장된 step이 있으면 그걸 사용하고, 없으면 /video/setup으로
     const isBaseVideoPath = normalizedPath === `${normalizedBasePath}/video` || normalizedPath === normalizedBasePath + '/video';
     const shouldUseStored = isBaseVideoPath && storedIndex !== 0;
     const nextIndex = shouldUseStored ? storedIndex : (pathIndex ?? (isBaseVideoPath ? 0 : storedIndex));
+    
+    console.log('[VideoPage] Step 결정:', {
+      isBaseVideoPath,
+      shouldUseStored,
+      nextIndex,
+      willNavigate: normalizedPath !== stepPaths[nextIndex]
+    });
     
     if (nextIndex !== currentStep) {
       setCurrentStep(nextIndex);
@@ -527,7 +543,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     
     // script 단계: 대본이 입력되어 있으면 다음으로 진행 가능
     if (currentStepId === 'script') {
-      return scriptText.trim().length > 0;
+      return scriptDraft.trim().length > 0;
     }
     
     // 나머지 단계는 항상 진행 가능
