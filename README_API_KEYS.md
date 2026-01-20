@@ -13,84 +13,84 @@
 ## 🔑 필수 API 키
 
 ### 1. GEMINI_API_KEY
-**사용 위치:**
+사용 위치:
 - `/api/gemini.ts` - 메인 API 엔드포인트
 - `/image/services/geminiService.ts` - 이미지 앱
 
-**기능:**
+기능:
 - YouTube 영상 대본 분석
 - 새로운 영상 기획 생성
 - 아이디어 키워드 생성
 - 챕터별 대본 작성
 - 이미지 프롬프트 생성
 
-**비용:**
+비용:
 - 무료: 15 requests/minute
 - 유료: $0.00025 per 1K characters
 
 ### 2. YOUTUBE_API_KEY (신규 추가)
-**사용 위치:**
+사용 위치:
 - `/api/benchmarking/search.ts` - 모멘텀 헌터 API
 
-**기능:**
+기능:
 - 유튜브 영상 검색
 - 영상 메타데이터 조회
 - 채널 구독자 수 조회
 - 조회수/모멘텀 분석
 
-**할당량:**
+할당량:
 - 무료: 10,000 units/day
 - 검색: 100 units per request
 - 상세 정보: 1 unit per video
 
-**모멘텀 헌터 1회 실행 시 사용량:**
+모멘텀 헌터 1회 실행 시 사용량:
 - 검색 요청: ~100 units
 - 영상 정보: ~100 units (100개 영상 기준)
 - 채널 정보: ~2 units
-- **총 약 200-300 units/scan**
+- 총 약 200-300 units/scan
 
 ## ⚪ 선택 API 키
 
 ### 3. GROQ_API_KEY
-**사용 위치:**
+사용 위치:
 - `/api/_lib/groq.ts`
 - `/api/abuse/check.ts`
 
-**기능:**
+기능:
 - AI 기반 유해 콘텐츠 감지
 - 19금, 폭력, 혐오 표현 필터링
 - Llama 3.1 70B 모델 사용
 
-**없을 경우:**
+없을 경우:
 - 어뷰징 감지 기능 비활성화
 - 나머지 기능은 정상 동작
 
 ### 4. SUPABASE_URL & SUPABASE_SERVICE_ROLE_KEY
-**사용 위치:**
+사용 위치:
 - `/api/_lib/supabase.ts`
 - `/api/_lib/usageLimit.ts`
 
-**기능:**
+기능:
 - 사용자별 요청 횟수 추적
 - IP 기반 사용량 제한
 - 어뷰징 기록 저장
 
-**없을 경우:**
+없을 경우:
 - 사용량 제한 없이 동작
 - 통계 및 로그 없음
 
 ### 5. ADMIN_USERNAME, ADMIN_PASSWORD, ADMIN_SESSION_SECRET
-**사용 위치:**
+사용 위치:
 - `/api/_lib/adminAuth.ts`
 - `/api/admin/login.ts`
 - `/api/admin/abuse.ts`
 
-**기능:**
+기능:
 - 관리자 페이지 로그인
 - 어뷰징 기록 조회
 - 시스템 통계 확인
 
-**없을 경우:**
+없을 경우:
 - 관리자 페이지 접근 불가
 - 일반 기능은 정상 동작
 

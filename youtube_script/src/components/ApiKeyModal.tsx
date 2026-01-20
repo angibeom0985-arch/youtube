@@ -65,12 +65,22 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
       >
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold text-white">Gemini API 키 설정</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors"
-          >
-            <FiX size={24} />
-          </button>
+          <div className="flex items-center gap-2">
+            <a
+              href="https://github.com/angibeom0985-arch/youtube/tree/main/api_guide"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-lg border border-blue-500/30 bg-blue-500/10 px-3 py-1.5 text-xs font-semibold text-blue-300 hover:border-blue-400 hover:bg-blue-500/20 transition-all"
+            >
+              📖 발급방법
+            </a>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-white transition-colors"
+            >
+              <FiX size={24} />
+            </button>
+          </div>
         </div>
 
         <div className="mb-4">
