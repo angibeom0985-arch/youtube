@@ -70,6 +70,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
   const [showApiKey, setShowApiKey] = useState(false);
   const [testLoading, setTestLoading] = useState(false);
   const [testResult, setTestResult] = useState<"success" | "error" | null>(null);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   
   const styles = themeStyles[theme];
 
@@ -78,6 +79,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
       const stored = localStorage.getItem(storageKey);
       if (stored) {
         setApiKey(stored);
+        setIsCollapsed(true); // API 키가 있으면 자동으로 접기
       }
     } catch (error) {
       console.error("API 키를 불러오는데 실패했습니다:", error);
@@ -149,13 +151,25 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
   };
 
   return (
-    <div className={`${styles.container} rounded-lg p-4 mb-6 shadow-sm`}>
+    <div className={`${styles.container} rounded-lg shadow-sm transition-all duration-300 ${isCollapsed ? 'p-3 mb-3' : 'p-4 mb-6'}`}>
       <div className="flex items-center gap-2 mb-3">
         <FiKey className={`${styles.icon} text-lg`} />
         <label className={`text-sm font-semibold ${styles.label}`}>
           {label}
         </label>
+        {apiKey && (
+          <span className="text-xs text-green-400 ml-2">✓ 저장됨</span>
+        )}
         <div className="ml-auto flex gap-2">
+          {apiKey && (
+            <button
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              className="text-xs px-2 py-1 rounded hover:bg-white/10 transition-colors"
+              style={{ color: styles.label.split(' ')[0].replace('text-', '') }}
+            >
+              {isCollapsed ? '펼치기' : '접기'}
+            </button>
+          )}
           {guideRoute && (
             <Link
               to={guideRoute}
@@ -167,53 +181,57 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
         </div>
       </div>
       
-      <div className="relative">
-        <input
-          type={showApiKey ? "text" : "password"}
-          value={apiKey}
-          onChange={handleApiKeyChange}
-          placeholder={placeholder}
-          className={`w-full px-4 py-2.5 ${apiType ? 'pr-24' : 'pr-12'} border rounded-md focus:ring-2 transition-all text-sm ${styles.input}`}
-        />
-        <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
-          <button
-            type="button"
-            onClick={toggleShowApiKey}
-            className={`transition-colors ${styles.button}`}
-            title={showApiKey ? "숨기기" : "보기"}
-          >
-            {showApiKey ? <FiEyeOff size={18} /> : <FiEye size={18} />}
-          </button>
-          {apiType && (
-            <button
-              onClick={saveAndTestApiKey}
-              disabled={testLoading || !apiKey}
-              className={`px-2 py-1 bg-green-600/20 hover:bg-green-600/30 border border-green-500/40 text-green-100 rounded text-xs font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 whitespace-nowrap`}
-              title="API 키 저장 및 테스트"
-            >
-              {testLoading ? (
-                "..."
-              ) : testResult === "success" ? (
-                <FiCheckCircle size={12} />
-              ) : (
-                "저장·테스트"
+      {!isCollapsed && (
+        <>
+          <div className="relative">
+            <input
+              type={showApiKey ? "text" : "password"}
+              value={apiKey}
+              onChange={handleApiKeyChange}
+              placeholder={placeholder}
+              className={`w-full px-4 py-2.5 ${apiType ? 'pr-24' : 'pr-12'} border rounded-md focus:ring-2 transition-all text-sm ${styles.input}`}
+            />
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={toggleShowApiKey}
+                className={`transition-colors ${styles.button}`}
+                title={showApiKey ? "숨기기" : "보기"}
+              >
+                {showApiKey ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+              </button>
+              {apiType && (
+                <button
+                  onClick={saveAndTestApiKey}
+                  disabled={testLoading || !apiKey}
+                  className={`px-2 py-1 bg-green-600/20 hover:bg-green-600/30 border border-green-500/40 text-green-100 rounded text-xs font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 whitespace-nowrap`}
+                  title="API 키 저장 및 테스트"
+                >
+                  {testLoading ? (
+                    "..."
+                  ) : testResult === "success" ? (
+                    <FiCheckCircle size={12} />
+                  ) : (
+                    "저장·테스트"
+                  )}
+                </button>
               )}
-            </button>
-          )}
-        </div>
-      </div>
+            </div>
+          </div>
 
-      {!apiKey && (
-        <p className={`mt-2 text-xs ${styles.warning} flex items-center gap-1`}>
-          <span>⚠️</span>
-          <span>API 키를 입력해주세요.</span>
-        </p>
-      )}
-      
-      {helpText && (
-        <p className={`mt-2 text-xs ${styles.helpText}`}>
-          {helpText}
-        </p>
+          {!apiKey && (
+            <p className={`mt-2 text-xs ${styles.warning} flex items-center gap-1`}>
+              <span>⚠️</span>
+              <span>API 키를 입력해주세요.</span>
+            </p>
+          )}
+          
+          {helpText && (
+            <p className={`mt-2 text-xs ${styles.helpText}`}>
+              {helpText}
+            </p>
+          )}
+        </>
       )}
     </div>
   );
