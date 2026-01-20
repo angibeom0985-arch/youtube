@@ -1479,21 +1479,6 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
       {/* 애드블럭 경고 모달 */}
       {!noAds && <AdBlockWarningModal isOpen={adBlockDetected} />}
 
-      {/* API 키 입력 - 애드블럭과 무관하게 항상 작동 */}
-      <div className="max-w-4xl mx-auto mb-6">
-        <div className="max-w-2xl mx-auto">
-          <ApiKeyInput
-            storageKey="gemini_api_key_script"
-            label="Gemini API 키"
-            placeholder="AIzaSy..."
-            helpText="브라우저에만 저장됩니다."
-            guideRoute="/api-guide-aistudio"
-            theme="orange"
-            apiType="gemini"
-          />
-        </div>
-      </div>
-
       {/* 애드블럭 감지 시 컨텐츠 흐림 처리 */}
       <div
         className={`max-w-4xl mx-auto ${
@@ -1507,6 +1492,19 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
           <p className="text-neutral-300 mb-4">
             떡상 영상을 분석하고, 나만의 새로운 대본을 1분만에 작성하세요!
           </p>
+
+          {/* API 키 입력 - pointer-events-auto로 클릭 가능하게 */}
+          <div className="max-w-2xl mx-auto mb-6 pointer-events-auto">
+            <ApiKeyInput
+              storageKey="gemini_api_key_script"
+              label="Gemini API 키"
+              placeholder="AIzaSy..."
+              helpText="브라우저에만 저장됩니다."
+              guideRoute="/api-guide-aistudio"
+              theme="orange"
+              apiType="gemini"
+            />
+          </div>
 
           <nav className="flex justify-center gap-3 flex-wrap">
             <a
