@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { FiSettings, FiTrash2 } from "react-icons/fi";
+import { FiCpu, FiSettings, FiTrash2 } from "react-icons/fi";
 import { supabase } from "./services/supabase";
 import Login from "./components/Login";
 import type { User } from "@supabase/supabase-js";
@@ -476,6 +476,17 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
 
   // 강력한 복사/드래그/우클릭 방지 시스템
   useEffect(() => {
+    // API 가이드 페이지에서는 보호 기능 완전히 비활성화
+    const currentPath = location.pathname;
+    if (currentPath === '/api-guide' || currentPath === '/api_guide') {
+      // API 가이드 페이지에서는 모든 보호 기능 비활성화
+      document.body.style.userSelect = "";
+      document.body.style.webkitUserSelect = "";
+      (document.body.style as any).msUserSelect = "";
+      (document.body.style as any).MozUserSelect = "";
+      return;
+    }
+
     if (allowDevtools) {
       document.body.style.userSelect = "";
       document.body.style.webkitUserSelect = "";
