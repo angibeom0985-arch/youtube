@@ -4,6 +4,7 @@ import { supabase } from "../services/supabase";
 import type { User } from "@supabase/supabase-js";
 import UserCreditToolbar from "../components/UserCreditToolbar";
 import HomeBackButton from "../components/HomeBackButton";
+import ApiKeyRequiredModal from "../components/ApiKeyRequiredModal";
 
 interface DateOption {
   label: string;
@@ -74,6 +75,7 @@ const BenchmarkingPage: React.FC = () => {
   const [error, setError] = useState("");
   const [summary, setSummary] = useState<SearchSummary | null>(null);
   const [results, setResults] = useState<VideoResult[]>([]);
+  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
 
   // Auth
   useEffect(() => {
@@ -91,6 +93,18 @@ const BenchmarkingPage: React.FC = () => {
   const handleLogout = async () => {
     await supabase.auth.signOut();
   };
+  
+  // Check for YouTube API key on page load
+  useEffect(() => {
+    // YouTube API 키는 환경변수나 서버에서 관리하므로, 
+    // 실제로는 검색 시도 시 에러가 발생하면 모달을 표시
+    // 여기서는 페이지 진입 시 안내를 보여주도록 설정
+    const hasShownWarning = sessionStorage.getItem('youtube_api_warning_shown');
+    if (!hasShownWarning) {
+      setShowApiKeyModal(true);
+      sessionStorage.setItem('youtube_api_warning_shown', 'true');
+    }
+  }, []);
 
   // 클라이언트 측 필터링 적용 (모멘텀 레벨 등)
   const filteredResults = useMemo(() => {
@@ -478,6 +492,14 @@ const BenchmarkingPage: React.FC = () => {
       </div>
 
       {/* 사용자 크레딧 사이드바 */}
+      
+      {/* API Key Required Modal */}
+      <ApiKeyRequiredModal
+        isOpen={showApiKeyModal}
+        onClose={() => setShowApiKeyModal(false)}
+        apiType="youtube"
+        featureName="벤치마킹 영상 발굴"
+      />
     </div>
   );
 };

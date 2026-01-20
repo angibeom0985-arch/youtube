@@ -32,6 +32,7 @@ import AdBanner from "./components/AdBanner";
 import FloatingBottomAd from "./components/FloatingBottomAd";
 import SideFloatingAd from "./components/SideFloatingAd";
 import AdBlockDetector from "./components/AdBlockDetector";
+import ApiKeyRequiredModal from "./components/ApiKeyRequiredModal";
 
 type ImageAppView = "main" | "user-guide" | "image-prompt";
 
@@ -110,6 +111,7 @@ const App: React.FC<ImageAppProps> = ({
   const [isLoadingCameraAngles, setIsLoadingCameraAngles] = useState<boolean>(false);
   const [cameraAngleProgress, setCameraAngleProgress] = useState<string>("");
   const [cameraAngleError, setCameraAngleError] = useState<string | null>(null);
+  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
 
   const getAuthHeaders = useCallback(async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -193,6 +195,13 @@ const App: React.FC<ImageAppProps> = ({
     },
     [navigate, normalizedBasePath]
   );
+  
+  // Check for Gemini API key on page load
+  useEffect(() => {
+    if (!apiKey) {
+      setShowApiKeyModal(true);
+    }
+  }, [apiKey]);
 
   // 컴포넌트 마운트 시 저장된 작업 데이터 불러오기 (localStorage 우선, 없으면 sessionStorage)
   useEffect(() => {
@@ -2823,6 +2832,14 @@ const App: React.FC<ImageAppProps> = ({
         </svg>
         초기화
       </button>
+      
+      {/* API Key Required Modal */}
+      <ApiKeyRequiredModal
+        isOpen={showApiKeyModal}
+        onClose={() => setShowApiKeyModal(false)}
+        apiType="gemini"
+        featureName="이미지 생성"
+      />
     </>
   );
 };
