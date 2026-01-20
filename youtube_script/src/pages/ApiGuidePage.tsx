@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { FiExternalLink } from 'react-icons/fi';
+import { FiExternalLink, FiHome } from 'react-icons/fi';
 import AdSense from '../components/AdSense';
 import { supabase } from '../services/supabase';
 import type { User } from '@supabase/supabase-js';
