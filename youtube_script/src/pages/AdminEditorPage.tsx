@@ -27,8 +27,8 @@ const AdminEditorPage: React.FC = () => {
 
   // 편집 가능한 페이지 목록
   const pages: PageContent[] = [
-    { name: 'API 가이드 (Cloud Console)', path: '/api-guide-cloudconsole', content: '' },
-    { name: 'API 가이드 (AI Studio)', path: '/api-guide-aistudio', content: '' },
+    { name: 'API 키 발급 가이드', path: '/api-guide-cloudconsole', content: '' },
+    { name: '사용법 가이드', path: '/api-guide-aistudio', content: '' },
   ];
 
   // 로그인 확인
