@@ -1478,22 +1478,22 @@ const App: React.FC<ImageAppProps> = ({
 
             {/* API 키 입력 */}
             <div className="max-w-2xl mx-auto mt-6">
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4 shadow-sm">
+              <div className="bg-gradient-to-r from-indigo-950/40 to-indigo-900/30 border border-indigo-800/40 rounded-lg p-4 shadow-sm">
                 <div className="flex items-center gap-2 mb-3">
-                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                   </svg>
-                  <label className="text-sm font-semibold text-gray-800">
+                  <label className="text-sm font-semibold text-indigo-200">
                     Gemini API 키
                   </label>
-                  <a
-                    href="/api-guide-aistudio"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="ml-auto text-xs text-blue-600 hover:text-blue-800 underline"
-                  >
-                    API 키 발급받기 →
-                  </a>
+                  <div className="ml-auto flex gap-2">
+                    <a
+                      href="/api-guide-aistudio"
+                      className="px-3 py-1.5 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-indigo-100 rounded-lg text-sm font-medium transition-all"
+                    >
+                      API 발급방법
+                    </a>
+                  </div>
                 </div>
                 
                 <input
@@ -1501,17 +1501,17 @@ const App: React.FC<ImageAppProps> = ({
                   value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}
                   placeholder="AIzaSy..."
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm text-gray-900"
+                  className="w-full px-4 py-2.5 border bg-[#1A1A1A] border-indigo-800/40 text-neutral-200 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 placeholder-neutral-500 transition-all text-sm"
                 />
 
                 {!apiKey && (
-                  <p className="mt-2 text-xs text-orange-600 flex items-center gap-1">
+                  <p className="mt-2 text-xs text-indigo-400 flex items-center gap-1">
                     <span>⚠️</span>
-                    <span>API 키가 필요합니다. 위 링크에서 발급받아 입력해주세요.</span>
+                    <span>API 키가 필요합니다. API 발급방법 버튼을 눌러 발급받아주세요.</span>
                   </p>
                 )}
                 
-                <p className="mt-2 text-xs text-gray-600">
+                <p className="mt-2 text-xs text-neutral-400">
                   API 키는 브라우저에만 저장되며 외부로 전송되지 않습니다.
                 </p>
               </div>

@@ -310,7 +310,8 @@ const TtsPage: React.FC = () => {
           label="Google Cloud TTS API 키"
           placeholder="Google Cloud TTS API 키를 입력하세요"
           helpText="음성 생성을 위해 Google Cloud TTS API 키가 필요합니다. API 키는 브라우저에만 저장됩니다."
-          apiKeyLink="https://console.cloud.google.com/apis/credentials"
+          guideRoute="/api-guide-cloudconsole"
+          theme="emerald"
         />
 
         <div className="grid lg:grid-cols-12 gap-8">

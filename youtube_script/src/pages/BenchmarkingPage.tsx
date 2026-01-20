@@ -212,18 +212,11 @@ const BenchmarkingPage: React.FC = () => {
             label="YouTube Data API 키"
             placeholder="YouTube Data API v3 키를 입력하세요"
             helpText="YouTube 영상 검색을 위해 YouTube Data API 키가 필요합니다. API 키는 브라우저에만 저장됩니다."
-            apiKeyLink="https://console.cloud.google.com/apis/credentials"
+            guideRoute="/api-guide-cloudconsole"
+            theme="blue"
           />
           
-          <div className="absolute top-4 right-4 flex gap-2">
-            <a
-              href="/api-guide-cloudconsole"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 text-blue-100 rounded-lg text-sm font-medium transition-all"
-            >
-              API 발급방법
-            </a>
+          <div className="absolute top-4 right-[128px] flex gap-2">
             <button
               onClick={async () => {
                 const apiKey = localStorage.getItem('youtube_api_key');
