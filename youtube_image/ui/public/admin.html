@@ -1454,42 +1454,43 @@
             const saveKey = `adminContent_${pageName.replace(/[^\w]/g, '_')}`;
             
             try {
-                // 로컬 환경인 경우에만 API 호출
-                if (API_BASE_URL) {
-                    let apiEndpoint = '';
-                    if (pageName === '/api-guide-aistudio') {
-                        apiEndpoint = '/api/guide/aistudio';
-                    } else if (pageName === '/api-guide-cloudconsole') {
-                        apiEndpoint = '/api/guide/cloudconsole';
-                    } else {
-                        throw new Error('알 수 없는 페이지입니다.');
-                    }
-
-                    const response = await fetch(`${API_BASE_URL}${apiEndpoint}`);
-                    const result = await response.json();
-
-                    if (response.ok) {
-                        contentEditor.value = result.content;
-                        
-                        // 로컬에도 저장
-                        localStorage.setItem(saveKey, result.content);
-                        
-                        // 저장 버튼 활성화
-                        if (saveBtn) {
-                            saveBtn.disabled = false;
-                        }
-                        
-                        // 미리보기 업데이트
-                        updateHtmlPreview();
-                        return;
-                    } else {
-                        throw new Error(result.error || '페이지 내용을 불러올 수 없습니다.');
-                    }
-                }
-                
-                // 배포 환경: localStorage에서 직접 로드
+                // 먼저 localStorage에서 저장된 내용 확인
                 const localContent = localStorage.getItem(saveKey);
                 
+                // 실제 페이지에서 HTML 내용을 fetch
+                try {
+                    console.log(`📥 페이지 로드 시도: ${pageName}`);
+                    const response = await fetch(pageName);
+                    
+                    if (response.ok) {
+                        const htmlText = await response.text();
+                        
+                        // HTML에서 body 내용만 추출
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(htmlText, 'text/html');
+                        const mainContent = doc.querySelector('main') || doc.querySelector('body');
+                        
+                        if (mainContent) {
+                            const extractedHTML = mainContent.innerHTML;
+                            contentEditor.value = extractedHTML;
+                            
+                            console.log(`✅ ${pageName} 페이지 로드 성공 (${extractedHTML.length} bytes)`);
+                            
+                            // 저장 버튼 활성화
+                            if (saveBtn) {
+                                saveBtn.disabled = false;
+                            }
+                            
+                            // 미리보기 업데이트
+                            updateHtmlPreview();
+                            return;
+                        }
+                    }
+                } catch (fetchError) {
+                    console.warn(`페이지 fetch 실패: ${fetchError.message}`);
+                }
+                
+                // fetch 실패 시 localStorage 사용
                 if (localContent) {
                     contentEditor.value = localContent;
                     console.log(`✅ ${pageName} 로컬 저장본 로드됨 (${localContent.length} bytes)`);
