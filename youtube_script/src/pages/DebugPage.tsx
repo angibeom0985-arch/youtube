@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import App from "../App";
-import ImageApp from "../../../youtube_image/ui/App";
-import ImageErrorBoundary from "../../../youtube_image/ui/components/ErrorBoundary";
+import ImageApp from "../features/image/App";
+import ImageErrorBoundary from "../features/image/components/ErrorBoundary";
 import VideoPage from "./VideoPage";
 import HomePage from "./HomePage";
 import { FiEye, FiEyeOff, FiHome } from "react-icons/fi";
