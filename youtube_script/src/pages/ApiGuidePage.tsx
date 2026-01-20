@@ -49,7 +49,7 @@ const ApiGuidePage: React.FC = () => {
 
 
   return (
-    <div className="min-h-screen bg-[#121212] text-white font-sans p-4 sm:p-8">
+    <div className="api-guide-page min-h-screen bg-[#121212] text-white font-sans p-4 sm:p-8">
       <div className="absolute top-0 right-0 p-4 sm:p-6 flex gap-3 z-50 items-center">
         <UserCreditToolbar user={user} onLogout={handleLogout} tone="orange" />
       </div>

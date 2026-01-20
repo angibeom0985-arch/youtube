@@ -487,7 +487,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
     // API 키 모달이 열려있으면 선택 해제 기능 비활성화
     // 다층 방어 함수들
     const preventAction = (e: Event) => {
-      // API 키 모달, 유튜브 URL 입력, 대본 입력, 새 아이디어 입력, 새 제목 입력 내부는 허용
+      // API 키 모달, 유튜브 URL 입력, 대본 입력, 새 아이디어 입력, 새 제목 입력, API 가이드 페이지 내부는 허용
       const target = e.target as HTMLElement;
       if (
         target?.closest(".api-key-modal") ||
@@ -495,7 +495,8 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
         target?.closest(".transcript-input") ||
         target?.closest(".user-idea-keyword-input") ||
         target?.closest(".new-title-input") ||
-        target?.closest(".tts-text-input")
+        target?.closest(".tts-text-input") ||
+        target?.closest(".api-guide-page")
       ) {
         return;
       }
@@ -505,7 +506,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
     };
 
     const preventCopy = (e: ClipboardEvent) => {
-      // API 키 모달, 유튜브 URL 입력, 대본 입력, 새 아이디어 입력, 새 제목 입력 내부는 허용
+      // API 키 모달, 유튜브 URL 입력, 대본 입력, 새 아이디어 입력, 새 제목 입력, API 가이드 페이지 내부는 허용
       const target = e.target as HTMLElement;
       if (
         target?.closest(".api-key-modal") ||
@@ -513,7 +514,8 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
         target?.closest(".transcript-input") ||
         target?.closest(".user-idea-keyword-input") ||
         target?.closest(".new-title-input") ||
-        target?.closest(".tts-text-input")
+        target?.closest(".tts-text-input") ||
+        target?.closest(".api-guide-page")
       ) {
         return;
       }
@@ -524,7 +526,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
     };
 
     const preventDrag = (e: DragEvent) => {
-      // API 키 모달, 유튜브 URL 입력, 대본 입력, 새 아이디어 입력, 새 제목 입력 내부는 허용
+      // API 키 모달, 유튜브 URL 입력, 대본 입력, 새 아이디어 입력, 새 제목 입력, API 가이드 페이지 내부는 허용
       const target = e.target as HTMLElement;
       if (
         target?.closest(".api-key-modal") ||
@@ -532,7 +534,8 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
         target?.closest(".transcript-input") ||
         target?.closest(".user-idea-keyword-input") ||
         target?.closest(".new-title-input") ||
-        target?.closest(".tts-text-input")
+        target?.closest(".tts-text-input") ||
+        target?.closest(".api-guide-page")
       ) {
         return;
       }
@@ -542,7 +545,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
     };
 
     const preventSelect = (e: Event) => {
-      // API 키 모달, 유튜브 URL 입력, 대본 입력, 새 아이디어 입력, 새 제목 입력 내부는 허용
+      // API 키 모달, 유튜브 URL 입력, 대본 입력, 새 아이디어 입력, 새 제목 입력, API 가이드 페이지 내부는 허용
       const target = e.target as HTMLElement;
       if (
         target?.closest(".api-key-modal") ||
@@ -550,7 +553,8 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
         target?.closest(".transcript-input") ||
         target?.closest(".user-idea-keyword-input") ||
         target?.closest(".new-title-input") ||
-        target?.closest(".tts-text-input")
+        target?.closest(".tts-text-input") ||
+        target?.closest(".api-guide-page")
       ) {
         return;
       }
@@ -559,7 +563,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
     };
 
     const preventPaste = (e: ClipboardEvent) => {
-      // API 키 모달, 유튜브 URL 입력, 대본 입력, 새 아이디어 입력, 새 제목 입력 내부는 허용
+      // API 키 모달, 유튜브 URL 입력, 대본 입력, 새 아이디어 입력, 새 제목 입력, API 가이드 페이지 내부는 허용
       const target = e.target as HTMLElement;
       if (
         target?.closest(".api-key-modal") ||
@@ -567,7 +571,8 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
         target?.closest(".transcript-input") ||
         target?.closest(".user-idea-keyword-input") ||
         target?.closest(".new-title-input") ||
-        target?.closest(".tts-text-input")
+        target?.closest(".tts-text-input") ||
+        target?.closest(".api-guide-page")
       ) {
         return;
       }
@@ -584,7 +589,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
     };
 
     const preventKeyboardShortcuts = (e: KeyboardEvent) => {
-      // API 키 모달, 유튜브 URL 입력, 대본 입력, 새 아이디어 입력, 새 제목 입력 내부는 허용
+      // API 키 모달, 유튜브 URL 입력, 대본 입력, 새 아이디어 입력, 새 제목 입력, API 가이드 페이지 내부는 허용
       const target = e.target as HTMLElement;
       if (
         target?.closest(".api-key-modal") ||
@@ -592,7 +597,8 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
         target?.closest(".transcript-input") ||
         target?.closest(".user-idea-keyword-input") ||
         target?.closest(".new-title-input") ||
-        target?.closest(".tts-text-input")
+        target?.closest(".tts-text-input") ||
+        target?.closest(".api-guide-page")
       ) {
         return;
       }
@@ -655,43 +661,47 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
       });
     });
 
-    // 주기적으로 스타일 재적용 (우회 방지, API 키 모달, 유튜브 URL 입력, 대본 입력, 새 아이디어 입력, 새 제목 입력 제외)
+    // 주기적으로 스타일 재적용 (우회 방지, API 키 모달, 유튜브 URL 입력, 대본 입력, 새 아이디어 입력, 새 제목 입력, API 가이드 페이지 제외)
     const styleInterval = setInterval(() => {
-      // API 키 모달, 유튜브 URL 입력, 대본 입력, 새 아이디어 입력, 새 제목 입력이 열려있으면 스킵
+      // API 키 모달, 유튜브 URL 입력, 대본 입력, 새 아이디어 입력, 새 제목 입력, API 가이드 페이지가 열려있으면 스킵
       const modal = document.querySelector(".api-key-modal");
       const youtubeInput = document.querySelector(".youtube-url-input");
       const transcriptInput = document.querySelector(".transcript-input");
       const userIdeaInput = document.querySelector(".user-idea-keyword-input");
       const newTitleInput = document.querySelector(".new-title-input");
       const ttsInput = document.querySelector(".tts-text-input");
+      const apiGuidePage = document.querySelector(".api-guide-page");
       if (
         !modal &&
         !youtubeInput &&
         !transcriptInput &&
         !userIdeaInput &&
         !newTitleInput &&
-        !ttsInput
+        !ttsInput &&
+        !apiGuidePage
       ) {
         disableTextSelection();
       }
     }, 1000);
 
-    // Selection API 감시 및 차단 (API 키 모달, 유튜브 URL 입력, 대본 입력, 새 아이디어 입력, 새 제목 입력 제외)
+    // Selection API 감시 및 차단 (API 키 모달, 유튜브 URL 입력, 대본 입력, 새 아이디어 입력, 새 제목 입력, API 가이드 페이지 제외)
     const clearSelection = () => {
-      // API 키 모달, 유튜브 URL 입력, 대본 입력, 새 아이디어 입력, 새 제목 입력이 열려있으면 선택 해제하지 않음
+      // API 키 모달, 유튜브 URL 입력, 대본 입력, 새 아이디어 입력, 새 제목 입력, API 가이드 페이지가 열려있으면 선택 해제하지 않음
       const modal = document.querySelector(".api-key-modal");
       const youtubeInput = document.querySelector(".youtube-url-input");
       const transcriptInput = document.querySelector(".transcript-input");
       const userIdeaInput = document.querySelector(".user-idea-keyword-input");
       const newTitleInput = document.querySelector(".new-title-input");
       const ttsInput = document.querySelector(".tts-text-input");
+      const apiGuidePage = document.querySelector(".api-guide-page");
       if (
         modal ||
         youtubeInput ||
         transcriptInput ||
         userIdeaInput ||
         newTitleInput ||
-        ttsInput
+        ttsInput ||
+        apiGuidePage
       ) {
         return;
       }
