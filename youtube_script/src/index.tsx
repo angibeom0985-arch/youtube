@@ -55,6 +55,7 @@ root.render(
         <Route path="/image/guide" element={<ImageGuidePage />} />
         <Route path="/tts/guide" element={<TtsGuidePage />} />
         <Route path="/api-guide" element={<ApiGuidePage />} />
+        <Route path="/api_guide" element={<ApiGuidePage />} />
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/debug" element={<DebugPage mode="home" />} />
         <Route path="/debug/script" element={<DebugPage mode="script" />} />
