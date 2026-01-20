@@ -25,6 +25,27 @@ const HomePage: React.FC<HomePageProps> = ({
   const imagePath = `${normalizedBasePath}/image` || "/image";
   const ttsPath = `${normalizedBasePath}/tts` || "/tts";
   const videoPath = `${normalizedBasePath}/video` || "/video";
+  
+  // URL 쿼리에서 from 파라미터 확인
+  const [redirectMessage, setRedirectMessage] = useState<string>("");
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const from = urlParams.get('from');
+    
+    if (from && !user) {
+      const pageNames: Record<string, string> = {
+        '/tts': 'TTS (음성 변환)',
+        '/script': '대본 생성',
+        '/image': '이미지 생성',
+        '/benchmarking': '벤치마킹',
+        '/video': '영상 제작',
+      };
+      
+      const pageName = pageNames[from] || '해당 페이지';
+      setRedirectMessage(`${pageName} 기능을 사용하려면 로그인이 필요합니다.`);
+    }
+  }, [user]);
 
   useEffect(() => {
     const hash = window.location.hash || "";
@@ -33,8 +54,20 @@ const HomePage: React.FC<HomePageProps> = ({
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
-      if (session && hasAuthHash) {
-        window.history.replaceState(null, "", window.location.pathname + window.location.search);
+      
+      // 로그인 성공 후, 원래 가려던 페이지로 리다이렉트
+      if (session) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const from = urlParams.get('from');
+        
+        if (from && from !== '/') {
+          navigate(from);
+          return;
+        }
+        
+        if (hasAuthHash) {
+          window.history.replaceState(null, "", window.location.pathname + window.location.search);
+        }
       }
     });
 
@@ -42,13 +75,25 @@ const HomePage: React.FC<HomePageProps> = ({
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
-      if (session && hasAuthHash) {
-        window.history.replaceState(null, "", window.location.pathname + window.location.search);
+      
+      // 로그인 성공 후, 원래 가려던 페이지로 리다이렉트
+      if (session) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const from = urlParams.get('from');
+        
+        if (from && from !== '/') {
+          navigate(from);
+          return;
+        }
+        
+        if (hasAuthHash) {
+          window.history.replaceState(null, "", window.location.pathname + window.location.search);
+        }
       }
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [navigate]);
 
   const handleGoogleAuth = async () => {
     // 현재 접속한 도메인을 기준으로 리다이렉트 URL 설정
@@ -172,6 +217,13 @@ const HomePage: React.FC<HomePageProps> = ({
 
       <div className="mx-auto flex min-h-screen max-w-6xl flex-col items-center justify-center px-6 py-16">
 
+        {/* 로그인 필요 메시지 표시 */}
+        {redirectMessage && !user && (
+          <div className="mb-8 w-full max-w-3xl bg-gradient-to-r from-red-500/20 to-orange-500/20 border-2 border-red-500/50 rounded-2xl p-6 text-center animate-pulse">
+            <p className="text-xl font-bold text-white mb-2">🔒 {redirectMessage}</p>
+            <p className="text-red-200">아래 버튼을 클릭하여 로그인해주세요.</p>
+          </div>
+        )}
 
         <div className="text-center">
           <h1 className="text-5xl font-black tracking-[0.04em] sm:text-6xl lg:text-7xl bg-gradient-to-r from-red-500 via-orange-500 to-amber-400 bg-clip-text text-transparent drop-shadow-[0_0_18px_rgba(249,115,22,0.35)]">

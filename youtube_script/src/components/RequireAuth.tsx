@@ -33,7 +33,8 @@ const RequireAuth: React.FC = () => {
   }
 
   if (!user) {
-    return <Navigate to="/" replace state={{ from: location.pathname }} />;
+    // 원래 가려던 페이지를 쿼리 파라미터로 전달
+    return <Navigate to={`/?from=${encodeURIComponent(location.pathname)}`} replace />;
   }
 
   return <Outlet />;
