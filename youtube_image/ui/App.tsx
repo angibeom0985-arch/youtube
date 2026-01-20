@@ -1474,7 +1474,7 @@ const App: React.FC<ImageAppProps> = ({
               유튜브 롱폼 이미지 생성기
             </h1>
             <p className="mt-2 text-lg text-gray-400">
-              스크립트를 입력하고 일관된 캐릭터와 영상 소스 이미지를 생성하세요!
+              일관된 캐릭터와 영상 소스를 자동 생성합니다.
             </p>
 
             {/* API 키 입력 */}
