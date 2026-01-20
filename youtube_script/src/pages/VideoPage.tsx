@@ -141,7 +141,35 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const navigate = useNavigate();
   const normalizedBasePath = basePath && basePath !== "/" ? basePath.replace(/\/$/, "") : "";
   const [user, setUser] = useState<User | null>(null);
-  const [currentStep, setCurrentStep] = useState(0);
+  
+  // URL 경로에서 초기 step 결정
+  const getInitialStep = (): number => {
+    const pathname = location.pathname;
+    const stepMap: Record<string, number> = {
+      'setup': 0,
+      'script': 1,
+      'tts': 2,
+      'image': 3,
+      'generate': 4,
+      'render': 5,
+    };
+    
+    // /video/script, /video/tts 등의 형태에서 step 추출
+    const pathParts = pathname.split('/').filter(Boolean);
+    const lastPart = pathParts[pathParts.length - 1];
+    
+    if (lastPart && stepMap[lastPart] !== undefined) {
+      return stepMap[lastPart];
+    }
+    
+    // localStorage에서 저장된 step 확인
+    const savedStep = getStoredString(STORAGE_KEYS.step, "0", true);
+    const parsedStep = parseInt(savedStep, 10);
+    const maxStep = 5; // steps.length - 1
+    return !isNaN(parsedStep) && parsedStep >= 0 && parsedStep <= maxStep ? parsedStep : 0;
+  };
+  
+  const [currentStep, setCurrentStep] = useState(getInitialStep);
   const [videoFormat, setVideoFormat] = useState<VideoFormat>(() => {
     const stored = getStoredString(STORAGE_KEYS.format, "long");
     return stored === "short" ? "short" : "long";
