@@ -525,14 +525,6 @@ const BenchmarkingPage: React.FC = () => {
       </div>
 
       {/* 사용자 크레딧 사이드바 */}
-      
-      {/* API Key Required Modal */}
-      <ApiKeyRequiredModal
-        isOpen={showApiKeyModal}
-        onClose={() => setShowApiKeyModal(false)}
-        apiType="youtube"
-        featureName="벤치마킹 영상 발굴"
-      />
     </div>
   );
 };
