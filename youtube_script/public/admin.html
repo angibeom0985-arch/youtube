@@ -895,8 +895,8 @@
             
             // 기본 페이지 선택 및 로드
             if (pageSelect) {
-                pageSelect.value = 'API 키 발급 가이드';
-                currentPage = 'API 키 발급 가이드';
+                pageSelect.value = '/api-guide-aistudio';
+                currentPage = '/api-guide-aistudio';
                 console.log('기본 페이지 설정:', currentPage);
                 
                 // 페이지 내용 로드
@@ -1457,10 +1457,10 @@
                 // 로컬 환경인 경우에만 API 호출
                 if (API_BASE_URL) {
                     let apiEndpoint = '';
-                    if (pageName === 'API 키 발급 가이드') {
-                        apiEndpoint = '/api/guide/api-key';
-                    } else if (pageName === '사용법 가이드') {
-                        apiEndpoint = '/api/guide/user-guide';
+                    if (pageName === '/api-guide-aistudio') {
+                        apiEndpoint = '/api/guide/aistudio';
+                    } else if (pageName === '/api-guide-cloudconsole') {
+                        apiEndpoint = '/api/guide/cloudconsole';
                     } else {
                         throw new Error('알 수 없는 페이지입니다.');
                     }
@@ -1548,12 +1548,12 @@
 
         // 기본 템플릿 가져오기
         function getDefaultTemplate(pageName) {
-            if (pageName === 'API 키 발급 가이드') {
+            if (pageName === '/api-guide-aistudio') {
                 return `<!-- 네비게이션 -->
 <nav class="bg-white shadow-lg">
     <div class="max-w-7xl mx-auto px-4">
         <div class="flex justify-between items-center py-4">
-            <h1 class="text-2xl font-bold text-gray-800">📝 API 키 발급 가이드</h1>
+            <h1 class="text-2xl font-bold text-gray-800">📝 AI 스튜디오 API 발급방법</h1>
         </div>
     </div>
 </nav>
@@ -1562,15 +1562,15 @@
 <main class="max-w-4xl mx-auto px-4 py-8">
     <div class="bg-white rounded-lg shadow-md p-6">
         <h2 class="text-xl font-semibold mb-4">여기에 내용을 작성하세요</h2>
-        <p>API 키 발급 가이드 내용을 입력하세요.</p>
+        <p>AI 스튜디오 API 발급방법 가이드 내용을 입력하세요.</p>
     </div>
 </main>`;
-            } else if (pageName === '사용법 가이드') {
+            } else if (pageName === '/api-guide-cloudconsole') {
                 return `<!-- 네비게이션 -->
 <nav class="bg-white shadow-lg">
     <div class="max-w-7xl mx-auto px-4">
         <div class="flex justify-between items-center py-4">
-            <h1 class="text-2xl font-bold text-gray-800">📖 사용법 가이드</h1>
+            <h1 class="text-2xl font-bold text-gray-800">📖 클라우드 콘솔 API 발급방법</h1>
         </div>
     </div>
 </nav>
@@ -1579,7 +1579,7 @@
 <main class="max-w-4xl mx-auto px-4 py-8">
     <div class="bg-white rounded-lg shadow-md p-6">
         <h2 class="text-xl font-semibold mb-4">여기에 내용을 작성하세요</h2>
-        <p>사용법 가이드 내용을 입력하세요.</p>
+        <p>클라우드 콘솔 API 발급방법 가이드 내용을 입력하세요.</p>
     </div>
 </main>`;
             }
