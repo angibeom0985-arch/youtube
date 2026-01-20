@@ -88,7 +88,6 @@ const ApiGuideCloudConsolePage: React.FC = () => {
             <ul className="text-blue-200 text-sm space-y-1">
               <li>• YouTube 영상 벤치마킹 (YouTube Data API v3)</li>
               <li>• 텍스트 음성 변환 (Cloud Text-to-Speech API)</li>
-              <li>• 음성 텍스트 변환 (Cloud Speech-to-Text API)</li>
             </ul>
           </div>
         </header>
@@ -129,7 +128,6 @@ const ApiGuideCloudConsolePage: React.FC = () => {
               <ul className="text-sm space-y-1 text-neutral-300">
                 <li>• YouTube API: 일일 10,000 할당량 무료</li>
                 <li>• TTS API: 결제 정보 필요 (사용량 기반)</li>
-                <li>• STT API: 월 60분 무료</li>
               </ul>
             </div>
           </div>
@@ -202,11 +200,10 @@ const ApiGuideCloudConsolePage: React.FC = () => {
                 alt="API 및 서비스 메뉴" 
                 className="w-full rounded-lg border border-[#2A2A2A]"
               />
-              <p className="mt-4 font-semibold">활성화할 API:</p>
+              <p className="font-semibold">활성화할 API:</p>
               <ul className="list-disc list-inside space-y-2 ml-4">
                 <li><strong>YouTube Data API v3</strong> (벤치마킹용)</li>
                 <li><strong>Cloud Text-to-Speech API</strong> (TTS용)</li>
-                <li><strong>Cloud Speech-to-Text API</strong> (STT용)</li>
               </ul>
               <p className="mt-4">API 라이브러리에서 "YouTube"를 검색합니다.</p>
               <img 
@@ -227,7 +224,7 @@ const ApiGuideCloudConsolePage: React.FC = () => {
                 className="w-full rounded-lg border border-[#2A2A2A]"
               />
               <div className="bg-yellow-900/20 border border-yellow-700/50 rounded-lg p-3 mt-4">
-                <p className="text-yellow-300 text-sm">⚠️ 같은 방법으로 Cloud Text-to-Speech API와 Cloud Speech-to-Text API도 활성화해주세요</p>
+                <p className="text-yellow-300 text-sm">⚠️ Cloud Text-to-Speech API도 같은 방법으로 활성화해주세요</p>
               </div>
             </div>
           </section>

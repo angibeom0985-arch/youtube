@@ -15,6 +15,7 @@ import ScriptGuidePage from './pages/ScriptGuidePage.tsx';
 import ImageGuidePage from './pages/ImageGuidePage.tsx';
 import TtsGuidePage from './pages/TtsGuidePage.tsx';
 import AdminPage from './pages/AdminPage.tsx';
+import AdminEditorPage from './pages/AdminEditorPage.tsx';
 import DebugPage from './pages/DebugPage.tsx';
 import DownloadProgressPage from './pages/DownloadProgressPage.tsx';
 import DownloadPage from './pages/DownloadPage.tsx';
@@ -61,6 +62,7 @@ root.render(
         <Route path="/api-guide-aistudio" element={<ApiGuideAiStudioPage />} />
         <Route path="/api-guide-cloudconsole" element={<ApiGuideCloudConsolePage />} />
         <Route path="/admin" element={<AdminPage />} />
+        <Route path="/admin-editor" element={<AdminEditorPage />} />
         <Route path="/debug" element={<DebugPage mode="home" />} />
         <Route path="/debug/script" element={<DebugPage mode="script" />} />
         <Route path="/debug/image/*" element={<DebugPage mode="image" />} />
