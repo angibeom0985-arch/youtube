@@ -449,6 +449,22 @@ const TtsPage: React.FC = () => {
                 <div className="flex items-center gap-3">
                   <div className={`p-2 rounded-xl ${useAIActing ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'bg-slate-800 text-slate-400'}`}>
                     <FiCpu size={20} />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-slate-200">AI 연기 모드</h3>
+                    <p className="text-xs text-slate-500">텍스트에 감정과 연기를 더합니다</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setUseAIActing(!useAIActing)}
+                  className={`relative h-6 w-12 rounded-full transition-colors focus:outline-none ${useAIActing ? 'bg-emerald-500' : 'bg-slate-700'}`}
+                >
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${useAIActing ? 'translate-x-6' : 'translate-x-1'}`} />
+                </button>
+              </div>
+
+              {useAIActing && (
+                <div className="mt-4 animate-fadeIn">
                   <div className="flex gap-2 mb-2">
                     <textarea
                       value={actingPrompt}
@@ -468,24 +484,7 @@ const TtsPage: React.FC = () => {
                   </div>
                   <div className="flex items-start gap-2 mt-3 text-xs text-emerald-400/70">
                     <FiInfo className="mt-0.5 flex-shrink-0" />
-                    <p>AI가 대본을 분석하여 최적의 연기 톤을 제안합니다. 프롬프트를 비워두면 대본 내용에 따라 자연스러운 톤으로 읽습unded-full transition-colors focus:outline-none ${useAIActing ? 'bg-emerald-500' : 'bg-slate-700'}`}
-                >
-                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${useAIActing ? 'translate-x-6' : 'translate-x-1'}`} />
-                </button>
-              </div>
-
-              {useAIActing && (
-                <div className="mt-4 animate-fadeIn">
-                  <textarea
-                    value={actingPrompt}
-                    onChange={(e) => setActingPrompt(e.target.value)}
-                    placeholder="예: 뉴스 앵커처럼 신뢰감 있게, 슬픈 드라마 주인공처럼 애절하게, 어린이에게 동화책을 읽어주듯 다정하게 (비워두면 자동 분석)"
-                    className="w-full bg-black/40 border border-emerald-500/20 rounded-xl p-4 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 transition-all leading-relaxed"
-                    rows={2}
-                  />
-                  <div className="flex items-start gap-2 mt-3 text-xs text-emerald-400/70">
-                    <FiInfo className="mt-0.5 flex-shrink-0" />
-                    <p>AI가 텍스트를 SSML 마크업으로 변환하여 문장 사이의 쉼표, 강조, 속도를 세밀하게 조절합니다.</p>
+                    <p>AI가 대본을 분석하여 최적의 연기 톤을 제안합니다. 프롬프트를 비워두면 대본 내용에 따라 자연스러운 톤으로 읽습니다.</p>
                   </div>
                 </div>
               )}

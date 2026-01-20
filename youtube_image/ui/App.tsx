@@ -33,6 +33,7 @@ import FloatingBottomAd from "./components/FloatingBottomAd";
 import SideFloatingAd from "./components/SideFloatingAd";
 import AdBlockDetector from "./components/AdBlockDetector";
 import ApiKeyRequiredModal from "./components/ApiKeyRequiredModal";
+import ApiKeyInput from "./components/ApiKeyInput";
 
 type ImageAppView = "main" | "user-guide" | "image-prompt";
 
@@ -196,12 +197,12 @@ const App: React.FC<ImageAppProps> = ({
     [navigate, normalizedBasePath]
   );
   
-  // Check for Gemini API key on page load
-  useEffect(() => {
-    if (!apiKey) {
-      setShowApiKeyModal(true);
-    }
-  }, [apiKey]);
+  // API 키 모달 자동 표시 비활성화 (사용자가 직접 입력)
+  // useEffect(() => {
+  //   if (!apiKey) {
+  //     setShowApiKeyModal(true);
+  //   }
+  // }, [apiKey]);
 
   // 컴포넌트 마운트 시 저장된 작업 데이터 불러오기 (localStorage 우선, 없으면 sessionStorage)
   useEffect(() => {
@@ -1478,43 +1479,15 @@ const App: React.FC<ImageAppProps> = ({
 
             {/* API 키 입력 */}
             <div className="max-w-2xl mx-auto mt-6">
-              <div className="bg-gradient-to-r from-indigo-950/40 to-indigo-900/30 border border-indigo-800/40 rounded-lg p-4 shadow-sm">
-                <div className="flex items-center gap-2 mb-3">
-                  <svg className="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                  </svg>
-                  <label className="text-sm font-semibold text-indigo-200">
-                    Gemini API 키
-                  </label>
-                  <div className="ml-auto flex gap-2">
-                    <a
-                      href="/api-guide-aistudio"
-                      className="px-3 py-1.5 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-indigo-100 rounded-lg text-sm font-medium transition-all"
-                    >
-                      발급방법
-                    </a>
-                  </div>
-                </div>
-                
-                <input
-                  type="password"
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                  placeholder="AIzaSy..."
-                  className="w-full px-4 py-2.5 border bg-[#1A1A1A] border-indigo-800/40 text-neutral-200 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 placeholder-neutral-500 transition-all text-sm"
-                />
-
-                {!apiKey && (
-                  <p className="mt-2 text-xs text-indigo-400 flex items-center gap-1">
-                    <span>⚠️</span>
-                    <span>API 키 필요</span>
-                  </p>
-                )}
-                
-                <p className="mt-2 text-xs text-neutral-400">
-                  브라우저에만 저장됩니다.
-                </p>
-              </div>
+              <ApiKeyInput
+                storageKey="gemini_api_key_image"
+                label="Gemini API 키"
+                placeholder="AIzaSy..."
+                helpText="브라우저에만 저장됩니다. 이미지 생성에 필요합니다."
+                guideRoute="/api-guide-aistudio"
+                theme="indigo"
+                apiType="gemini"
+              />
             </div>
 
             {/* 데이터 복원 안내 (복원된 데이터가 있을 때만 표시) */}
@@ -2876,13 +2849,13 @@ const App: React.FC<ImageAppProps> = ({
         초기화
       </button>
       
-      {/* API Key Required Modal */}
-      <ApiKeyRequiredModal
+      {/* API Key Required Modal - 비활성화 (직접 입력 방식으로 변경) */}
+      {/* <ApiKeyRequiredModal
         isOpen={showApiKeyModal}
         onClose={() => setShowApiKeyModal(false)}
         apiType="gemini"
         featureName="이미지 생성"
-      />
+      /> */}
     </>
   );
 };
