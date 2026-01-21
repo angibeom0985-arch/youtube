@@ -1563,21 +1563,31 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         <div className="text-sm font-semibold text-white/60">AI 보이스 선택</div>
                         <div className="flex flex-wrap gap-2">
                           {voiceOptions.map((voice) => (
-                            <button
-                              key={voice.name}
-                              type="button"
-                              onClick={() => {
-                                setChapterVoices({ ...chapterVoices, [index]: voice.name });
-                              }}
-                              className={`px-4 py-2 rounded-lg border text-sm font-medium transition-all ${
-                                (chapterVoices[index] || voiceOptions[0].name) === voice.name
-                                  ? "border-red-400 bg-red-500/20 text-red-300"
-                                  : "border-white/20 bg-black/40 text-white/70 hover:border-white/40"
-                              }`}
-                            >
-                              {voice.name}
-                              <span className="text-xs ml-1 opacity-70">· {voice.label}</span>
-                            </button>
+                            <div key={voice.name} className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setChapterVoices({ ...chapterVoices, [index]: voice.name });
+                                }}
+                                className={`px-4 py-2 rounded-lg border text-sm font-medium transition-all ${
+                                  (chapterVoices[index] || voiceOptions[0].name) === voice.name
+                                    ? "border-red-400 bg-red-500/20 text-red-300"
+                                    : "border-white/20 bg-black/40 text-white/70 hover:border-white/40"
+                                }`}
+                              >
+                                {voice.name}
+                                <span className="text-xs ml-1 opacity-70">· {voice.label}</span>
+                              </button>
+                              <button
+                                type="button"
+                                className="p-2 rounded-lg border border-white/10 bg-black/40 hover:bg-red-500/20 hover:border-red-400/50 transition-all"
+                                title="미리듣기"
+                              >
+                                <svg className="w-4 h-4 text-white/70" fill="currentColor" viewBox="0 0 20 20">
+                                  <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" />
+                                </svg>
+                              </button>
+                            </div>
                           ))}
                           <button
                             type="button"
@@ -1618,10 +1628,11 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         </button>
                       </div>
 
-                      {/* 더 많은 TTS 목소리 선택 모달 - 챕터별 인라인 표시 */}
+                      {/* 더 많은 TTS 목소리 선택 모달 - 오른쪽 사이드바 */}
                       {showVoiceModal && currentChapterForVoice === index && (
-                        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowVoiceModal(false)}>
-                          <div className="relative w-[90%] max-w-[500px] max-h-[80vh] overflow-y-auto bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-2xl border border-white/20 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                        <div className="fixed inset-0 z-[100] pointer-events-none">
+                          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm pointer-events-auto" onClick={() => setShowVoiceModal(false)} />
+                          <div className="absolute top-0 right-0 h-full w-[90%] max-w-[450px] bg-gradient-to-br from-zinc-900 to-zinc-800 border-l border-white/20 shadow-2xl overflow-y-auto pointer-events-auto animate-slide-in-right" onClick={(e) => e.stopPropagation()}>
                             <div className="sticky top-0 bg-gradient-to-br from-zinc-900 to-zinc-800 border-b border-white/10 px-6 py-4 flex items-center justify-between z-10">
                               <div>
                                 <h3 className="text-xl font-bold text-white">🎙️ AI 보이스 선택</h3>
@@ -1646,29 +1657,38 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                               </h4>
                               <div className="space-y-2">
                                 {allVoiceOptions.filter(v => v.category === "추천").map((voice) => (
-                                  <button
+                                  <div
                                     key={voice.name}
-                                    onClick={() => {
-                                      if (currentChapterForVoice !== null) {
-                                        setChapterVoices({ ...chapterVoices, [currentChapterForVoice]: voice.name });
-                                      }
-                                      setShowVoiceModal(false);
-                                    }}
-                                    className="w-full text-left p-3 rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-white/0 hover:from-red-500/20 hover:to-orange-500/10 hover:border-red-400/50 transition-all group"
+                                    className="rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-white/0 hover:from-red-500/20 hover:to-orange-500/10 hover:border-red-400/50 transition-all group"
                                   >
-                                    <div className="flex items-start justify-between">
-                                      <div>
+                                    <div className="flex items-start justify-between p-3">
+                                      <button
+                                        onClick={() => {
+                                          if (currentChapterForVoice !== null) {
+                                            setChapterVoices({ ...chapterVoices, [currentChapterForVoice]: voice.name });
+                                          }
+                                          setShowVoiceModal(false);
+                                        }}
+                                        className="flex-1 text-left"
+                                      >
                                         <p className="text-base font-bold text-white group-hover:text-red-300 transition-colors">{voice.name}</p>
                                         <p className="text-xs text-white/60 mt-1">{voice.label}</p>
                                         <p className="text-xs text-white/40 mt-1">{voice.tone}</p>
-                                      </div>
-                                      <button className="p-2 rounded-full bg-white/10 hover:bg-red-500/30 transition-colors">
+                                      </button>
+                                      <button 
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          // 미리듣기 기능
+                                        }}
+                                        className="p-2 rounded-full bg-white/10 hover:bg-red-500/30 transition-colors flex-shrink-0"
+                                        title="미리듣기"
+                                      >
                                         <svg className="w-3 h-3 text-white/70" fill="currentColor" viewBox="0 0 20 20">
                                           <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" />
                                         </svg>
                                       </button>
                                     </div>
-                                  </button>
+                                  </div>
                                 ))}
                               </div>
                             </div>
@@ -1681,29 +1701,38 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                               </h4>
                               <div className="space-y-2">
                                 {allVoiceOptions.filter(v => v.category === "남성").map((voice) => (
-                                  <button
+                                  <div
                                     key={voice.name}
-                                    onClick={() => {
-                                      if (currentChapterForVoice !== null) {
-                                        setChapterVoices({ ...chapterVoices, [currentChapterForVoice]: voice.name });
-                                      }
-                                      setShowVoiceModal(false);
-                                    }}
-                                    className="w-full text-left p-3 rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-white/0 hover:from-blue-500/20 hover:to-cyan-500/10 hover:border-blue-400/50 transition-all group"
+                                    className="rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-white/0 hover:from-blue-500/20 hover:to-cyan-500/10 hover:border-blue-400/50 transition-all group"
                                   >
-                                    <div className="flex items-start justify-between">
-                                      <div>
+                                    <div className="flex items-start justify-between p-3">
+                                      <button
+                                        onClick={() => {
+                                          if (currentChapterForVoice !== null) {
+                                            setChapterVoices({ ...chapterVoices, [currentChapterForVoice]: voice.name });
+                                          }
+                                          setShowVoiceModal(false);
+                                        }}
+                                        className="flex-1 text-left"
+                                      >
                                         <p className="text-base font-bold text-white group-hover:text-blue-300 transition-colors">{voice.name}</p>
                                         <p className="text-xs text-white/60 mt-1">{voice.label}</p>
                                         <p className="text-xs text-white/40 mt-1">{voice.tone}</p>
-                                      </div>
-                                      <button className="p-2 rounded-full bg-white/10 hover:bg-blue-500/30 transition-colors">
+                                      </button>
+                                      <button 
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          // 미리듣기 기능
+                                        }}
+                                        className="p-2 rounded-full bg-white/10 hover:bg-blue-500/30 transition-colors flex-shrink-0"
+                                        title="미리듣기"
+                                      >
                                         <svg className="w-3 h-3 text-white/70" fill="currentColor" viewBox="0 0 20 20">
                                           <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" />
                                         </svg>
                                       </button>
                                     </div>
-                                  </button>
+                                  </div>
                                 ))}
                               </div>
                             </div>
@@ -1716,29 +1745,38 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                               </h4>
                               <div className="space-y-2">
                                 {allVoiceOptions.filter(v => v.category === "여성").map((voice) => (
-                                  <button
+                                  <div
                                     key={voice.name}
-                                    onClick={() => {
-                                      if (currentChapterForVoice !== null) {
-                                        setChapterVoices({ ...chapterVoices, [currentChapterForVoice]: voice.name });
-                                      }
-                                      setShowVoiceModal(false);
-                                    }}
-                                    className="w-full text-left p-3 rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-white/0 hover:from-pink-500/20 hover:to-rose-500/10 hover:border-pink-400/50 transition-all group"
+                                    className="rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-white/0 hover:from-pink-500/20 hover:to-rose-500/10 hover:border-pink-400/50 transition-all group"
                                   >
-                                    <div className="flex items-start justify-between">
-                                      <div>
+                                    <div className="flex items-start justify-between p-3">
+                                      <button
+                                        onClick={() => {
+                                          if (currentChapterForVoice !== null) {
+                                            setChapterVoices({ ...chapterVoices, [currentChapterForVoice]: voice.name });
+                                          }
+                                          setShowVoiceModal(false);
+                                        }}
+                                        className="flex-1 text-left"
+                                      >
                                         <p className="text-base font-bold text-white group-hover:text-pink-300 transition-colors">{voice.name}</p>
                                         <p className="text-xs text-white/60 mt-1">{voice.label}</p>
                                         <p className="text-xs text-white/40 mt-1">{voice.tone}</p>
-                                      </div>
-                                      <button className="p-2 rounded-full bg-white/10 hover:bg-pink-500/30 transition-colors">
+                                      </button>
+                                      <button 
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          // 미리듣기 기능
+                                        }}
+                                        className="p-2 rounded-full bg-white/10 hover:bg-pink-500/30 transition-colors flex-shrink-0"
+                                        title="미리듣기"
+                                      >
                                         <svg className="w-3 h-3 text-white/70" fill="currentColor" viewBox="0 0 20 20">
                                           <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" />
                                         </svg>
                                       </button>
                                     </div>
-                                  </button>
+                                  </div>
                                 ))}
                               </div>
                             </div>
