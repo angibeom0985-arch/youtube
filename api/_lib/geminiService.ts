@@ -234,7 +234,23 @@ export const analyzeTranscript = async (
     });
 
     const jsonText = response.text.trim();
-    return JSON.parse(jsonText) as AnalysisResult;
+    
+    // JSON 파싱 전에 응답 검증
+    if (!jsonText) {
+      throw new Error('EMPTY_RESPONSE: API 응답이 비어있습니다');
+    }
+    
+    // JSON 파싱 시도 및 상세한 에러 처리
+    try {
+      return JSON.parse(jsonText) as AnalysisResult;
+    } catch (parseError: any) {
+      console.error('JSON Parse Error:', {
+        error: parseError.message,
+        jsonText: jsonText.substring(0, 500), // 첫 500자만 로깅
+        fullLength: jsonText.length
+      });
+      throw new Error(`JSON_PARSE_ERROR: AI 응답을 파싱할 수 없습니다 (길이: ${jsonText.length}자)`);
+    }
   } catch (error: any) {
     console.error("Error analyzing transcript:", error);
     
@@ -258,6 +274,10 @@ export const analyzeTranscript = async (
       userMessage += "[원인]\n- API 사용량이 초과되었습니다\n\n[해결 방법]\n- 잠시 후 다시 시도해주세요\n- Google AI Studio에서 API 사용량을 확인해주세요";
     } else if (errorMessage.includes('rate') || errorString.includes('RATE_LIMIT')) {
       userMessage += "[원인]\n- API 요청이 너무 빠르게 발생했습니다\n\n[해결 방법]\n- 10초 정도 기다린 후 다시 시도해주세요";
+    } else if (errorMessage.includes('JSON_PARSE_ERROR') || errorMessage.includes('Unexpected end of JSON')) {
+      userMessage += "[원인]\n- AI 응답이 완료되기 전에 중단되었습니다\n- 스크립트가 너무 길어서 응답이 잘렸을 수 있습니다\n\n[해결 방법]\n- 스크립트를 짧게 나눠서 다시 시도해주세요 (권장: 3,000자 이하)\n- 잠시 후 다시 시도해주세요";
+    } else if (errorMessage.includes('EMPTY_RESPONSE')) {
+      userMessage += "[원인]\n- AI가 응답을 생성하지 못했습니다\n- 입력 스크립트에 문제가 있을 수 있습니다\n\n[해결 방법]\n- 스크립트 내용을 확인해주세요\n- 특수 문자나 이모지를 제거하고 다시 시도해주세요";
     } else {
       userMessage += "[가능한 원인]\n- 스크립트 길이가 너무 길거나 형식이 올바르지 않습니다\n- AI 서버 일시적 오류\n- 네트워크 연결 문제\n\n[해결 방법]\n- 스크립트를 짧게 나눠서 다시 시도해주세요\n- 잠시 후 다시 시도해주세요";
     }
@@ -310,8 +330,22 @@ export const generateIdeas = async (
     });
 
     const jsonText = response.text.trim();
-    const result = JSON.parse(jsonText);
-    return result.ideas as string[];
+    
+    // JSON 파싱 전에 응답 검증
+    if (!jsonText) {
+      throw new Error('EMPTY_RESPONSE: API 응답이 비어있습니다');
+    }
+    
+    try {
+      const result = JSON.parse(jsonText);
+      return result.ideas as string[];
+    } catch (parseError: any) {
+      console.error('JSON Parse Error:', {
+        error: parseError.message,
+        jsonText: jsonText.substring(0, 200)
+      });
+      throw new Error(`JSON_PARSE_ERROR: AI 응답을 파싱할 수 없습니다`);
+    }
   } catch (error: any) {
     console.error("Error generating ideas:", error);
     
@@ -331,6 +365,10 @@ export const generateIdeas = async (
       userMessage += "[원인]\n- API 사용량이 초과되었습니다\n\n[해결 방법]\n- 잠시 후 다시 시도해주세요\n- Google AI Studio에서 API 사용량을 확인해주세요";
     } else if (errorMessage.includes('rate') || errorString.includes('RATE_LIMIT')) {
       userMessage += "[원인]\n- API 요청이 너무 빠르게 발생했습니다\n\n[해결 방법]\n- 10초 정도 기다린 후 다시 시도해주세요";
+    } else if (errorMessage.includes('JSON_PARSE_ERROR') || errorMessage.includes('Unexpected end of JSON')) {
+      userMessage += "[원인]\n- AI 응답이 완료되기 전에 중단되었습니다\n\n[해결 방법]\n- 잠시 후 다시 시도해주세요";
+    } else if (errorMessage.includes('EMPTY_RESPONSE')) {
+      userMessage += "[원인]\n- AI가 응답을 생성하지 못했습니다\n\n[해결 방법]\n- 잠시 후 다시 시도해주세요";
     } else {
       userMessage += "[가능한 원인]\n- AI 서버 일시적 오류\n- 네트워크 연결 문제\n\n[해결 방법]\n- 잠시 후 다시 시도해주세요\n- 새로고침 후 다시 시도해주세요";
     }
@@ -852,7 +890,21 @@ ${analysisString}
     });
 
     const jsonText = response.text.trim();
-    return JSON.parse(jsonText) as NewPlan;
+    
+    // JSON 파싱 전에 응답 검증
+    if (!jsonText) {
+      throw new Error('EMPTY_RESPONSE: API 응답이 비어있습니다');
+    }
+    
+    try {
+      return JSON.parse(jsonText) as NewPlan;
+    } catch (parseError: any) {
+      console.error('JSON Parse Error:', {
+        error: parseError.message,
+        jsonText: jsonText.substring(0, 300)
+      });
+      throw new Error(`JSON_PARSE_ERROR: AI 응답을 파싱할 수 없습니다`);
+    }
   } catch (error: any) {
     console.error("Error generating new plan:", error);
     
@@ -872,6 +924,10 @@ ${analysisString}
       userMessage += "[원인]\n- API 사용량이 초과되었습니다\n\n[해결 방법]\n- 잠시 후 다시 시도해주세요\n- Google AI Studio에서 API 사용량을 확인해주세요";
     } else if (errorMessage.includes('rate') || errorString.includes('RATE_LIMIT')) {
       userMessage += "[원인]\n- API 요청이 너무 빠르게 발생했습니다\n\n[해결 방법]\n- 10초 정도 기다린 후 다시 시도해주세요";
+    } else if (errorMessage.includes('JSON_PARSE_ERROR') || errorMessage.includes('Unexpected end of JSON')) {
+      userMessage += "[원인]\n- AI 응답이 완료되기 전에 중단되었습니다\n- 키워드가 너무 복잡할 수 있습니다\n\n[해결 방법]\n- 더 간단한 키워드로 다시 시도해주세요\n- 잠시 후 다시 시도해주세요";
+    } else if (errorMessage.includes('EMPTY_RESPONSE')) {
+      userMessage += "[원인]\n- AI가 응답을 생성하지 못했습니다\n\n[해결 방법]\n- 키워드를 변경하여 다시 시도해주세요";
     } else {
       userMessage += "[가능한 원인]\n- 키워드가 너무 복잡하거나 부적절합니다\n- AI 서버 일시적 오류\n- 네트워크 연결 문제\n\n[해결 방법]\n- 더 간단한 키워드로 다시 시도해주세요\n- 잠시 후 다시 시도해주세요";
     }
@@ -913,7 +969,21 @@ export const generateSsml = async (
     });
 
     const jsonText = response.text.trim();
-    return JSON.parse(jsonText) as { ssml: string };
+    
+    // JSON 파싱 전에 응답 검증
+    if (!jsonText) {
+      throw new Error('EMPTY_RESPONSE: API 응답이 비어있습니다');
+    }
+    
+    try {
+      return JSON.parse(jsonText) as { ssml: string };
+    } catch (parseError: any) {
+      console.error('JSON Parse Error:', {
+        error: parseError.message,
+        jsonText: jsonText.substring(0, 200)
+      });
+      throw new Error(`JSON_PARSE_ERROR: SSML 응답을 파싱할 수 없습니다`);
+    }
   } catch (error: any) {
     console.error("Error generating SSML:", error);
     throw new Error("SSML 생성 중 오류가 발생했습니다: " + (error.message || "Unknown error"));
