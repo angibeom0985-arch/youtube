@@ -1531,7 +1531,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
               {chapterScripts.length > 0 ? (
                 <div className="space-y-4">
                   {chapterScripts.map((chapter, index) => (
-                    <div key={index} className="rounded-2xl border border-white/10 bg-black/30 p-5">
+                    <div key={index} className="relative rounded-2xl border border-white/10 bg-black/30 p-5">
                       <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/10">
                         <h4 className="text-lg font-bold text-white flex items-center gap-2">
                           <span className="text-red-400">🎙️</span>
@@ -1614,6 +1614,133 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                           음성 생성
                         </button>
                       </div>
+
+                      {/* 더 많은 TTS 목소리 선택 모달 - 챕터별 인라인 표시 */}
+                      {showVoiceModal && currentChapterForVoice === index && (
+                        <div className="absolute top-0 right-0 z-50 w-[500px] max-h-[600px] overflow-y-auto bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-2xl border border-white/20 shadow-2xl transform translate-x-[calc(100%+16px)]">
+                          <div className="sticky top-0 bg-gradient-to-br from-zinc-900 to-zinc-800 border-b border-white/10 px-6 py-4 flex items-center justify-between">
+                            <div>
+                              <h3 className="text-xl font-bold text-white">🎙️ AI 보이스 선택</h3>
+                              <p className="text-xs text-white/60 mt-1">원하는 목소리를 선택하세요</p>
+                            </div>
+                            <button
+                              onClick={() => setShowVoiceModal(false)}
+                              className="p-2 rounded-full hover:bg-white/10 transition-colors"
+                            >
+                              <svg className="w-5 h-5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
+
+                          <div className="p-6">
+                            {/* 추천 목소리 */}
+                            <div className="mb-6">
+                              <h4 className="text-base font-bold text-white mb-3 flex items-center gap-2">
+                                <span className="text-yellow-400">⭐</span>
+                                추천 목소리
+                              </h4>
+                              <div className="space-y-2">
+                                {allVoiceOptions.filter(v => v.category === "추천").map((voice) => (
+                                  <button
+                                    key={voice.name}
+                                    onClick={() => {
+                                      if (currentChapterForVoice !== null) {
+                                        setChapterVoices({ ...chapterVoices, [currentChapterForVoice]: voice.name });
+                                      }
+                                      setShowVoiceModal(false);
+                                    }}
+                                    className="w-full text-left p-3 rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-white/0 hover:from-red-500/20 hover:to-orange-500/10 hover:border-red-400/50 transition-all group"
+                                  >
+                                    <div className="flex items-start justify-between">
+                                      <div>
+                                        <p className="text-base font-bold text-white group-hover:text-red-300 transition-colors">{voice.name}</p>
+                                        <p className="text-xs text-white/60 mt-1">{voice.label}</p>
+                                        <p className="text-xs text-white/40 mt-1">{voice.tone}</p>
+                                      </div>
+                                      <button className="p-2 rounded-full bg-white/10 hover:bg-red-500/30 transition-colors">
+                                        <svg className="w-3 h-3 text-white/70" fill="currentColor" viewBox="0 0 20 20">
+                                          <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" />
+                                        </svg>
+                                      </button>
+                                    </div>
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+
+                            {/* 남성 목소리 */}
+                            <div className="mb-6">
+                              <h4 className="text-base font-bold text-white mb-3 flex items-center gap-2">
+                                <span className="text-blue-400">👨</span>
+                                남성 목소리
+                              </h4>
+                              <div className="space-y-2">
+                                {allVoiceOptions.filter(v => v.category === "남성").map((voice) => (
+                                  <button
+                                    key={voice.name}
+                                    onClick={() => {
+                                      if (currentChapterForVoice !== null) {
+                                        setChapterVoices({ ...chapterVoices, [currentChapterForVoice]: voice.name });
+                                      }
+                                      setShowVoiceModal(false);
+                                    }}
+                                    className="w-full text-left p-3 rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-white/0 hover:from-blue-500/20 hover:to-cyan-500/10 hover:border-blue-400/50 transition-all group"
+                                  >
+                                    <div className="flex items-start justify-between">
+                                      <div>
+                                        <p className="text-base font-bold text-white group-hover:text-blue-300 transition-colors">{voice.name}</p>
+                                        <p className="text-xs text-white/60 mt-1">{voice.label}</p>
+                                        <p className="text-xs text-white/40 mt-1">{voice.tone}</p>
+                                      </div>
+                                      <button className="p-2 rounded-full bg-white/10 hover:bg-blue-500/30 transition-colors">
+                                        <svg className="w-3 h-3 text-white/70" fill="currentColor" viewBox="0 0 20 20">
+                                          <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" />
+                                        </svg>
+                                      </button>
+                                    </div>
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+
+                            {/* 여성 목소리 */}
+                            <div>
+                              <h4 className="text-base font-bold text-white mb-3 flex items-center gap-2">
+                                <span className="text-pink-400">👩</span>
+                                여성 목소리
+                              </h4>
+                              <div className="space-y-2">
+                                {allVoiceOptions.filter(v => v.category === "여성").map((voice) => (
+                                  <button
+                                    key={voice.name}
+                                    onClick={() => {
+                                      if (currentChapterForVoice !== null) {
+                                        setChapterVoices({ ...chapterVoices, [currentChapterForVoice]: voice.name });
+                                      }
+                                      setShowVoiceModal(false);
+                                    }}
+                                    className="w-full text-left p-3 rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-white/0 hover:from-pink-500/20 hover:to-rose-500/10 hover:border-pink-400/50 transition-all group"
+                                  >
+                                    <div className="flex items-start justify-between">
+                                      <div>
+                                        <p className="text-base font-bold text-white group-hover:text-pink-300 transition-colors">{voice.name}</p>
+                                        <p className="text-xs text-white/60 mt-1">{voice.label}</p>
+                                        <p className="text-xs text-white/40 mt-1">{voice.tone}</p>
+                                      </div>
+                                      <button className="p-2 rounded-full bg-white/10 hover:bg-pink-500/30 transition-colors">
+                                        <svg className="w-3 h-3 text-white/70" fill="currentColor" viewBox="0 0 20 20">
+                                          <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" />
+                                        </svg>
+                                      </button>
+                                    </div>
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -1640,135 +1767,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 </div>
               )}
             </div>
-
-            {/* 더 많은 TTS 목소리 선택 모달 */}
-            {showVoiceModal && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-                <div className="relative w-full max-w-4xl max-h-[80vh] overflow-y-auto bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-2xl border border-white/20 shadow-2xl m-4">
-                  <div className="sticky top-0 bg-gradient-to-br from-zinc-900 to-zinc-800 border-b border-white/10 px-6 py-4 flex items-center justify-between">
-                    <div>
-                      <h3 className="text-2xl font-bold text-white">🎙️ AI 보이스 선택</h3>
-                      <p className="text-sm text-white/60 mt-1">원하는 목소리를 선택하세요</p>
-                    </div>
-                    <button
-                      onClick={() => setShowVoiceModal(false)}
-                      className="p-2 rounded-full hover:bg-white/10 transition-colors"
-                    >
-                      <svg className="w-6 h-6 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
-
-                  <div className="p-6">
-                    {/* 추천 목소리 */}
-                    <div className="mb-6">
-                      <h4 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
-                        <span className="text-yellow-400">⭐</span>
-                        추천 목소리
-                      </h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {allVoiceOptions.filter(v => v.category === "추천").map((voice) => (
-                          <button
-                            key={voice.name}
-                            onClick={() => {
-                              if (currentChapterForVoice !== null) {
-                                setChapterVoices({ ...chapterVoices, [currentChapterForVoice]: voice.name });
-                              }
-                              setShowVoiceModal(false);
-                            }}
-                            className="text-left p-4 rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-white/0 hover:from-red-500/20 hover:to-orange-500/10 hover:border-red-400/50 transition-all group"
-                          >
-                            <div className="flex items-start justify-between">
-                              <div>
-                                <p className="text-lg font-bold text-white group-hover:text-red-300 transition-colors">{voice.name}</p>
-                                <p className="text-sm text-white/60 mt-1">{voice.label}</p>
-                                <p className="text-xs text-white/40 mt-2">{voice.tone}</p>
-                              </div>
-                              <button className="p-2 rounded-full bg-white/10 hover:bg-red-500/30 transition-colors">
-                                <svg className="w-4 h-4 text-white/70" fill="currentColor" viewBox="0 0 20 20">
-                                  <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" />
-                                </svg>
-                              </button>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* 남성 목소리 */}
-                    <div className="mb-6">
-                      <h4 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
-                        <span className="text-blue-400">👨</span>
-                        남성 목소리
-                      </h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {allVoiceOptions.filter(v => v.category === "남성").map((voice) => (
-                          <button
-                            key={voice.name}
-                            onClick={() => {
-                              if (currentChapterForVoice !== null) {
-                                setChapterVoices({ ...chapterVoices, [currentChapterForVoice]: voice.name });
-                              }
-                              setShowVoiceModal(false);
-                            }}
-                            className="text-left p-4 rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-white/0 hover:from-blue-500/20 hover:to-cyan-500/10 hover:border-blue-400/50 transition-all group"
-                          >
-                            <div className="flex items-start justify-between">
-                              <div>
-                                <p className="text-lg font-bold text-white group-hover:text-blue-300 transition-colors">{voice.name}</p>
-                                <p className="text-sm text-white/60 mt-1">{voice.label}</p>
-                                <p className="text-xs text-white/40 mt-2">{voice.tone}</p>
-                              </div>
-                              <button className="p-2 rounded-full bg-white/10 hover:bg-blue-500/30 transition-colors">
-                                <svg className="w-4 h-4 text-white/70" fill="currentColor" viewBox="0 0 20 20">
-                                  <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" />
-                                </svg>
-                              </button>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* 여성 목소리 */}
-                    <div>
-                      <h4 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
-                        <span className="text-pink-400">👩</span>
-                        여성 목소리
-                      </h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {allVoiceOptions.filter(v => v.category === "여성").map((voice) => (
-                          <button
-                            key={voice.name}
-                            onClick={() => {
-                              if (currentChapterForVoice !== null) {
-                                setChapterVoices({ ...chapterVoices, [currentChapterForVoice]: voice.name });
-                              }
-                              setShowVoiceModal(false);
-                            }}
-                            className="text-left p-4 rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-white/0 hover:from-pink-500/20 hover:to-rose-500/10 hover:border-pink-400/50 transition-all group"
-                          >
-                            <div className="flex items-start justify-between">
-                              <div>
-                                <p className="text-lg font-bold text-white group-hover:text-pink-300 transition-colors">{voice.name}</p>
-                                <p className="text-sm text-white/60 mt-1">{voice.label}</p>
-                                <p className="text-xs text-white/40 mt-2">{voice.tone}</p>
-                              </div>
-                              <button className="p-2 rounded-full bg-white/10 hover:bg-pink-500/30 transition-colors">
-                                <svg className="w-4 h-4 text-white/70" fill="currentColor" viewBox="0 0 20 20">
-                                  <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" />
-                                </svg>
-                              </button>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         );
       case "image":
