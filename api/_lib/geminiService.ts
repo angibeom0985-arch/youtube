@@ -282,7 +282,12 @@ export const analyzeTranscript = async (
       userMessage += "[가능한 원인]\n- 스크립트 길이가 너무 길거나 형식이 올바르지 않습니다\n- AI 서버 일시적 오류\n- 네트워크 연결 문제\n\n[해결 방법]\n- 스크립트를 짧게 나눠서 다시 시도해주세요\n- 잠시 후 다시 시도해주세요";
     }
     
-    userMessage += `\n\n[개발자 정보]\n${errorMessage || '알 수 없는 오류'}\n${error.stack ? '\nStack: ' + error.stack : ''}`;
+    // 상세 오류 정보 추가
+    userMessage += `\n\n[상세 정보]\n${errorMessage || '알 수 없는 오류'}`;
+    if (error.stack) {
+      const stackLines = error.stack.split('\n').slice(0, 3).join('\n');
+      userMessage += `\n${stackLines}`;
+    }
     
     throw new Error(userMessage);
   }
@@ -373,7 +378,12 @@ export const generateIdeas = async (
       userMessage += "[가능한 원인]\n- AI 서버 일시적 오류\n- 네트워크 연결 문제\n\n[해결 방법]\n- 잠시 후 다시 시도해주세요\n- 새로고침 후 다시 시도해주세요";
     }
     
-    userMessage += `\n\n[개발자 정보]\n${errorMessage || '알 수 없는 오류'}\n${error.stack ? '\nStack: ' + error.stack : ''}`;
+    // 상세 오류 정보 추가
+    userMessage += `\n\n[상세 정보]\n${errorMessage || '알 수 없는 오류'}`;
+    if (error.stack) {
+      const stackLines = error.stack.split('\n').slice(0, 3).join('\n');
+      userMessage += `\n${stackLines}`;
+    }
     
     throw new Error(userMessage);
   }
@@ -932,7 +942,12 @@ ${analysisString}
       userMessage += "[가능한 원인]\n- 키워드가 너무 복잡하거나 부적절합니다\n- AI 서버 일시적 오류\n- 네트워크 연결 문제\n\n[해결 방법]\n- 더 간단한 키워드로 다시 시도해주세요\n- 잠시 후 다시 시도해주세요";
     }
     
-    userMessage += `\n\n[개발자 정보]\n${errorMessage || '알 수 없는 오류'}\n${error.stack ? '\nStack: ' + error.stack : ''}`;
+    // 상세 오류 정보 추가
+    userMessage += `\n\n[상세 정보]\n${errorMessage || '알 수 없는 오류'}`;
+    if (error.stack) {
+      const stackLines = error.stack.split('\n').slice(0, 3).join('\n');
+      userMessage += `\n${stackLines}`;
+    }
     
     throw new Error(userMessage);
   }
