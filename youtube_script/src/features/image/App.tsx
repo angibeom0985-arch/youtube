@@ -1,4 +1,4 @@
-﻿import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { compressImage, canStoreInLocalStorage } from "./utils/imageCompression";
 import {
@@ -41,8 +41,6 @@ interface ImageAppProps {
   basePath?: string;
   initialScript?: string;
 }
-
-const IMAGE_CREDIT_COST = 5;
 
 const App: React.FC<ImageAppProps> = ({
   basePath = "/image",
@@ -138,8 +136,7 @@ const App: React.FC<ImageAppProps> = ({
     if (!response.ok) {
       throw new Error(payload?.message || "크레딧 차감에 실패했습니다.");
     }
-    window.dispatchEvent(new Event("creditRefresh"));
-  }, [getAuthHeaders]);
+    }, [getAuthHeaders]);
 
   const refundCredits = useCallback(async (cost: number) => {
     const { headers, token } = await getAuthHeaders();
@@ -154,8 +151,7 @@ const App: React.FC<ImageAppProps> = ({
         body: JSON.stringify({ action: "refund", cost }),
       });
       if (response.ok) {
-        window.dispatchEvent(new Event("creditRefresh"));
-      }
+        }
     } catch (error) {
       console.error("크레딧 환불 실패:", error);
     }

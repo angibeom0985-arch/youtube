@@ -2,12 +2,10 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../services/supabase";
 import type { User } from "@supabase/supabase-js";
-import UserCreditToolbar from "../components/UserCreditToolbar";
-import { FiUser, FiZap, FiCreditCard, FiClock, FiSettings } from "react-icons/fi";
+import { FiUser, FiClock, FiSettings } from "react-icons/fi";
 
 const MyPage: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
-  const [credits, setCredits] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const navigate = useNavigate();
@@ -19,7 +17,7 @@ const MyPage: React.FC = () => {
         return;
       }
       setUser(session.user);
-      fetchCredits(session.access_token);
+      setLoading(false);
     });
 
     const {
@@ -34,27 +32,6 @@ const MyPage: React.FC = () => {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
-
-  const fetchCredits = async (token: string) => {
-    try {
-      const response = await fetch("/api/YOUTUBE/user", {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setCredits(data.credits);
-      }
-    } catch (error) {
-      console.error("Failed to fetch credits:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -102,7 +79,7 @@ const MyPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-black text-white relative">
       <div className="absolute top-0 right-0 p-6 flex gap-3 z-10 items-center">
-        <UserCreditToolbar user={user} onLogout={handleLogout} tone="slate" />
+        
       </div>
 
       <div className="max-w-4xl mx-auto px-6 py-20">
@@ -111,7 +88,7 @@ const MyPage: React.FC = () => {
         </Link>
         
         <h1 className="text-4xl font-bold mb-2">마이 페이지</h1>
-        <p className="text-slate-400 mb-12">계정 정보와 크레딧 내역을 확인하세요.</p>
+        <p className="text-slate-400 mb-12">계정 정보를 확인하고 관리하세요.</p>
 
         <div className="grid md:grid-cols-3 gap-6">
           {/* User Profile Card */}
@@ -149,35 +126,8 @@ const MyPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Credit & Activity */}
+          {/* Quick Actions */}
           <div className="md:col-span-2 space-y-6">
-            {/* Credit Balance */}
-            <div className="bg-gradient-to-br from-indigo-900/50 to-purple-900/50 border border-indigo-500/20 rounded-2xl p-6 relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-6 opacity-10">
-                <FiZap className="w-32 h-32" />
-              </div>
-              
-              <div className="relative z-10">
-                <p className="text-indigo-300 font-medium mb-1 flex items-center gap-2">
-                  <FiZap /> 보유 크레딧
-                </p>
-                <div className="flex items-baseline gap-2 mb-6">
-                  <span className="text-5xl font-black text-white tracking-tight">
-                    {credits?.toLocaleString() ?? 0}
-                  </span>
-                  <span className="text-lg text-white/60">credits</span>
-                </div>
-
-                <Link
-                  to="/credit-purchase"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-white text-indigo-900 rounded-xl font-bold hover:bg-indigo-50 transition-colors"
-                >
-                  <FiCreditCard />
-                  크레딧 충전하기
-                </Link>
-              </div>
-            </div>
-
             {/* Quick Actions */}
             <div className="grid grid-cols-2 gap-4">
               <Link to="/script" className="bg-zinc-900 border border-white/10 p-5 rounded-2xl hover:border-white/30 transition-colors group">

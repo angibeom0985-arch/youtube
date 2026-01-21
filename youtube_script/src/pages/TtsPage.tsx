@@ -4,7 +4,6 @@ import { generateSsml, generateActingPrompt } from "../services/geminiService";
 import { FiPlay, FiPause, FiMic, FiSliders, FiCpu, FiInfo, FiUser, FiFileText, FiDownload } from "react-icons/fi";
 import { supabase } from "../services/supabase";
 import type { User } from "@supabase/supabase-js";
-import UserCreditToolbar from "../components/UserCreditToolbar";
 import ErrorNotice from "../components/ErrorNotice";
 import ApiKeyInput from "../components/ApiKeyInput";
 
@@ -272,7 +271,6 @@ const TtsPage: React.FC = () => {
       }
 
       setAudioSrc(`data:audio/mp3;base64,${payload.audioContent}`);
-      window.dispatchEvent(new Event("creditRefresh"));
       setProgressStep("completed");
 
     } catch (err: any) {
@@ -302,7 +300,7 @@ const TtsPage: React.FC = () => {
       
       {/* Auth Status - Top Right */}
       <div className="absolute top-0 right-0 p-4 sm:p-6 flex gap-3 z-50 items-center">
-        <UserCreditToolbar user={user} onLogout={handleLogout} tone="emerald" />
+        
       </div>
 
       <div className="relative mx-auto max-w-6xl px-6 py-12">

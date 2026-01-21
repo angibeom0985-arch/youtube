@@ -2,7 +2,6 @@ import React, { useState, useMemo, useEffect } from "react";
 import { FiLayout, FiList, FiDownload, FiExternalLink, FiSearch } from "react-icons/fi";
 import { supabase } from "../services/supabase";
 import type { User } from "@supabase/supabase-js";
-import UserCreditToolbar from "../components/UserCreditToolbar";
 import HomeBackButton from "../components/HomeBackButton";
 import ApiKeyInput from "../components/ApiKeyInput";
 
@@ -132,8 +131,7 @@ const BenchmarkingPage: React.FC = () => {
 
         setResults(data.results || []);
         setSummary(data.summary || null);
-        window.dispatchEvent(new Event("creditRefresh"));
-    } catch (err) {
+        } catch (err) {
       setError((err as Error).message || "검색에 실패했습니다.");
     } finally {
       setLoading(false);
@@ -186,7 +184,7 @@ const BenchmarkingPage: React.FC = () => {
           </div>
           
           <div className="flex flex-wrap items-center justify-end gap-3">
-            <UserCreditToolbar user={user} onLogout={handleLogout} tone="purple" />
+            
             
             <div className="bg-slate-900 border border-slate-700 rounded-lg p-1 flex">
               <button 

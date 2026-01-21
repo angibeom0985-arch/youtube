@@ -17,7 +17,6 @@ import {
 import JSZip from "jszip";
 import { supabase } from "../services/supabase";
 import type { User } from "@supabase/supabase-js";
-import UserCreditToolbar from "../components/UserCreditToolbar";
 import HomeBackButton from "../components/HomeBackButton";
 import ErrorNotice from "../components/ErrorNotice";
 import ApiKeyInput from "../components/ApiKeyInput";
@@ -1320,10 +1319,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       <span>{timelineScenes.length}개</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>예상 크레딧</span>
-                      <span>{timelineScenes.length} 크레딧</span>
-                    </div>
-                    <div className="flex justify-between">
                       <span>출력 형식</span>
                       <span>MP4 (1080p)</span>
                     </div>
@@ -1389,7 +1384,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       <div className="absolute -bottom-32 -right-28 h-[clamp(240px,36vw,420px)] w-[clamp(240px,36vw,420px)] rounded-full bg-gradient-to-tr from-rose-400/30 via-purple-500/10 to-transparent blur-3xl" />
 
       <div className="absolute top-0 right-0 p-4 sm:p-6 flex gap-3 z-50 items-center">
-        <UserCreditToolbar user={user} onLogout={handleLogout} tone="red" />
+        
       </div>
 
       <div className="relative mx-auto max-w-[min(1280px,94vw)] px-[clamp(1rem,3vw,2.5rem)] py-[clamp(2rem,4vw,3.8rem)]">

@@ -38,10 +38,6 @@ const toUserMessage = (raw: string): string => {
   if (!text || lower.includes("server_error")) {
     return "요청 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
   }
-  // 크레딧 부족 에러 메시지 처리
-  if (lower.includes("크레딧이 부족합니다")) {
-    return raw; // 서버에서 보낸 메시지 그대로 표시
-  }
 
   return text;
 };

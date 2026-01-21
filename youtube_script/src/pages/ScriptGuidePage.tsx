@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { FiHome } from "react-icons/fi";
 import { supabase } from "../services/supabase";
 import type { User } from "@supabase/supabase-js";
-import UserCreditToolbar from "../components/UserCreditToolbar";
 
 const ScriptGuidePage: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -50,7 +49,7 @@ const ScriptGuidePage: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#0C0C10] text-white font-sans p-4 sm:p-8">
       <div className="absolute top-0 right-0 p-4 sm:p-6 flex gap-3 z-50 items-center">
-        <UserCreditToolbar user={user} onLogout={handleLogout} tone="orange" />
+        
       </div>
 
       <div className="max-w-4xl mx-auto">

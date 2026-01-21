@@ -21,7 +21,6 @@ import DownloadProgressPage from './pages/DownloadProgressPage.tsx';
 import DownloadPage from './pages/DownloadPage.tsx';
 import TtsPage from './pages/TtsPage.tsx';
 import BenchmarkingPage from './pages/BenchmarkingPage.tsx';
-import CreditPurchasePage from './pages/CreditPurchasePage.tsx';
 import VideoPage from './pages/VideoPage.tsx';
 import MyPage from './pages/MyPage.tsx';
 import RequireAuth from './components/RequireAuth.tsx';
@@ -49,7 +48,6 @@ root.render(
             }
           />
           <Route path="/tts" element={<TtsPage />} />
-          <Route path="/credit-purchase" element={<CreditPurchasePage />} />
           <Route path="/mypage" element={<MyPage />} />
           <Route path="/video/*" element={<VideoPage />} />
         </Route>
