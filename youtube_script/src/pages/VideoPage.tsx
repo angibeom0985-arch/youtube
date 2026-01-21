@@ -657,29 +657,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       return;
     }
     
-    // 대본 길이 체크 (권장 최대 5000자)
     const scriptLength = scriptDraft.trim().length;
-    if (scriptLength > 10000) {
-      setScriptError(
-        "⚠️ 대본이 너무 깁니다.\n\n" +
-        `현재 길이: ${scriptLength.toLocaleString()}자\n` +
-        "권장 길이: 5,000자 이하\n\n" +
-        "대본을 짧게 줄이거나 나눠서 분석해 주세요.\n" +
-        "긴 대본은 서버 타임아웃을 유발할 수 있습니다."
-      );
-      return;
-    }
-    
-    if (scriptLength > 5000) {
-      const confirmProceed = window.confirm(
-        `대본 길이가 ${scriptLength.toLocaleString()}자로 권장 길이(5,000자)를 초과합니다.\n\n` +
-        "분석에 시간이 오래 걸리거나 실패할 수 있습니다.\n" +
-        "계속 진행하시겠습니까?"
-      );
-      if (!confirmProceed) {
-        return;
-      }
-    }
     
     setScriptError("");
     setIsAnalyzingScript(true);
@@ -693,7 +671,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       
       // Step 2: 핵심 키워드 추출 (이미 analysis에 포함됨)
       setAnalyzeProgress(prev => ({ ...prev, currentStep: 1 }));
-      await new Promise(resolve => setTimeout(resolve, 500)); // UI 업데이트를 위한 짧은 지연
       
       // Step 3: 추천 주제 생성
       setAnalyzeProgress(prev => ({ ...prev, currentStep: 2 }));
@@ -709,11 +686,12 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       if (errorMessage.includes("FUNCTION_INVOCATION_TIMEOUT") || errorMessage.includes("timeout") || errorMessage.includes("timed out")) {
         setScriptError(
           "⏱️ 분석 작업이 시간 초과되었습니다.\n\n" +
-          `대본 길이: ${scriptLength.toLocaleString()}자\n` +
-          "권장 길이: 5,000자 이하\n\n" +
-          "대본이 너무 길거나 서버가 응답하지 않았습니다.\n" +
-          "• 대본 길이를 줄여서 다시 시도해 주세요.\n" +
-          "• 5분 후 다시 시도해 주세요.\n\n" +
+          `대본 길이: ${scriptLength.toLocaleString()}자\n\n` +
+          "긴 대본은 처리 시간이 오래 걸립니다.\n" +
+          "💡 해결 방법:\n" +
+          "• 5분 후 다시 시도해 주세요 (서버가 일시적으로 바쁠 수 있습니다)\n" +
+          "• 대본을 2-3개로 나눠서 분석한 후 결합하는 것을 권장합니다\n" +
+          "• 다시 시도 버튼을 눌러주세요\n\n" +
           "문제가 계속되면 관리자에게 문의해 주세요."
         );
       } else if (errorMessage.includes("Failed to fetch") || errorMessage.includes("NetworkError")) {
@@ -926,27 +904,21 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   <span>대본 구조 분석용 입력</span>
                 </div>
                 
-                {scriptDraft.length > 5000 && (
-                  <div className={`rounded-xl border px-4 py-3 text-sm ${
-                    scriptDraft.length > 10000 
-                      ? 'border-red-400/50 bg-red-500/10 text-red-300'
-                      : 'border-yellow-400/50 bg-yellow-500/10 text-yellow-300'
-                  }`}>
+                {scriptDraft.length > 20000 && (
+                  <div className="rounded-xl border border-blue-400/50 bg-blue-500/10 px-4 py-3 text-sm text-blue-300">
                     <div className="flex items-start gap-2">
-                      <span className="text-lg">{scriptDraft.length > 10000 ? '⛔' : '⚠️'}</span>
+                      <span className="text-lg">ℹ️</span>
                       <div>
-                        <p className="font-semibold">
-                          {scriptDraft.length > 10000 ? '대본이 너무 깁니다' : '대본 길이 주의'}
+                        <p className="font-semibold">긴 대본 분석 안내</p>
+                        <p className="text-xs mt-1 opacity-80">
+                          현재: {scriptDraft.length.toLocaleString()}자
                         </p>
                         <p className="text-xs mt-1 opacity-80">
-                          현재: {scriptDraft.length.toLocaleString()}자 / 권장: 5,000자 이하
-                          {scriptDraft.length > 10000 && ' (최대 10,000자)'}
+                          • 긴 대본은 분석에 20-30초 정도 소요될 수 있습니다
                         </p>
-                        {scriptDraft.length > 10000 && (
-                          <p className="text-xs mt-1 opacity-80">
-                            분석이 불가능합니다. 대본을 짧게 줄여주세요.
-                          </p>
-                        )}
+                        <p className="text-xs opacity-80">
+                          • 타임아웃 발생 시 다시 시도하거나 대본을 나눠서 분석하세요
+                        </p>
                       </div>
                     </div>
                   </div>

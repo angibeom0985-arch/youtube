@@ -225,10 +225,11 @@ export const analyzeTranscript = async (
       model: "gemini-2.5-flash",
       contents: `${analysisContext}\n\n스크립트:\n---\n${transcript}\n---`,
       config: {
-        systemInstruction: `당신은 '${category}' 전문 YouTube 콘텐츠 전략가입니다. 당신의 임무는 비디오 스크립트를 분석하고 벤치마킹을 위해 핵심 요소에 대한 구조화된 분석을 제공하는 것입니다. 모든 텍스트 설명은 가독성을 위해 **굵은 글씨**를 활용하고, 글머리 기호(-) 대신 문단 사이에 두 번의 줄바꿈을 사용하여 명확하게 구분해주세요.`,
+        systemInstruction: `당신은 '${category}' 전문 YouTube 콘텐츠 전략가입니다. 당신의 임무는 비디오 스크립트를 분석하고 벤치마킹을 위해 핵심 요소에 대한 구조화된 분석을 제공하는 것입니다. 모든 텍스트 설명은 가독성을 위해 **굵은 글씨**를 활용하고, 글머리 기호(-) 대신 문단 사이에 두 번의 줄바꿈을 사용하여 명확하게 구분해주세요. 긴 스크립트의 경우 핵심 내용을 요약하되 구조는 완전하게 분석해주세요.`,
         responseMimeType: "application/json",
         responseSchema: fullAnalysisSchema,
         maxOutputTokens: 8192,
+        temperature: 0.7,
       },
     });
 
@@ -918,10 +919,11 @@ ${analysisString}
       contents: contents,
       config: {
         systemInstruction:
-          "당신은 창의적인 YouTube 스크립트 작가 겸 기획자입니다. 성공 공식을 바탕으로 새로운 주제에 대한 기획안을 생성합니다. 요청된 카테고리와 영상 길이에 맞춰 결과물의 형식과 분량을 조절해주세요. 모든 텍스트 설명은 가독성을 위해 **굵은 글씨**를 활용하고, 글머리 기호(-) 대신 문단 사이에 두 번의 줄바꿈을 사용하여 명확하게 구분해주세요.",
+          "당신은 창의적인 YouTube 스크립트 작가 겸 기획자입니다. 성공 공식을 바탕으로 새로운 주제에 대한 기획안을 생성합니다. 요청된 카테고리와 영상 길이에 맞춰 결과물의 형식과 분량을 조절해주세요. 모든 텍스트 설명은 가독성을 위해 **굵은 글씨**를 활용하고, 글머리 기호(-) 대신 문단 사이에 두 번의 줄바꿈을 사용하여 명확하게 구분해주세요. 긴 영상의 경우 충분한 분량의 대본을 생성해주세요.",
         responseMimeType: "application/json",
         responseSchema: schema,
         maxOutputTokens: 8192,
+        temperature: 0.8,
       },
     });
 
