@@ -59,7 +59,20 @@ type Step = {
 const voiceOptions = [
   { name: "민준", label: "남성 캐주얼", tone: "신뢰감 있는 다큐 스타일" },
   { name: "서연", label: "여성 아나운서", tone: "차분한 뉴스 톤" },
-  { name: "소희", label: "여성 ASMR", tone: "부드러운 집중용 음성" },
+];
+
+// 확장된 목소리 옵션 (모달용)
+const allVoiceOptions = [
+  { name: "민준", label: "남성 캐주얼", tone: "신뢰감 있는 다큐 스타일", category: "추천" },
+  { name: "서연", label: "여성 아나운서", tone: "차분한 뉴스 톤", category: "추천" },
+  { name: "소희", label: "여성 ASMR", tone: "부드러운 집중용 음성", category: "여성" },
+  { name: "지훈", label: "남성 비즈니스", tone: "프로페셔널한 프레젠테이션", category: "남성" },
+  { name: "유나", label: "여성 상냥", tone: "밝고 친근한 목소리", category: "여성" },
+  { name: "태양", label: "남성 에너지", tone: "활기찬 운동 코치 스타일", category: "남성" },
+  { name: "하늘", label: "여성 차분", tone: "명상 가이드 톤", category: "여성" },
+  { name: "준서", label: "남성 내레이션", tone: "다큐멘터리 전문", category: "남성" },
+  { name: "수아", label: "여성 활발", tone: "쇼핑호스트 스타일", category: "여성" },
+  { name: "동현", label: "남성 카리스마", tone: "리더십 강연 톤", category: "남성" },
 ];
 
 const imageStyles = [
@@ -200,6 +213,10 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   );
   const [selectedVoice, setSelectedVoice] = useState(voiceOptions[0].name);
   const [ttsSpeed, setTtsSpeed] = useState(1);
+  const [showVoiceModal, setShowVoiceModal] = useState(false);
+  const [currentChapterForVoice, setCurrentChapterForVoice] = useState<number | null>(null);
+  const [chapterVoices, setChapterVoices] = useState<Record<number, string>>({});
+  const [chapterScripts, setChapterScripts] = useState<Array<{ title: string; content: string }>>([]);
   const [scriptLengthMinutes, setScriptLengthMinutes] = useState("8");
   const [customScriptLength, setCustomScriptLength] = useState("5");
   const [scriptAnalysis, setScriptAnalysis] = useState<AnalysisResult | null>(() =>
@@ -630,33 +647,45 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     
     // Step 2 (대본 작성)에서 Step 3 (음성 생성)으로 이동할 때 대본 자동 입력
     if (currentStep === 1 && generatedPlan) {
-      let scriptText = "";
+      const chapters: Array<{ title: string; content: string }> = [];
       
       if (generatedPlan.chapters && generatedPlan.chapters.length > 0) {
-        // chapters 형식
-        scriptText = generatedPlan.chapters
-          .map((chapter) => {
-            const lines = (chapter.script || [])
-              .map((line) => `${line.character}: ${line.line}`)
-              .join("\n");
-            return lines;
-          })
-          .filter(Boolean)
-          .join("\n\n");
+        // chapters 형식 - 챕터별로 분리
+        generatedPlan.chapters.forEach((chapter) => {
+          const lines = (chapter.script || [])
+            .map((line) => `${line.character}: ${line.line}`)
+            .join("\n");
+          if (lines.trim()) {
+            chapters.push({
+              title: chapter.title || `챕터 ${chapters.length + 1}`,
+              content: lines.trim()
+            });
+          }
+        });
       } else if (generatedPlan.scriptWithCharacters && generatedPlan.scriptWithCharacters.length > 0) {
-        // scriptWithCharacters 형식
-        scriptText = generatedPlan.scriptWithCharacters
+        // scriptWithCharacters 형식 - 하나의 챕터로
+        const scriptText = generatedPlan.scriptWithCharacters
           .map((line) => `${line.character}: ${line.line}`)
           .join("\n");
+        chapters.push({
+          title: "전체 대본",
+          content: scriptText.trim()
+        });
       } else if (generatedPlan.scriptOutline && generatedPlan.scriptOutline.length > 0) {
-        // scriptOutline 형식
-        scriptText = generatedPlan.scriptOutline
-          .map((stage) => stage.details)
-          .join("\n\n");
+        // scriptOutline 형식 - 단계별로 분리
+        generatedPlan.scriptOutline.forEach((stage) => {
+          chapters.push({
+            title: stage.stage,
+            content: stage.details.trim()
+          });
+        });
       }
       
-      if (scriptText.trim()) {
-        setTtsScript(scriptText.trim());
+      if (chapters.length > 0) {
+        setChapterScripts(chapters);
+        // 전체 스크립트도 설정
+        const fullScript = chapters.map(ch => ch.content).join("\n\n");
+        setTtsScript(fullScript);
       }
     }
     
@@ -1481,12 +1510,12 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         return (
           <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
             <div className="rounded-[clamp(1rem,2vw,1.6rem)] border border-white/10 bg-black/40 p-[clamp(1.25rem,2vw,1.8rem)] shadow-[0_18px_40px_rgba(0,0,0,0.45)]">
-              <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
                 <div>
                   <p className="text-sm font-semibold text-white/60">스크립트 & AI 보이스</p>
                   <h3 className="text-2xl font-bold text-white mt-1">대본에 음성을 입혀주세요.</h3>
                   <p className="mt-2 text-sm text-white/60">
-                    핵심 구간만 선택해도 바로 음성으로 변환됩니다.
+                    각 챕터별로 목소리를 선택하고 편집할 수 있습니다.
                   </p>
                 </div>
                 <a
@@ -1498,95 +1527,248 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   TTS 페이지 열기
                 </a>
               </div>
-              <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-                <div>
-                  <div className="flex items-center justify-between text-sm text-white/50">
-                    <span>스크립트 편집</span>
-                    <span>{ttsScript.length.toLocaleString()}자</span>
-                  </div>
-                  <textarea
-                    value={ttsScript}
-                    onChange={(event) => setTtsScript(event.target.value)}
-                    rows={7}
-                    className="mt-2 w-full rounded-2xl border border-white/20 bg-white px-4 py-4 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500"
-                    placeholder="음성으로 변환할 스크립트를 입력하세요."
-                  />
-                  <div className="mt-4 flex flex-wrap items-center gap-3">
-                    <div className="flex-1 min-w-[160px]">
-                      <label className="text-sm font-semibold text-white/60">보이스 선택</label>
-                      <select
-                        value={selectedVoice}
-                        onChange={(event) => setSelectedVoice(event.target.value)}
-                        className="mt-2 w-full rounded-2xl border border-white/20 bg-black/40 px-3 py-2 text-sm text-white"
-                      >
-                        {voiceOptions.map((voice) => (
-                          <option key={voice.name} value={voice.name}>
-                            {voice.name} · {voice.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="flex-1 min-w-[160px]">
-                      <label className="text-sm font-semibold text-white/60">속도</label>
-                      <input
-                        type="range"
-                        min={0.7}
-                        max={1.3}
-                        step={0.1}
-                        value={ttsSpeed}
-                        onChange={(event) => setTtsSpeed(Number(event.target.value))}
-                        className="mt-2 w-full"
+
+              {chapterScripts.length > 0 ? (
+                <div className="space-y-4">
+                  {chapterScripts.map((chapter, index) => (
+                    <div key={index} className="rounded-2xl border border-white/10 bg-black/30 p-5">
+                      <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/10">
+                        <h4 className="text-lg font-bold text-white flex items-center gap-2">
+                          <span className="text-red-400">🎙️</span>
+                          {chapter.title}
+                        </h4>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-white/50">{chapter.content.length}자</span>
+                        </div>
+                      </div>
+
+                      <textarea
+                        value={chapter.content}
+                        onChange={(e) => {
+                          const newChapters = [...chapterScripts];
+                          newChapters[index].content = e.target.value;
+                          setChapterScripts(newChapters);
+                          // 전체 스크립트도 업데이트
+                          setTtsScript(newChapters.map(ch => ch.content).join("\n\n"));
+                        }}
+                        rows={6}
+                        className="w-full rounded-xl border border-white/20 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500 resize-y"
+                        placeholder="스크립트를 입력하세요..."
                       />
-                      <p className="text-sm text-white/50 text-right">{ttsSpeed.toFixed(1)}배속</p>
+
+                      <div className="mt-4 flex flex-wrap items-center gap-3">
+                        <div className="text-sm font-semibold text-white/60">AI 보이스 선택</div>
+                        <div className="flex flex-wrap gap-2">
+                          {voiceOptions.map((voice) => (
+                            <button
+                              key={voice.name}
+                              type="button"
+                              onClick={() => {
+                                setChapterVoices({ ...chapterVoices, [index]: voice.name });
+                              }}
+                              className={`px-4 py-2 rounded-lg border text-sm font-medium transition-all ${
+                                (chapterVoices[index] || voiceOptions[0].name) === voice.name
+                                  ? "border-red-400 bg-red-500/20 text-red-300"
+                                  : "border-white/20 bg-black/40 text-white/70 hover:border-white/40"
+                              }`}
+                            >
+                              {voice.name}
+                              <span className="text-xs ml-1 opacity-70">· {voice.label}</span>
+                            </button>
+                          ))}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setCurrentChapterForVoice(index);
+                              setShowVoiceModal(true);
+                            }}
+                            className="px-4 py-2 rounded-lg border border-orange-400/50 bg-orange-500/10 text-orange-300 text-sm font-medium hover:bg-orange-500/20 transition-all"
+                          >
+                            ✨ 더 많은 TTS
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div>
+                            <label className="text-xs text-white/50">속도</label>
+                            <input
+                              type="range"
+                              min={0.7}
+                              max={1.3}
+                              step={0.1}
+                              value={ttsSpeed}
+                              onChange={(e) => setTtsSpeed(Number(e.target.value))}
+                              className="w-32 ml-2"
+                            />
+                            <span className="text-xs text-white/70 ml-2">{ttsSpeed.toFixed(1)}x</span>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => {
+                            handleGenerateTts();
+                          }}
+                          className="px-4 py-2 rounded-full bg-gradient-to-r from-red-600 to-red-500 text-white text-sm font-semibold shadow-lg hover:from-red-500 hover:to-red-400 transition-all"
+                        >
+                          음성 생성
+                        </button>
+                      </div>
                     </div>
-                    <button
-                      onClick={handleGenerateTts}
-                      className="rounded-full bg-gradient-to-r from-red-600 to-red-500 px-4 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(220,38,38,0.4)]"
-                    >
-                      음성 생성
-                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-2xl border border-white/10 bg-black/30 p-8 text-center">
+                  <p className="text-white/60 mb-4">챕터별 대본이 없습니다.</p>
+                  <p className="text-sm text-white/40">Step 2에서 대본을 생성하고 다음 단계로 이동하세요.</p>
+                </div>
+              )}
+
+              {/* 최근 생성 샘플 */}
+              {ttsSamples.length > 0 && (
+                <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-5">
+                  <p className="text-sm font-semibold text-white/60 mb-3">최근 생성</p>
+                  <div className="space-y-2">
+                    {ttsSamples.map((sample) => (
+                      <div key={sample.id} className="rounded-xl bg-black/30 px-3 py-2">
+                        <p className="text-sm text-white/40">{sample.voice}</p>
+                        <p className="text-sm text-white">{sample.text}</p>
+                        <p className="text-sm text-white/40">{sample.status}</p>
+                      </div>
+                    ))}
                   </div>
                 </div>
-                <div className="space-y-3">
-                  <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/70">
-                    <p className="text-sm font-semibold text-white/60">AI 보이스오버</p>
-                    <div className="mt-3 space-y-2">
-                      {voiceOptions.map((voice) => (
-                        <button
-                          key={voice.name}
-                          type="button"
-                          onClick={() => setSelectedVoice(voice.name)}
-                          className={`w-full rounded-xl border px-3 py-2 text-left ${
-                            selectedVoice === voice.name
-                              ? "border-red-400 bg-red-500/10"
-                              : "border-white/10 bg-black/30"
-                          }`}
-                        >
-                          <p className="font-semibold text-white">{voice.name}</p>
-                          <p className="text-sm text-white/50">{voice.label} · {voice.tone}</p>
-                        </button>
-                      ))}
+              )}
+            </div>
+
+            {/* 더 많은 TTS 목소리 선택 모달 */}
+            {showVoiceModal && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+                <div className="relative w-full max-w-4xl max-h-[80vh] overflow-y-auto bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-2xl border border-white/20 shadow-2xl m-4">
+                  <div className="sticky top-0 bg-gradient-to-br from-zinc-900 to-zinc-800 border-b border-white/10 px-6 py-4 flex items-center justify-between">
+                    <div>
+                      <h3 className="text-2xl font-bold text-white">🎙️ AI 보이스 선택</h3>
+                      <p className="text-sm text-white/60 mt-1">원하는 목소리를 선택하세요</p>
                     </div>
+                    <button
+                      onClick={() => setShowVoiceModal(false)}
+                      className="p-2 rounded-full hover:bg-white/10 transition-colors"
+                    >
+                      <svg className="w-6 h-6 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
                   </div>
-                  <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/70">
-                    <p className="text-sm font-semibold text-white/60">최근 생성</p>
-                    {ttsSamples.length === 0 ? (
-                      <p className="mt-2 text-sm text-white/40">아직 생성한 음성이 없습니다.</p>
-                    ) : (
-                      <div className="mt-2 space-y-2">
-                        {ttsSamples.map((sample) => (
-                          <div key={sample.id} className="rounded-xl bg-black/30 px-3 py-2">
-                            <p className="text-sm text-white/40">{sample.voice}</p>
-                            <p className="text-sm text-white">{sample.text}</p>
-                            <p className="text-sm text-white/40">{sample.status}</p>
-                          </div>
+
+                  <div className="p-6">
+                    {/* 추천 목소리 */}
+                    <div className="mb-6">
+                      <h4 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
+                        <span className="text-yellow-400">⭐</span>
+                        추천 목소리
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {allVoiceOptions.filter(v => v.category === "추천").map((voice) => (
+                          <button
+                            key={voice.name}
+                            onClick={() => {
+                              if (currentChapterForVoice !== null) {
+                                setChapterVoices({ ...chapterVoices, [currentChapterForVoice]: voice.name });
+                              }
+                              setShowVoiceModal(false);
+                            }}
+                            className="text-left p-4 rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-white/0 hover:from-red-500/20 hover:to-orange-500/10 hover:border-red-400/50 transition-all group"
+                          >
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <p className="text-lg font-bold text-white group-hover:text-red-300 transition-colors">{voice.name}</p>
+                                <p className="text-sm text-white/60 mt-1">{voice.label}</p>
+                                <p className="text-xs text-white/40 mt-2">{voice.tone}</p>
+                              </div>
+                              <button className="p-2 rounded-full bg-white/10 hover:bg-red-500/30 transition-colors">
+                                <svg className="w-4 h-4 text-white/70" fill="currentColor" viewBox="0 0 20 20">
+                                  <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" />
+                                </svg>
+                              </button>
+                            </div>
+                          </button>
                         ))}
                       </div>
-                    )}
+                    </div>
+
+                    {/* 남성 목소리 */}
+                    <div className="mb-6">
+                      <h4 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
+                        <span className="text-blue-400">👨</span>
+                        남성 목소리
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {allVoiceOptions.filter(v => v.category === "남성").map((voice) => (
+                          <button
+                            key={voice.name}
+                            onClick={() => {
+                              if (currentChapterForVoice !== null) {
+                                setChapterVoices({ ...chapterVoices, [currentChapterForVoice]: voice.name });
+                              }
+                              setShowVoiceModal(false);
+                            }}
+                            className="text-left p-4 rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-white/0 hover:from-blue-500/20 hover:to-cyan-500/10 hover:border-blue-400/50 transition-all group"
+                          >
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <p className="text-lg font-bold text-white group-hover:text-blue-300 transition-colors">{voice.name}</p>
+                                <p className="text-sm text-white/60 mt-1">{voice.label}</p>
+                                <p className="text-xs text-white/40 mt-2">{voice.tone}</p>
+                              </div>
+                              <button className="p-2 rounded-full bg-white/10 hover:bg-blue-500/30 transition-colors">
+                                <svg className="w-4 h-4 text-white/70" fill="currentColor" viewBox="0 0 20 20">
+                                  <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" />
+                                </svg>
+                              </button>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* 여성 목소리 */}
+                    <div>
+                      <h4 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
+                        <span className="text-pink-400">👩</span>
+                        여성 목소리
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {allVoiceOptions.filter(v => v.category === "여성").map((voice) => (
+                          <button
+                            key={voice.name}
+                            onClick={() => {
+                              if (currentChapterForVoice !== null) {
+                                setChapterVoices({ ...chapterVoices, [currentChapterForVoice]: voice.name });
+                              }
+                              setShowVoiceModal(false);
+                            }}
+                            className="text-left p-4 rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-white/0 hover:from-pink-500/20 hover:to-rose-500/10 hover:border-pink-400/50 transition-all group"
+                          >
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <p className="text-lg font-bold text-white group-hover:text-pink-300 transition-colors">{voice.name}</p>
+                                <p className="text-sm text-white/60 mt-1">{voice.label}</p>
+                                <p className="text-xs text-white/40 mt-2">{voice.tone}</p>
+                              </div>
+                              <button className="p-2 rounded-full bg-white/10 hover:bg-pink-500/30 transition-colors">
+                                <svg className="w-4 h-4 text-white/70" fill="currentColor" viewBox="0 0 20 20">
+                                  <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" />
+                                </svg>
+                              </button>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         );
       case "image":
