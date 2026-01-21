@@ -1020,9 +1020,24 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                           분석 결과를 바탕으로 생성할 수 있는 주제들입니다
                         </p>
                       </div>
-                      <p className="text-sm text-white/60">
+                      <p className="text-sm text-white/60 mb-4">
                         구조 분석 후 추천 주제가 표시됩니다.
                       </p>
+                      
+                      {/* 직접 입력 칸 */}
+                      <div className="space-y-2">
+                        <label className="text-sm font-semibold text-white/80 flex items-center gap-2">
+                          <span>✏️</span>
+                          또는 직접 주제 입력
+                        </label>
+                        <input
+                          type="text"
+                          value={selectedTopic}
+                          onChange={(e) => setSelectedTopic(e.target.value)}
+                          placeholder="원하는 주제를 직접 입력하세요 (예: 경제 위기 속에서 살아남는 방법)"
+                          className="w-full rounded-xl border border-white/20 bg-black/40 px-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
                     </div>
                   ) : (
                     <div className="rounded-2xl border border-white/10 bg-black/30 p-5">
@@ -1035,7 +1050,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                           원하는 주제를 선택하면 해당 주제로 새로운 대본을 작성합니다 ({scriptIdeas.length}개)
                         </p>
                       </div>
-                      <div className="grid gap-2">
+                      <div className="grid gap-2 mb-4">
                         {scriptIdeas.map((idea, index) => (
                           <button
                             key={idea}
@@ -1051,6 +1066,27 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                             {idea}
                           </button>
                         ))}
+                      </div>
+                      
+                      {/* 직접 입력 칸 */}
+                      <div className="space-y-2 pt-4 border-t border-white/10">
+                        <label className="text-sm font-semibold text-white/80 flex items-center gap-2">
+                          <span>✏️</span>
+                          또는 직접 주제 입력
+                        </label>
+                        <input
+                          type="text"
+                          value={selectedTopic && !scriptIdeas.includes(selectedTopic) ? selectedTopic : ''}
+                          onChange={(e) => setSelectedTopic(e.target.value)}
+                          placeholder="원하는 주제를 직접 입력하세요 (예: 경제 위기 속에서 살아남는 방법)"
+                          className="w-full rounded-xl border border-white/20 bg-black/40 px-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        {selectedTopic && !scriptIdeas.includes(selectedTopic) && (
+                          <p className="text-xs text-blue-300 flex items-center gap-1">
+                            <span>✓</span>
+                            직접 입력한 주제로 대본을 작성합니다
+                          </p>
+                        )}
                       </div>
                     </div>
                   )}
