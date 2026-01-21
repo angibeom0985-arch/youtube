@@ -1127,22 +1127,37 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         </p>
                       </div>
                       {generatedPlan.chapters && generatedPlan.chapters.length > 0 ? (
-                        <div className="space-y-3 text-sm text-white/70">
+                        <div className="space-y-4">
                           {generatedPlan.chapters.map((chapter, index) => (
                             <div
                               key={chapter.id}
-                              className="rounded-xl border border-white/10 bg-black/30 px-4 py-3"
+                              className="rounded-xl border border-white/10 bg-black/30 p-4"
                             >
-                              <p className="font-semibold text-white">
+                              <h4 className="text-base font-bold text-white mb-3 flex items-center gap-2">
+                                <span className="text-red-400">📖</span>
                                 챕터 {index + 1}. {chapter.title}
+                              </h4>
+                              <p className="text-sm text-white/60 mb-4 pb-3 border-b border-white/10">
+                                {chapter.purpose}
                               </p>
-                              <p className="text-sm text-white/50 mt-1">{chapter.purpose}</p>
                               {chapter.script && chapter.script.length > 0 && (
-                                <div className="mt-3 space-y-1 text-sm text-white/70">
+                                <div className="space-y-3 max-h-[400px] overflow-y-auto p-3 bg-black/40 rounded-lg">
                                   {chapter.script.map((line, lineIndex) => (
-                                    <p key={`${chapter.id}-${lineIndex}`}>
-                                      {line.character}: {line.line}
-                                    </p>
+                                    <div key={`${chapter.id}-${lineIndex}`} className="flex items-start gap-3">
+                                      <div className="w-24 flex-shrink-0 pt-0.5">
+                                        <span className="font-bold text-sm text-orange-400">
+                                          {line.character}
+                                        </span>
+                                        {line.timestamp && (
+                                          <div className="text-xs text-white/40 font-mono mt-0.5">
+                                            [{line.timestamp}]
+                                          </div>
+                                        )}
+                                      </div>
+                                      <div className="flex-1 text-sm text-white/90 leading-relaxed">
+                                        {line.line.replace(/\*\*/g, "").replace(/\*/g, "").replace(/\_\_/g, "").replace(/\_/g, "")}
+                                      </div>
+                                    </div>
                                   ))}
                                 </div>
                               )}
@@ -1150,7 +1165,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                           ))}
                         </div>
                       ) : (
-                        <pre className="whitespace-pre-wrap text-sm text-white/70">
+                        <pre className="whitespace-pre-wrap text-sm text-white/70 p-4 bg-black/30 rounded-lg">
                           {formatGeneratedScript(generatedPlan)}
                         </pre>
                       )}
