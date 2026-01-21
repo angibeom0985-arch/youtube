@@ -1744,9 +1744,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                             </div>
                           </div>
                         </div>
+                      </div>
                       )}
                     </div>
-                  ))}
                   ))}
                 </div>
               ) : (
