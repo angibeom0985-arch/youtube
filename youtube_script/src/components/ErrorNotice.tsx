@@ -72,36 +72,17 @@ const ErrorNotice: React.FC<ErrorNoticeProps> = ({ error, context }) => {
   };
 
   return (
-    <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-100 space-y-4">
+    <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-100">
       <div className="rounded-xl border border-red-500/20 bg-black/30 p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm font-semibold text-red-200">오류 메시지</p>
           <button
             type="button"
-            onClick={() => handleCopy(error, "error")}
+            onClick={() => handleCopy(creatorMessage, "error")}
             className="inline-flex items-center gap-2 rounded-full border border-red-400/30 px-3 py-1 text-xs font-semibold text-red-200 hover:border-red-300"
           >
             {copiedKey === "error" ? <FiCheckCircle /> : <FiCopy />}
             {copiedKey === "error" ? "복사됨" : "복사"}
-          </button>
-        </div>
-        <pre className="mt-2 whitespace-pre-wrap text-sm text-red-100/90">
-          {error}
-        </pre>
-      </div>
-
-      <div className="rounded-xl border border-red-500/20 bg-black/30 p-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-sm font-semibold text-red-200">
-            제작자에게 전달할 메시지
-          </p>
-          <button
-            type="button"
-            onClick={() => handleCopy(creatorMessage, "creator")}
-            className="inline-flex items-center gap-2 rounded-full border border-red-400/30 px-3 py-1 text-xs font-semibold text-red-200 hover:border-red-300"
-          >
-            {copiedKey === "creator" ? <FiCheckCircle /> : <FiCopy />}
-            {copiedKey === "creator" ? "복사됨" : "복사"}
           </button>
         </div>
         <pre className="mt-2 whitespace-pre-wrap text-sm text-red-100/90">

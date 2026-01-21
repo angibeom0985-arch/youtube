@@ -228,9 +228,8 @@ export const analyzeTranscript = async (
         systemInstruction: `당신은 '${category}' 전문 YouTube 콘텐츠 전략가입니다. 당신의 임무는 비디오 스크립트를 분석하고 벤치마킹을 위해 핵심 요소에 대한 구조화된 분석을 제공하는 것입니다. 모든 텍스트 설명은 가독성을 위해 **굵은 글씨**를 활용하고, 글머리 기호(-) 대신 문단 사이에 두 번의 줄바꿈을 사용하여 명확하게 구분해주세요.`,
         responseMimeType: "application/json",
         responseSchema: fullAnalysisSchema,
-      
-        maxOutputTokens: 2048,
-},
+        maxOutputTokens: 8192,
+      },
     });
 
     const jsonText = response.text.trim();
@@ -238,6 +237,19 @@ export const analyzeTranscript = async (
     // JSON 파싱 전에 응답 검증
     if (!jsonText) {
       throw new Error('EMPTY_RESPONSE: API 응답이 비어있습니다');
+    }
+    
+    // JSON이 완전한지 간단히 확인 (중괄호 균형)
+    const openBraces = (jsonText.match(/{/g) || []).length;
+    const closeBraces = (jsonText.match(/}/g) || []).length;
+    if (openBraces !== closeBraces) {
+      console.error('JSON 불균형 감지:', {
+        openBraces,
+        closeBraces,
+        textLength: jsonText.length,
+        textPreview: jsonText.substring(0, 500)
+      });
+      throw new Error(`JSON_INCOMPLETE: AI 응답이 불완전합니다 (길이: ${jsonText.length}자). 스크립트를 더 짧게 나누거나, 잠시 후 다시 시도해주세요.`);
     }
     
     // JSON 파싱 시도 및 상세한 에러 처리
@@ -274,7 +286,7 @@ export const analyzeTranscript = async (
       userMessage += "[원인]\n- API 사용량이 초과되었습니다\n\n[해결 방법]\n- 잠시 후 다시 시도해주세요\n- Google AI Studio에서 API 사용량을 확인해주세요";
     } else if (errorMessage.includes('rate') || errorString.includes('RATE_LIMIT')) {
       userMessage += "[원인]\n- API 요청이 너무 빠르게 발생했습니다\n\n[해결 방법]\n- 10초 정도 기다린 후 다시 시도해주세요";
-    } else if (errorMessage.includes('JSON_PARSE_ERROR') || errorMessage.includes('Unexpected end of JSON')) {
+    } else if (errorMessage.includes('JSON_PARSE_ERROR') || errorMessage.includes('Unexpected end of JSON') || errorMessage.includes('JSON_INCOMPLETE')) {
       userMessage += "[원인]\n- AI 응답이 완료되기 전에 중단되었습니다\n- 스크립트가 너무 길어서 응답이 잘렸을 수 있습니다\n\n[해결 방법]\n- 스크립트를 짧게 나눠서 다시 시도해주세요 (권장: 3,000자 이하)\n- 잠시 후 다시 시도해주세요";
     } else if (errorMessage.includes('EMPTY_RESPONSE')) {
       userMessage += "[원인]\n- AI가 응답을 생성하지 못했습니다\n- 입력 스크립트에 문제가 있을 수 있습니다\n\n[해결 방법]\n- 스크립트 내용을 확인해주세요\n- 특수 문자나 이모지를 제거하고 다시 시도해주세요";
@@ -331,6 +343,7 @@ export const generateIdeas = async (
         systemInstruction: systemInstruction,
         responseMimeType: "application/json",
         responseSchema: ideaSchema,
+        maxOutputTokens: 2048,
       },
     });
 
@@ -339,6 +352,18 @@ export const generateIdeas = async (
     // JSON 파싱 전에 응답 검증
     if (!jsonText) {
       throw new Error('EMPTY_RESPONSE: API 응답이 비어있습니다');
+    }
+    
+    // JSON이 완전한지 간단히 확인 (중괄호 균형)
+    const openBraces = (jsonText.match(/{/g) || []).length;
+    const closeBraces = (jsonText.match(/}/g) || []).length;
+    if (openBraces !== closeBraces) {
+      console.error('JSON 불균형 감지:', {
+        openBraces,
+        closeBraces,
+        textLength: jsonText.length
+      });
+      throw new Error(`JSON_INCOMPLETE: AI 응답이 불완전합니다. 잠시 후 다시 시도해주세요.`);
     }
     
     try {
@@ -370,7 +395,7 @@ export const generateIdeas = async (
       userMessage += "[원인]\n- API 사용량이 초과되었습니다\n\n[해결 방법]\n- 잠시 후 다시 시도해주세요\n- Google AI Studio에서 API 사용량을 확인해주세요";
     } else if (errorMessage.includes('rate') || errorString.includes('RATE_LIMIT')) {
       userMessage += "[원인]\n- API 요청이 너무 빠르게 발생했습니다\n\n[해결 방법]\n- 10초 정도 기다린 후 다시 시도해주세요";
-    } else if (errorMessage.includes('JSON_PARSE_ERROR') || errorMessage.includes('Unexpected end of JSON')) {
+    } else if (errorMessage.includes('JSON_PARSE_ERROR') || errorMessage.includes('Unexpected end of JSON') || errorMessage.includes('JSON_INCOMPLETE')) {
       userMessage += "[원인]\n- AI 응답이 완료되기 전에 중단되었습니다\n\n[해결 방법]\n- 잠시 후 다시 시도해주세요";
     } else if (errorMessage.includes('EMPTY_RESPONSE')) {
       userMessage += "[원인]\n- AI가 응답을 생성하지 못했습니다\n\n[해결 방법]\n- 잠시 후 다시 시도해주세요";
@@ -896,6 +921,7 @@ ${analysisString}
           "당신은 창의적인 YouTube 스크립트 작가 겸 기획자입니다. 성공 공식을 바탕으로 새로운 주제에 대한 기획안을 생성합니다. 요청된 카테고리와 영상 길이에 맞춰 결과물의 형식과 분량을 조절해주세요. 모든 텍스트 설명은 가독성을 위해 **굵은 글씨**를 활용하고, 글머리 기호(-) 대신 문단 사이에 두 번의 줄바꿈을 사용하여 명확하게 구분해주세요.",
         responseMimeType: "application/json",
         responseSchema: schema,
+        maxOutputTokens: 8192,
       },
     });
 
@@ -904,6 +930,19 @@ ${analysisString}
     // JSON 파싱 전에 응답 검증
     if (!jsonText) {
       throw new Error('EMPTY_RESPONSE: API 응답이 비어있습니다');
+    }
+    
+    // JSON이 완전한지 간단히 확인 (중괄호 균형)
+    const openBraces = (jsonText.match(/{/g) || []).length;
+    const closeBraces = (jsonText.match(/}/g) || []).length;
+    if (openBraces !== closeBraces) {
+      console.error('JSON 불균형 감지:', {
+        openBraces,
+        closeBraces,
+        textLength: jsonText.length,
+        textPreview: jsonText.substring(0, 300)
+      });
+      throw new Error(`JSON_INCOMPLETE: AI 응답이 불완전합니다 (길이: ${jsonText.length}자). 더 짧은 키워드로 시도하거나, 잠시 후 다시 시도해주세요.`);
     }
     
     try {
@@ -934,7 +973,7 @@ ${analysisString}
       userMessage += "[원인]\n- API 사용량이 초과되었습니다\n\n[해결 방법]\n- 잠시 후 다시 시도해주세요\n- Google AI Studio에서 API 사용량을 확인해주세요";
     } else if (errorMessage.includes('rate') || errorString.includes('RATE_LIMIT')) {
       userMessage += "[원인]\n- API 요청이 너무 빠르게 발생했습니다\n\n[해결 방법]\n- 10초 정도 기다린 후 다시 시도해주세요";
-    } else if (errorMessage.includes('JSON_PARSE_ERROR') || errorMessage.includes('Unexpected end of JSON')) {
+    } else if (errorMessage.includes('JSON_PARSE_ERROR') || errorMessage.includes('Unexpected end of JSON') || errorMessage.includes('JSON_INCOMPLETE')) {
       userMessage += "[원인]\n- AI 응답이 완료되기 전에 중단되었습니다\n- 키워드가 너무 복잡할 수 있습니다\n\n[해결 방법]\n- 더 간단한 키워드로 다시 시도해주세요\n- 잠시 후 다시 시도해주세요";
     } else if (errorMessage.includes('EMPTY_RESPONSE')) {
       userMessage += "[원인]\n- AI가 응답을 생성하지 못했습니다\n\n[해결 방법]\n- 키워드를 변경하여 다시 시도해주세요";
