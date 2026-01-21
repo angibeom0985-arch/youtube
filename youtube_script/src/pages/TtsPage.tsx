@@ -6,6 +6,7 @@ import { supabase } from "../services/supabase";
 import type { User } from "@supabase/supabase-js";
 import ErrorNotice from "../components/ErrorNotice";
 import ApiKeyInput from "../components/ApiKeyInput";
+import { ProgressTracker } from "../components/ProgressIndicator";
 
 const STORAGE_KEYS = {
   text: "tts_text",
@@ -95,6 +96,10 @@ const TtsPage: React.FC = () => {
   const [error, setError] = useState(() => getStoredString(STORAGE_KEYS.error));
   const [isGenerating, setIsGenerating] = useState(false);
   const [progressStep, setProgressStep] = useState("");
+  const [ttsProgress, setTtsProgress] = useState({
+    currentStep: 0,
+    steps: ["텍스트 준비", "AI 연기 분석", "음성 생성", "완료"],
+  });
   const [copyStatus, setCopyStatus] = useState("");
   const [previewAudio, setPreviewAudio] = useState<HTMLAudioElement | null>(null);
   const [playingPreview, setPlayingPreview] = useState<string | null>(null);
@@ -227,6 +232,7 @@ const TtsPage: React.FC = () => {
 
     setIsGenerating(true);
     setProgressStep("preparing");
+    setTtsProgress({ ...ttsProgress, currentStep: 0 });
     setError("");
 
     try {
@@ -235,11 +241,16 @@ const TtsPage: React.FC = () => {
       // 1. AI 연기 모드이거나 프롬프트가 있으면 SSML 생성
       if (useAIActing || actingPrompt.trim()) {
         setProgressStep("analyzing"); // 연기 분석 중
+        setTtsProgress(prev => ({ ...prev, currentStep: 1 }));
         finalSsml = await generateSsml(text, actingPrompt, "");
+      } else {
+        // AI 연기를 사용하지 않으면 1단계 건너뛰기
+        setTtsProgress(prev => ({ ...prev, currentStep: 1 }));
       }
 
       // 2. TTS 요청
       setProgressStep("requesting");
+      setTtsProgress(prev => ({ ...prev, currentStep: 2 }));
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
       const headers: Record<string, string> = { "Content-Type": "application/json" };
@@ -272,12 +283,14 @@ const TtsPage: React.FC = () => {
 
       setAudioSrc(`data:audio/mp3;base64,${payload.audioContent}`);
       setProgressStep("completed");
+      setTtsProgress(prev => ({ ...prev, currentStep: 3 }));
 
     } catch (err: any) {
       console.error("TTS 요청 실패:", err);
       setError(err.message || "알 수 없는 오류가 발생했습니다.");
     } finally {
       setIsGenerating(false);
+      setTtsProgress({ ...ttsProgress, currentStep: 0 });
     }
   };
 
@@ -535,6 +548,21 @@ const TtsPage: React.FC = () => {
                     )}
                   </>
                 )}
+              </button>
+
+              {isGenerating && (
+                <ProgressTracker
+                  currentStepIndex={ttsProgress.currentStep}
+                  stepLabels={ttsProgress.steps}
+                  stepDescriptions={[
+                    "텍스트를 분석하고 음성 생성을 준비하고 있습니다",
+                    "AI가 감정과 억양을 분석하고 있습니다",
+                    "Google Cloud TTS로 음성을 생성하고 있습니다",
+                    "음성 파일 생성이 완료되었습니다"
+                  ]}
+                  estimatedTimeSeconds={15}
+                />
+              )}
               </button>
 
             <ErrorNotice error={error} context="TTS 음성 생성" />

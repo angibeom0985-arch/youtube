@@ -4,6 +4,7 @@ import { supabase } from "../services/supabase";
 import type { User } from "@supabase/supabase-js";
 import HomeBackButton from "../components/HomeBackButton";
 import ApiKeyInput from "../components/ApiKeyInput";
+import { ProgressTracker } from "../components/ProgressIndicator";
 
 interface DateOption {
   label: string;
@@ -74,6 +75,10 @@ const BenchmarkingPage: React.FC = () => {
   const [error, setError] = useState("");
   const [summary, setSummary] = useState<SearchSummary | null>(null);
   const [results, setResults] = useState<VideoResult[]>([]);
+  const [searchProgress, setSearchProgress] = useState({
+    currentStep: 0,
+    steps: ["검색 준비", "영상 검색", "데이터 분석", "결과 정리"],
+  });
 
   // Auth
   useEffect(() => {
@@ -104,15 +109,21 @@ const BenchmarkingPage: React.FC = () => {
     event.preventDefault();
 
     setLoading(true);
+    setSearchProgress({ ...searchProgress, currentStep: 0 });
     setError("");
 
     try {
+      // Step 1: 검색 준비
+      setSearchProgress(prev => ({ ...prev, currentStep: 0 }));
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
       const headers: Record<string, string> = { "Content-Type": "application/json" };
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
       }
+      
+      // Step 2: 영상 검색
+      setSearchProgress(prev => ({ ...prev, currentStep: 1 }));
       const response = await fetch("/api/benchmarking/search", {
         method: "POST",
         headers,
@@ -123,18 +134,26 @@ const BenchmarkingPage: React.FC = () => {
           maxScan: 100 // 최대 100개 스캔
         })
       });
+      
+      // Step 3: 데이터 분석
+      setSearchProgress(prev => ({ ...prev, currentStep: 2 }));
       const data = await response.json();
 
       if (!response.ok) {
         throw new Error(data?.error || "검색에 실패했습니다.");
       }
 
-        setResults(data.results || []);
-        setSummary(data.summary || null);
-        } catch (err) {
+      // Step 4: 결과 정리
+      setSearchProgress(prev => ({ ...prev, currentStep: 3 }));
+      await new Promise(resolve => setTimeout(resolve, 300)); // UI 업데이트를 위한 짧은 지연
+      
+      setResults(data.results || []);
+      setSummary(data.summary || null);
+    } catch (err) {
       setError((err as Error).message || "검색에 실패했습니다.");
     } finally {
       setLoading(false);
+      setSearchProgress({ ...searchProgress, currentStep: 0 });
     }
   }
 
@@ -310,6 +329,22 @@ const BenchmarkingPage: React.FC = () => {
                 </>
               )}
             </button>
+            
+            {loading && (
+              <div className="mt-4">
+                <ProgressTracker
+                  currentStepIndex={searchProgress.currentStep}
+                  stepLabels={searchProgress.steps}
+                  stepDescriptions={[
+                    "YouTube API 연결을 준비하고 있습니다",
+                    "검색어에 맞는 영상들을 찾고 있습니다",
+                    "각 영상의 성과와 모멘텀을 계산하고 있습니다",
+                    "최종 결과를 정리하고 있습니다"
+                  ]}
+                  estimatedTimeSeconds={18}
+                />
+              </div>
+            )}
           </form>
         </div>
 

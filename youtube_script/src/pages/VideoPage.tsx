@@ -24,6 +24,7 @@ import type { AnalysisResult, NewPlan } from "../types";
 import { analyzeTranscript, generateIdeas, generateNewPlan } from "../services/geminiService";
 import { generateVideo } from "../services/videoService";
 import AdSense from "../components/AdSense";
+import { ProgressTracker } from "../components/ProgressIndicator";
 
 const STORAGE_KEYS = {
   title: "video_project_title",
@@ -176,6 +177,19 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [scriptError, setScriptError] = useState("");
   const [isAnalyzingScript, setIsAnalyzingScript] = useState(false);
   const [isGeneratingScript, setIsGeneratingScript] = useState(false);
+  
+  // Progress tracking for script analysis
+  const [analyzeProgress, setAnalyzeProgress] = useState({
+    currentStep: 0,
+    steps: ["대본 구조 분석", "핵심 키워드 추출", "추천 주제 생성"],
+  });
+  
+  // Progress tracking for script generation
+  const [generateProgress, setGenerateProgress] = useState({
+    currentStep: 0,
+    steps: ["대본 구조 설계", "콘텐츠 생성", "최종 검토"],
+  });
+  
   const [ttsSamples, setTtsSamples] = useState<
     { id: number; voice: string; text: string; status: string }[]
   >([]);
@@ -644,20 +658,43 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     }
     setScriptError("");
     setIsAnalyzingScript(true);
+    setAnalyzeProgress({ ...analyzeProgress, currentStep: 0 });
+    
     try {
+      // Step 1: 대본 구조 분석
+      setAnalyzeProgress(prev => ({ ...prev, currentStep: 0 }));
       const analysis = await analyzeTranscript(scriptDraft.trim(), "일반", "", projectTitle);
       setScriptAnalysis(analysis);
+      
+      // Step 2: 핵심 키워드 추출 (이미 analysis에 포함됨)
+      setAnalyzeProgress(prev => ({ ...prev, currentStep: 1 }));
+      await new Promise(resolve => setTimeout(resolve, 500)); // UI 업데이트를 위한 짧은 지연
+      
+      // Step 3: 추천 주제 생성
+      setAnalyzeProgress(prev => ({ ...prev, currentStep: 2 }));
       const ideas = await generateIdeas(analysis, "일반", "");
       setScriptIdeas(ideas);
       if (ideas.length > 0) {
         setSelectedTopic(ideas[0]);
       }
     } catch (error) {
-      setScriptError(
-        error instanceof Error ? error.message : "대본 분석에 실패했습니다."
-      );
+      const errorMessage = error instanceof Error ? error.message : "대본 분석에 실패했습니다.";
+      
+      // Check if it's a timeout error
+      if (errorMessage.includes("FUNCTION_INVOCATION_TIMEOUT") || errorMessage.includes("timeout")) {
+        setScriptError(
+          "⏱️ 분석 작업이 시간 초과되었습니다.\n\n" +
+          "대본이 너무 길거나 서버가 응답하지 않았습니다.\n" +
+          "• 대본 길이를 줄여서 다시 시도해 주세요.\n" +
+          "• 잠시 후 다시 시도해 주세요.\n\n" +
+          "문제가 계속되면 관리자에게 문의해 주세요."
+        );
+      } else {
+        setScriptError(errorMessage);
+      }
     } finally {
       setIsAnalyzingScript(false);
+      setAnalyzeProgress({ ...analyzeProgress, currentStep: 0 });
     }
   };
   const handleGenerateScript = async () => {
@@ -671,20 +708,45 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     }
     setScriptError("");
     setIsGeneratingScript(true);
+    setGenerateProgress({ ...generateProgress, currentStep: 0 });
+    
     try {
+      // Step 1: 대본 구조 설계
+      setGenerateProgress(prev => ({ ...prev, currentStep: 0 }));
+      await new Promise(resolve => setTimeout(resolve, 300)); // UI 업데이트를 위한 짧은 지연
+      
+      // Step 2: 콘텐츠 생성
+      setGenerateProgress(prev => ({ ...prev, currentStep: 1 }));
       const plan = await generateNewPlan(
         scriptAnalysis,
         selectedTopic,
         formatScriptLengthLabel(),
         "일반"
       );
+      
+      // Step 3: 최종 검토
+      setGenerateProgress(prev => ({ ...prev, currentStep: 2 }));
+      await new Promise(resolve => setTimeout(resolve, 500)); // UI 업데이트를 위한 짧은 지연
+      
       setGeneratedPlan(plan);
     } catch (error) {
-      setScriptError(
-        error instanceof Error ? error.message : "대본 생성에 실패했습니다."
-      );
+      const errorMessage = error instanceof Error ? error.message : "대본 생성에 실패했습니다.";
+      
+      // Check if it's a timeout error
+      if (errorMessage.includes("FUNCTION_INVOCATION_TIMEOUT") || errorMessage.includes("timeout")) {
+        setScriptError(
+          "⏱️ 대본 생성이 시간 초과되었습니다.\n\n" +
+          "요청한 대본이 너무 길거나 서버가 응답하지 않았습니다.\n" +
+          "• 대본 길이를 줄여서 다시 시도해 주세요.\n" +
+          "• 잠시 후 다시 시도해 주세요.\n\n" +
+          "문제가 계속되면 관리자에게 문의해 주세요."
+        );
+      } else {
+        setScriptError(errorMessage);
+      }
     } finally {
       setIsGeneratingScript(false);
+      setGenerateProgress({ ...generateProgress, currentStep: 0 });
     }
   };
   const formatGeneratedScript = (plan: NewPlan | null) => {
@@ -874,9 +936,31 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   >
                     {isAnalyzingScript ? "구조 분석 중..." : "대본 구조 분석하기"}
                   </button>
+                  
+                  {isAnalyzingScript && (
+                    <ProgressTracker
+                      currentStepIndex={analyzeProgress.currentStep}
+                      stepLabels={analyzeProgress.steps}
+                      stepDescriptions={[
+                        "대본의 전체 구조와 흐름을 분석하고 있습니다",
+                        "중요한 키워드와 주제를 추출하고 있습니다",
+                        "분석 결과를 바탕으로 새로운 주제를 생성하고 있습니다"
+                      ]}
+                      estimatedTimeSeconds={20}
+                    />
+                  )}
+                  
                   {scriptAnalysis?.scriptStructure && (
-                    <div className="rounded-2xl border border-white/10 bg-black/30 p-4 text-sm text-white/70">
-                      <p className="text-sm font-semibold text-white mb-3">분석된 구조</p>
+                    <div className="rounded-2xl border border-white/10 bg-black/30 p-5 text-sm text-white/70">
+                      <div className="mb-4 pb-3 border-b border-white/10">
+                        <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
+                          <span className="text-red-400">📋</span>
+                          분석된 대본 구조
+                        </h3>
+                        <p className="text-xs text-white/50">
+                          입력하신 대본의 흐름과 구조를 분석한 결과입니다
+                        </p>
+                      </div>
                       <div className="space-y-3">
                         {scriptAnalysis.scriptStructure.map((stage) => (
                           <div
@@ -894,25 +978,48 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
                 <div className="space-y-3">
                   {scriptIdeas.length === 0 ? (
-                    <p className="text-sm text-white/60">
-                      구조 분석 후 추천 주제가 표시됩니다.
-                    </p>
+                    <div className="rounded-2xl border border-white/10 bg-black/30 p-5">
+                      <div className="mb-3 pb-3 border-b border-white/10">
+                        <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
+                          <span className="text-blue-400">💡</span>
+                          AI 추천 주제
+                        </h3>
+                        <p className="text-xs text-white/50">
+                          분석 결과를 바탕으로 생성할 수 있는 주제들입니다
+                        </p>
+                      </div>
+                      <p className="text-sm text-white/60">
+                        구조 분석 후 추천 주제가 표시됩니다.
+                      </p>
+                    </div>
                   ) : (
-                    <div className="grid gap-2">
-                      {scriptIdeas.map((idea) => (
-                        <button
-                          key={idea}
-                          type="button"
-                          onClick={() => setSelectedTopic(idea)}
-                          className={`rounded-xl border px-4 py-3 text-left text-sm transition ${
-                            selectedTopic === idea
-                              ? "border-red-400 bg-red-500/10 text-white"
-                              : "border-white/15 bg-black/30 text-white/70 hover:border-white/30"
-                          }`}
-                        >
-                          {idea}
-                        </button>
-                      ))}
+                    <div className="rounded-2xl border border-white/10 bg-black/30 p-5">
+                      <div className="mb-4 pb-3 border-b border-white/10">
+                        <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
+                          <span className="text-blue-400">💡</span>
+                          AI 추천 주제
+                        </h3>
+                        <p className="text-xs text-white/50">
+                          원하는 주제를 선택하면 해당 주제로 새로운 대본을 작성합니다 ({scriptIdeas.length}개)
+                        </p>
+                      </div>
+                      <div className="grid gap-2">
+                        {scriptIdeas.map((idea, index) => (
+                          <button
+                            key={idea}
+                            type="button"
+                            onClick={() => setSelectedTopic(idea)}
+                            className={`rounded-xl border px-4 py-3 text-left text-sm transition ${
+                              selectedTopic === idea
+                                ? "border-red-400 bg-red-500/10 text-white"
+                                : "border-white/15 bg-black/30 text-white/70 hover:border-white/30"
+                            }`}
+                          >
+                            <span className="font-semibold text-white/80 mr-2">주제 {index + 1}.</span>
+                            {idea}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -926,9 +1033,31 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   >
                     {isGeneratingScript ? "대본 작성 중..." : "선택 주제로 대본 작성하기"}
                   </button>
+                  
+                  {isGeneratingScript && (
+                    <ProgressTracker
+                      currentStepIndex={generateProgress.currentStep}
+                      stepLabels={generateProgress.steps}
+                      stepDescriptions={[
+                        "선택한 주제에 맞는 대본 구조를 설계하고 있습니다",
+                        "각 챕터의 내용을 상세하게 작성하고 있습니다",
+                        "생성된 대본의 품질을 확인하고 있습니다"
+                      ]}
+                      estimatedTimeSeconds={25}
+                    />
+                  )}
+                  
                   {generatedPlan && (
-                    <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                      <p className="text-sm font-semibold text-white mb-2">생성된 대본</p>
+                    <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+                      <div className="mb-4 pb-3 border-b border-white/10">
+                        <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
+                          <span className="text-green-400">✨</span>
+                          생성된 대본
+                        </h3>
+                        <p className="text-xs text-white/50">
+                          AI가 선택한 주제로 작성한 완성된 대본입니다 ({generatedPlan.chapters?.length || 0}개 챕터)
+                        </p>
+                      </div>
                       {generatedPlan.chapters && generatedPlan.chapters.length > 0 ? (
                         <div className="space-y-3 text-sm text-white/70">
                           {generatedPlan.chapters.map((chapter, index) => (
