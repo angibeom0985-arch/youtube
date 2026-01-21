@@ -564,39 +564,26 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     {
       value: "long" as VideoFormat,
       title: "롱폼",
+      subtitle: "가로형 16:9",
+      size: "1920 x 1080",
+      ratio: "16:9",
       icon: <FiMonitor className="text-lg" />,
+      description: "YouTube 본 콘텐츠",
     },
     {
       value: "short" as VideoFormat,
       title: "숏폼",
-      icon: <FiSmartphone className="text-lg" />,
-    },
-  ];
-  const ratioOptions = [
-    {
-      value: "16:9",
-      title: "가로형",
-      size: "1920 x 1080",
-    },
-    {
-      value: "9:16",
-      title: "세로형",
+      subtitle: "세로형 9:16",
       size: "1080 x 1920",
+      ratio: "9:16",
+      icon: <FiSmartphone className="text-lg" />,
+      description: "Shorts / Reels / TikTok",
     },
   ];
 
   const handleFormatChange = (format: VideoFormat) => {
     setVideoFormat(format);
     setRenderRatio(format === "short" ? "9:16" : "16:9");
-  };
-
-  const handleRatioChange = (ratio: string) => {
-    setRenderRatio(ratio);
-    if (ratio === "9:16") {
-      setVideoFormat("short");
-    } else if (ratio === "16:9") {
-      setVideoFormat("long");
-    }
   };
   const scriptLengthOptions = [
     { value: "1", label: "1분" },
@@ -753,68 +740,46 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
             <div className="rounded-[clamp(1rem,2vw,1.4rem)] border border-white/20 bg-black/40 p-[clamp(1rem,2vw,1.4rem)]">
               <h3 className="text-2xl font-bold text-white">영상 기본 설정</h3>
               <p className="mt-3 text-sm text-white/70">
-                롱폼/숏폼과 화면 비율을 먼저 선택해 주세요.
+                롱폼/숏폼 화면 비율을 선택해 주세요.
               </p>
-              <div className="mt-4">
-                <p className="text-sm font-semibold text-white/80">영상 형식</p>
-                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              <div className="mt-6">
+                <div className="grid gap-4 sm:grid-cols-2">
                   {formatOptions.map((option) => (
                     <button
                       key={option.value}
                       type="button"
                       onClick={() => handleFormatChange(option.value)}
-                      className={`rounded-2xl border px-4 py-3 text-center transition ${
+                      className={`group rounded-2xl border px-5 py-6 text-center transition ${
                         videoFormat === option.value
                           ? "border-red-400 bg-red-500/10 shadow-[0_10px_20px_rgba(239,68,68,0.2)]"
-                          : "border-white/15 bg-black/30 hover:border-white/30"
+                          : "border-white/15 bg-black/30 hover:border-white/30 hover:bg-black/50"
                       }`}
                     >
-                      <div className="flex flex-col items-center gap-2 text-white">
-                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10">
+                      <div className="flex flex-col items-center gap-3">
+                        <span className={`flex h-12 w-12 items-center justify-center rounded-full transition ${
+                          videoFormat === option.value ? "bg-red-500/20" : "bg-white/10 group-hover:bg-white/15"
+                        }`}>
                           {option.icon}
                         </span>
                         <div className="text-center">
-                          <p className="text-sm font-semibold">{option.title}</p>
+                          <p className="text-lg font-bold text-white">{option.title}</p>
+                          <p className="mt-1 text-sm font-semibold text-white/60">{option.subtitle}</p>
+                          <p className="mt-0.5 text-xs text-white/40">{option.size}</p>
                         </div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="mt-5">
-                <p className="text-sm font-semibold text-white/80">화면 비율 & 크기</p>
-                <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                  {ratioOptions.map((option) => (
-                    <button
-                      key={option.value}
-                      type="button"
-                      onClick={() => handleRatioChange(option.value)}
-                      className={`rounded-2xl border px-3 py-3 text-center transition ${
-                        renderRatio === option.value
-                          ? "border-red-400 bg-red-500/10 shadow-[0_10px_20px_rgba(239,68,68,0.2)]"
-                          : "border-white/15 bg-black/30 hover:border-white/30"
-                      }`}
-                    >
-                      <div className="flex flex-col items-center gap-1">
-                        <div className="text-center">
-                          <p className="text-sm font-semibold text-white">{option.title}</p>
-                          <p className="text-sm text-white/50">{option.size}</p>
-                        </div>
-                        <span className="text-sm font-semibold text-white/50">{option.value}</span>
-                      </div>
-                      <p className="mt-2 text-sm text-white/50">{option.hint}</p>
-                      <div className="mt-3 flex justify-center">
-                        <div
-                          className={`relative ${
-                            option.value === "16:9" ? "h-14 w-24" : "h-24 w-14"
-                          }`}
-                        >
+                        <p className="mt-1 text-xs text-white/50">{option.description}</p>
+                        <div className="mt-2 flex justify-center">
                           <div
-                            className={`absolute inset-0 rounded-lg border ${
-                              renderRatio === option.value ? "border-red-400/70" : "border-white/20"
-                            } bg-black/40`}
+                            className={`relative transition ${
+                              option.ratio === "16:9" ? "h-16 w-28" : "h-28 w-16"
+                            }`}
                           >
-                            <div className="absolute inset-1 rounded-md bg-gradient-to-br from-white/10 to-white/5" />
+                            <div
+                              className={`absolute inset-0 rounded-lg border transition ${
+                                videoFormat === option.value ? "border-red-400/70 shadow-[0_0_15px_rgba(239,68,68,0.3)]" : "border-white/20 group-hover:border-white/30"
+                              } bg-black/40`}
+                            >
+                              <div className="absolute inset-1 rounded-md bg-gradient-to-br from-white/10 to-white/5" />
+                            </div>
                           </div>
                         </div>
                       </div>
