@@ -1771,7 +1771,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
               disabled={isAnalyzing || !transcript}
               className="w-full mt-4 bg-gradient-to-br from-orange-600 to-orange-500 text-white font-bold py-3 px-4 rounded-lg hover:from-orange-500 hover:to-orange-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105"
             >
-              {isAnalyzing ? "분석 중..." : "떡상 이유 분석하기 (1 💎)"}
+              {isAnalyzing ? "분석 중..." : "떡상 이유 분석하기"}
             </button>
 
             {/* 분석 진행 상태 표시 */}
@@ -2071,7 +2071,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                     disabled={isGeneratingIdeas || !analysisResult}
                     className="text-sm font-medium text-orange-500 hover:text-orange-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    새로고침 (1 💎)
+                    새로고침
                   </button>
                 </div>
                 <div className="mb-3 user-idea-keyword-input">
@@ -2191,7 +2191,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                 disabled={isGenerating || !newKeyword || !analysisResult}
                 className="w-full bg-gradient-to-br from-orange-600 to-orange-500 text-white font-bold py-3 px-6 rounded-lg hover:from-orange-500 hover:to-orange-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105"
               >
-                {isGenerating ? "생성 중..." : "나만의 떡상 기획안 작성 (10 💎)"}
+                {isGenerating ? "생성 중..." : "나만의 떡상 기획안 작성"}
               </button>
 
               {/* 기획안 생성 오류 표시 */}
@@ -2539,7 +2539,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                                         className="w-full px-4 py-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-semibold rounded-lg transition-all duration-200 shadow-lg flex items-center justify-center gap-2"
                                       >
                                         <FiCpu />
-                                        <span>챕터 {index + 2} 대본 생성하기 (5 💎)</span>
+                                        <span>챕터 {index + 2} 대본 생성하기</span>
                                         <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                                         </svg>
