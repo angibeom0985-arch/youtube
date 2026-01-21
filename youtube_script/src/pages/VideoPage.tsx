@@ -656,6 +656,31 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       setScriptError("분석할 대본을 먼저 입력해 주세요.");
       return;
     }
+    
+    // 대본 길이 체크 (권장 최대 5000자)
+    const scriptLength = scriptDraft.trim().length;
+    if (scriptLength > 10000) {
+      setScriptError(
+        "⚠️ 대본이 너무 깁니다.\n\n" +
+        `현재 길이: ${scriptLength.toLocaleString()}자\n` +
+        "권장 길이: 5,000자 이하\n\n" +
+        "대본을 짧게 줄이거나 나눠서 분석해 주세요.\n" +
+        "긴 대본은 서버 타임아웃을 유발할 수 있습니다."
+      );
+      return;
+    }
+    
+    if (scriptLength > 5000) {
+      const confirmProceed = window.confirm(
+        `대본 길이가 ${scriptLength.toLocaleString()}자로 권장 길이(5,000자)를 초과합니다.\n\n` +
+        "분석에 시간이 오래 걸리거나 실패할 수 있습니다.\n" +
+        "계속 진행하시겠습니까?"
+      );
+      if (!confirmProceed) {
+        return;
+      }
+    }
+    
     setScriptError("");
     setIsAnalyzingScript(true);
     setAnalyzeProgress({ ...analyzeProgress, currentStep: 0 });
@@ -680,14 +705,23 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "대본 분석에 실패했습니다.";
       
-      // Check if it's a timeout error
-      if (errorMessage.includes("FUNCTION_INVOCATION_TIMEOUT") || errorMessage.includes("timeout")) {
+      // Check if it's a timeout error or network error
+      if (errorMessage.includes("FUNCTION_INVOCATION_TIMEOUT") || errorMessage.includes("timeout") || errorMessage.includes("timed out")) {
         setScriptError(
           "⏱️ 분석 작업이 시간 초과되었습니다.\n\n" +
+          `대본 길이: ${scriptLength.toLocaleString()}자\n` +
+          "권장 길이: 5,000자 이하\n\n" +
           "대본이 너무 길거나 서버가 응답하지 않았습니다.\n" +
           "• 대본 길이를 줄여서 다시 시도해 주세요.\n" +
-          "• 잠시 후 다시 시도해 주세요.\n\n" +
+          "• 5분 후 다시 시도해 주세요.\n\n" +
           "문제가 계속되면 관리자에게 문의해 주세요."
+        );
+      } else if (errorMessage.includes("Failed to fetch") || errorMessage.includes("NetworkError")) {
+        setScriptError(
+          "🌐 네트워크 오류가 발생했습니다.\n\n" +
+          "• 인터넷 연결을 확인해 주세요.\n" +
+          "• 잠시 후 다시 시도해 주세요.\n\n" +
+          `상세 정보: ${errorMessage}`
         );
       } else {
         setScriptError(errorMessage);
@@ -891,6 +925,32 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   </span>
                   <span>대본 구조 분석용 입력</span>
                 </div>
+                
+                {scriptDraft.length > 5000 && (
+                  <div className={`rounded-xl border px-4 py-3 text-sm ${
+                    scriptDraft.length > 10000 
+                      ? 'border-red-400/50 bg-red-500/10 text-red-300'
+                      : 'border-yellow-400/50 bg-yellow-500/10 text-yellow-300'
+                  }`}>
+                    <div className="flex items-start gap-2">
+                      <span className="text-lg">{scriptDraft.length > 10000 ? '⛔' : '⚠️'}</span>
+                      <div>
+                        <p className="font-semibold">
+                          {scriptDraft.length > 10000 ? '대본이 너무 깁니다' : '대본 길이 주의'}
+                        </p>
+                        <p className="text-xs mt-1 opacity-80">
+                          현재: {scriptDraft.length.toLocaleString()}자 / 권장: 5,000자 이하
+                          {scriptDraft.length > 10000 && ' (최대 10,000자)'}
+                        </p>
+                        {scriptDraft.length > 10000 && (
+                          <p className="text-xs mt-1 opacity-80">
+                            분석이 불가능합니다. 대본을 짧게 줄여주세요.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <div className="space-y-3">
                   <div className="flex flex-wrap gap-2">
