@@ -69,6 +69,15 @@ const imageStyles = [
   "하이퍼 리얼",
 ];
 
+const characterColors = [
+  "text-orange-400",
+  "text-amber-400",
+  "text-orange-500",
+  "text-yellow-500",
+  "text-orange-600",
+  "text-amber-600",
+];
+
 const SCRIPT_USAGE_GUIDE =
   "대본 생성 사용법\n1. 현재 대본의 흐름을 그대로 붙여 넣기\n2. 영상 길이를 선택해 새 대본의 분량 설정\n3. 추천 주제 중 하나를 골라 새 대본 생성";
 const steps: Step[] = [
@@ -239,6 +248,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [videoError, setVideoError] = useState<string | null>(null);
   const progressTimerRef = useRef<number | null>(null);
+  const [characterColorMap, setCharacterColorMap] = useState<Map<string, string>>(new Map());
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -258,6 +268,16 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (generatedPlan?.characters) {
+      const newMap = new Map<string, string>();
+      generatedPlan.characters.forEach((char, index) => {
+        newMap.set(char, characterColors[index % characterColors.length]);
+      });
+      setCharacterColorMap(newMap);
+    }
+  }, [generatedPlan]);
 
   useEffect(() => setStoredValue(STORAGE_KEYS.title, projectTitle), [projectTitle]);
   useEffect(() => setStoredValue(STORAGE_KEYS.notes, projectNotes), [projectNotes]);
@@ -761,6 +781,41 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       setGenerateProgress({ ...generateProgress, currentStep: 0 });
     }
   };
+  // 챕터별 대본 다운로드 포맷
+  const formatChapterScriptToText = (
+    chapter: { title: string; script?: { character: string; line: string; timestamp?: string }[] }
+  ): string => {
+    if (!chapter.script) return "";
+    
+    let text = `${chapter.title}\n${"=".repeat(50)}\n\n`;
+    chapter.script.forEach((item) => {
+      if (item.timestamp) {
+        text += `[${item.timestamp}] ${item.character}: ${item.line}\n\n`;
+      } else {
+        text += `${item.character}: ${item.line}\n\n`;
+      }
+    });
+    return text;
+  };
+
+  // 전체 챕터 대본 다운로드 포맷
+  const formatAllChaptersToText = (chapters: any[]): string => {
+    return chapters
+      .filter((chapter) => chapter.script)
+      .map((chapter, index) => {
+        let text = `챕터 ${index + 1}: ${chapter.title}\n${"=".repeat(50)}\n\n`;
+        chapter.script.forEach((item: any) => {
+          if (item.timestamp) {
+            text += `[${item.timestamp}] ${item.character}: ${item.line}\n\n`;
+          } else {
+            text += `${item.character}: ${item.line}\n\n`;
+          }
+        });
+        return text;
+      })
+      .join("\n\n" + "=".repeat(50) + "\n\n");
+  };
+
   const formatGeneratedScript = (plan: NewPlan | null) => {
     if (!plan) return "";
     if (plan.chapters && plan.chapters.length > 0) {
@@ -1127,43 +1182,111 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         </p>
                       </div>
                       {generatedPlan.chapters && generatedPlan.chapters.length > 0 ? (
-                        <div className="space-y-4">
-                          {generatedPlan.chapters.map((chapter, index) => (
-                            <div
-                              key={chapter.id}
-                              className="rounded-xl border border-white/10 bg-black/30 p-4"
-                            >
-                              <h4 className="text-base font-bold text-white mb-3 flex items-center gap-2">
-                                <span className="text-red-400">📖</span>
-                                챕터 {index + 1}. {chapter.title}
-                              </h4>
-                              <p className="text-sm text-white/60 mb-4 pb-3 border-b border-white/10">
-                                {chapter.purpose}
-                              </p>
-                              {chapter.script && chapter.script.length > 0 && (
-                                <div className="space-y-3 max-h-[400px] overflow-y-auto p-3 bg-black/40 rounded-lg">
-                                  {chapter.script.map((line, lineIndex) => (
-                                    <div key={`${chapter.id}-${lineIndex}`} className="flex items-start gap-3">
-                                      <div className="w-24 flex-shrink-0 pt-0.5">
-                                        <span className="font-bold text-sm text-orange-400">
-                                          {line.character}
-                                        </span>
-                                        {line.timestamp && (
-                                          <div className="text-xs text-white/40 font-mono mt-0.5">
-                                            [{line.timestamp}]
+                        <>
+                          <div className="space-y-4">
+                            {generatedPlan.chapters.map((chapter, index) => (
+                              <div
+                                key={chapter.id}
+                                className="rounded-xl border border-white/10 bg-black/30 p-4"
+                              >
+                                <h4 className="text-base font-bold text-white mb-3 flex items-center gap-2">
+                                  <span className="text-red-400">📖</span>
+                                  챕터 {index + 1}. {chapter.title}
+                                </h4>
+                                <p className="text-sm text-white/60 mb-4 pb-3 border-b border-white/10">
+                                  {chapter.purpose}
+                                </p>
+                                {chapter.script && chapter.script.length > 0 && (
+                                  <>
+                                    <div className="space-y-3 max-h-[400px] overflow-y-auto p-3 bg-black/40 rounded-lg">
+                                      {chapter.script.map((line, lineIndex) => (
+                                        <div key={`${chapter.id}-${lineIndex}`}>
+                                          <div className="flex items-start gap-3">
+                                            <div className="w-24 flex-shrink-0 pt-0.5">
+                                              <span className={`font-bold text-sm ${characterColorMap.get(line.character) || "text-orange-400"}`}>
+                                                {line.character}
+                                              </span>
+                                              {line.timestamp && (
+                                                <div className="text-xs text-white/40 font-mono mt-0.5">
+                                                  [{line.timestamp}]
+                                                </div>
+                                              )}
+                                            </div>
+                                            <div className="flex-1 text-sm text-white/90 leading-relaxed">
+                                              {line.line.replace(/\*\*/g, "").replace(/\*/g, "").replace(/\_\_/g, "").replace(/\_/g, "")}
+                                            </div>
                                           </div>
-                                        )}
-                                      </div>
-                                      <div className="flex-1 text-sm text-white/90 leading-relaxed">
-                                        {line.line.replace(/\*\*/g, "").replace(/\*/g, "").replace(/\_\_/g, "").replace(/\_/g, "")}
-                                      </div>
+                                          {line.imagePrompt && (
+                                            <div className="mt-3 ml-[108px] p-3 rounded-md border bg-zinc-950 border-zinc-700/50">
+                                              <p className="text-xs font-semibold text-neutral-400 mb-1">
+                                                🎨 이미지 생성 프롬프트
+                                              </p>
+                                              <p className="text-sm text-neutral-300 font-mono">
+                                                {line.imagePrompt}
+                                              </p>
+                                            </div>
+                                          )}
+                                        </div>
+                                      ))}
                                     </div>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
+                                    
+                                    {/* 챕터별 다운로드 버튼 */}
+                                    <div className="mt-4 pt-4 border-t border-white/10 flex gap-3">
+                                      <button
+                                        onClick={() => {
+                                          const text = formatChapterScriptToText(chapter);
+                                          if (!text || text.trim() === "") {
+                                            alert("다운로드할 대본이 없습니다.");
+                                            return;
+                                          }
+                                          const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+                                          const url = URL.createObjectURL(blob);
+                                          const a = document.createElement("a");
+                                          a.href = url;
+                                          a.download = `chapter-${index + 1}-script.txt`;
+                                          a.click();
+                                          URL.revokeObjectURL(url);
+                                        }}
+                                        className="flex-1 px-4 py-2.5 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-400 hover:to-red-500 text-white font-semibold rounded-lg transition-all duration-200 shadow-lg flex items-center justify-center gap-2"
+                                      >
+                                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                        </svg>
+                                        📜 대본 다운로드
+                                      </button>
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                          
+                          {/* 전체 대본 다운로드 버튼 */}
+                          <div className="mt-4 pt-4 border-t border-white/10">
+                            <button
+                              onClick={() => {
+                                const text = formatAllChaptersToText(generatedPlan.chapters || []);
+                                if (!text || text.trim() === "") {
+                                  alert("다운로드할 대본이 없습니다.");
+                                  return;
+                                }
+                                const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement("a");
+                                a.href = url;
+                                a.download = "all-chapters-script.txt";
+                                a.click();
+                                URL.revokeObjectURL(url);
+                              }}
+                              className="w-full px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-white font-bold rounded-lg transition-all duration-200 shadow-lg flex items-center justify-center gap-2"
+                            >
+                              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                              </svg>
+                              📚 전체 대본 다운로드
+                            </button>
+                          </div>
+                        </>
                       ) : (
                         <pre className="whitespace-pre-wrap text-sm text-white/70 p-4 bg-black/30 rounded-lg">
                           {formatGeneratedScript(generatedPlan)}
