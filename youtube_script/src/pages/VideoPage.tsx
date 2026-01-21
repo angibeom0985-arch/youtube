@@ -1529,15 +1529,18 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
               </div>
 
               {chapterScripts.length > 0 ? (
-                <div className="space-y-4">
+                <div className="space-y-4 overflow-visible">
                   {chapterScripts.map((chapter, index) => (
-                    <div key={index} className="relative rounded-2xl border border-white/10 bg-black/30 p-5">
+                    <div key={index} className="relative rounded-2xl border border-white/10 bg-black/30 p-5 overflow-visible">
                       <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/10">
                         <h4 className="text-lg font-bold text-white flex items-center gap-2">
                           <span className="text-red-400">🎙️</span>
                           {chapter.title}
                         </h4>
                         <div className="flex items-center gap-2">
+                          <span className="text-xs text-orange-400 font-semibold mr-3">
+                            {chapterVoices[index] || voiceOptions[0].name}
+                          </span>
                           <span className="text-xs text-white/50">{chapter.content.length}자</span>
                         </div>
                       </div>
@@ -1617,21 +1620,22 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
                       {/* 더 많은 TTS 목소리 선택 모달 - 챕터별 인라인 표시 */}
                       {showVoiceModal && currentChapterForVoice === index && (
-                        <div className="absolute top-0 right-0 z-50 w-[500px] max-h-[600px] overflow-y-auto bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-2xl border border-white/20 shadow-2xl transform translate-x-[calc(100%+16px)]">
-                          <div className="sticky top-0 bg-gradient-to-br from-zinc-900 to-zinc-800 border-b border-white/10 px-6 py-4 flex items-center justify-between">
-                            <div>
-                              <h3 className="text-xl font-bold text-white">🎙️ AI 보이스 선택</h3>
-                              <p className="text-xs text-white/60 mt-1">원하는 목소리를 선택하세요</p>
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowVoiceModal(false)}>
+                          <div className="relative w-[90%] max-w-[500px] max-h-[80vh] overflow-y-auto bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-2xl border border-white/20 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                            <div className="sticky top-0 bg-gradient-to-br from-zinc-900 to-zinc-800 border-b border-white/10 px-6 py-4 flex items-center justify-between z-10">
+                              <div>
+                                <h3 className="text-xl font-bold text-white">🎙️ AI 보이스 선택</h3>
+                                <p className="text-xs text-white/60 mt-1">{chapter.title}</p>
+                              </div>
+                              <button
+                                onClick={() => setShowVoiceModal(false)}
+                                className="p-2 rounded-full hover:bg-white/10 transition-colors"
+                              >
+                                <svg className="w-5 h-5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                              </button>
                             </div>
-                            <button
-                              onClick={() => setShowVoiceModal(false)}
-                              className="p-2 rounded-full hover:bg-white/10 transition-colors"
-                            >
-                              <svg className="w-5 h-5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                              </svg>
-                            </button>
-                          </div>
 
                           <div className="p-6">
                             {/* 추천 목소리 */}
