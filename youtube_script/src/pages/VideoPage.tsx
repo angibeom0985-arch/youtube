@@ -627,6 +627,39 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
   const handleNext = () => {
     if (!canGoNext) return;
+    
+    // Step 2 (대본 작성)에서 Step 3 (음성 생성)으로 이동할 때 대본 자동 입력
+    if (currentStep === 1 && generatedPlan) {
+      let scriptText = "";
+      
+      if (generatedPlan.chapters && generatedPlan.chapters.length > 0) {
+        // chapters 형식
+        scriptText = generatedPlan.chapters
+          .map((chapter) => {
+            const lines = (chapter.script || [])
+              .map((line) => `${line.character}: ${line.line}`)
+              .join("\n");
+            return lines;
+          })
+          .filter(Boolean)
+          .join("\n\n");
+      } else if (generatedPlan.scriptWithCharacters && generatedPlan.scriptWithCharacters.length > 0) {
+        // scriptWithCharacters 형식
+        scriptText = generatedPlan.scriptWithCharacters
+          .map((line) => `${line.character}: ${line.line}`)
+          .join("\n");
+      } else if (generatedPlan.scriptOutline && generatedPlan.scriptOutline.length > 0) {
+        // scriptOutline 형식
+        scriptText = generatedPlan.scriptOutline
+          .map((stage) => stage.details)
+          .join("\n\n");
+      }
+      
+      if (scriptText.trim()) {
+        setTtsScript(scriptText.trim());
+      }
+    }
+    
     goToStep(currentStep + 1);
   };
 
