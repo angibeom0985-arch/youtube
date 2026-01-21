@@ -137,6 +137,29 @@ const setStoredValue = (key: string, value: string) => {
   }
 };
 
+const getStoredJson = <T,>(key: string, fallback: T): T => {
+  if (typeof localStorage === "undefined") return fallback;
+  try {
+    const value = localStorage.getItem(key);
+    return value ? JSON.parse(value) : fallback;
+  } catch (error) {
+    console.error("VideoPage JSON storage read failed:", error);
+    return fallback;
+  }
+};
+
+const setStoredJson = <T,>(key: string, value: T) => {
+  try {
+    if (value === null || value === undefined) {
+      localStorage.removeItem(key);
+    } else {
+      localStorage.setItem(key, JSON.stringify(value));
+    }
+  } catch (error) {
+    console.error("VideoPage JSON storage write failed:", error);
+  }
+};
+
 const formatFileSize = (size: number) => {
   if (size < 1024) return `${size} B`;
   if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
@@ -179,10 +202,18 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [ttsSpeed, setTtsSpeed] = useState(1);
   const [scriptLengthMinutes, setScriptLengthMinutes] = useState("8");
   const [customScriptLength, setCustomScriptLength] = useState("5");
-  const [scriptAnalysis, setScriptAnalysis] = useState<AnalysisResult | null>(null);
-  const [scriptIdeas, setScriptIdeas] = useState<string[]>([]);
-  const [selectedTopic, setSelectedTopic] = useState("");
-  const [generatedPlan, setGeneratedPlan] = useState<NewPlan | null>(null);
+  const [scriptAnalysis, setScriptAnalysis] = useState<AnalysisResult | null>(() =>
+    getStoredJson("videopage_scriptAnalysis", null)
+  );
+  const [scriptIdeas, setScriptIdeas] = useState<string[]>(() =>
+    getStoredJson("videopage_scriptIdeas", [])
+  );
+  const [selectedTopic, setSelectedTopic] = useState(() =>
+    getStoredString("videopage_selectedTopic", "")
+  );
+  const [generatedPlan, setGeneratedPlan] = useState<NewPlan | null>(() =>
+    getStoredJson("videopage_generatedPlan", null)
+  );
   const [scriptError, setScriptError] = useState("");
   const [isAnalyzingScript, setIsAnalyzingScript] = useState(false);
   const [isGeneratingScript, setIsGeneratingScript] = useState(false);
@@ -300,6 +331,12 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   useEffect(() => setStoredValue(STORAGE_KEYS.editNotes, editNotes), [editNotes]);
   useEffect(() => setStoredValue(STORAGE_KEYS.format, videoFormat), [videoFormat]);
   useEffect(() => setStoredValue(STORAGE_KEYS.step, String(currentStep)), [currentStep]);
+  
+  // 분석 및 생성 결과 localStorage 저장
+  useEffect(() => setStoredJson("videopage_scriptAnalysis", scriptAnalysis), [scriptAnalysis]);
+  useEffect(() => setStoredJson("videopage_scriptIdeas", scriptIdeas), [scriptIdeas]);
+  useEffect(() => setStoredValue("videopage_selectedTopic", selectedTopic), [selectedTopic]);
+  useEffect(() => setStoredJson("videopage_generatedPlan", generatedPlan), [generatedPlan]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
