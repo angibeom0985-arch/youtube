@@ -263,6 +263,7 @@ ${isStoryChannel ? `
       model: "gemini-2.0-flash-exp",
       contents: prompt,
       config: {
+        systemInstruction: "당신은 전문 대본 작가입니다. 모든 대사와 텍스트는 평문으로 작성하고, 마크다운 특수문자(*, **, _, __, #, - 등)를 절대 사용하지 마세요. 자연스러운 구어체로 대화를 작성하세요.",
         responseMimeType: "application/json",
         responseSchema: scriptSchema,
         temperature: 0.9,
