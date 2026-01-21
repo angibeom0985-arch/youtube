@@ -563,7 +563,6 @@ const TtsPage: React.FC = () => {
                   estimatedTimeSeconds={15}
                 />
               )}
-              </button>
 
             <ErrorNotice error={error} context="TTS 음성 생성" />
 
