@@ -1287,10 +1287,100 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                             </button>
                           </div>
                         </>
+                      ) : generatedPlan.scriptWithCharacters && generatedPlan.scriptWithCharacters.length > 0 ? (
+                        <>
+                          <div className="space-y-3 max-h-[500px] overflow-y-auto p-3 bg-black/40 rounded-lg">
+                            {generatedPlan.scriptWithCharacters.map((line, lineIndex) => (
+                              <div key={`script-${lineIndex}`}>
+                                <div className="flex items-start gap-3">
+                                  <div className="w-24 flex-shrink-0 pt-0.5">
+                                    <span className={`font-bold text-sm ${characterColorMap.get(line.character) || "text-orange-400"}`}>
+                                      {line.character}
+                                    </span>
+                                    {line.timestamp && (
+                                      <div className="text-xs text-white/40 font-mono mt-0.5">
+                                        [{line.timestamp}]
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div className="flex-1 text-sm text-white/90 leading-relaxed">
+                                    {line.line.replace(/\*\*/g, "").replace(/\*/g, "").replace(/\_\_/g, "").replace(/\_/g, "")}
+                                  </div>
+                                </div>
+                                {line.imagePrompt && (
+                                  <div className="mt-3 ml-[108px] p-3 rounded-md border bg-zinc-950 border-zinc-700/50">
+                                    <p className="text-xs font-semibold text-neutral-400 mb-1">
+                                      🎨 이미지 생성 프롬프트
+                                    </p>
+                                    <p className="text-sm text-neutral-300 font-mono">
+                                      {line.imagePrompt}
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                          
+                          {/* 전체 대본 다운로드 버튼 */}
+                          <div className="mt-4 pt-4 border-t border-white/10">
+                            <button
+                              onClick={() => {
+                                if (!generatedPlan.scriptWithCharacters || generatedPlan.scriptWithCharacters.length === 0) {
+                                  alert("다운로드할 대본이 없습니다.");
+                                  return;
+                                }
+                                
+                                const text = generatedPlan.scriptWithCharacters
+                                  .map((line) => {
+                                    let result = `${line.character}: ${line.line}`;
+                                    if (line.imagePrompt) {
+                                      result += `\n[이미지 프롬프트] ${line.imagePrompt}`;
+                                    }
+                                    return result;
+                                  })
+                                  .join("\n\n");
+                                
+                                const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement("a");
+                                a.href = url;
+                                a.download = "script.txt";
+                                a.click();
+                                URL.revokeObjectURL(url);
+                              }}
+                              className="w-full px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-white font-bold rounded-lg transition-all duration-200 shadow-lg flex items-center justify-center gap-2"
+                            >
+                              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                              </svg>
+                              📚 대본 다운로드
+                            </button>
+                          </div>
+                        </>
+                      ) : generatedPlan.scriptOutline && generatedPlan.scriptOutline.length > 0 ? (
+                        <div className="space-y-3">
+                          {generatedPlan.scriptOutline.map((stage, index) => (
+                            <div
+                              key={`outline-${index}`}
+                              className="rounded-xl border border-white/10 bg-black/30 p-4"
+                            >
+                              <h4 className="text-base font-bold text-white mb-2 flex items-center gap-2">
+                                <span className="text-red-400">📋</span>
+                                {stage.stage}
+                              </h4>
+                              <p className="text-sm text-white/60 mb-3 pb-3 border-b border-white/10">
+                                {stage.purpose}
+                              </p>
+                              <div className="text-sm text-white/70 leading-relaxed whitespace-pre-wrap">
+                                {stage.details}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       ) : (
-                        <pre className="whitespace-pre-wrap text-sm text-white/70 p-4 bg-black/30 rounded-lg">
-                          {formatGeneratedScript(generatedPlan)}
-                        </pre>
+                        <div className="text-sm text-white/60 p-4 bg-black/30 rounded-lg text-center">
+                          대본 내용이 없습니다.
+                        </div>
                       )}
                     </div>
                   )}
