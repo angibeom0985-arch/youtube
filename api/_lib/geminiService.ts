@@ -535,8 +535,12 @@ export const generateNewPlan = async (
   apiKey: string,
   vlogType?: string
 ): Promise<NewPlan> => {
-  try {
-    const ai = createAI(apiKey);
+  const maxRetries = 2;
+  let lastError: any = null;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const ai = createAI(apiKey);
 
     // scriptStructure에서 원본 대본의 인용구(quotes)를 제거하여
     // 구조와 목적만 전달하고, 원본 대본 내용이 새 대본에 영향을 주지 않도록 함
@@ -1039,84 +1043,142 @@ ${analysisString}
 위 구조의 흐름만 참고하여, "${newKeyword}"를 주제로 완전히 새로운 정보와 내용을 창작해주세요. 모든 결과 항목을 지정된 구조에 맞춰 JSON 형식으로 제공해주세요.`;
     }
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: contents,
-      config: {
-        systemInstruction:
-          "당신은 창의적인 YouTube 스크립트 작가 겸 기획자입니다. 성공 공식을 바탕으로 새로운 주제에 대한 기획안을 생성합니다. 요청된 카테고리와 영상 길이에 맞춰 결과물의 형식과 분량을 조절해주세요.\n\n**중요: 텍스트 작성 규칙**\n1. 모든 텍스트는 평문으로 작성하세요\n2. 마크다운 특수문자를 절대 사용하지 마세요: *, **, _, __, #, -, >, [], (), `, ~~ 등\n3. 강조가 필요한 경우 자연스러운 문장으로 표현하세요\n4. 대본과 대사는 자연스러운 구어체로 작성하세요\n5. 문단 구분은 두 번의 줄바꿈으로 하세요\n6. 긴 영상의 경우 충분한 분량의 대본을 생성해주세요\n\n나쁜 예: **중요한 내용**, *강조*, # 제목, - 항목\n좋은 예: 중요한 내용, 강조, 제목, 항목",
-        responseMimeType: "application/json",
-        responseSchema: schema,
-        maxOutputTokens: 16384,
-        temperature: 0.8,
-      },
-    });
+console.log(`[generateNewPlan] 시도 ${attempt + 1}/${maxRetries + 1} - 키워드: ${newKeyword}, 길이: ${length}`);
 
-    const jsonText = response.text.trim();
-    
-    // JSON 파싱 전에 응답 검증
-    if (!jsonText) {
-      throw new Error('EMPTY_RESPONSE: API 응답이 비어있습니다');
-    }
-    
-    // JSON이 완전한지 간단히 확인 (중괄호 균형)
-    const openBraces = (jsonText.match(/{/g) || []).length;
-    const closeBraces = (jsonText.match(/}/g) || []).length;
-    if (openBraces !== closeBraces) {
-      console.error('JSON 불균형 감지:', {
-        openBraces,
-        closeBraces,
-        textLength: jsonText.length,
-        textPreview: jsonText.substring(0, 300)
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: contents,
+        config: {
+          systemInstruction:
+            "당신은 창의적인 YouTube 스크립트 작가 겸 기획자입니다. 성공 공식을 바탕으로 새로운 주제에 대한 기획안을 생성합니다. 요청된 카테고리와 영상 길이에 맞춰 결과물의 형식과 분량을 조절해주세요.\n\n**중요: 텍스트 작성 규칙**\n1. 모든 텍스트는 평문으로 작성하세요\n2. 마크다운 특수문자를 절대 사용하지 마세요: *, **, _, __, #, -, >, [], (), `, ~~ 등\n3. 강조가 필요한 경우 자연스러운 문장으로 표현하세요\n4. 대본과 대사는 자연스러운 구어체로 작성하세요\n5. 문단 구분은 두 번의 줄바꿈으로 하세요\n6. 긴 영상의 경우 충분한 분량의 대본을 생성해주세요\n\n나쁜 예: **중요한 내용**, *강조*, # 제목, - 항목\n좋은 예: 중요한 내용, 강조, 제목, 항목",
+          responseMimeType: "application/json",
+          responseSchema: schema,
+          maxOutputTokens: 16384,
+          temperature: 0.8,
+        },
       });
-      throw new Error(`JSON_INCOMPLETE: AI 응답이 불완전합니다 (길이: ${jsonText.length}자). 더 짧은 키워드로 시도하거나, 잠시 후 다시 시도해주세요.`);
+
+      const jsonText = response.text.trim();
+      
+      // JSON 파싱 전에 응답 검증
+      if (!jsonText) {
+        throw new Error('EMPTY_RESPONSE: API 응답이 비어있습니다');
+      }
+      
+      // JSON이 완전한지 간단히 확인 (중괄호 균형)
+      const openBraces = (jsonText.match(/{/g) || []).length;
+      const closeBraces = (jsonText.match(/}/g) || []).length;
+      if (openBraces !== closeBraces) {
+        console.error('JSON 불균형 감지:', {
+          attempt: attempt + 1,
+          openBraces,
+          closeBraces,
+          textLength: jsonText.length,
+          textPreview: jsonText.substring(0, 200)
+        });
+        
+        // 마지막 시도가 아니면 재시도
+        if (attempt < maxRetries) {
+          console.log('JSON 불완전, 재시도 중...');
+          await new Promise(resolve => setTimeout(resolve, 2000 * (attempt + 1))); // 더 긴 대기
+          continue;
+        }
+        
+        throw new Error(`JSON_INCOMPLETE: AI 응답이 불완전합니다 (길이: ${jsonText.length}자). 더 짧은 키워드로 시도하거나, 잠시 후 다시 시도해주세요.`);
+      }
+      
+      try {
+        const result = JSON.parse(jsonText) as NewPlan;
+        console.log(`[generateNewPlan] 성공 - 챕터 ${result.chapters?.length || 0}개 생성`);
+        return result;
+      } catch (parseError: any) {
+        console.error('JSON Parse Error:', {
+          attempt: attempt + 1,
+          error: parseError.message,
+          jsonText: jsonText.substring(0, 200)
+        });
+        
+        // 마지막 시도가 아니면 재시도
+        if (attempt < maxRetries) {
+          console.log('JSON 파싱 실패, 재시도 중...');
+          await new Promise(resolve => setTimeout(resolve, 2000 * (attempt + 1)));
+          continue;
+        }
+        
+        throw new Error(`JSON_PARSE_ERROR: AI 응답을 파싱할 수 없습니다`);
+      }
+    } catch (error: any) {
+      lastError = error;
+      
+      // 재시도 불가능한 오류는 즉시 던지기
+      const errorString = JSON.stringify(error);
+      const errorMessage = error.message || '';
+      
+      if (
+        errorString.includes('SERVICE_DISABLED') ||
+        errorString.includes('PERMISSION_DENIED') ||
+        errorString.includes('API_KEY') ||
+        errorString.includes('INVALID_ARGUMENT') ||
+        errorMessage.includes('has not been used in project')
+      ) {
+        // API 키 관련 오류는 재시도 불가
+        throw error;
+      }
+      
+      // 마지막 시도가 아니면 재시도
+      if (attempt < maxRetries) {
+        console.log(`시도 ${attempt + 1} 실패, ${maxRetries - attempt}번 남음:`, errorMessage);
+        await new Promise(resolve => setTimeout(resolve, 2000 * (attempt + 1)));
+        continue;
+      }
     }
-    
-    try {
-      return JSON.parse(jsonText) as NewPlan;
-    } catch (parseError: any) {
-      console.error('JSON Parse Error:', {
-        error: parseError.message,
-        jsonText: jsonText.substring(0, 300)
-      });
-      throw new Error(`JSON_PARSE_ERROR: AI 응답을 파싱할 수 없습니다`);
-    }
-  } catch (error: any) {
-    console.error("Error generating new plan:", error);
-    
-    let userMessage = "[오류] 새로운 기획안 생성 중 오류가 발생했습니다.\n\n";
-    
-    const errorString = JSON.stringify(error);
-    const errorMessage = error.message || '';
-    
-    if (errorString.includes('SERVICE_DISABLED') || errorString.includes('PERMISSION_DENIED') || errorMessage.includes('has not been used in project') || errorMessage.includes('is disabled')) {
-      userMessage += "[원인]\n- API 키의 Generative Language API가 비활성화되어 있습니다\n\n[해결 방법]\n";
-      userMessage += "1. https://aistudio.google.com/app/apikey 에서 새 API 키를 발급받으세요\n";
-      userMessage += "2. 기존 API 키 사용 시, Google Cloud Console에서 'Generative Language API'를 활성화하세요\n";
-      userMessage += "3. API 키를 새로 발급받은 경우, 5-10분 정도 기다린 후 다시 시도하세요";
-    } else if (errorMessage.includes('API_KEY') || errorMessage.includes('invalid') || errorString.includes('INVALID_ARGUMENT')) {
-      userMessage += "[원인]\n- API 키가 유효하지 않거나 만료되었습니다\n\n[해결 방법]\n- API 키를 다시 확인하고 재설정해주세요";
-    } else if (errorMessage.includes('quota') || errorString.includes('RESOURCE_EXHAUSTED')) {
-      userMessage += "[원인]\n- API 사용량이 초과되었습니다\n\n[해결 방법]\n- 잠시 후 다시 시도해주세요\n- Google AI Studio에서 API 사용량을 확인해주세요";
-    } else if (errorMessage.includes('rate') || errorString.includes('RATE_LIMIT')) {
-      userMessage += "[원인]\n- API 요청이 너무 빠르게 발생했습니다\n\n[해결 방법]\n- 10초 정도 기다린 후 다시 시도해주세요";
-    } else if (errorMessage.includes('JSON_PARSE_ERROR') || errorMessage.includes('Unexpected end of JSON') || errorMessage.includes('JSON_INCOMPLETE')) {
-      userMessage += "[원인]\n- AI 응답이 완료되기 전에 중단되었습니다\n- 키워드가 너무 복잡할 수 있습니다\n\n[해결 방법]\n- 더 간단한 키워드로 다시 시도해주세요\n- 잠시 후 다시 시도해주세요";
-    } else if (errorMessage.includes('EMPTY_RESPONSE')) {
-      userMessage += "[원인]\n- AI가 응답을 생성하지 못했습니다\n\n[해결 방법]\n- 키워드를 변경하여 다시 시도해주세요";
-    } else {
-      userMessage += "[가능한 원인]\n- 키워드가 너무 복잡하거나 부적절합니다\n- AI 서버 일시적 오류\n- 네트워크 연결 문제\n\n[해결 방법]\n- 더 간단한 키워드로 다시 시도해주세요\n- 잠시 후 다시 시도해주세요";
-    }
-    
-    // 상세 오류 정보 추가
-    userMessage += `\n\n[상세 정보]\n${errorMessage || '알 수 없는 오류'}`;
-    if (error.stack) {
-      const stackLines = error.stack.split('\n').slice(0, 3).join('\n');
-      userMessage += `\n${stackLines}`;
-    }
-    
-    throw new Error(userMessage);
   }
+
+  // 모든 재시도 실패
+  const error = lastError || new Error('알 수 없는 오류');
+  console.error("Error generating new plan (모든 재시도 실패):", error);
+    
+// 모든 재시도 실패
+  const error = lastError || new Error('알 수 없는 오류');
+  console.error("Error generating new plan (모든 재시도 실패):", error);
+  
+  let userMessage = "[오류] 새로운 기획안 생성 중 오류가 발생했습니다.\n\n";
+  
+  const errorString = JSON.stringify(error);
+  const errorMessage = error.message || '';
+    
+let userMessage = "[오류] 새로운 기획안 생성 중 오류가 발생했습니다.\n\n";
+  
+  const errorString = JSON.stringify(error);
+  const errorMessage = error.message || '';
+  
+  if (errorString.includes('SERVICE_DISABLED') || errorString.includes('PERMISSION_DENIED') || errorMessage.includes('has not been used in project') || errorMessage.includes('is disabled')) {
+    userMessage += "[원인]\n- API 키의 Generative Language API가 비활성화되어 있습니다\n\n[해결 방법]\n";
+    userMessage += "1. https://aistudio.google.com/app/apikey 에서 새 API 키를 발급받으세요\n";
+    userMessage += "2. 기존 API 키 사용 시, Google Cloud Console에서 'Generative Language API'를 활성화하세요\n";
+    userMessage += "3. API 키를 새로 발급받은 경우, 5-10분 정도 기다린 후 다시 시도하세요";
+  } else if (errorMessage.includes('API_KEY') || errorMessage.includes('invalid') || errorString.includes('INVALID_ARGUMENT')) {
+    userMessage += "[원인]\n- API 키가 유효하지 않거나 만료되었습니다\n\n[해결 방법]\n- API 키를 다시 확인하고 재설정해주세요";
+  } else if (errorMessage.includes('quota') || errorString.includes('RESOURCE_EXHAUSTED')) {
+    userMessage += "[원인]\n- API 사용량이 초과되었습니다\n\n[해결 방법]\n- 잠시 후 다시 시도해주세요\n- Google AI Studio에서 API 사용량을 확인해주세요";
+  } else if (errorMessage.includes('rate') || errorString.includes('RATE_LIMIT')) {
+    userMessage += "[원인]\n- API 요청이 너무 빠르게 발생했습니다\n\n[해결 방법]\n- 10초 정도 기다린 후 다시 시도해주세요";
+  } else if (errorMessage.includes('JSON_PARSE_ERROR') || errorMessage.includes('Unexpected end of JSON') || errorMessage.includes('JSON_INCOMPLETE')) {
+    userMessage += "[원인]\n- AI 응답이 완료되기 전에 중단되었습니다 (3번 재시도 실패)\n- 요청한 대본이 너무 길 수 있습니다\n\n[해결 방법]\n- 대본 길이를 줄여서 다시 시도해주세요 (예: 1시간 → 30분)\n- 더 간단한 주제로 다시 시도해주세요\n- 5-10분 후 다시 시도해주세요";
+  } else if (errorMessage.includes('EMPTY_RESPONSE')) {
+    userMessage += "[원인]\n- AI가 응답을 생성하지 못했습니다\n\n[해결 방법]\n- 키워드를 변경하여 다시 시도해주세요";
+  } else {
+    userMessage += "[가능한 원인]\n- 요청한 대본이 너무 길어 처리 시간이 초과되었습니다\n- AI 서버 일시적 오류\n- 네트워크 연결 문제\n\n[해결 방법]\n- 대본 길이를 줄여서 다시 시도해주세요\n- 더 간단한 키워드로 다시 시도해주세요\n- 5-10분 후 다시 시도해주세요";
+  }
+  
+  // 상세 오류 정보 추가
+  userMessage += `\n\n[상세 정보]\n${errorMessage || '알 수 없는 오류'}`;
+  if (error.stack) {
+    const stackLines = error.stack.split('\n').slice(0, 3).join('\n');
+    userMessage += `\n${stackLines}`;
+  }
+  
+  throw new Error(userMessage);
 };
 
 const ssmlSchema = {
