@@ -1722,6 +1722,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         </div>
                       )}
                     </div>
+                    </div>
                     
                     {/* 하위 단계 이동 버튼 */}
                     <div className="flex justify-between items-center pt-4 border-t border-white/10">
