@@ -1466,7 +1466,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       </div>
                     </div>
                   )}
-                    </div>
 
                     {/* 대본 생성 버튼 */}
                     <div className="space-y-3">
@@ -1511,15 +1510,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   <>
                     <div className="space-y-3">
                       <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-                      <div className="mb-4 pb-3 border-b border-white/10">
-                        <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
-                          <span className="text-green-400">✨</span>
-                          생성된 대본
-                        </h3>
-                        <p className="text-xs text-white/50">
-                          AI가 선택한 주제로 작성한 완성된 대본입니다 ({generatedPlan.chapters?.length || 0}개 챕터)
-                        </p>
-                      </div>
                       <div className="mb-4 pb-3 border-b border-white/10">
                         <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
                           <span className="text-green-400">✨</span>
@@ -2420,17 +2410,18 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
           </div>
           <div className="grid w-full gap-2 text-xs text-white/70 sm:max-w-[520px] sm:grid-cols-3">
             {steps.map((step, index) => (
-              <button
+              <div
                 key={step.id}
-                onClick={() => goToStep(index)}
-                className={`rounded-full border px-3 py-1 text-center transition-all hover:scale-105 active:scale-95 cursor-pointer ${
+                className={`rounded-full border px-3 py-1 text-center transition-all ${
                   index === currentStep
                     ? "border-red-400/50 bg-red-500/10 text-red-200"
-                    : "border-white/10 bg-white/5 hover:border-red-400/30 hover:bg-red-500/5"
+                    : index < currentStep
+                    ? "border-green-400/30 bg-green-500/5 text-green-200/70"
+                    : "border-white/10 bg-white/5 text-white/40"
                 }`}
               >
                 {index + 1}. {step.label}
-              </button>
+              </div>
             ))}
           </div>
         </header>
