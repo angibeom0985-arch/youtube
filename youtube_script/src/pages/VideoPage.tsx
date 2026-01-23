@@ -1746,22 +1746,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 )}
 
                 <ErrorNotice error={scriptError} context="대본 생성" />
-                {/* 메인 다음 단계 버튼 (Step 3이 아닐 때만 표시) */}
-                {scriptSubStep !== 3 && (generatedPlan || scriptDraft.trim()) && (
-                  <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-black/30 px-4 py-3">
-                    <p className="text-sm text-white/60">
-                      대본이 준비되면 다음 단계로 이동하세요.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={handleNext}
-                      disabled={!canGoNext}
-                      className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-red-600 to-red-500 px-5 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(220,38,38,0.4)] disabled:opacity-60"
-                    >
-                      다음 단계로 <FiChevronRight />
-                    </button>
-                  </div>
-                )}
               </div>
             </div>
           </div>
