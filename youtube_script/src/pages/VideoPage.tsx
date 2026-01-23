@@ -1466,6 +1466,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       </div>
                     </div>
                   )}
+                    </div>
 
                     {/* 대본 생성 버튼 */}
                     <div className="space-y-3">
