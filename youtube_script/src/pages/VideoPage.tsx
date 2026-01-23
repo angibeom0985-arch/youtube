@@ -298,6 +298,12 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const progressTimerRef = useRef<number | null>(null);
   const [characterColorMap, setCharacterColorMap] = useState<Map<string, string>>(new Map());
 
+  // Audio playback state
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [playingChapter, setPlayingChapter] = useState<number | null>(null);
+  const [playingVoice, setPlayingVoice] = useState<string | null>(null);
+  const [isPlayingPreview, setIsPlayingPreview] = useState(false);
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
@@ -489,6 +495,74 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     };
     setTtsSamples((prev) => [newSample, ...prev].slice(0, 3));
     setRenderingStatus("AI 음성 출력을 준비했습니다.");
+  };
+
+  // 오디오 재생 함수
+  const playPreviewAudio = async (chapterIndex: number, voiceName: string, text: string) => {
+    // 이미 재생 중인 경우 정지
+    if (audioRef.current && (playingChapter === chapterIndex && playingVoice === voiceName)) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      setPlayingChapter(null);
+      setPlayingVoice(null);
+      setIsPlayingPreview(false);
+      return;
+    }
+
+    try {
+      setIsPlayingPreview(true);
+      setPlayingChapter(chapterIndex);
+      setPlayingVoice(voiceName);
+
+      // 기존 오디오 정지
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+
+      // TTS API 호출 (실제 구현 시 여기에 API 호출 추가)
+      // 여기서는 데모를 위해 샘플 오디오를 사용
+      // const response = await fetch('/api/youtube_TTS/tts', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({ text, voice: voiceName, speed: ttsSpeed })
+      // });
+      // const audioBlob = await response.blob();
+      // const audioUrl = URL.createObjectURL(audioBlob);
+      
+      // 임시로 알림 표시 (실제 API 연동 필요)
+      alert(`${voiceName} 목소리로 미리듣기를 재생합니다.\n\n"${text.slice(0, 50)}${text.length > 50 ? '...' : ''}"\n\n실제 TTS API 연동이 필요합니다.`);
+      
+      setIsPlayingPreview(false);
+      setPlayingChapter(null);
+      setPlayingVoice(null);
+
+      // 실제 구현 시:
+      // audioRef.current = new Audio(audioUrl);
+      // audioRef.current.playbackRate = ttsSpeed;
+      // audioRef.current.onended = () => {
+      //   setPlayingChapter(null);
+      //   setPlayingVoice(null);
+      //   setIsPlayingPreview(false);
+      // };
+      // await audioRef.current.play();
+    } catch (error) {
+      console.error('오디오 재생 실패:', error);
+      alert('음성 재생에 실패했습니다.');
+      setIsPlayingPreview(false);
+      setPlayingChapter(null);
+      setPlayingVoice(null);
+    }
+  };
+
+  const stopAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    setPlayingChapter(null);
+    setPlayingVoice(null);
+    setIsPlayingPreview(false);
   };
 
   const handleGenerateImages = () => {
@@ -1621,12 +1695,18 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         <div className="flex gap-2">
                           <button
                             onClick={() => {
-                              // 읽어보기 기능: 미리듣기
-                              alert('선택한 목소리로 대본을 읽어보는 기능입니다. (TTS API 연동 필요)');
+                              const voiceName = chapterVoices[index] || '민준';
+                              const text = chapter.content;
+                              playPreviewAudio(index, voiceName, text);
                             }}
-                            className="px-4 py-2 rounded-full bg-gradient-to-r from-orange-600 to-red-600 text-white text-sm font-semibold shadow-lg hover:from-orange-500 hover:to-red-500 transition-all"
+                            disabled={isPlayingPreview}
+                            className={`px-4 py-2 rounded-full text-white text-sm font-semibold shadow-lg transition-all ${
+                              playingChapter === index 
+                                ? 'bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-500 hover:to-pink-500' 
+                                : 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500'
+                            } disabled:opacity-50 disabled:cursor-not-allowed`}
                           >
-                            🎧 읽어보기
+                            {playingChapter === index ? '⏸️ 정지' : '🎧 읽어보기'}
                           </button>
                           <button
                             onClick={() => {
@@ -1689,14 +1769,28 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                       <button 
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          // 미리듣기 기능
+                                          if (currentChapterForVoice !== null) {
+                                            const text = generatedPlan?.chapters[currentChapterForVoice]?.content || '샘플 텍스트입니다.';
+                                            playPreviewAudio(currentChapterForVoice, voice.name, text);
+                                          }
                                         }}
-                                        className="p-2 rounded-full bg-white/10 hover:bg-red-500/30 transition-colors flex-shrink-0"
-                                        title="미리듣기"
+                                        disabled={isPlayingPreview}
+                                        className={`p-2 rounded-full transition-colors flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed ${
+                                          playingChapter === currentChapterForVoice && playingVoice === voice.name
+                                            ? 'bg-red-500/50 hover:bg-red-500/60'
+                                            : 'bg-white/10 hover:bg-red-500/30'
+                                        }`}
+                                        title={playingChapter === currentChapterForVoice && playingVoice === voice.name ? '정지' : '미리듣기'}
                                       >
-                                        <svg className="w-3 h-3 text-white/70" fill="currentColor" viewBox="0 0 20 20">
-                                          <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" />
-                                        </svg>
+                                        {playingChapter === currentChapterForVoice && playingVoice === voice.name ? (
+                                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                                          </svg>
+                                        ) : (
+                                          <svg className="w-3 h-3 text-white/70" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" />
+                                          </svg>
+                                        )}
                                       </button>
                                     </div>
                                   </div>
@@ -1733,14 +1827,28 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                       <button 
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          // 미리듣기 기능
+                                          if (currentChapterForVoice !== null) {
+                                            const text = generatedPlan?.chapters[currentChapterForVoice]?.content || '샘플 텍스트입니다.';
+                                            playPreviewAudio(currentChapterForVoice, voice.name, text);
+                                          }
                                         }}
-                                        className="p-2 rounded-full bg-white/10 hover:bg-blue-500/30 transition-colors flex-shrink-0"
-                                        title="미리듣기"
+                                        disabled={isPlayingPreview}
+                                        className={`p-2 rounded-full transition-colors flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed ${
+                                          playingChapter === currentChapterForVoice && playingVoice === voice.name
+                                            ? 'bg-blue-500/50 hover:bg-blue-500/60'
+                                            : 'bg-white/10 hover:bg-blue-500/30'
+                                        }`}
+                                        title={playingChapter === currentChapterForVoice && playingVoice === voice.name ? '정지' : '미리듣기'}
                                       >
-                                        <svg className="w-3 h-3 text-white/70" fill="currentColor" viewBox="0 0 20 20">
-                                          <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" />
-                                        </svg>
+                                        {playingChapter === currentChapterForVoice && playingVoice === voice.name ? (
+                                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                                          </svg>
+                                        ) : (
+                                          <svg className="w-3 h-3 text-white/70" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" />
+                                          </svg>
+                                        )}
                                       </button>
                                     </div>
                                   </div>
@@ -1777,14 +1885,28 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                       <button 
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          // 미리듣기 기능
+                                          if (currentChapterForVoice !== null) {
+                                            const text = generatedPlan?.chapters[currentChapterForVoice]?.content || '샘플 텍스트입니다.';
+                                            playPreviewAudio(currentChapterForVoice, voice.name, text);
+                                          }
                                         }}
-                                        className="p-2 rounded-full bg-white/10 hover:bg-pink-500/30 transition-colors flex-shrink-0"
-                                        title="미리듣기"
+                                        disabled={isPlayingPreview}
+                                        className={`p-2 rounded-full transition-colors flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed ${
+                                          playingChapter === currentChapterForVoice && playingVoice === voice.name
+                                            ? 'bg-pink-500/50 hover:bg-pink-500/60'
+                                            : 'bg-white/10 hover:bg-pink-500/30'
+                                        }`}
+                                        title={playingChapter === currentChapterForVoice && playingVoice === voice.name ? '정지' : '미리듣기'}
                                       >
-                                        <svg className="w-3 h-3 text-white/70" fill="currentColor" viewBox="0 0 20 20">
-                                          <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" />
-                                        </svg>
+                                        {playingChapter === currentChapterForVoice && playingVoice === voice.name ? (
+                                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                                          </svg>
+                                        ) : (
+                                          <svg className="w-3 h-3 text-white/70" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" />
+                                          </svg>
+                                        )}
                                       </button>
                                     </div>
                                   </div>
