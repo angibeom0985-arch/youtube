@@ -558,11 +558,24 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
       const googleVoice = voiceMap[voiceName] || 'ko-KR-Standard-A';
 
+      // Supabase 세션 가져오기
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        alert('⚠️ 로그인이 필요합니다.\n\nTTS 미리듣기 기능을 사용하려면 로그인해주세요.');
+        setIsPlayingPreview(false);
+        setPlayingChapter(null);
+        setPlayingVoice(null);
+        return;
+      }
+
       // TTS API 호출
+      console.log('TTS API 호출 시작:', { voice: googleVoice, textLength: text.length });
       const response = await fetch('/api/youtube_TTS/tts', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({ 
           text: text.slice(0, 200), // 미리듣기는 200자로 제한
@@ -571,8 +584,11 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         })
       });
 
+      console.log('TTS API 응답:', response.status, response.statusText);
+
       if (!response.ok) {
         const errorData = await response.json();
+        console.error('TTS API 오류:', errorData);
         throw new Error(errorData.message || '음성 생성 실패');
       }
 
@@ -707,6 +723,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     if (normalizePath(location.pathname) !== targetPath) {
       navigate(targetPath, { replace });
     }
+    // 페이지 최상단으로 스크롤
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   useEffect(() => {
