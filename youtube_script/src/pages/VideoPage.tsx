@@ -1367,13 +1367,20 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       
                       {/* 하위 단계 이동 버튼 */}
                       {scriptAnalysis && (
-                        <div className="flex justify-start items-center pt-4 border-t border-white/10">
+                        <div className="flex justify-between items-center pt-4 border-t border-white/10">
                           <button
                             type="button"
                             onClick={() => setScriptSubStep(0)}
                             className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/20 text-white/70 hover:bg-white/10 transition-all"
                           >
                             <FiChevronLeft /> 이전 (대본 입력)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setScriptSubStep(2)}
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-orange-600 to-red-600 text-white font-semibold shadow-lg hover:from-orange-500 hover:to-red-500 transition-all"
+                          >
+                            다음 단계 (주제 선택) <FiChevronRight />
                           </button>
                         </div>
                       )}
@@ -1468,17 +1475,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   )}
                     </div>
 
-                    {/* 대본 생성 버튼 */}
+                    {/* 하위 단계 이동 버튼 */}
                     <div className="space-y-3">
-                      <button
-                        type="button"
-                        onClick={handleGenerateScript}
-                        disabled={isGeneratingScript || !isScriptStepReady(2)}
-                        className="w-full rounded-full bg-gradient-to-r from-red-600 to-red-500 px-5 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(220,38,38,0.4)] hover:from-red-500 hover:to-red-400 transition-all disabled:opacity-60"
-                      >
-                        {isGeneratingScript ? "대본 작성 중..." : "선택 주제로 대본 작성하기"}
-                      </button>
-                      
                       {isGeneratingScript && (
                         <ProgressTracker
                           currentStepIndex={generateProgress.currentStep}
@@ -1492,14 +1490,21 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         />
                       )}
                       
-                      {/* 하위 단계 이동 버튼 */}
-                      <div className="flex justify-start items-center pt-4 border-t border-white/10">
+                      <div className="flex justify-between items-center pt-4 border-t border-white/10">
                         <button
                           type="button"
                           onClick={() => setScriptSubStep(1)}
                           className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/20 text-white/70 hover:bg-white/10 transition-all"
                         >
                           <FiChevronLeft /> 이전 (대본 분석)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleGenerateScript}
+                          disabled={isGeneratingScript || !isScriptStepReady(2)}
+                          className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-red-600 to-red-500 text-white font-semibold shadow-lg hover:from-red-500 hover:to-red-400 transition-all disabled:opacity-50"
+                        >
+                          {isGeneratingScript ? "대본 작성 중..." : "대본 생성하기"} <FiChevronRight />
                         </button>
                       </div>
                     </div>
