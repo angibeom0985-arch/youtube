@@ -1765,7 +1765,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
           </div>
         );
       }
-      case "tts":
+      case "tts": {
         return (
           <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
             <div className="rounded-[clamp(1rem,2vw,1.6rem)] border border-white/10 bg-black/40 p-[clamp(1.25rem,2vw,1.8rem)] shadow-[0_18px_40px_rgba(0,0,0,0.45)]">
@@ -2133,7 +2133,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
             </div>
           </div>
         );
-      case "image":
+      }
+      case "image": {
         return (
           <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
             <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-white/60 mb-4">
@@ -2157,7 +2158,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
             </div>
           </div>
         );
-      case "generate":
+      }
+      case "generate": {
         return (
           <div className="mt-[clamp(1rem,2vw,2rem)] grid gap-[clamp(1.2rem,2vw,2rem)] lg:grid-cols-[minmax(0,1fr)_clamp(260px,28vw,340px)]">
             <div className="rounded-[clamp(1rem,2vw,1.4rem)] border border-white/20 bg-black/40 p-[clamp(1rem,2vw,1.4rem)]">
@@ -2287,7 +2289,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
             </div>
           </div>
         );
-      case "render":
+      }
+      case "render": {
         return (
           <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
             <div className="rounded-[clamp(1rem,2vw,1.6rem)] border border-white/10 bg-white/95 p-[clamp(1.25rem,2vw,1.8rem)] text-slate-900 shadow-[0_20px_40px_rgba(15,23,42,0.15)]">
@@ -2371,6 +2374,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
             </div>
           </div>
         );
+      }
       default:
         return null;
     }
