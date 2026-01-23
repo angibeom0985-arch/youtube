@@ -1582,8 +1582,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     </div>
                   </>
                 )}
-                  </>
-                )}
                 
                 {/* Step 3: 대본 생성 결과 */}
                 {scriptSubStep === 3 && generatedPlan && (
