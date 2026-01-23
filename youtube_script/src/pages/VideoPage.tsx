@@ -188,6 +188,12 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const normalizedBasePath = basePath && basePath !== "/" ? basePath.replace(/\/$/, "") : "";
   const [user, setUser] = useState<User | null>(null);
   
+  console.log('[VideoPage] Rendering:', {
+    pathname: location.pathname,
+    basePath,
+    normalizedBasePath
+  });
+  
   // currentStep은 useEffect에서 URL 기반으로 설정됨
   const [currentStep, setCurrentStep] = useState(0);
   const [videoFormat, setVideoFormat] = useState<VideoFormat>(() => {
