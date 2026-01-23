@@ -1317,58 +1317,74 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     </div>
 
                     {/* 대본 분석 버튼 및 결과 */}
-                </div>
-
-                <div className="space-y-3">
-                  <button
-                    type="button"
-                    onClick={handleAnalyzeScript}
-                    disabled={isAnalyzingScript || !isScriptStepReady(0)}
-                    className="w-full rounded-full bg-gradient-to-r from-orange-600 to-red-600 px-5 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(251,146,60,0.4)] hover:from-orange-500 hover:to-red-500 transition-all disabled:opacity-60"
-                  >
-                    {isAnalyzingScript ? "구조 분석 중..." : "대본 구조 분석하기"}
-                  </button>
-                  
-                  {isAnalyzingScript && (
-                    <ProgressTracker
-                      currentStepIndex={analyzeProgress.currentStep}
-                      stepLabels={analyzeProgress.steps}
-                      stepDescriptions={[
-                        "대본의 전체 구조와 흐름을 분석하고 있습니다",
-                        "중요한 키워드와 주제를 추출하고 있습니다",
-                        "분석 결과를 바탕으로 새로운 주제를 생성하고 있습니다"
-                      ]}
-                      estimatedTimeSeconds={20}
-                    />
-                  )}
-                  
-                  {scriptAnalysis?.scriptStructure && (
-                    <div className="rounded-2xl border border-white/10 bg-black/30 p-5 text-sm text-white/70">
-                      <div className="mb-4 pb-3 border-b border-white/10">
-                        <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
-                          <span className="text-red-400">📋</span>
-                          분석된 대본 구조
-                        </h3>
-                        <p className="text-xs text-white/50">
-                          입력하신 대본의 흐름과 구조를 분석한 결과입니다
-                        </p>
-                      </div>
-                      <div className="space-y-3">
-                        {scriptAnalysis.scriptStructure.map((stage) => (
-                          <div
-                            key={stage.stage}
-                            className="rounded-xl border border-white/10 bg-white/5 px-3 py-2"
-                          >
-                            <p className="font-semibold text-white">{stage.stage}</p>
-                            <p className="text-sm text-white/50">{stage.purpose}</p>
+                    <div className="space-y-3">
+                      <button
+                        type="button"
+                        onClick={handleAnalyzeScript}
+                        disabled={isAnalyzingScript || !isScriptStepReady(0)}
+                        className="w-full rounded-full bg-gradient-to-r from-orange-600 to-red-600 px-5 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(251,146,60,0.4)] hover:from-orange-500 hover:to-red-500 transition-all disabled:opacity-60"
+                      >
+                        {isAnalyzingScript ? "구조 분석 중..." : "대본 구조 분석하기"}
+                      </button>
+                      
+                      {isAnalyzingScript && (
+                        <ProgressTracker
+                          currentStepIndex={analyzeProgress.currentStep}
+                          stepLabels={analyzeProgress.steps}
+                          stepDescriptions={[
+                            "대본의 전체 구조와 흐름을 분석하고 있습니다",
+                            "중요한 키워드와 주제를 추출하고 있습니다",
+                            "분석 결과를 바탕으로 새로운 주제를 생성하고 있습니다"
+                          ]}
+                          estimatedTimeSeconds={20}
+                        />
+                      )}
+                      
+                      {scriptAnalysis?.scriptStructure && (
+                        <div className="rounded-2xl border border-white/10 bg-black/30 p-5 text-sm text-white/70">
+                          <div className="mb-4 pb-3 border-b border-white/10">
+                            <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
+                              <span className="text-red-400">📋</span>
+                              분석된 대본 구조
+                            </h3>
+                            <p className="text-xs text-white/50">
+                              입력하신 대본의 흐름과 구조를 분석한 결과입니다
+                            </p>
                           </div>
-                        ))}
-                      </div>
+                          <div className="space-y-3">
+                            {scriptAnalysis.scriptStructure.map((stage) => (
+                              <div
+                                key={stage.stage}
+                                className="rounded-xl border border-white/10 bg-white/5 px-3 py-2"
+                              >
+                                <p className="font-semibold text-white">{stage.stage}</p>
+                                <p className="text-sm text-white/50">{stage.purpose}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* 하위 단계 이동 버튼 */}
+                      {scriptAnalysis && (
+                        <div className="flex justify-between items-center pt-4 border-t border-white/10">
+                          <button
+                            type="button"
+                            onClick={() => setScriptSubStep(0)}
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/20 text-white/70 hover:bg-white/10 transition-all"
+                          >
+                            <FiChevronLeft /> 이전 (대본 입력)
+                          </button>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-
-                <div className="space-y-3">
+                  </>
+                )}
+                
+                {/* Step 2: 주제 선택 */}
+                {scriptSubStep === 2 && (
+                  <>
+                    <div className="space-y-3">{/* 주제 선택 섹션 */}
                   {scriptIdeas.length === 0 ? (
                     <div className="rounded-2xl border border-white/10 bg-black/30 p-5">
                       <div className="mb-3 pb-3 border-b border-white/10">
@@ -1450,33 +1466,60 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       </div>
                     </div>
                   )}
-                </div>
+                    </div>
 
-                <div className="space-y-3">
-                  <button
-                    type="button"
-                    onClick={handleGenerateScript}
-                    disabled={isGeneratingScript || !isScriptStepReady(2)}
-                    className="w-full rounded-full bg-gradient-to-r from-red-600 to-red-500 px-5 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(220,38,38,0.4)] hover:from-red-500 hover:to-red-400 transition-all disabled:opacity-60"
-                  >
-                    {isGeneratingScript ? "대본 작성 중..." : "선택 주제로 대본 작성하기"}
-                  </button>
-                  
-                  {isGeneratingScript && (
-                    <ProgressTracker
-                      currentStepIndex={generateProgress.currentStep}
-                      stepLabels={generateProgress.steps}
-                      stepDescriptions={[
-                        "선택한 주제에 맞는 대본 구조를 설계하고 있습니다",
-                        "각 챕터의 내용을 상세하게 작성하고 있습니다",
-                        "생성된 대본의 품질을 확인하고 있습니다"
-                      ]}
-                      estimatedTimeSeconds={25}
-                    />
-                  )}
-                  
-                  {generatedPlan && (
-                    <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+                    {/* 대본 생성 버튼 */}
+                    <div className="space-y-3">
+                      <button
+                        type="button"
+                        onClick={handleGenerateScript}
+                        disabled={isGeneratingScript || !isScriptStepReady(2)}
+                        className="w-full rounded-full bg-gradient-to-r from-red-600 to-red-500 px-5 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(220,38,38,0.4)] hover:from-red-500 hover:to-red-400 transition-all disabled:opacity-60"
+                      >
+                        {isGeneratingScript ? "대본 작성 중..." : "선택 주제로 대본 작성하기"}
+                      </button>
+                      
+                      {isGeneratingScript && (
+                        <ProgressTracker
+                          currentStepIndex={generateProgress.currentStep}
+                          stepLabels={generateProgress.steps}
+                          stepDescriptions={[
+                            "선택한 주제에 맞는 대본 구조를 설계하고 있습니다",
+                            "각 챕터의 내용을 상세하게 작성하고 있습니다",
+                            "생성된 대본의 품질을 확인하고 있습니다"
+                          ]}
+                          estimatedTimeSeconds={25}
+                        />
+                      )}
+                      
+                      {/* 하위 단계 이동 버튼 */}
+                      <div className="flex justify-between items-center pt-4 border-t border-white/10">
+                        <button
+                          type="button"
+                          onClick={() => setScriptSubStep(1)}
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/20 text-white/70 hover:bg-white/10 transition-all"
+                        >
+                          <FiChevronLeft /> 이전 (대본 분석)
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
+                
+                {/* Step 3: 대본 생성 결과 */}
+                {scriptSubStep === 3 && generatedPlan && (
+                  <>
+                    <div className="space-y-3">
+                      <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+                      <div className="mb-4 pb-3 border-b border-white/10">
+                        <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
+                          <span className="text-green-400">✨</span>
+                          생성된 대본
+                        </h3>
+                        <p className="text-xs text-white/50">
+                          AI가 선택한 주제로 작성한 완성된 대본입니다 ({generatedPlan.chapters?.length || 0}개 챕터)
+                        </p>
+                      </div>
                       <div className="mb-4 pb-3 border-b border-white/10">
                         <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
                           <span className="text-green-400">✨</span>
@@ -1688,11 +1731,31 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         </div>
                       )}
                     </div>
-                  )}
-                </div>
+                    
+                    {/* 하위 단계 이동 버튼 */}
+                    <div className="flex justify-between items-center pt-4 border-t border-white/10">
+                      <button
+                        type="button"
+                        onClick={() => setScriptSubStep(2)}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/20 text-white/70 hover:bg-white/10 transition-all"
+                      >
+                        <FiChevronLeft /> 이전 (주제 선택)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleNext}
+                        disabled={!canGoNext}
+                        className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-red-600 to-red-500 px-6 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(220,38,38,0.4)] disabled:opacity-60"
+                      >
+                        다음 단계 (음성 생성) <FiChevronRight />
+                      </button>
+                    </div>
+                  </>
+                )}
 
                 <ErrorNotice error={scriptError} context="대본 생성" />
-                {(generatedPlan || scriptDraft.trim()) && (
+                {/* 메인 다음 단계 버튼 (Step 3이 아닐 때만 표시) */}
+                {scriptSubStep !== 3 && (generatedPlan || scriptDraft.trim()) && (
                   <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-black/30 px-4 py-3">
                     <p className="text-sm text-white/60">
                       대본이 준비되면 다음 단계로 이동하세요.
