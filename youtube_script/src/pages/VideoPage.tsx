@@ -525,8 +525,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         audioRef.current.currentTime = 0;
       }
 
-      // TTS API 호출 (실제 구현 시 여기에 API 호출 추가)
-      // 클라우드 콘솔 API 키가 필요합니다
+      // 클라우드 콘솔 API 키 확인
       const storedCloudKey = localStorage.getItem(STORAGE_KEYS.cloudConsoleApiKey);
       
       if (!storedCloudKey || storedCloudKey.trim() === '') {
@@ -543,37 +542,63 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         return;
       }
 
-      // 여기서는 데모를 위해 샘플 오디오를 사용
-      // const response = await fetch('/api/youtube_TTS/tts', {
-      //   method: 'POST',
-      //   headers: { 
-      //     'Content-Type': 'application/json',
-      //     'X-API-Key': storedCloudKey
-      //   },
-      //   body: JSON.stringify({ text, voice: voiceName, speed: ttsSpeed })
-      // });
-      // const audioBlob = await response.blob();
-      // const audioUrl = URL.createObjectURL(audioBlob);
-      
-      // 임시로 알림 표시 (실제 API 연동 필요)
-      alert(`✅ API 키가 등록되어 있습니다!\n\n${voiceName} 목소리로 미리듣기를 재생합니다.\n\n"${text.slice(0, 50)}${text.length > 50 ? '...' : ''}"\n\n※ 실제 TTS API 서버 연동이 완료되면 음성이 재생됩니다.`);
-      
-      setIsPlayingPreview(false);
-      setPlayingChapter(null);
-      setPlayingVoice(null);
+      // 목소리 이름을 Google TTS 형식으로 변환
+      const voiceMap: Record<string, string> = {
+        '민준': 'ko-KR-Standard-C',
+        '서연': 'ko-KR-Standard-A',
+        '소희': 'ko-KR-Standard-B',
+        '지훈': 'ko-KR-Standard-D',
+        '유나': 'ko-KR-Wavenet-A',
+        '태양': 'ko-KR-Wavenet-C',
+        '하늘': 'ko-KR-Wavenet-B',
+        '준서': 'ko-KR-Wavenet-D',
+        '수아': 'ko-KR-Neural2-A',
+        '동현': 'ko-KR-Neural2-C',
+      };
 
-      // 실제 구현 시:
-      // audioRef.current = new Audio(audioUrl);
-      // audioRef.current.playbackRate = ttsSpeed;
-      // audioRef.current.onended = () => {
-      //   setPlayingChapter(null);
-      //   setPlayingVoice(null);
-      //   setIsPlayingPreview(false);
-      // };
-      // await audioRef.current.play();
+      const googleVoice = voiceMap[voiceName] || 'ko-KR-Standard-A';
+
+      // TTS API 호출
+      const response = await fetch('/api/youtube_TTS/tts', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          text: text.slice(0, 200), // 미리듣기는 200자로 제한
+          voice: googleVoice,
+          speakingRate: ttsSpeed
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || '음성 생성 실패');
+      }
+
+      const audioBlob = await response.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
+      
+      // 오디오 재생
+      audioRef.current = new Audio(audioUrl);
+      audioRef.current.playbackRate = ttsSpeed;
+      audioRef.current.onended = () => {
+        setPlayingChapter(null);
+        setPlayingVoice(null);
+        setIsPlayingPreview(false);
+        URL.revokeObjectURL(audioUrl);
+      };
+      audioRef.current.onerror = () => {
+        console.error('오디오 재생 오류');
+        setPlayingChapter(null);
+        setPlayingVoice(null);
+        setIsPlayingPreview(false);
+        URL.revokeObjectURL(audioUrl);
+      };
+      await audioRef.current.play();
     } catch (error) {
       console.error('오디오 재생 실패:', error);
-      alert('음성 재생에 실패했습니다.');
+      alert(`음성 재생에 실패했습니다.\n\n${error instanceof Error ? error.message : '알 수 없는 오류'}`);
       setIsPlayingPreview(false);
       setPlayingChapter(null);
       setPlayingVoice(null);
@@ -1795,7 +1820,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           if (currentChapterForVoice !== null) {
-                                            const text = generatedPlan?.chapters[currentChapterForVoice]?.content || '샘플 텍스트입니다.';
+                                            const text = generatedPlan?.chapters[currentChapterForVoice]?.content || 
+                                              '안녕하세요. 저는 AI 목소리입니다. 이 목소리로 여러분의 영상 대본을 읽어드리겠습니다. 여러분이 작성하신 훈륙한 대본을 자연스러운 한국어로 표현해드리는 것이 저의 역할입니다.';
                                             playPreviewAudio(currentChapterForVoice, voice.name, text);
                                           }
                                         }}
@@ -1853,7 +1879,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           if (currentChapterForVoice !== null) {
-                                            const text = generatedPlan?.chapters[currentChapterForVoice]?.content || '샘플 텍스트입니다.';
+                                            const text = generatedPlan?.chapters[currentChapterForVoice]?.content || 
+                                              '안녕하세요. 저는 AI 목소리입니다. 이 목소리로 여러분의 영상 대본을 읽어드리겠습니다. 여러분이 작성하신 훈륙한 대본을 자연스러운 한국어로 표현해드리는 것이 저의 역할입니다.';
                                             playPreviewAudio(currentChapterForVoice, voice.name, text);
                                           }
                                         }}
@@ -1911,7 +1938,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           if (currentChapterForVoice !== null) {
-                                            const text = generatedPlan?.chapters[currentChapterForVoice]?.content || '샘플 텍스트입니다.';
+                                            const text = generatedPlan?.chapters[currentChapterForVoice]?.content || 
+                                              '안녕하세요. 저는 AI 목소리입니다. 이 목소리로 여러분의 영상 대본을 읽어드리겠습니다. 여러분이 작성하신 훈륙한 대본을 자연스러운 한국어로 표현해드리는 것이 저의 역할입니다.';
                                             playPreviewAudio(currentChapterForVoice, voice.name, text);
                                           }
                                         }}
