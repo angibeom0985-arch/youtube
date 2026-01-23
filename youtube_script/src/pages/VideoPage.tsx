@@ -36,6 +36,7 @@ const STORAGE_KEYS = {
   renderRatio: "video_project_render_ratio",
   renderFps: "video_project_render_fps",
   geminiApiKey: "video_project_gemini_api_key",
+  cloudConsoleApiKey: "video_project_cloud_console_api_key",
   renderNotes: "video_project_render_notes",
   editNotes: "video_project_edit_notes",
   format: "video_project_format",
@@ -273,6 +274,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [geminiApiKey, setGeminiApiKey] = useState(() =>
     getStoredString(STORAGE_KEYS.geminiApiKey, "")
   );
+  const [cloudConsoleApiKey, setCloudConsoleApiKey] = useState(() =>
+    getStoredString(STORAGE_KEYS.cloudConsoleApiKey, "")
+  );
   const [renderNotes, setRenderNotes] = useState(() =>
     getStoredString(
       STORAGE_KEYS.renderNotes,
@@ -350,6 +354,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   );
   useEffect(() => setStoredValue(STORAGE_KEYS.renderFps, renderFps), [renderFps]);
   useEffect(() => setStoredValue(STORAGE_KEYS.geminiApiKey, geminiApiKey), [geminiApiKey]);
+  useEffect(() => setStoredValue(STORAGE_KEYS.cloudConsoleApiKey, cloudConsoleApiKey), [cloudConsoleApiKey]);
   useEffect(() => setStoredValue(STORAGE_KEYS.renderNotes, renderNotes), [renderNotes]);
   useEffect(() => setStoredValue(STORAGE_KEYS.editNotes, editNotes), [editNotes]);
   useEffect(() => setStoredValue(STORAGE_KEYS.format, videoFormat), [videoFormat]);
@@ -521,17 +526,37 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       }
 
       // TTS API 호출 (실제 구현 시 여기에 API 호출 추가)
+      // 클라우드 콘솔 API 키가 필요합니다
+      const storedCloudKey = localStorage.getItem(STORAGE_KEYS.cloudConsoleApiKey);
+      
+      if (!storedCloudKey || storedCloudKey.trim() === '') {
+        alert('⚠️ TTS 미리듣기를 사용하려면 클라우드 콘솔 API 키가 필요합니다.\n\n' +
+              '상단에 있는 "클라우드 콘솔 API 키" 입력란에 API 키를 등록해주세요.\n\n' +
+              '🔑 API 키 발급 방법:\n' +
+              '1. Google Cloud Console 접속\n' +
+              '2. Text-to-Speech API 활성화\n' +
+              '3. API 키 생성 및 복사\n' +
+              '4. 이 페이지 상단에 API 키 입력');
+        setIsPlayingPreview(false);
+        setPlayingChapter(null);
+        setPlayingVoice(null);
+        return;
+      }
+
       // 여기서는 데모를 위해 샘플 오디오를 사용
       // const response = await fetch('/api/youtube_TTS/tts', {
       //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
+      //   headers: { 
+      //     'Content-Type': 'application/json',
+      //     'X-API-Key': storedCloudKey
+      //   },
       //   body: JSON.stringify({ text, voice: voiceName, speed: ttsSpeed })
       // });
       // const audioBlob = await response.blob();
       // const audioUrl = URL.createObjectURL(audioBlob);
       
       // 임시로 알림 표시 (실제 API 연동 필요)
-      alert(`${voiceName} 목소리로 미리듣기를 재생합니다.\n\n"${text.slice(0, 50)}${text.length > 50 ? '...' : ''}"\n\n실제 TTS API 연동이 필요합니다.`);
+      alert(`✅ API 키가 등록되어 있습니다!\n\n${voiceName} 목소리로 미리듣기를 재생합니다.\n\n"${text.slice(0, 50)}${text.length > 50 ? '...' : ''}"\n\n※ 실제 TTS API 서버 연동이 완료되면 음성이 재생됩니다.`);
       
       setIsPlayingPreview(false);
       setPlayingChapter(null);
@@ -1775,7 +1800,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                           }
                                         }}
                                         disabled={isPlayingPreview}
-                                        className={`p-2 rounded-full transition-colors flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed ${
+                                        className={`p-3 rounded-full transition-colors flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed ${
                                           playingChapter === currentChapterForVoice && playingVoice === voice.name
                                             ? 'bg-red-500/50 hover:bg-red-500/60'
                                             : 'bg-white/10 hover:bg-red-500/30'
@@ -1783,11 +1808,11 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                         title={playingChapter === currentChapterForVoice && playingVoice === voice.name ? '정지' : '미리듣기'}
                                       >
                                         {playingChapter === currentChapterForVoice && playingVoice === voice.name ? (
-                                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                          <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
                                             <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
                                           </svg>
                                         ) : (
-                                          <svg className="w-3 h-3 text-white/70" fill="currentColor" viewBox="0 0 20 20">
+                                          <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
                                             <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" />
                                           </svg>
                                         )}
@@ -1833,7 +1858,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                           }
                                         }}
                                         disabled={isPlayingPreview}
-                                        className={`p-2 rounded-full transition-colors flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed ${
+                                        className={`p-3 rounded-full transition-colors flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed ${
                                           playingChapter === currentChapterForVoice && playingVoice === voice.name
                                             ? 'bg-blue-500/50 hover:bg-blue-500/60'
                                             : 'bg-white/10 hover:bg-blue-500/30'
@@ -1841,11 +1866,11 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                         title={playingChapter === currentChapterForVoice && playingVoice === voice.name ? '정지' : '미리듣기'}
                                       >
                                         {playingChapter === currentChapterForVoice && playingVoice === voice.name ? (
-                                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                          <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
                                             <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
                                           </svg>
                                         ) : (
-                                          <svg className="w-3 h-3 text-white/70" fill="currentColor" viewBox="0 0 20 20">
+                                          <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
                                             <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" />
                                           </svg>
                                         )}
@@ -1891,7 +1916,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                           }
                                         }}
                                         disabled={isPlayingPreview}
-                                        className={`p-2 rounded-full transition-colors flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed ${
+                                        className={`p-3 rounded-full transition-colors flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed ${
                                           playingChapter === currentChapterForVoice && playingVoice === voice.name
                                             ? 'bg-pink-500/50 hover:bg-pink-500/60'
                                             : 'bg-white/10 hover:bg-pink-500/30'
@@ -1899,11 +1924,11 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                         title={playingChapter === currentChapterForVoice && playingVoice === voice.name ? '정지' : '미리듣기'}
                                       >
                                         {playingChapter === currentChapterForVoice && playingVoice === voice.name ? (
-                                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                          <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
                                             <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
                                           </svg>
                                         ) : (
-                                          <svg className="w-3 h-3 text-white/70" fill="currentColor" viewBox="0 0 20 20">
+                                          <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
                                             <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" />
                                           </svg>
                                         )}
@@ -2238,7 +2263,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         </header>
 
         {/* API 키 입력 섹션 */}
-        <div className="mt-6">
+        <div className="mt-6 space-y-4">
           <ApiKeyInput
             storageKey={STORAGE_KEYS.geminiApiKey}
             label="Gemini API 키"
@@ -2247,6 +2272,15 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
             guideRoute="/api-guide-aistudio"
             theme="orange"
             apiType="gemini"
+          />
+          <ApiKeyInput
+            storageKey={STORAGE_KEYS.cloudConsoleApiKey}
+            label="클라우드 콘솔 API 키"
+            placeholder="AIzaSy..."
+            helpText="TTS 및 이미지 생성을 위한 API 키 (브라우저에만 저장)"
+            guideRoute="/api-guide-cloudconsole"
+            theme="blue"
+            apiType="google-cloud"
           />
         </div>
 
