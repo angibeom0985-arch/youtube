@@ -236,6 +236,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [isAnalyzingScript, setIsAnalyzingScript] = useState(false);
   const [isGeneratingScript, setIsGeneratingScript] = useState(false);
   
+  // Script sub-step management (대본 생성 단계의 하위 단계)
+  const [scriptSubStep, setScriptSubStep] = useState(0); // 0: 입력, 1: 분석, 2: 주제선택, 3: 결과
+  
   // Progress tracking for script analysis
   const [analyzeProgress, setAnalyzeProgress] = useState({
     currentStep: 0,
@@ -940,6 +943,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       if (ideas.length > 0) {
         setSelectedTopic(ideas[0]);
       }
+      
+      // 분석 완료 후 다음 하위 단계(주제 선택)로 자동 이동
+      setScriptSubStep(2);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "대본 분석에 실패했습니다.";
       
@@ -1002,6 +1008,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       await new Promise(resolve => setTimeout(resolve, 500)); // UI 업데이트를 위한 짧은 지연
       
       setGeneratedPlan(plan);
+      
+      // 대본 생성 완료 후 결과 단계로 자동 이동
+      setScriptSubStep(3);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "대본 생성에 실패했습니다.";
       
@@ -1165,14 +1174,25 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
           .split("\n")
           .map((line) => line.trim())
           .filter(Boolean).length;
+        
+        // 하위 단계별 제목과 설명
+        const scriptSubSteps = [
+          { title: "대본 입력", description: "입력 대본을 분석하고 원하는 길이에 맞춰 새 스크립트를 만들어 드립니다." },
+          { title: "대본 분석", description: "입력하신 대본의 구조와 흐름을 AI가 분석합니다." },
+          { title: "주제 선택", description: "AI가 추천하는 주제 중 하나를 선택하거나 직접 입력하세요." },
+          { title: "대본 생성 결과", description: "선택한 주제로 생성된 완성 대본을 확인하세요." },
+        ];
+        
+        const currentSubStep = scriptSubSteps[scriptSubStep];
+        
         return (
           <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
             <div className="rounded-[clamp(1rem,2vw,1.6rem)] border border-white/10 bg-black/40 p-[clamp(1.25rem,2vw,1.8rem)] shadow-[0_18px_40px_rgba(0,0,0,0.45)]">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <h3 className="text-2xl font-bold text-white">대본 입력</h3>
+                  <h3 className="text-2xl font-bold text-white">{currentSubStep.title}</h3>
                   <p className="mt-2 text-sm text-white/60">
-                    입력 대본을 분석하고 원하는 길이에 맞춰 새 스크립트를 만들어 드립니다.
+                    {currentSubStep.description}
                   </p>
                 </div>
                 <a
@@ -1185,74 +1205,118 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 </a>
               </div>
 
-              <div className="mt-6 space-y-5">
-                <textarea
-                  value={scriptDraft}
-                  onChange={(event) => setScriptDraft(event.target.value)}
-                  rows={7}
-                  className="transcript-input w-full rounded-2xl border border-white/20 bg-black/30 px-4 py-4 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-red-500"
-                  placeholder={SCRIPT_USAGE_GUIDE}
-                />
-                <div className="flex flex-wrap items-center justify-between text-sm text-white/50">
-                  <span>
-                    {scriptLineCount}줄 · {scriptDraft.length.toLocaleString()}자
-                  </span>
-                  <span>대본 구조 분석용 입력</span>
-                </div>
-                
-                {scriptDraft.length > 20000 && (
-                  <div className="rounded-xl border border-blue-400/50 bg-blue-500/10 px-4 py-3 text-sm text-blue-300">
-                    <div className="flex items-start gap-2">
-                      <span className="text-lg">ℹ️</span>
-                      <div>
-                        <p className="font-semibold">긴 대본 분석 안내</p>
-                        <p className="text-xs mt-1 opacity-80">
-                          현재: {scriptDraft.length.toLocaleString()}자
-                        </p>
-                        <p className="text-xs mt-1 opacity-80">
-                          • 긴 대본은 분석에 20-30초 정도 소요될 수 있습니다
-                        </p>
-                        <p className="text-xs opacity-80">
-                          • 타임아웃 발생 시 다시 시도하거나 대본을 나눠서 분석하세요
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
+              {/* 하위 단계 진행 표시 */}
+              <div className="mt-4 flex items-center gap-2">
+                {scriptSubSteps.map((step, index) => (
+                  <React.Fragment key={index}>
+                    <button
+                      onClick={() => setScriptSubStep(index)}
+                      className={`px-3 py-1 text-xs rounded-full transition-all ${
+                        scriptSubStep === index
+                          ? 'bg-red-500/20 text-red-300 border border-red-400/50'
+                          : 'bg-white/5 text-white/50 border border-white/10 hover:bg-white/10'
+                      }`}
+                    >
+                      {index + 1}. {step.title}
+                    </button>
+                    {index < scriptSubSteps.length - 1 && (
+                      <FiChevronRight className="text-white/30" size={14} />
+                    )}
+                  </React.Fragment>
+                ))}
+              </div>
 
-                <div className="space-y-3">
-                  <div className="flex flex-wrap gap-2">
-                    {scriptLengthOptions.map((option) => (
-                      <button
-                        key={option.value}
-                        type="button"
-                        onClick={() => handleSelectScriptLength(option.value)}
-                        className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
-                          scriptLengthMinutes === option.value
-                            ? "border-red-400 bg-red-500/15 text-red-200"
-                            : "border-white/15 bg-black/30 text-white/70 hover:border-white/30"
-                        }`}
-                      >
-                        {option.label}
-                      </button>
-                    ))}
-                  </div>
-                  {scriptLengthMinutes === "custom" && (
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="number"
-                        min="1"
-                        value={customScriptLength}
-                        onChange={(event) => handleCustomScriptLengthChange(event.target.value)}
-                        className="w-32 rounded-full border border-white/15 bg-black/30 px-4 py-2 text-sm text-white/80 focus:outline-none focus:ring-2 focus:ring-red-500"
-                        placeholder="분"
-                      />
-                      <span className="text-sm text-white/60">분</span>
+              <div className="mt-6 space-y-5">
+                {/* Step 0: 대본 입력 */}
+                {scriptSubStep === 0 && (
+                  <>
+                    <textarea
+                      value={scriptDraft}
+                      onChange={(event) => setScriptDraft(event.target.value)}
+                      rows={7}
+                      className="transcript-input w-full rounded-2xl border border-white/20 bg-black/30 px-4 py-4 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-red-500"
+                      placeholder={SCRIPT_USAGE_GUIDE}
+                    />
+                    <div className="flex flex-wrap items-center justify-between text-sm text-white/50">
+                      <span>
+                        {scriptLineCount}줄 · {scriptDraft.length.toLocaleString()}자
+                      </span>
+                      <span>대본 구조 분석용 입력</span>
                     </div>
-                  )}
-                  <p className="text-sm text-white/50">
-                    선택한 길이에 맞춰 대본을 구성합니다. ({formatScriptLengthLabel()} 기준)
-                  </p>
+                    
+                    {scriptDraft.length > 20000 && (
+                      <div className="rounded-xl border border-blue-400/50 bg-blue-500/10 px-4 py-3 text-sm text-blue-300">
+                        <div className="flex items-start gap-2">
+                          <span className="text-lg">ℹ️</span>
+                          <div>
+                            <p className="font-semibold">긴 대본 분석 안내</p>
+                            <p className="text-xs mt-1 opacity-80">
+                              현재: {scriptDraft.length.toLocaleString()}자
+                            </p>
+                            <p className="text-xs mt-1 opacity-80">
+                              • 긴 대본은 분석에 20-30초 정도 소요될 수 있습니다
+                            </p>
+                            <p className="text-xs opacity-80">
+                              • 타임아웃 발생 시 다시 시도하거나 대본을 나눠서 분석하세요
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* 하위 단계 이동 버튼 */}
+                    <div className="flex justify-between items-center pt-4 border-t border-white/10">
+                      <button
+                        type="button"
+                        onClick={() => setScriptSubStep(1)}
+                        disabled={!scriptDraft.trim()}
+                        className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-orange-600 to-red-600 text-white font-semibold shadow-lg hover:from-orange-500 hover:to-red-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        다음 단계 (대본 분석) <FiChevronRight />
+                      </button>
+                    </div>
+                  </>
+                )}
+                
+                {/* Step 1: 대본 분석 */}
+                {scriptSubStep === 1 && (
+                  <>
+                    <div className="space-y-3">
+                      <div className="flex flex-wrap gap-2">
+                        {scriptLengthOptions.map((option) => (
+                          <button
+                            key={option.value}
+                            type="button"
+                            onClick={() => handleSelectScriptLength(option.value)}
+                            className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                              scriptLengthMinutes === option.value
+                                ? "border-red-400 bg-red-500/15 text-red-200"
+                                : "border-white/15 bg-black/30 text-white/70 hover:border-white/30"
+                            }`}
+                          >
+                            {option.label}
+                          </button>
+                        ))}
+                      </div>
+                      {scriptLengthMinutes === "custom" && (
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            min="1"
+                            value={customScriptLength}
+                            onChange={(event) => handleCustomScriptLengthChange(event.target.value)}
+                            className="w-32 rounded-full border border-white/15 bg-black/30 px-4 py-2 text-sm text-white/80 focus:outline-none focus:ring-2 focus:ring-red-500"
+                            placeholder="분"
+                          />
+                          <span className="text-sm text-white/60">분</span>
+                        </div>
+                      )}
+                      <p className="text-sm text-white/50">
+                        선택한 길이에 맞춰 대본을 구성합니다. ({formatScriptLengthLabel()} 기준)
+                      </p>
+                    </div>
+
+                    {/* 대본 분석 버튼 및 결과 */}
                 </div>
 
                 <div className="space-y-3">
