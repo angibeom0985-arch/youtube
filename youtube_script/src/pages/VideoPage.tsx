@@ -1265,7 +1265,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     )}
                     
                     {/* 하위 단계 이동 버튼 */}
-                    <div className="flex justify-between items-center pt-4 border-t border-white/10">
+                    <div className="flex justify-end items-center pt-4 border-t border-white/10">
                       <button
                         type="button"
                         onClick={() => setScriptSubStep(1)}
@@ -1367,7 +1367,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       
                       {/* 하위 단계 이동 버튼 */}
                       {scriptAnalysis && (
-                        <div className="flex justify-between items-center pt-4 border-t border-white/10">
+                        <div className="flex justify-start items-center pt-4 border-t border-white/10">
                           <button
                             type="button"
                             onClick={() => setScriptSubStep(0)}
@@ -1493,7 +1493,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       )}
                       
                       {/* 하위 단계 이동 버튼 */}
-                      <div className="flex justify-between items-center pt-4 border-t border-white/10">
+                      <div className="flex justify-start items-center pt-4 border-t border-white/10">
                         <button
                           type="button"
                           onClick={() => setScriptSubStep(1)}
