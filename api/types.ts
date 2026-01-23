@@ -22,11 +22,19 @@ export interface StructuredContent {
   description: string;
 }
 
+export interface OpeningStyle {
+  tone: string;
+  startMethod: string;
+  exampleLines: string[];
+  styleDescription: string;
+}
+
 export interface AnalysisResult {
   keywords: string[];
   intent: StructuredContent[];
   viewPrediction: StructuredContent[];
   scriptStructure?: ScriptStage[];
+  openingStyle?: OpeningStyle;
 }
 
 export interface ScriptLine {

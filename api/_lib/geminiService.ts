@@ -103,6 +103,30 @@ const storyChannelAnalysisSchema = {
       required: ["stage", "purpose", "quotes"],
     },
   },
+  openingStyle: {
+    type: Type.OBJECT,
+    description: "원본 대본의 도입부 스타일 분석. 처음 1-3개 대사의 어조, 문체, 시작 방식을 상세히 분석합니다.",
+    properties: {
+      tone: {
+        type: Type.STRING,
+        description: "도입부의 어조 (예: 친근하고 편안한 / 긴박하고 극적인 / 신비롭고 몰입감 있는 / 유머러스하고 가벼운)",
+      },
+      startMethod: {
+        type: Type.STRING,
+        description: "시작 방식 (예: 질문으로 시작 / 극적인 상황 제시 / 일상적 대화로 시작 / 충격적 사실 공개)",
+      },
+      exampleLines: {
+        type: Type.ARRAY,
+        description: "도입부의 실제 대사 예시 (처음 2-3줄)",
+        items: { type: Type.STRING },
+      },
+      styleDescription: {
+        type: Type.STRING,
+        description: "도입부 스타일에 대한 상세한 설명 (예: '평범한 일상 상황으로 시작하여 점차 긴장감을 높이는 방식' / '청자에게 직접 질문을 던지며 공감대를 형성' / '충격적인 고백으로 시작하여 시청자의 호기심을 자극')",
+      },
+    },
+    required: ["tone", "startMethod", "exampleLines", "styleDescription"],
+  },
 };
 
 const newPlanBaseSchema = {
@@ -214,7 +238,7 @@ export const analyzeTranscript = async (
     const fullAnalysisSchema = {
       type: Type.OBJECT,
       properties: storyChannelAnalysisSchema,
-      required: [...baseAnalysisSchema.required, "scriptStructure"],
+      required: [...baseAnalysisSchema.required, "scriptStructure", "openingStyle"],
     };
 
     const analysisContext = videoTitle
@@ -434,6 +458,18 @@ export const generateNewPlan = async (
       // quotes는 제거 - 원본 대본 내용 누출 방지
     }));
 
+    // 도입부 스타일 정보는 유지 - 새 대본에서 동일한 스타일 적용
+    const openingStyleInfo = analysis.openingStyle 
+      ? `\n\n**원본 대본의 도입부 스타일 (반드시 따라야 함):**
+- 어조: ${analysis.openingStyle.tone}
+- 시작 방식: ${analysis.openingStyle.startMethod}
+- 스타일 특징: ${analysis.openingStyle.styleDescription}
+- 예시 대사:
+${analysis.openingStyle.exampleLines.map((line, i) => `  ${i + 1}. ${line}`).join('\n')}
+
+**중요:** 새로운 대본의 도입부는 위의 스타일을 정확히 따라야 합니다. "안녕하세요 여러분" 같은 일반적인 인사말이 아니라, 원본 대본과 동일한 톤과 방식으로 시작해야 합니다.`
+      : '';
+
     const analysisString = JSON.stringify(
       {
         keywords: analysis.keywords,
@@ -478,6 +514,7 @@ export const generateNewPlan = async (
 - 아래 제공된 분석 자료의 **대본 구조(단계별 흐름)**만 참고하세요
 - 원본 영상의 등장인물, 상황, 배경, 대사는 절대 사용하지 마세요
 - "${newKeyword}"를 중심으로 완전히 새로운 인물, 상황, 스토리를 창작하세요
+${openingStyleInfo}
 
 **중요: 배역 구성 지침**
 - '나레이터'만 사용하지 말고, 스토리에 어울리는 다양한 배역을 만들어주세요.
