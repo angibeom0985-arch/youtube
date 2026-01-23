@@ -9,11 +9,21 @@ interface ApiKeyInputProps {
   helpText?: string;
   apiKeyLink?: string;
   guideRoute?: string;
-  theme?: "orange" | "blue" | "emerald" | "indigo";
-  apiType?: "gemini" | "youtube" | "googleCloud";
+  theme?: "red" | "orange" | "blue" | "emerald" | "indigo";
+  apiType?: "gemini" | "youtube" | "googleCloud" | "google-cloud";
 }
 
 const themeStyles = {
+  red: {
+    container: "bg-gradient-to-r from-red-950/40 to-red-900/30 border border-red-800/40",
+    icon: "text-red-500",
+    label: "text-red-200",
+    input: "bg-[#1A1A1A] border-red-800/40 text-neutral-200 focus:ring-red-500 focus:border-red-500 placeholder-neutral-500",
+    button: "text-red-400 hover:text-red-300",
+    warning: "text-red-400",
+    helpText: "text-neutral-400",
+    guideButton: "px-3 py-1.5 bg-red-600/20 hover:bg-red-600/30 border border-red-500/40 text-red-100 rounded-lg text-sm font-medium transition-all"
+  },
   orange: {
     container: "bg-gradient-to-r from-orange-950/40 to-orange-900/30 border border-orange-800/40",
     icon: "text-orange-500",
