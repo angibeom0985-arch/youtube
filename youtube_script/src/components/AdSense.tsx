@@ -14,13 +14,21 @@ interface AdSenseProps {
 const AdSense: React.FC<AdSenseProps> = ({ adSlot = "8116896499", className = '' }) => {
   useEffect(() => {
     try {
-      if (window.adsbygoogle && process.env.NODE_ENV === 'production') {
+      // adsbygoogle가 배열이고 production 환경일 때만 실행
+      if (typeof window !== 'undefined' && 
+          Array.isArray(window.adsbygoogle) && 
+          process.env.NODE_ENV === 'production') {
         window.adsbygoogle.push({});
       }
     } catch (error) {
       console.error('AdSense error:', error);
     }
   }, []);
+
+  // development 환경에서는 AdSense 렌더링하지 않음
+  if (process.env.NODE_ENV !== 'production') {
+    return null;
+  }
 
   return (
     <div className={`text-center my-6 ${className}`}>

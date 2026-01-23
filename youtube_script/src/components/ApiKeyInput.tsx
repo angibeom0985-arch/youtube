@@ -189,6 +189,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
               value={apiKey}
               onChange={handleApiKeyChange}
               placeholder={placeholder}
+              autoComplete="off"
               className={`w-full px-4 py-2.5 ${apiType ? 'pr-24' : 'pr-12'} border rounded-md focus:ring-2 transition-all text-sm ${styles.input}`}
             />
             <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
