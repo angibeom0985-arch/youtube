@@ -1342,41 +1342,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 {/* Step 1: 대본 분석 */}
                 {scriptSubStep === 1 && (
                   <>
-                    <div className="space-y-3">
-                      <div className="flex flex-wrap gap-2">
-                        {scriptLengthOptions.map((option) => (
-                          <button
-                            key={option.value}
-                            type="button"
-                            onClick={() => handleSelectScriptLength(option.value)}
-                            className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
-                              scriptLengthMinutes === option.value
-                                ? "border-red-400 bg-red-500/15 text-red-200"
-                                : "border-white/15 bg-black/30 text-white/70 hover:border-white/30"
-                            }`}
-                          >
-                            {option.label}
-                          </button>
-                        ))}
-                      </div>
-                      {scriptLengthMinutes === "custom" && (
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="number"
-                            min="1"
-                            value={customScriptLength}
-                            onChange={(event) => handleCustomScriptLengthChange(event.target.value)}
-                            className="w-32 rounded-full border border-white/15 bg-black/30 px-4 py-2 text-sm text-white/80 focus:outline-none focus:ring-2 focus:ring-red-500"
-                            placeholder="분"
-                          />
-                          <span className="text-sm text-white/60">분</span>
-                        </div>
-                      )}
-                      <p className="text-sm text-white/50">
-                        선택한 길이에 맞춰 대본을 구성합니다. ({formatScriptLengthLabel()} 기준)
-                      </p>
-                    </div>
-
                     {/* 대본 분석 버튼 및 결과 */}
                     <div className="space-y-3">
                       <button
@@ -1452,7 +1417,53 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 {/* Step 2: 주제 선택 */}
                 {scriptSubStep === 2 && (
                   <>
-                    <div className="space-y-3">{/* 주제 선택 섹션 */}
+                    <div className="space-y-4">
+                      {/* 영상 길이 선택 */}
+                      <div className="rounded-2xl border border-white/10 bg-black/30 p-5">
+                        <div className="mb-4 pb-3 border-b border-white/10">
+                          <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
+                            <span className="text-purple-400">⏱️</span>
+                            영상 길이 설정
+                          </h3>
+                          <p className="text-xs text-white/50">
+                            생성할 대본의 길이를 선택하세요
+                          </p>
+                        </div>
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          {scriptLengthOptions.map((option) => (
+                            <button
+                              key={option.value}
+                              type="button"
+                              onClick={() => handleSelectScriptLength(option.value)}
+                              className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                                scriptLengthMinutes === option.value
+                                  ? "border-purple-400 bg-purple-500/15 text-purple-200"
+                                  : "border-white/15 bg-black/30 text-white/70 hover:border-white/30"
+                              }`}
+                            >
+                              {option.label}
+                            </button>
+                          ))}
+                        </div>
+                        {scriptLengthMinutes === "custom" && (
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="number"
+                              min="1"
+                              value={customScriptLength}
+                              onChange={(event) => handleCustomScriptLengthChange(event.target.value)}
+                              className="w-32 rounded-full border border-white/15 bg-black/30 px-4 py-2 text-sm text-white/80 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                              placeholder="분"
+                            />
+                            <span className="text-sm text-white/60">분</span>
+                          </div>
+                        )}
+                        <p className="text-sm text-white/50 mt-2">
+                          선택한 길이: <span className="font-semibold text-purple-300">{formatScriptLengthLabel()}</span>
+                        </p>
+                      </div>
+
+                      {/* 주제 선택 섹션 */}
                   {scriptIdeas.length === 0 ? (
                     <div className="rounded-2xl border border-white/10 bg-black/30 p-5">
                       <div className="mb-3 pb-3 border-b border-white/10">
@@ -1569,6 +1580,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         </button>
                       </div>
                     </div>
+                  </>
+                )}
                   </>
                 )}
                 
