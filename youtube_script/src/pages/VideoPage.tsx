@@ -565,6 +565,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       }
 
       // TTS API 호출
+      console.log('[TTS] API 호출 시작:', { voice: googleVoice, textLength: text.length });
+      
       const response = await fetch('/api/youtube_TTS/tts', {
         method: 'POST',
         headers: { 
@@ -577,33 +579,55 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         })
       });
 
+      console.log('[TTS] API 응답:', { status: response.status, ok: response.ok });
+
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('TTS API 오류:', errorText);
-        throw new Error('음성 생성 실패');
+        console.error('[TTS] API 오류:', errorText);
+        throw new Error(`음성 생성 실패: ${response.status}`);
       }
 
-      const audioBlob = await response.blob();
+      // JSON 응답에서 Base64 오디오 추출
+      const data = await response.json();
+      console.log('[TTS] 응답 데이터:', { hasAudioContent: !!data.audioContent });
+      
+      if (!data.audioContent) {
+        throw new Error('오디오 데이터가 없습니다');
+      }
+
+      // Base64를 Blob으로 변환
+      const binaryString = atob(data.audioContent);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      const audioBlob = new Blob([bytes], { type: 'audio/mpeg' });
       const audioUrl = URL.createObjectURL(audioBlob);
+      
+      console.log('[TTS] 오디오 URL 생성 완료');
       
       // 오디오 재생
       audioRef.current = new Audio(audioUrl);
       audioRef.current.onended = () => {
+        console.log('[TTS] 재생 완료');
         setPlayingChapter(null);
         setPlayingVoice(null);
         setIsPlayingPreview(false);
         URL.revokeObjectURL(audioUrl);
       };
-      audioRef.current.onerror = () => {
-        console.error('오디오 재생 오류');
+      audioRef.current.onerror = (e) => {
+        console.error('[TTS] 오디오 재생 오류:', e);
         setPlayingChapter(null);
         setPlayingVoice(null);
         setIsPlayingPreview(false);
         URL.revokeObjectURL(audioUrl);
       };
+      
+      console.log('[TTS] 재생 시작');
       await audioRef.current.play();
+      console.log('[TTS] 재생 중');
     } catch (error) {
-      console.error('오디오 재생 실패:', error);
+      console.error('[TTS] 오디오 재생 실패:', error);
       alert(`음성 재생에 실패했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
       setIsPlayingPreview(false);
       setPlayingChapter(null);
