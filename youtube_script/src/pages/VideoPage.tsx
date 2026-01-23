@@ -1118,7 +1118,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     type="button"
                     onClick={handleAnalyzeScript}
                     disabled={isAnalyzingScript || !isScriptStepReady(0)}
-                    className="w-full rounded-full bg-gradient-to-r from-red-600 to-red-500 px-5 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(220,38,38,0.4)] disabled:opacity-60"
+                    className="w-full rounded-full bg-gradient-to-r from-orange-600 to-red-600 px-5 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(251,146,60,0.4)] hover:from-orange-500 hover:to-red-500 transition-all disabled:opacity-60"
                   >
                     {isAnalyzingScript ? "구조 분석 중..." : "대본 구조 분석하기"}
                   </button>
@@ -1212,8 +1212,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                             onClick={() => setSelectedTopic(idea)}
                             className={`rounded-xl border px-4 py-3 text-left text-sm transition ${
                               selectedTopic === idea
-                                ? "border-red-400 bg-red-500/10 text-white"
-                                : "border-white/15 bg-black/30 text-white/70 hover:border-white/30"
+                                ? "border-blue-400 bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-white shadow-lg"
+                                : "border-white/15 bg-black/30 text-white/70 hover:border-blue-400/50 hover:bg-blue-500/10"
                             }`}
                           >
                             <span className="font-semibold text-white/80 mr-2">주제 {index + 1}.</span>
@@ -1251,7 +1251,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     type="button"
                     onClick={handleGenerateScript}
                     disabled={isGeneratingScript || !isScriptStepReady(2)}
-                    className="w-full rounded-full bg-gradient-to-r from-red-600 to-red-500 px-5 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(220,38,38,0.4)] disabled:opacity-60"
+                    className="w-full rounded-full bg-gradient-to-r from-blue-600 to-purple-600 px-5 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(59,130,246,0.4)] hover:from-blue-500 hover:to-purple-500 transition-all disabled:opacity-60"
                   >
                     {isGeneratingScript ? "대본 작성 중..." : "선택 주제로 대본 작성하기"}
                   </button>
@@ -1571,8 +1571,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                 }}
                                 className={`px-4 py-2 rounded-lg border text-sm font-medium transition-all ${
                                   (chapterVoices[index] || voiceOptions[0].name) === voice.name
-                                    ? "border-red-400 bg-red-500/20 text-red-300"
-                                    : "border-white/20 bg-black/40 text-white/70 hover:border-white/40"
+                                    ? "border-green-400 bg-gradient-to-r from-green-500/30 to-emerald-500/30 text-green-200 shadow-lg"
+                                    : "border-white/20 bg-black/40 text-white/70 hover:border-green-400/50 hover:bg-green-500/10"
                                 }`}
                               >
                                 {voice.name}
@@ -1618,14 +1618,25 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                             <span className="text-xs text-white/70 ml-2">{ttsSpeed.toFixed(1)}x</span>
                           </div>
                         </div>
-                        <button
-                          onClick={() => {
-                            handleGenerateTts();
-                          }}
-                          className="px-4 py-2 rounded-full bg-gradient-to-r from-red-600 to-red-500 text-white text-sm font-semibold shadow-lg hover:from-red-500 hover:to-red-400 transition-all"
-                        >
-                          음성 생성
-                        </button>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              // 읽어보기 기능: 미리듣기
+                              alert('선택한 목소리로 대본을 읽어보는 기능입니다. (TTS API 연동 필요)');
+                            }}
+                            className="px-4 py-2 rounded-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white text-sm font-semibold shadow-lg hover:from-blue-500 hover:to-cyan-500 transition-all"
+                          >
+                            🎧 읽어보기
+                          </button>
+                          <button
+                            onClick={() => {
+                              handleGenerateTts();
+                            }}
+                            className="px-4 py-2 rounded-full bg-gradient-to-r from-green-600 to-emerald-600 text-white text-sm font-semibold shadow-lg hover:from-green-500 hover:to-emerald-500 transition-all"
+                          >
+                            ✨ 음성 생성
+                          </button>
+                        </div>
                       </div>
 
                       {/* 더 많은 TTS 목소리 선택 모달 - 오른쪽 사이드바 */}
