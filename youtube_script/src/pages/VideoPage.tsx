@@ -239,6 +239,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   // Script sub-step management (대본 생성 단계의 하위 단계)
   const [scriptSubStep, setScriptSubStep] = useState(0); // 0: 입력, 1: 분석, 2: 주제선택, 3: 결과
   
+  // 대본 챕터별 접기/펼치기 상태
+  const [expandedChapters, setExpandedChapters] = useState<Record<number, boolean>>({});
+  
   // Progress tracking for script analysis
   const [analyzeProgress, setAnalyzeProgress] = useState({
     currentStep: 0,
@@ -981,11 +984,14 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         "일반"
       );
       
-      // Step 3: 최종 검토
+      // Step 3: AI 응답 정제 (마크다운 기호 제거)
       setGenerateProgress(prev => ({ ...prev, currentStep: 2 }));
-      await new Promise(resolve => setTimeout(resolve, 500)); // UI 업데이트를 위한 짧은 지연
+      await new Promise(resolve => setTimeout(resolve, 300));
       
-      setGeneratedPlan(plan);
+      // 대본 내용에서 마크다운 기호 제거
+      const cleanPlan = cleanAIResponse(plan);
+      
+      setGeneratedPlan(cleanPlan);
       
       // 대본 생성 완료 후 결과 단계로 자동 이동
       setScriptSubStep(3);
@@ -1009,6 +1015,53 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       setGenerateProgress({ ...generateProgress, currentStep: 0 });
     }
   };
+  
+  // AI 응답 정제 함수 - 마크다운 기호 제거
+  const cleanAIResponse = (plan: NewPlan): NewPlan => {
+    const cleanText = (text: string): string => {
+      return text
+        .replace(/\*\*/g, '')   // **굵은글씨** 제거
+        .replace(/\*/g, '')     // *기울임* 제거
+        .replace(/\_\_/g, '')   // __밑줄__ 제거
+        .replace(/\_/g, '')     // _기울임_ 제거
+        .replace(/\#\#\#\#/g, '') // #### 제거
+        .replace(/\#\#\#/g, '')   // ### 제거
+        .replace(/\#\#/g, '')     // ## 제거
+        .replace(/\#/g, '')       // # 제거
+        .trim();
+    };
+    
+    return {
+      ...plan,
+      chapters: plan.chapters?.map(chapter => ({
+        ...chapter,
+        title: cleanText(chapter.title || ''),
+        purpose: cleanText(chapter.purpose || ''),
+        script: chapter.script?.map(line => ({
+          ...line,
+          character: cleanText(line.character),
+          line: cleanText(line.line),
+        })),
+      })),
+      scriptWithCharacters: plan.scriptWithCharacters?.map(line => ({
+        ...line,
+        character: cleanText(line.character),
+        line: cleanText(line.line),
+      })),
+      scriptOutline: plan.scriptOutline?.map(stage => ({
+        ...stage,
+        stage: cleanText(stage.stage),
+        purpose: cleanText(stage.purpose),
+        details: cleanText(stage.details),
+      })),
+      newIntent: plan.newIntent?.map(item => ({
+        ...item,
+        title: cleanText(item.title),
+        description: cleanText(item.description),
+      })),
+    };
+  };
+  
   // 챕터별 대본 다운로드 포맷
   const formatChapterScriptToText = (
     chapter: { title: string; script?: { character: string; line: string; timestamp?: string }[] }
@@ -1511,14 +1564,41 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                 key={chapter.id}
                                 className="rounded-xl border border-white/10 bg-black/30 p-4"
                               >
-                                <h4 className="text-base font-bold text-white mb-3 flex items-center gap-2">
-                                  <span className="text-red-400">📖</span>
-                                  챕터 {index + 1}. {chapter.title}
-                                </h4>
+                                <div className="flex items-center justify-between mb-3">
+                                  <h4 className="text-base font-bold text-white flex items-center gap-2">
+                                    <span className="text-red-400">📖</span>
+                                    챕터 {index + 1}. {chapter.title}
+                                  </h4>
+                                  <button
+                                    onClick={() => {
+                                      setExpandedChapters(prev => ({
+                                        ...prev,
+                                        [index]: !prev[index]
+                                      }));
+                                    }}
+                                    className="px-3 py-1 rounded-full text-xs font-semibold bg-white/10 hover:bg-white/20 text-white transition-all flex items-center gap-1"
+                                  >
+                                    {expandedChapters[index] ? (
+                                      <>
+                                        <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                                        </svg>
+                                        접기
+                                      </>
+                                    ) : (
+                                      <>
+                                        <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                        펼치기
+                                      </>
+                                    )}
+                                  </button>
+                                </div>
                                 <p className="text-sm text-white/60 mb-4 pb-3 border-b border-white/10">
                                   {chapter.purpose}
                                 </p>
-                                {chapter.script && chapter.script.length > 0 && (
+                                {expandedChapters[index] && chapter.script && chapter.script.length > 0 && (
                                   <>
                                     <div className="space-y-3 max-h-[400px] overflow-y-auto p-3 bg-black/40 rounded-lg">
                                       {chapter.script.map((line, lineIndex) => (
@@ -1535,7 +1615,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                               )}
                                             </div>
                                             <div className="flex-1 text-sm text-white/90 leading-relaxed">
-                                              {line.line.replace(/\*\*/g, "").replace(/\*/g, "").replace(/\_\_/g, "").replace(/\_/g, "")}
+                                              {line.line}
                                             </div>
                                           </div>
                                           {line.imagePrompt && (
@@ -1611,37 +1691,66 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         </>
                       ) : generatedPlan.scriptWithCharacters && generatedPlan.scriptWithCharacters.length > 0 ? (
                         <>
-                          <div className="space-y-3 max-h-[500px] overflow-y-auto p-3 bg-black/40 rounded-lg">
-                            {generatedPlan.scriptWithCharacters.map((line, lineIndex) => (
-                              <div key={`script-${lineIndex}`}>
-                                <div className="flex items-start gap-3">
-                                  <div className="w-24 flex-shrink-0 pt-0.5">
-                                    <span className={`font-bold text-sm ${characterColorMap.get(line.character) || "text-orange-400"}`}>
-                                      {line.character}
-                                    </span>
-                                    {line.timestamp && (
-                                      <div className="text-xs text-white/40 font-mono mt-0.5">
-                                        [{line.timestamp}]
-                                      </div>
-                                    )}
-                                  </div>
-                                  <div className="flex-1 text-sm text-white/90 leading-relaxed">
-                                    {line.line.replace(/\*\*/g, "").replace(/\*/g, "").replace(/\_\_/g, "").replace(/\_/g, "")}
-                                  </div>
-                                </div>
-                                {line.imagePrompt && (
-                                  <div className="mt-3 ml-[108px] p-3 rounded-md border bg-zinc-950 border-zinc-700/50">
-                                    <p className="text-xs font-semibold text-neutral-400 mb-1">
-                                      🎨 이미지 생성 프롬프트
-                                    </p>
-                                    <p className="text-sm text-neutral-300 font-mono">
-                                      {line.imagePrompt}
-                                    </p>
-                                  </div>
-                                )}
-                              </div>
-                            ))}
+                          <div className="mb-3">
+                            <button
+                              onClick={() => {
+                                setExpandedChapters(prev => ({
+                                  ...prev,
+                                  [0]: !prev[0]
+                                }));
+                              }}
+                              className="px-3 py-1 rounded-full text-xs font-semibold bg-white/10 hover:bg-white/20 text-white transition-all flex items-center gap-1"
+                            >
+                              {expandedChapters[0] ? (
+                                <>
+                                  <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                                  </svg>
+                                  접기
+                                </>
+                              ) : (
+                                <>
+                                  <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                  </svg>
+                                  펼치기
+                                </>
+                              )}
+                            </button>
                           </div>
+                          {expandedChapters[0] && (
+                            <div className="space-y-3 max-h-[500px] overflow-y-auto p-3 bg-black/40 rounded-lg">
+                              {generatedPlan.scriptWithCharacters.map((line, lineIndex) => (
+                                <div key={`script-${lineIndex}`}>
+                                  <div className="flex items-start gap-3">
+                                    <div className="w-24 flex-shrink-0 pt-0.5">
+                                      <span className={`font-bold text-sm ${characterColorMap.get(line.character) || "text-orange-400"}`}>
+                                        {line.character}
+                                      </span>
+                                      {line.timestamp && (
+                                        <div className="text-xs text-white/40 font-mono mt-0.5">
+                                          [{line.timestamp}]
+                                        </div>
+                                      )}
+                                    </div>
+                                    <div className="flex-1 text-sm text-white/90 leading-relaxed">
+                                      {line.line}
+                                    </div>
+                                  </div>
+                                  {line.imagePrompt && (
+                                    <div className="mt-3 ml-[108px] p-3 rounded-md border bg-zinc-950 border-zinc-700/50">
+                                      <p className="text-xs font-semibold text-neutral-400 mb-1">
+                                        🎨 이미지 생성 프롬프트
+                                      </p>
+                                      <p className="text-sm text-neutral-300 font-mono">
+                                        {line.imagePrompt}
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
                           
                           {/* 전체 대본 다운로드 버튼 */}
                           <div className="mt-4 pt-4 border-t border-white/10">
@@ -1808,12 +1917,27 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                               </button>
                               <button
                                 type="button"
-                                className="p-2 rounded-lg border border-white/10 bg-black/40 hover:bg-red-500/20 hover:border-red-400/50 transition-all"
-                                title="미리듣기"
+                                onClick={() => {
+                                  const sampleText = allVoiceOptions.find(v => v.name === voice.name)?.sampleText || "안녕하세요. 샘플 음성입니다.";
+                                  playPreviewAudio(index, voice.name, sampleText);
+                                }}
+                                disabled={isPlayingPreview && playingChapter === index && playingVoice === voice.name}
+                                className={`p-2 rounded-lg border transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                                  playingChapter === index && playingVoice === voice.name
+                                    ? 'border-red-400 bg-red-500 shadow-lg'
+                                    : 'border-white/10 bg-black/40 hover:bg-red-500/20 hover:border-red-400/50'
+                                }`}
+                                title={playingChapter === index && playingVoice === voice.name ? '정지' : '미리듣기'}
                               >
-                                <svg className="w-4 h-4 text-white/70" fill="currentColor" viewBox="0 0 20 20">
-                                  <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" />
-                                </svg>
+                                {playingChapter === index && playingVoice === voice.name ? (
+                                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
+                                  </svg>
+                                ) : (
+                                  <svg className="w-4 h-4 text-white/70" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M8 5v14l11-7z" />
+                                  </svg>
+                                )}
                               </button>
                             </div>
                           ))}
@@ -1851,16 +1975,34 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                             onClick={() => {
                               const voiceName = chapterVoices[index] || '민준';
                               const text = chapter.content;
-                              playPreviewAudio(index, voiceName, text);
+                              if (playingChapter === index) {
+                                stopAudio();
+                              } else {
+                                playPreviewAudio(index, voiceName, text);
+                              }
                             }}
-                            disabled={isPlayingPreview}
-                            className={`px-4 py-2 rounded-full text-white text-sm font-semibold shadow-lg transition-all ${
+                            disabled={isPlayingPreview && playingChapter !== index}
+                            className={`px-4 py-2 rounded-full text-white text-sm font-semibold shadow-lg transition-all flex items-center gap-2 ${
                               playingChapter === index 
                                 ? 'bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-500 hover:to-pink-500' 
                                 : 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500'
                             } disabled:opacity-50 disabled:cursor-not-allowed`}
                           >
-                            {playingChapter === index ? '⏸️ 정지' : '🎧 읽어보기'}
+                            {playingChapter === index ? (
+                              <>
+                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                  <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
+                                </svg>
+                                정지
+                              </>
+                            ) : (
+                              <>
+                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                  <path d="M8 5v14l11-7z" />
+                                </svg>
+                                읽어보기
+                              </>
+                            )}
                           </button>
                           <button
                             onClick={() => {
@@ -2378,26 +2520,37 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
           </div>
         </header>
 
-        {/* API 키 입력 섹션 */}
-        <div className="mt-6 space-y-4">
-          <ApiKeyInput
-            storageKey={STORAGE_KEYS.geminiApiKey}
-            label="Gemini API 키"
-            placeholder="AIzaSy..."
-            helpText="브라우저에만 저장됩니다."
-            guideRoute="/api-guide-aistudio"
-            theme="orange"
-            apiType="gemini"
-          />
-          <ApiKeyInput
-            storageKey={STORAGE_KEYS.cloudConsoleApiKey}
-            label="클라우드 콘솔 API 키"
-            placeholder="AIzaSy..."
-            helpText="TTS 및 이미지 생성을 위한 API 키 (브라우저에만 저장)"
-            guideRoute="/api-guide-cloudconsole"
-            theme="blue"
-            apiType="google-cloud"
-          />
+        {/* API 키 입력 섹션 - 통합 */}
+        <div className="mt-6">
+          <div className="rounded-2xl border border-red-500/30 bg-gradient-to-r from-red-500/10 to-orange-500/10 p-6">
+            <div className="mb-4">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <span className="text-red-400">🔑</span>
+                API 키 설정
+              </h3>
+              <p className="text-xs text-white/60 mt-1">브라우저에만 저장되며 서버로 전송되지 않습니다.</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <ApiKeyInput
+                storageKey={STORAGE_KEYS.geminiApiKey}
+                label="Gemini API 키"
+                placeholder="AIzaSy..."
+                helpText="대본 분석 및 생성용"
+                guideRoute="/api-guide-aistudio"
+                theme="red"
+                apiType="gemini"
+              />
+              <ApiKeyInput
+                storageKey={STORAGE_KEYS.cloudConsoleApiKey}
+                label="클라우드 콘솔 API 키"
+                placeholder="AIzaSy..."
+                helpText="TTS 및 이미지 생성용"
+                guideRoute="/api-guide-cloudconsole"
+                theme="red"
+                apiType="google-cloud"
+              />
+            </div>
+          </div>
         </div>
 
         <div className="mt-[clamp(2rem,4vw,3rem)]">
