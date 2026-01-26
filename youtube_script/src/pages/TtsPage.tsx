@@ -321,7 +321,7 @@ const TtsPage: React.FC = () => {
         <HomeBackButton tone="emerald" />
       </div>
 
-      <div className="relative mx-auto max-w-6xl px-6 py-12">
+      <div className="relative mx-auto max-w-6xl px-6 pt-24 pb-12">
         {/* Header */}
         <div className="mb-10 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
           <div>

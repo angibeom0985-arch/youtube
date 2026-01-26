@@ -1191,8 +1191,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       type="button"
                       onClick={() => handleFormatChange(option.value)}
                       className={`group rounded-2xl border px-5 py-6 text-center transition ${videoFormat === option.value
-                          ? "border-red-400 bg-red-500/10 shadow-[0_10px_20px_rgba(239,68,68,0.2)]"
-                          : "border-white/15 bg-black/30 hover:border-white/30 hover:bg-black/50"
+                        ? "border-red-400 bg-red-500/10 shadow-[0_10px_20px_rgba(239,68,68,0.2)]"
+                        : "border-white/15 bg-black/30 hover:border-white/30 hover:bg-black/50"
                         }`}
                     >
                       <div className="flex flex-col items-center gap-3">
@@ -1270,8 +1270,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     <button
                       onClick={() => setScriptSubStep(index)}
                       className={`px-3 py-1 text-xs rounded-full transition-all ${scriptSubStep === index
-                          ? 'bg-red-500/20 text-red-300 border border-red-400/50'
-                          : 'bg-white/5 text-white/50 border border-white/10 hover:bg-white/10'
+                        ? 'bg-red-500/20 text-red-300 border border-red-400/50'
+                        : 'bg-white/5 text-white/50 border border-white/10 hover:bg-white/10'
                         }`}
                     >
                       {index + 1}. {step.title}
@@ -1432,8 +1432,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                               type="button"
                               onClick={() => handleSelectScriptLength(option.value)}
                               className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${scriptLengthMinutes === option.value
-                                  ? "border-purple-400 bg-purple-500/15 text-purple-200"
-                                  : "border-white/15 bg-black/30 text-white/70 hover:border-white/30"
+                                ? "border-purple-400 bg-purple-500/15 text-purple-200"
+                                : "border-white/15 bg-black/30 text-white/70 hover:border-white/30"
                                 }`}
                             >
                               {option.label}
@@ -1507,8 +1507,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                 type="button"
                                 onClick={() => setSelectedTopic(idea)}
                                 className={`rounded-xl border px-4 py-3 text-left text-sm transition ${selectedTopic === idea
-                                    ? "border-red-400 bg-gradient-to-r from-red-500/20 to-orange-500/20 text-white shadow-lg"
-                                    : "border-white/15 bg-black/30 text-white/70 hover:border-red-400/50 hover:bg-red-500/10"
+                                  ? "border-red-400 bg-gradient-to-r from-red-500/20 to-orange-500/20 text-white shadow-lg"
+                                  : "border-white/15 bg-black/30 text-white/70 hover:border-red-400/50 hover:bg-red-500/10"
                                   }`}
                               >
                                 <span className="font-semibold text-white/80 mr-2">주제 {index + 1}.</span>
@@ -1942,8 +1942,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                   setChapterVoices({ ...chapterVoices, [index]: voice.name });
                                 }}
                                 className={`px-4 py-2 rounded-lg border text-sm font-medium transition-all ${(chapterVoices[index] || voiceOptions[0].name) === voice.name
-                                    ? "border-red-400 bg-gradient-to-r from-red-500/30 to-orange-500/30 text-red-200 shadow-lg"
-                                    : "border-white/20 bg-black/40 text-white/70 hover:border-red-400/50 hover:bg-red-500/10"
+                                  ? "border-red-400 bg-gradient-to-r from-red-500/30 to-orange-500/30 text-red-200 shadow-lg"
+                                  : "border-white/20 bg-black/40 text-white/70 hover:border-red-400/50 hover:bg-red-500/10"
                                   }`}
                               >
                                 {voice.name}
@@ -1957,8 +1957,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                 }}
                                 disabled={isPlayingPreview && playingChapter === index && playingVoice === voice.name}
                                 className={`p-2 rounded-lg border transition-all disabled:opacity-50 disabled:cursor-not-allowed ${playingChapter === index && playingVoice === voice.name
-                                    ? 'border-red-400 bg-red-500 shadow-lg'
-                                    : 'border-white/10 bg-black/40 hover:bg-red-500/20 hover:border-red-400/50'
+                                  ? 'border-red-400 bg-red-500 shadow-lg'
+                                  : 'border-white/10 bg-black/40 hover:bg-red-500/20 hover:border-red-400/50'
                                   }`}
                                 title={playingChapter === index && playingVoice === voice.name ? '정지' : '미리듣기'}
                               >
@@ -2016,8 +2016,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                             }}
                             disabled={isPlayingPreview && playingChapter !== index}
                             className={`px-4 py-2 rounded-full text-white text-sm font-semibold shadow-lg transition-all flex items-center gap-2 ${playingChapter === index
-                                ? 'bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-500 hover:to-pink-500'
-                                : 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500'
+                              ? 'bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-500 hover:to-pink-500'
+                              : 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500'
                               } disabled:opacity-50 disabled:cursor-not-allowed`}
                           >
                             {playingChapter === index ? (
@@ -2095,8 +2095,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                         }}
                                         disabled={isPlayingPreview}
                                         className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed ${playingChapter === currentChapterForVoice && playingVoice === voice.name
-                                            ? 'bg-red-500 shadow-lg'
-                                            : 'bg-white/10 hover:bg-red-500/50'
+                                          ? 'bg-red-500 shadow-lg'
+                                          : 'bg-white/10 hover:bg-red-500/50'
                                           }`}
                                         title={playingChapter === currentChapterForVoice && playingVoice === voice.name ? '정지' : '미리듣기'}
                                       >
@@ -2146,8 +2146,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                         }}
                                         disabled={isPlayingPreview}
                                         className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed ${playingChapter === currentChapterForVoice && playingVoice === voice.name
-                                            ? 'bg-blue-500 shadow-lg'
-                                            : 'bg-white/10 hover:bg-blue-500/50'
+                                          ? 'bg-blue-500 shadow-lg'
+                                          : 'bg-white/10 hover:bg-blue-500/50'
                                           }`}
                                         title={playingChapter === currentChapterForVoice && playingVoice === voice.name ? '정지' : '미리듣기'}
                                       >
@@ -2197,8 +2197,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                         }}
                                         disabled={isPlayingPreview}
                                         className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed ${playingChapter === currentChapterForVoice && playingVoice === voice.name
-                                            ? 'bg-pink-500 shadow-lg'
-                                            : 'bg-white/10 hover:bg-pink-500/50'
+                                          ? 'bg-pink-500 shadow-lg'
+                                          : 'bg-white/10 hover:bg-pink-500/50'
                                           }`}
                                         title={playingChapter === currentChapterForVoice && playingVoice === voice.name ? '정지' : '미리듣기'}
                                       >
@@ -2510,11 +2510,15 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       <div className="absolute -top-40 -left-28 h-[clamp(260px,40vw,460px)] w-[clamp(260px,40vw,460px)] rounded-full bg-gradient-to-br from-red-600/40 via-orange-500/20 to-transparent blur-3xl" />
       <div className="absolute -bottom-32 -right-28 h-[clamp(240px,36vw,420px)] w-[clamp(240px,36vw,420px)] rounded-full bg-gradient-to-tr from-rose-400/30 via-purple-500/10 to-transparent blur-3xl" />
 
-      <UserCreditToolbar user={user} onLogout={handleLogout} tone="red" />
+      <div className="absolute top-0 right-0 p-4 sm:p-6 flex gap-3 z-50 items-center">
+        <UserCreditToolbar user={user} onLogout={handleLogout} tone="red" />
+      </div>
+      <div className="absolute top-0 left-0 p-4 sm:p-6 z-50">
+        <HomeBackButton tone="red" />
+      </div>
 
       <div className="relative mx-auto max-w-[min(1280px,94vw)] px-[clamp(1rem,3vw,2.5rem)] py-[clamp(2rem,4vw,3.8rem)]">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <HomeBackButton tone="red" />
         </div>
 
         <header className="mt-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -2534,10 +2538,10 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
               <div
                 key={step.id}
                 className={`rounded-full border px-3 py-1 text-center transition-all ${index === currentStep
-                    ? "border-red-400/50 bg-red-500/10 text-red-200"
-                    : index < currentStep
-                      ? "border-green-400/30 bg-green-500/5 text-green-200/70"
-                      : "border-white/10 bg-white/5 text-white/40"
+                  ? "border-red-400/50 bg-red-500/10 text-red-200"
+                  : index < currentStep
+                    ? "border-green-400/30 bg-green-500/5 text-green-200/70"
+                    : "border-white/10 bg-white/5 text-white/40"
                   }`}
               >
                 {index + 1}. {step.label}

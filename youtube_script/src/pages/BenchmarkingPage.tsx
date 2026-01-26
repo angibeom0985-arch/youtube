@@ -193,10 +193,10 @@ const BenchmarkingPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-black text-white selection:bg-purple-500/30 relative">
       <div className="absolute top-0 right-0 p-4 sm:p-6 flex gap-3 z-50 items-center">
-        <UserCreditToolbar user={user} onLogout={handleLogout} tone="purple" />
+        <UserCreditToolbar user={user} onLogout={handleLogout} tone="purple" showCredits={false} />
       </div>
 
-      <div className="mx-auto max-w-[1600px] px-6 py-8">
+      <div className="mx-auto max-w-[1600px] px-6 pt-24 pb-8">
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>

@@ -8,14 +8,15 @@ interface UserCreditToolbarProps {
   user: User | null;
   onLogout: () => void;
   tone?: 'orange' | 'blue' | 'red' | 'purple' | 'emerald' | 'indigo';
+  showCredits?: boolean;
 }
 
-const UserCreditToolbar: React.FC<UserCreditToolbarProps> = ({ user, onLogout, tone = 'orange' }) => {
+const UserCreditToolbar: React.FC<UserCreditToolbarProps> = ({ user, onLogout, tone = 'orange', showCredits = true }) => {
   const [credits, setCredits] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
 
   const fetchCredits = async () => {
-    if (!user) return;
+    if (!user || !showCredits) return;
 
     setLoading(true);
     try {
@@ -53,11 +54,13 @@ const UserCreditToolbar: React.FC<UserCreditToolbarProps> = ({ user, onLogout, t
   };
 
   useEffect(() => {
-    fetchCredits();
-    const handleCreditRefresh = () => fetchCredits();
-    window.addEventListener('creditRefresh', handleCreditRefresh);
-    return () => window.removeEventListener('creditRefresh', handleCreditRefresh);
-  }, [user]);
+    if (showCredits) {
+      fetchCredits();
+      const handleCreditRefresh = () => fetchCredits();
+      window.addEventListener('creditRefresh', handleCreditRefresh);
+      return () => window.removeEventListener('creditRefresh', handleCreditRefresh);
+    }
+  }, [user, showCredits]);
 
   const colorClasses = {
     orange: {
@@ -127,19 +130,23 @@ const UserCreditToolbar: React.FC<UserCreditToolbarProps> = ({ user, onLogout, t
         <span className="text-sm font-semibold text-white hidden sm:inline">{user.user_metadata?.full_name || user.email?.split('@')[0]}</span>
       </div>
 
-      <div className="h-6 border-l border-zinc-600"></div>
+      {showCredits && (
+        <>
+          <div className="h-6 border-l border-zinc-600"></div>
 
-      <div className="flex items-center gap-2">
-        <FiZap className={`${colors.icon} text-lg`} />
-        {loading ? (
-          <div className="w-12 h-5 animate-pulse bg-zinc-700 rounded-md"></div>
-        ) : (
-          <span className={`text-base font-bold ${colors.text}`}>{credits !== null ? credits.toLocaleString() : '-'}</span>
-        )}
-        <button onClick={fetchCredits} disabled={loading} className={`p-1.5 rounded-full transition-colors ${colors.buttonBg}`}>
-          <FiRefreshCw className={`text-sm ${colors.icon} ${loading ? 'animate-spin' : ''}`} />
-        </button>
-      </div>
+          <div className="flex items-center gap-2">
+            <FiZap className={`${colors.icon} text-lg`} />
+            {loading ? (
+              <div className="w-12 h-5 animate-pulse bg-zinc-700 rounded-md"></div>
+            ) : (
+              <span className={`text-base font-bold ${colors.text}`}>{credits !== null ? credits.toLocaleString() : '-'}</span>
+            )}
+            <button onClick={fetchCredits} disabled={loading} className={`p-1.5 rounded-full transition-colors ${colors.buttonBg}`}>
+              <FiRefreshCw className={`text-sm ${colors.icon} ${loading ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
+        </>
+      )}
 
       <div className="h-6 border-l border-zinc-600"></div>
 

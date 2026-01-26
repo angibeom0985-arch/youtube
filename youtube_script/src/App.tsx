@@ -1489,7 +1489,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
         className={`max-w-4xl mx-auto ${adBlockDetected ? "filter blur-sm pointer-events-none" : ""
           }`}
       >
-        <header className="text-center mb-10">
+        <header className="text-center mb-10 mt-16">
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold bg-gradient-to-r from-orange-500 to-amber-400 bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(249,115,22,0.6)] mb-4">
             유튜브 떡상 대본의 비밀 파헤치기+모방
           </h1>
