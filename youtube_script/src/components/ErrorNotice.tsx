@@ -13,7 +13,14 @@ const buildCreatorMessage = (error: string, context: string) => {
     typeof navigator !== "undefined"
       ? navigator.userAgent
       : "브라우저 정보를 확인할 수 없습니다.";
-  const timestamp = new Date().toISOString();
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const date = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+  const timestamp = `${year}-${month}-${date} / ${hours}:${minutes}:${seconds}`;
 
   return [
     "오류 제보",

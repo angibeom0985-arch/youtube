@@ -1,18 +1,52 @@
 {
   "functions": {
-    "api/**/*.ts": { "maxDuration": 60 },
-    "api/**/*.js": { "maxDuration": 60 }
+    "api/**/*.ts": {
+      "maxDuration": 300
+    },
+    "api/**/*.js": {
+      "maxDuration": 300
+    }
   },
   "rewrites": [
-    { "source": "/api/fetch-transcript", "destination": "/api/youtube_script/fetch-transcript.ts" },
-    { "source": "/api/gemini", "destination": "/api/youtube_script/gemini.ts" },
-    { "source": "/api/upload-image", "destination": "/api/youtube_image/upload-image.js" },
-    { "source": "/api/tts", "destination": "/api/youtube_TTS/tts.ts" },
-    { "source": "/api/abuse/check", "destination": "/api/YOUTUBE/abuse/check.ts" },
-    { "source": "/api/admin/auth", "destination": "/api/YOUTUBE/admin/auth.ts" },
-    { "source": "/api/admin/abuse", "destination": "/api/YOUTUBE/admin/abuse.ts" },
-    { "source": "/api/benchmarking/search", "destination": "/api/youtube_script/benchmarking/search.ts" },
-    { "source": "/admin", "destination": "/admin.html" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    {
+      "source": "/api/fetch-transcript",
+      "destination": "/api/youtube_script/fetch-transcript.ts"
+    },
+    {
+      "source": "/api/gemini",
+      "destination": "/api/youtube_script/gemini.ts"
+    },
+    {
+      "source": "/api/upload-image",
+      "destination": "/api/youtube_image/upload-image.js"
+    },
+    {
+      "source": "/api/tts",
+      "destination": "/api/youtube_TTS/tts.ts"
+    },
+    {
+      "source": "/api/abuse/check",
+      "destination": "/api/YOUTUBE/abuse/check.ts"
+    },
+    {
+      "source": "/api/admin/auth",
+      "destination": "/api/YOUTUBE/admin/auth.ts"
+    },
+    {
+      "source": "/api/admin/abuse",
+      "destination": "/api/YOUTUBE/admin/abuse.ts"
+    },
+    {
+      "source": "/api/benchmarking/search",
+      "destination": "/api/youtube_script/benchmarking/search.ts"
+    },
+    {
+      "source": "/admin",
+      "destination": "/admin.html"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
   ]
 }
