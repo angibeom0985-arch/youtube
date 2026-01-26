@@ -2,6 +2,7 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { TextToSpeechClient } from "@google-cloud/text-to-speech";
 import { enforceUsageLimit, recordUsageEvent } from "../_lib/usageLimit.js";
 import { checkAndDeductCredits, CREDIT_COSTS } from "../_lib/creditService.js";
+import { supabaseAdmin } from "../_lib/supabase.js";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
@@ -53,38 +54,55 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Check and Deduct Credits (Enforces Login)
   const creditResult = await checkAndDeductCredits(req, res, cost);
   if (!creditResult.allowed) {
-    res.status(creditResult.status || 402).json({ 
+    res.status(creditResult.status || 402).json({
       message: creditResult.message || "Credits required",
       error: "credit_limit"
     });
     return;
   }
 
+
+  // 3. User Custom Credentials (DB)
+  let userCredentials: any = null;
+  if (creditResult.userId && supabaseAdmin) {
+    const { data } = await supabaseAdmin
+      .from("profiles")
+      .select("google_credit_json")
+      .eq("id", creditResult.userId)
+      .single();
+    if (data?.google_credit_json) {
+      userCredentials = data.google_credit_json;
+    }
+  }
+
   // Google Service Account JSON 키 파일 경로 설정
   let keyFilename = process.env.GOOGLE_APPLICATION_CREDENTIALS;
   const jsonFileName = "google-credentials.json";
-  
-  if (!keyFilename || !fs.existsSync(keyFilename)) {
-     // 후보 경로들 확인
-     const candidates = [
-        path.join(process.cwd(), "api", "youtube_TTS", jsonFileName), // Vercel root 기준
-        path.join(__dirname, jsonFileName), // 파일 상대 경로
-        path.join(process.cwd(), "misc", jsonFileName), // 로컬 misc 폴더
-        path.resolve(process.cwd(), "youtube_TTS", "api", jsonFileName), // 로컬 실행 환경 대응
-        path.join("C:\\KB\\Website\\Youtube\\api\\youtube_TTS", jsonFileName) // 로컬 절대 경로
-     ];
 
-     for (const candidate of candidates) {
-        if (fs.existsSync(candidate)) {
-            keyFilename = candidate;
-            break;
-        }
-     }
+  if (!keyFilename || !fs.existsSync(keyFilename)) {
+    // 후보 경로들 확인
+    const candidates = [
+      path.join(process.cwd(), "api", "youtube_TTS", jsonFileName), // Vercel root 기준
+      path.join(__dirname, jsonFileName), // 파일 상대 경로
+      path.join(process.cwd(), "misc", jsonFileName), // 로컬 misc 폴더
+      path.resolve(process.cwd(), "youtube_TTS", "api", jsonFileName), // 로컬 실행 환경 대응
+      path.join("C:\\KB\\Website\\Youtube\\api\\youtube_TTS", jsonFileName) // 로컬 절대 경로
+    ];
+
+    for (const candidate of candidates) {
+      if (fs.existsSync(candidate)) {
+        keyFilename = candidate;
+        break;
+      }
+    }
   }
 
   // 환경변수로 JSON 내용이 직접 전달된 경우 처리 (Vercel 권장 방식)
   let clientOptions: any = { keyFilename };
-  if (process.env.GOOGLE_CREDENTIALS_JSON) {
+
+  if (userCredentials) {
+    clientOptions = { credentials: userCredentials };
+  } else if (process.env.GOOGLE_CREDENTIALS_JSON) {
     try {
       clientOptions = { credentials: JSON.parse(process.env.GOOGLE_CREDENTIALS_JSON) };
     } catch (e) {

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { FiKey, FiEye, FiEyeOff, FiCheckCircle } from "react-icons/fi";
 import { Link } from "react-router-dom";
+import { supabase } from "../services/supabase";
 
 interface ApiKeyInputProps {
   storageKey: string;
@@ -70,7 +71,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
   storageKey,
   label = "Gemini API 키",
   placeholder = "API 키를 입력하세요",
-  helpText = "브라우저에만 저장됩니다.",
+  helpText = "브라우저 및 계정에 저장됩니다.",
   apiKeyLink = "https://aistudio.google.com/app/apikey",
   guideRoute,
   theme = "orange",
@@ -81,25 +82,61 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
   const [testLoading, setTestLoading] = useState(false);
   const [testResult, setTestResult] = useState<"success" | "error" | null>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
-  
+
   const styles = themeStyles[theme];
+
+  // Helper to fetch keys from backend
+  const fetchBackendKeys = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    try {
+      const res = await fetch("/api/user/settings", {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        let backendKey = "";
+        if (apiType === "gemini" && data.gemini_api_key) {
+          backendKey = data.gemini_api_key;
+        } else if (apiType === "googleCloud" && data.google_credit_json) {
+          backendKey = typeof data.google_credit_json === 'string'
+            ? data.google_credit_json
+            : JSON.stringify(data.google_credit_json);
+        } else if ((apiType === "google-cloud" || apiType === "googleCloud") && data.google_credit_json) {
+          // Handle both types just in case
+          backendKey = typeof data.google_credit_json === 'string'
+            ? data.google_credit_json
+            : JSON.stringify(data.google_credit_json);
+        }
+
+        if (backendKey) {
+          setApiKey(backendKey);
+          localStorage.setItem(storageKey, backendKey);
+          setIsCollapsed(true);
+        }
+      }
+    } catch (e) {
+      console.error("Failed to fetch backend settings", e);
+    }
+  };
 
   useEffect(() => {
     try {
       const stored = localStorage.getItem(storageKey);
       if (stored) {
         setApiKey(stored);
-        setIsCollapsed(true); // API 키가 있으면 자동으로 접기
+        setIsCollapsed(true);
       }
     } catch (error) {
       console.error("API 키를 불러오는데 실패했습니다:", error);
     }
-  }, [storageKey]);
+    fetchBackendKeys();
+  }, [storageKey, apiType]);
 
   const handleApiKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setApiKey(value);
-    // 입력할 때마다 자동 저장은 유지
     try {
       localStorage.setItem(storageKey, value);
     } catch (error) {
@@ -117,32 +154,69 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
       return;
     }
 
-    // 1. 먼저 저장
     try {
       localStorage.setItem(storageKey, apiKey);
     } catch (error) {
       alert('❌ API 키 저장에 실패했습니다.');
-      console.error("API 키 저장 실패:", error);
       return;
     }
 
-    // 2. 그 다음 테스트
+    // Backend Save
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      try {
+        const payload: any = {};
+        if (apiType === "gemini") {
+          payload.gemini_api_key = apiKey;
+        } else if (apiType === "googleCloud" || apiType === "google-cloud") {
+          try {
+            const json = JSON.parse(apiKey);
+            payload.google_credit_json = json;
+          } catch {
+            alert("⚠️ Google Cloud JSON 형식이 올바르지 않습니다.");
+            return;
+          }
+        }
+
+        if (Object.keys(payload).length > 0) {
+          await fetch("/api/user/settings", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${session.access_token}`
+            },
+            body: JSON.stringify(payload)
+          });
+        }
+      } catch (e) {
+        console.error("Backend save failed", e);
+      }
+    }
+
+    // Test logic
     setTestLoading(true);
     setTestResult(null);
 
     try {
       let testUrl = "";
-      
+
       if (apiType === "gemini") {
         testUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
       } else if (apiType === "youtube") {
         testUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=test&type=video&maxResults=1&key=${apiKey}`;
-      } else if (apiType === "googleCloud") {
-        testUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=test&type=video&maxResults=1&key=${apiKey}`;
+      } else if (apiType === "googleCloud" || apiType === "google-cloud") {
+        if (apiKey.trim().startsWith("{")) {
+          setTestResult("success");
+          alert('✅ Google Cloud Key(JSON)가 저장되었습니다. (서버에서 검증됩니다)');
+          setTestLoading(false);
+          return;
+        } else {
+          testUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=test&type=video&maxResults=1&key=${apiKey}`;
+        }
       }
 
       const response = await fetch(testUrl);
-      
+
       if (response.ok) {
         setTestResult("success");
         alert('✅ API 키가 저장되고 정상 작동합니다!');
@@ -190,7 +264,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
           )}
         </div>
       </div>
-      
+
       {!isCollapsed && (
         <>
           <div className="relative">
@@ -236,7 +310,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
               <span>API 키를 입력해주세요.</span>
             </p>
           )}
-          
+
           {helpText && (
             <p className={`mt-2 text-xs ${styles.helpText}`}>
               {helpText}

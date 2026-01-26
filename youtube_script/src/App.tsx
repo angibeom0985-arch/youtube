@@ -155,11 +155,10 @@ const SortableItem: React.FC<SortableItemProps> = ({
       ref={setNodeRef}
       style={style}
       onClick={onClick}
-      className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
-        isSelected
+      className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${isSelected
           ? "bg-gradient-to-br from-orange-600 to-orange-500 text-white shadow-[0_0_10px_rgba(249,115,22,0.5)]"
           : "bg-[#2A2A2A] hover:bg-zinc-700 text-neutral-200"
-      }`}
+        }`}
       {...attributes}
       {...listeners}
     >
@@ -174,7 +173,7 @@ type AppProps = {
 
 const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
   const navigate = useNavigate();
-  
+
   // Auth state
   const [user, setUser] = useState<User | null>(null);
 
@@ -225,11 +224,11 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(() =>
     getStoredJson("analysisResult", null)
   );
-  
+
   const [newPlan, setNewPlan] = useState<NewPlan | null>(() =>
     getStoredJson("newPlan", null)
   );
-  
+
   const [suggestedIdeas, setSuggestedIdeas] = useState<string[]>(() =>
     getStoredJson("suggestedIdeas", [])
   );
@@ -270,7 +269,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
 
   // 애드블럭 감지
   const [adBlockDetected, setAdBlockDetected] = useState<boolean>(false);
-  
+
   // Check for no_ads query param
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
@@ -307,7 +306,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
   };
 
   // 카테고리 순서 저장
-  
+
   useEffect(() => {
     const fetchVideoDetails = async () => {
       const trimmedUrl = youtubeUrl.trim();
@@ -897,7 +896,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
       setTranscript("");
       setYoutubeUrl("");
       setNewKeyword("");
-      
+
       alert("✅ 모든 데이터가 삭제되었습니다.");
     }
   };
@@ -927,7 +926,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
         videoDetails?.title
       );
       setAnalysisResult(result);
-      
+
       // 크레딧 차감 후 갱신
       window.dispatchEvent(new Event('creditRefresh'));
 
@@ -966,7 +965,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
         appliedIdeaKeyword || undefined
       );
       setSuggestedIdeas(ideas);
-      
+
       // 크레딧 차감 후 갱신
       window.dispatchEvent(new Event('creditRefresh'));
     } catch (e: any) {
@@ -1038,25 +1037,25 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
         let totalMinutes = 0;
         const hourMatch = lengthStr.match(/(\d+)\s*시간/);
         const minuteMatch = lengthStr.match(/(\d+)\s*분/);
-        
+
         if (hourMatch) totalMinutes += parseInt(hourMatch[1]) * 60;
         if (minuteMatch) totalMinutes += parseInt(minuteMatch[1]);
-        
+
         // 숫자만 있으면 분으로 간주
         if (!hourMatch && !minuteMatch) {
           const numMatch = lengthStr.match(/(\d+)/);
           if (numMatch) totalMinutes = parseInt(numMatch[1]);
         }
-        
+
         return totalMinutes;
       };
-      
+
       const totalMinutes = parseMinutes(customLength);
-      
+
       // 모든 영상에 챕터 시스템 사용 (대본 길이 2배 증가로 인해)
       // 8분 영상도 챕터 2개로 시작
       const needsChapterSystem = true;
-      
+
       if (needsChapterSystem) {
         // 챕터 개요만 생성 (대본은 사용자가 순차적으로 생성)
         const chapterOutline = await generateChapterOutline(
@@ -1068,13 +1067,13 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
           selectedCategory === "브이로그" ? selectedVlogType : undefined,
           scriptStyle
         );
-        
+
         setNewPlan({
           newIntent: chapterOutline.newIntent,
           characters: chapterOutline.characters,
           chapters: chapterOutline.chapters,
         });
-        
+
         // 크레딧 차감 후 즉시 갱신
         window.dispatchEvent(new Event('creditRefresh'));
       } else {
@@ -1088,13 +1087,13 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
           selectedCategory === "브이로그" ? selectedVlogType : undefined
         );
         setNewPlan(result);
-        
+
         // 크레딧 차감 후 즉시 갱신
         window.dispatchEvent(new Event('creditRefresh'));
       }
     } catch (e: any) {
       console.error("기획안 생성 오류:", e);
-      
+
       // 상세한 오류 정보 수집
       const errorDetails = {
         message: e.message || "알 수 없는 오류",
@@ -1106,13 +1105,13 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
         hasApiKey: !!apiKey,
         hasAnalysisResult: !!analysisResult,
       };
-      
+
       console.error("상세 오류 정보:", errorDetails);
-      
+
       // 사용자 친화적인 오류 메시지 생성
       let userMessage = "🚨 기획안 생성 실패\n\n";
       userMessage += "━━━━━━━━━━━━━━━━━━━━━━\n\n";
-      
+
       // 오류 원인 분석
       userMessage += "📋 오류 원인:\n";
       if (e.message?.includes("API_KEY") || e.message?.includes("api key") || e.message?.includes("401")) {
@@ -1126,7 +1125,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
       } else {
         userMessage += `• ${e.message || "알 수 없는 오류가 발생했습니다"}\n\n`;
       }
-      
+
       // 사용자 해결 방법
       userMessage += "💡 해결 방법:\n";
       userMessage += "1. 페이지를 새로고침(F5)하고 다시 시도해주세요\n";
@@ -1134,7 +1133,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
       userMessage += "3. 인터넷 연결 상태를 확인해주세요\n";
       userMessage += "4. 브라우저 캐시를 지우고 다시 시도해주세요\n";
       userMessage += "5. 잠시 후 다시 시도해주세요 (서버 과부하 가능성)\n\n";
-      
+
       // 개발자 전달 정보
       userMessage += "🔧 개발자에게 전달할 정보:\n";
       userMessage += `• 오류 시각: ${new Date().toLocaleString("ko-KR")}\n`;
@@ -1143,12 +1142,12 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
       userMessage += `• 키워드: ${newKeyword}\n`;
       userMessage += `• 오류 메시지: ${e.message || "없음"}\n`;
       userMessage += `• 브라우저: ${navigator.userAgent}\n\n`;
-      
+
       userMessage += "━━━━━━━━━━━━━━━━━━━━━━\n";
       userMessage += "문제가 계속되면 위 정보를 개발자에게 전달해주세요.";
-      
+
       setError(userMessage);
-      
+
       // 오류 로그를 localStorage에 저장 (디버깅용)
       try {
         const errorLog = JSON.parse(localStorage.getItem("errorLog") || "[]");
@@ -1225,7 +1224,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
 
     try {
       console.log(`챕터 ${chapterIndex + 1} 생성 시작...`);
-      
+
       const script = await generateChapterScript(
         newPlan.chapters[chapterIndex],
         newPlan.characters,
@@ -1260,7 +1259,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
     } catch (e: any) {
       clearTimeout(timeoutId);
       console.error(`챕터 ${chapterIndex + 1} 생성 오류:`, e);
-      
+
       // 상세한 오류 정보
       const errorDetails = {
         chapterIndex: chapterIndex + 1,
@@ -1270,14 +1269,14 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
         category: selectedCategory,
         keyword: newKeyword,
       };
-      
+
       console.error("상세 오류 정보:", errorDetails);
-      
+
       // 사용자 친화적인 오류 메시지
       let userMessage = `🚨 챕터 ${chapterIndex + 1} 생성 실패\n\n`;
       userMessage += `━━━━━━━━━━━━━━━━━━━━━━\n\n`;
       userMessage += `챕터 제목: ${newPlan.chapters[chapterIndex].title}\n\n`;
-      
+
       // 오류 원인 분석
       userMessage += "📋 오류 원인:\n";
       if (e.message?.includes("API_KEY") || e.message?.includes("api key") || e.message?.includes("401")) {
@@ -1291,7 +1290,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
       } else {
         userMessage += `• ${e.message || "알 수 없는 오류가 발생했습니다"}\n\n`;
       }
-      
+
       // 해결 방법
       userMessage += "💡 해결 방법:\n";
       userMessage += "1. 페이지를 새로고침하고 다시 시도해주세요\n";
@@ -1299,18 +1298,18 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
       userMessage += "3. 인터넷 연결을 확인해주세요\n";
       userMessage += "4. 다른 챕터부터 생성해보세요\n";
       userMessage += "5. 영상 길이를 짧게 설정해보세요\n\n";
-      
+
       userMessage += `🔧 개발자 전달 정보:\n`;
       userMessage += `• 챕터 번호: ${chapterIndex + 1}\n`;
       userMessage += `• 오류 시각: ${new Date().toLocaleString("ko-KR")}\n`;
       userMessage += `• 오류 메시지: ${e.message || "없음"}\n\n`;
-      
+
       userMessage += "━━━━━━━━━━━━━━━━━━━━━━\n";
       userMessage += "이 챕터를 건너뛰고 다음 챕터를 생성할 수 있습니다.";
-      
+
       setError(userMessage);
       alert(userMessage);
-      
+
       // 생성 실패 시 상태 복원
       setNewPlan(prev => {
         if (!prev || !prev.chapters) return prev;
@@ -1373,7 +1372,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
     chapter: { title: string; script?: { character: string; line: string; timestamp?: string }[] }
   ): string => {
     if (!chapter.script) return "";
-    
+
     let text = `${chapter.title}\n${"=".repeat(50)}\n\n`;
     chapter.script.forEach((item) => {
       if (item.timestamp) {
@@ -1408,33 +1407,33 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
     if (!chapters || chapters.length === 0) {
       return "챕터가 없습니다.";
     }
-    
+
     const chaptersWithScript = chapters.filter((chapter) => chapter.script);
-    
+
     if (chaptersWithScript.length === 0) {
       return "생성된 대본이 없습니다.";
     }
-    
+
     const result = chaptersWithScript
       .map((chapter, index) => {
         let text = `챕터 ${index + 1}: ${chapter.title}\n${"=".repeat(50)}\n\n`;
         let hasPrompts = false;
-        
+
         chapter.script.forEach((item: any, idx: number) => {
           if (item.imagePrompt && item.imagePrompt.trim() !== "") {
             text += `[${idx + 1}] ${item.imagePrompt}\n\n`;
             hasPrompts = true;
           }
         });
-        
+
         if (!hasPrompts) {
           text += "이미지 프롬프트가 없습니다.\n\n";
         }
-        
+
         return text;
       })
       .join("\n\n" + "=".repeat(50) + "\n\n");
-      
+
     return result || "이미지 프롬프트가 없습니다.";
   };
 
@@ -1481,9 +1480,8 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
 
       {/* 애드블럭 감지 시 컨텐츠 흐림 처리 */}
       <div
-        className={`max-w-4xl mx-auto ${
-          adBlockDetected ? "filter blur-sm pointer-events-none" : ""
-        }`}
+        className={`max-w-4xl mx-auto ${adBlockDetected ? "filter blur-sm pointer-events-none" : ""
+          }`}
       >
         <header className="text-center mb-10">
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold bg-gradient-to-r from-orange-500 to-amber-400 bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(249,115,22,0.6)] mb-4">
@@ -1504,6 +1502,16 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
               theme="orange"
               apiType="gemini"
             />
+            <ApiKeyInput
+              storageKey="google-cloud-key"
+              label="Google Cloud Credentials (JSON)"
+              placeholder='{"type": "service_account", ...}'
+              helpText="TTS 사용을 위한 서비스 계정 키(JSON)를 붙여넣으세요."
+              apiKeyLink="https://console.cloud.google.com/iam-admin/serviceaccounts"
+              guideRoute="/api-guide-googlecloud"
+              theme="blue"
+              apiType="googleCloud"
+            />
           </div>
 
           <nav className="flex justify-center gap-3 flex-wrap">
@@ -1515,14 +1523,14 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
             </a>
             <div className="flex items-center gap-2">
               {(analysisResult || newPlan || suggestedIdeas.length > 0) && (
-                            <button
-                              onClick={handleClearData}
-                              className="flex items-center gap-2 px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-white rounded-lg transition-colors shadow-lg text-sm font-medium"
-                              title="분석 결과 및 저장 데이터 삭제"
-                            >
-                              <FiTrash2 size={14} className="text-orange-400" />
-                              <span>데이터 삭제</span>
-                            </button>              )}
+                <button
+                  onClick={handleClearData}
+                  className="flex items-center gap-2 px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-white rounded-lg transition-colors shadow-lg text-sm font-medium"
+                  title="분석 결과 및 저장 데이터 삭제"
+                >
+                  <FiTrash2 size={14} className="text-orange-400" />
+                  <span>데이터 삭제</span>
+                </button>)}
             </div>
           </nav>
         </header>
@@ -1688,11 +1696,10 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                     <button
                       key={vlogType}
                       onClick={() => setSelectedVlogType(vlogType)}
-                      className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
-                        selectedVlogType === vlogType
+                      className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${selectedVlogType === vlogType
                           ? "bg-gradient-to-br from-orange-600 to-orange-500 text-white shadow-[0_0_10px_rgba(249,115,22,0.5)]"
                           : "bg-[#2A2A2A] hover:bg-zinc-700 text-neutral-200"
-                      }`}
+                        }`}
                     >
                       {vlogType}
                     </button>
@@ -1713,11 +1720,10 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                     <button
                       key={type}
                       onClick={() => setContentType(type)}
-                      className={`px-3 py-1 text-sm font-medium rounded-md transition-all duration-200 ${
-                        contentType === type
+                      className={`px-3 py-1 text-sm font-medium rounded-md transition-all duration-200 ${contentType === type
                           ? "bg-gradient-to-br from-orange-600 to-orange-500 text-white"
                           : "bg-[#2A2A2A] hover:bg-zinc-700 text-neutral-200"
-                      }`}
+                        }`}
                     >
                       {type}
                     </button>
@@ -1971,9 +1977,8 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
               나만의 떡상 대본 작성
             </h2>
             <div
-              className={`bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6 space-y-6 transition-opacity ${
-                !analysisResult && "opacity-50 pointer-events-none"
-              }`}
+              className={`bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6 space-y-6 transition-opacity ${!analysisResult && "opacity-50 pointer-events-none"
+                }`}
             >
               <div>
                 <label className="block text-xl font-bold text-neutral-100 mb-3">
@@ -1987,11 +1992,10 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                         setLengthMode(option);
                         setCustomLength(option);
                       }}
-                      className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
-                        lengthMode === option
+                      className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${lengthMode === option
                           ? "bg-gradient-to-br from-orange-600 to-orange-500 text-white shadow-[0_0_10px_rgba(249,115,22,0.5)]"
                           : "bg-[#2A2A2A] hover:bg-zinc-700 text-neutral-200"
-                      }`}
+                        }`}
                     >
                       {option}
                     </button>
@@ -2002,11 +2006,10 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                       setLengthMode("custom");
                       setCustomLength("");
                     }}
-                    className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
-                      lengthMode === "custom"
+                    className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${lengthMode === "custom"
                         ? "bg-gradient-to-br from-orange-600 to-orange-500 text-white shadow-[0_0_10px_rgba(249,115,22,0.5)]"
                         : "bg-[#2A2A2A] hover:bg-zinc-700 text-neutral-200"
-                    }`}
+                      }`}
                   >
                     사용자 입력
                   </button>
@@ -2034,11 +2037,10 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                 <div className="flex gap-3">
                   <button
                     onClick={() => setScriptStyle("대화 버전")}
-                    className={`flex-1 px-4 py-3 text-sm font-medium rounded-md transition-all duration-200 ${
-                      scriptStyle === "대화 버전"
+                    className={`flex-1 px-4 py-3 text-sm font-medium rounded-md transition-all duration-200 ${scriptStyle === "대화 버전"
                         ? "bg-gradient-to-br from-orange-600 to-orange-500 text-white shadow-[0_0_10px_rgba(249,115,22,0.5)]"
                         : "bg-[#2A2A2A] hover:bg-zinc-700 text-neutral-200"
-                    }`}
+                      }`}
                   >
                     <div className="text-center">
                       <div className="font-bold">💬 대화 버전</div>
@@ -2047,11 +2049,10 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                   </button>
                   <button
                     onClick={() => setScriptStyle("나레이션 버전")}
-                    className={`flex-1 px-4 py-3 text-sm font-medium rounded-md transition-all duration-200 ${
-                      scriptStyle === "나레이션 버전"
+                    className={`flex-1 px-4 py-3 text-sm font-medium rounded-md transition-all duration-200 ${scriptStyle === "나레이션 버전"
                         ? "bg-gradient-to-br from-orange-600 to-orange-500 text-white shadow-[0_0_10px_rgba(249,115,22,0.5)]"
                         : "bg-[#2A2A2A] hover:bg-zinc-700 text-neutral-200"
-                    }`}
+                      }`}
                   >
                     <div className="text-center">
                       <div className="font-bold">🎙️ 나레이션 버전</div>
@@ -2354,7 +2355,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                           {newPlan.chapters.map((chapter, index) => {
                             const prevChapter = index > 0 ? newPlan.chapters[index - 1] : null;
                             const canGenerate = index === 0 || (prevChapter && prevChapter.script);
-                            
+
                             return (
                               <button
                                 key={chapter.id}
@@ -2364,15 +2365,14 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                                   }
                                 }}
                                 disabled={!canGenerate || chapter.isGenerating}
-                                className={`p-4 rounded-lg border-2 transition-all text-left ${
-                                  chapter.script
+                                className={`p-4 rounded-lg border-2 transition-all text-left ${chapter.script
                                     ? 'bg-orange-500/10 border-orange-500/50 cursor-default'
                                     : chapter.isGenerating
-                                    ? 'bg-orange-500/10 border-orange-500/50 cursor-wait'
-                                    : canGenerate
-                                    ? 'bg-zinc-900 border-zinc-700 hover:border-orange-500 cursor-pointer'
-                                    : 'bg-zinc-900/50 border-zinc-800 cursor-not-allowed opacity-50'
-                                }`}
+                                      ? 'bg-orange-500/10 border-orange-500/50 cursor-wait'
+                                      : canGenerate
+                                        ? 'bg-zinc-900 border-zinc-700 hover:border-orange-500 cursor-pointer'
+                                        : 'bg-zinc-900/50 border-zinc-800 cursor-not-allowed opacity-50'
+                                  }`}
                               >
                                 <div className="flex items-center justify-between mb-2">
                                   <span className="text-lg font-bold text-white">
@@ -2399,7 +2399,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                         <div className="space-y-4">
                           {newPlan.chapters.map((chapter, index) => {
                             if (!chapter.script) return null;
-                            
+
                             return (
                               <div key={chapter.id} className="p-6 bg-zinc-900 rounded-lg border border-[#2A2A2A]">
                                 <div className="flex items-start justify-between mb-4">
@@ -2436,7 +2436,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                           <div className="space-y-6">
                             {newPlan.chapters.map((chapter, index) => {
                               if (!chapter.script) return null;
-                              
+
                               return (
                                 <div key={chapter.id} className="p-6 bg-zinc-900 rounded-lg border border-[#2A2A2A]">
                                   <h4 className="text-lg font-bold text-orange-400 mb-4">
@@ -2473,7 +2473,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                                       </div>
                                     ))}
                                   </div>
-                                  
+
                                   {/* 챕터별 다운로드 버튼 */}
                                   <div className="mt-4 pt-4 border-t border-zinc-700 flex gap-3">
                                     <button
@@ -2530,7 +2530,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                                       🎨 이미지
                                     </button>
                                   </div>
-                                  
+
                                   {/* 다음 챕터 생성 버튼 */}
                                   {index < newPlan.chapters.length - 1 && !newPlan.chapters[index + 1].script && !newPlan.chapters[index + 1].isGenerating && (
                                     <div className="mt-4 pt-4 border-t border-zinc-700">
@@ -2596,10 +2596,9 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                               <div className="flex items-start gap-4">
                                 <div className="w-28 flex-shrink-0 pt-1">
                                   <span
-                                    className={`font-bold text-sm ${
-                                      characterColorMap.get(item.character) ||
+                                    className={`font-bold text-sm ${characterColorMap.get(item.character) ||
                                       "text-orange-500"
-                                    }`}
+                                      }`}
                                   >
                                     {item.character}
                                   </span>

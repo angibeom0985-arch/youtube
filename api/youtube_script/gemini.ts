@@ -13,6 +13,7 @@ import {
 import { enforceAbusePolicy } from "../_lib/abuseGuard.js";
 import { enforceUsageLimit, recordUsageEvent } from "../_lib/usageLimit.js";
 import { checkAndDeductCredits, CREDIT_COSTS } from "../_lib/creditService.js";
+import { supabaseAdmin } from "../_lib/supabase.js";
 
 type RateEntry = {
   count: number;
@@ -146,6 +147,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
+  // [NEW] Check for User API Key override
+  let effectiveApiKey = apiKey;
+  if (creditResult.userId && supabaseAdmin) {
+    const { data } = await supabaseAdmin
+      .from("profiles")
+      .select("gemini_api_key")
+      .eq("id", creditResult.userId)
+      .single();
+    if (data?.gemini_api_key) {
+      effectiveApiKey = data.gemini_api_key;
+    }
+  }
+
   const guard = await enforceAbusePolicy(req, action, clientFingerprint);
   if (!guard.allowed) {
     res.status(guard.status || 403).send(guard.reason || "abuse_blocked");
@@ -176,121 +190,123 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           res.status(400).send("missing_fields");
           return;
         }
-        const result = await analyzeTranscript(transcript, category, apiKey, videoTitle);
+        return;
+      }
+        const result = await analyzeTranscript(transcript, category, effectiveApiKey, videoTitle);
         res.status(200).json(result);
-        return;
-      }
-      case "generateIdeas": {
-        const analysis = payload.analysis;
-        const category = payload.category as string;
-        const userKeyword = payload.userKeyword as string | undefined;
-        if (!analysis || !category) {
-          res.status(400).send("missing_fields");
-          return;
-        }
-        const result = await generateIdeas(
-          analysis as any,
-          category,
-          apiKey,
-          userKeyword
-        );
-        res.status(200).json({ ideas: result });
-        return;
-      }
-      case "generateNewPlan": {
-        const analysis = payload.analysis;
-        const newKeyword = payload.newKeyword as string;
-        const length = payload.length as string;
-        const category = payload.category as string;
-        const vlogType = payload.vlogType as string | undefined;
-        if (!analysis || !newKeyword || !length || !category) {
-          res.status(400).send("missing_fields");
-          return;
-        }
-        const result = await generateNewPlan(
-          analysis as any,
-          newKeyword,
-          length,
-          category,
-          apiKey,
-          vlogType
-        );
-        res.status(200).json(result);
-        return;
-      }
-      case "generateChapterOutline": {
-        const analysis = payload.analysis;
-        const newKeyword = payload.newKeyword as string;
-        const length = payload.length as string;
-        const category = payload.category as string;
-        const vlogType = payload.vlogType as string | undefined;
-        const scriptStyle = payload.scriptStyle as string | undefined;
-        if (!analysis || !newKeyword || !length || !category) {
-          res.status(400).send("missing_fields");
-          return;
-        }
-        const result = await generateChapterOutline(
-          analysis as any,
-          newKeyword,
-          length,
-          category,
-          apiKey,
-          vlogType,
-          scriptStyle
-        );
-        res.status(200).json(result);
-        return;
-      }
-      case "generateChapterScript": {
-        const chapter = payload.chapter;
-        const characters = payload.characters;
-        const newKeyword = payload.newKeyword as string;
-        const category = payload.category as string;
-        const allChapters = payload.allChapters;
-        const scriptStyle = payload.scriptStyle as string | undefined;
-        if (!chapter || !characters || !newKeyword || !category || !allChapters) {
-          res.status(400).send("missing_fields");
-          return;
-        }
-        const result = await generateChapterScript(
-          chapter as any,
-          characters as any,
-          newKeyword,
-          category,
-          apiKey,
-          allChapters as any,
-          scriptStyle
-        );
-        res.status(200).json({ script: result });
-        return;
-      }
-      case "generateSsml": {
-        const text = payload.text as string;
-        const prompt = payload.prompt as string;
-        if (!text) {
-          res.status(400).send("missing_fields");
-          return;
-        }
-        const result = await generateSsml(text, prompt || "", apiKey);
-        res.status(200).json(result);
-        return;
-      }
-      case "generateActingPrompt": {
-        const text = payload.text as string;
-        if (!text) {
-          res.status(400).send("missing_fields");
-          return;
-        }
-        const result = await generateActingPrompt(text, apiKey);
-        res.status(200).json({ prompt: result });
-        return;
-      }
-      default:
-        res.status(400).send("unknown_action");
         return;
     }
-  } catch (error: any) {
-    console.error("[api/gemini] error:", error);
-    res.status(500).send(error?.message || "server_error");
+      case "generateIdeas": {
+      const analysis = payload.analysis;
+      const category = payload.category as string;
+      const userKeyword = payload.userKeyword as string | undefined;
+      if (!analysis || !category) {
+        res.status(400).send("missing_fields");
+        return;
+      }
+      const result = await generateIdeas(
+        analysis as any,
+        category,
+        effectiveApiKey,
+        userKeyword
+      );
+      res.status(200).json({ ideas: result });
+      return;
+    }
+      case "generateNewPlan": {
+      const analysis = payload.analysis;
+      const newKeyword = payload.newKeyword as string;
+      const length = payload.length as string;
+      const category = payload.category as string;
+      const vlogType = payload.vlogType as string | undefined;
+      if (!analysis || !newKeyword || !length || !category) {
+        res.status(400).send("missing_fields");
+        return;
+      }
+      const result = await generateNewPlan(
+        analysis as any,
+        newKeyword,
+        length,
+        category,
+        effectiveApiKey,
+        vlogType
+      );
+      res.status(200).json(result);
+      return;
+    }
+      case "generateChapterOutline": {
+      const analysis = payload.analysis;
+      const newKeyword = payload.newKeyword as string;
+      const length = payload.length as string;
+      const category = payload.category as string;
+      const vlogType = payload.vlogType as string | undefined;
+      const scriptStyle = payload.scriptStyle as string | undefined;
+      if (!analysis || !newKeyword || !length || !category) {
+        res.status(400).send("missing_fields");
+        return;
+      }
+      const result = await generateChapterOutline(
+        analysis as any,
+        newKeyword,
+        length,
+        category,
+        effectiveApiKey,
+        vlogType,
+        scriptStyle
+      );
+      res.status(200).json(result);
+      return;
+    }
+      case "generateChapterScript": {
+      const chapter = payload.chapter;
+      const characters = payload.characters;
+      const newKeyword = payload.newKeyword as string;
+      const category = payload.category as string;
+      const allChapters = payload.allChapters;
+      const scriptStyle = payload.scriptStyle as string | undefined;
+      if (!chapter || !characters || !newKeyword || !category || !allChapters) {
+        res.status(400).send("missing_fields");
+        return;
+      }
+      const result = await generateChapterScript(
+        chapter as any,
+        characters as any,
+        newKeyword,
+        category,
+        effectiveApiKey,
+        allChapters as any,
+        scriptStyle
+      );
+      res.status(200).json({ script: result });
+      return;
+    }
+      case "generateSsml": {
+      const text = payload.text as string;
+      const prompt = payload.prompt as string;
+      if (!text) {
+        res.status(400).send("missing_fields");
+        return;
+      }
+      const result = await generateSsml(text, prompt || "", effectiveApiKey);
+      res.status(200).json(result);
+      return;
+    }
+      case "generateActingPrompt": {
+      const text = payload.text as string;
+      if (!text) {
+        res.status(400).send("missing_fields");
+        return;
+      }
+      const result = await generateActingPrompt(text, effectiveApiKey);
+      res.status(200).json({ prompt: result });
+      return;
+    }
+      default:
+    res.status(400).send("unknown_action");
+    return;
   }
+  } catch (error: any) {
+  console.error("[api/gemini] error:", error);
+  res.status(500).send(error?.message || "server_error");
+}
 }
