@@ -4,10 +4,11 @@ import {
   generateIdeas,
   generateNewPlan,
   generateSsml,
+  generateActingPrompt,
 } from "../_lib/geminiService.js";
-import { 
-  generateChapterOutline, 
-  generateChapterScript 
+import {
+  generateChapterOutline,
+  generateChapterScript
 } from "../_lib/chapterService.js";
 import { enforceAbusePolicy } from "../_lib/abuseGuard.js";
 import { enforceUsageLimit, recordUsageEvent } from "../_lib/usageLimit.js";
@@ -138,9 +139,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // 2. Check and Deduct Credits (Enforces Login)
   const creditResult = await checkAndDeductCredits(req, res, cost);
   if (!creditResult.allowed) {
-    res.status(creditResult.status || 402).json({ 
+    res.status(creditResult.status || 402).json({
       message: creditResult.message || "Credits required",
-      error: "credit_limit" 
+      error: "credit_limit"
     });
     return;
   }
@@ -160,7 +161,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  await recordUsageEvent(req, action, clientFingerprint);
+  // Fire and forget - do not await
+  recordUsageEvent(req, action, clientFingerprint).catch(err => {
+    console.error("Failed to record usage event:", err);
+  });
 
   try {
     switch (action) {

@@ -247,9 +247,9 @@ export const analyzeTranscript = async (
 
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
-      contents: `${analysisContext}\n\n스크립트:\n---\n${transcript}\n---`,
+      contents: `${analysisContext}\n\n스크립트(길이 제한됨):\n---\n${transcript.slice(0, 30000)}\n---`,
       config: {
-        systemInstruction: `당신은 '${category}' 전문 YouTube 콘텐츠 전략가입니다. 당신의 임무는 비디오 스크립트를 분석하고 벤치마킹을 위해 핵심 요소에 대한 구조화된 분석을 제공하는 것입니다. 모든 텍스트는 평문으로 작성하고, 마크다운 특수문자(*, **, _, __, #, - 등)를 절대 사용하지 마세요. 문단 사이는 두 번의 줄바꿈으로 구분하세요. 긴 스크립트의 경우 핵심 내용을 요약하되 구조는 완전하게 분석해주세요.`,
+        systemInstruction: `당신은 '${category}' 전문 YouTube 콘텐츠 전략가입니다. 당신의 임무는 비디오 스크립트를 분석하고 벤치마킹을 위해 핵심 요소에 대한 구조화된 분석을 제공하는 것입니다. \n\n중요: 응답 시간을 단축하기 위해 'scriptStructure'는 가장 중요한 핵심 단계 10-15개로 요약해서 구성해주세요. 모든 텍스트는 평문으로 작성하고, 마크다운 특수문자(*, **, _, __, #, - 등)를 절대 사용하지 마세요. 문단 사이는 두 번의 줄바꿈으로 구분하세요.`,
         responseMimeType: "application/json",
         responseSchema: fullAnalysisSchema,
         maxOutputTokens: 16384,
@@ -258,12 +258,12 @@ export const analyzeTranscript = async (
     });
 
     const jsonText = response.text.trim();
-    
+
     // JSON 파싱 전에 응답 검증
     if (!jsonText) {
       throw new Error('EMPTY_RESPONSE: API 응답이 비어있습니다');
     }
-    
+
     // JSON이 완전한지 간단히 확인 (중괄호 균형)
     const openBraces = (jsonText.match(/{/g) || []).length;
     const closeBraces = (jsonText.match(/}/g) || []).length;
@@ -276,7 +276,7 @@ export const analyzeTranscript = async (
       });
       throw new Error(`JSON_INCOMPLETE: AI 응답이 불완전합니다 (길이: ${jsonText.length}자). 스크립트를 더 짧게 나누거나, 잠시 후 다시 시도해주세요.`);
     }
-    
+
     // JSON 파싱 시도 및 상세한 에러 처리
     try {
       return JSON.parse(jsonText) as AnalysisResult;
@@ -290,12 +290,12 @@ export const analyzeTranscript = async (
     }
   } catch (error: any) {
     console.error("Error analyzing transcript:", error);
-    
+
     let userMessage = "[오류] 스크립트 분석 중 오류가 발생했습니다.\n\n";
-    
+
     const errorString = JSON.stringify(error);
     const errorMessage = error.message || '';
-    
+
     if (errorString.includes('SERVICE_DISABLED') || errorString.includes('PERMISSION_DENIED') || errorMessage.includes('has not been used in project') || errorMessage.includes('is disabled')) {
       userMessage += "[원인]\n- API 키의 Generative Language API가 비활성화되어 있습니다\n- 또는 API 키가 잘못되었습니다\n\n[해결 방법]\n";
       userMessage += "1. Google AI Studio (aistudio.google.com)에서 새 API 키를 발급받으세요\n";
@@ -318,14 +318,14 @@ export const analyzeTranscript = async (
     } else {
       userMessage += "[가능한 원인]\n- 스크립트 길이가 너무 길거나 형식이 올바르지 않습니다\n- AI 서버 일시적 오류\n- 네트워크 연결 문제\n\n[해결 방법]\n- 스크립트를 짧게 나눠서 다시 시도해주세요\n- 잠시 후 다시 시도해주세요";
     }
-    
+
     // 상세 오류 정보 추가
     userMessage += `\n\n[상세 정보]\n${errorMessage || '알 수 없는 오류'}`;
     if (error.stack) {
       const stackLines = error.stack.split('\n').slice(0, 3).join('\n');
       userMessage += `\n${stackLines}`;
     }
-    
+
     throw new Error(userMessage);
   }
 };
@@ -380,12 +380,12 @@ export const generateIdeas = async (
       });
 
       const jsonText = response.text.trim();
-      
+
       // JSON 파싱 전에 응답 검증
       if (!jsonText) {
         throw new Error('EMPTY_RESPONSE: API 응답이 비어있습니다');
       }
-      
+
       // JSON이 완전한지 간단히 확인 (중괄호 균형)
       const openBraces = (jsonText.match(/{/g) || []).length;
       const closeBraces = (jsonText.match(/}/g) || []).length;
@@ -397,17 +397,17 @@ export const generateIdeas = async (
           textLength: jsonText.length,
           preview: jsonText.substring(0, 100)
         });
-        
+
         // 마지막 시도가 아니면 재시도
         if (attempt < maxRetries) {
           console.log('재시도 중...');
           await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1))); // 지수 백오프
           continue;
         }
-        
+
         throw new Error(`JSON_INCOMPLETE: AI 응답이 불완전합니다. 잠시 후 다시 시도해주세요.`);
       }
-      
+
       try {
         const result = JSON.parse(jsonText);
         console.log(`[generateIdeas] 성공 - ${result.ideas?.length || 0}개 아이디어 생성`);
@@ -418,23 +418,23 @@ export const generateIdeas = async (
           error: parseError.message,
           jsonText: jsonText.substring(0, 200)
         });
-        
+
         // 마지막 시도가 아니면 재시도
         if (attempt < maxRetries) {
           console.log('JSON 파싱 실패, 재시도 중...');
           await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
           continue;
         }
-        
+
         throw new Error(`JSON_PARSE_ERROR: AI 응답을 파싱할 수 없습니다`);
       }
     } catch (error: any) {
       lastError = error;
-      
+
       // 재시도 불가능한 오류는 즉시 던지기
       const errorString = JSON.stringify(error);
       const errorMessage = error.message || '';
-      
+
       if (
         errorString.includes('SERVICE_DISABLED') ||
         errorString.includes('PERMISSION_DENIED') ||
@@ -445,7 +445,7 @@ export const generateIdeas = async (
         // API 키 관련 오류는 재시도 불가
         throw error;
       }
-      
+
       // 마지막 시도가 아니면 재시도
       if (attempt < maxRetries) {
         console.log(`시도 ${attempt + 1} 실패, ${maxRetries - attempt}번 남음:`, errorMessage);
@@ -458,46 +458,12 @@ export const generateIdeas = async (
   // 모든 재시도 실패
   const error = lastError || new Error('알 수 없는 오류');
   console.error("Error generating ideas (모든 재시도 실패):", error);
-        maxOutputTokens: 2048,
-      },
-    });
 
-    const jsonText = response.text.trim();
-    
-    // JSON 파싱 전에 응답 검증
-    if (!jsonText) {
-      throw new Error('EMPTY_RESPONSE: API 응답이 비어있습니다');
-    }
-    
-    // JSON이 완전한지 간단히 확인 (중괄호 균형)
-    const openBraces = (jsonText.match(/{/g) || []).length;
-    const closeBraces = (jsonText.match(/}/g) || []).length;
-    if (openBraces !== closeBraces) {
-      console.error('JSON 불균형 감지:', {
-        openBraces,
-        closeBraces,
-        textLength: jsonText.length
-      });
-      throw new Error(`JSON_INCOMPLETE: AI 응답이 불완전합니다. 잠시 후 다시 시도해주세요.`);
-    }
-    
-    try {
-      const result = JSON.parse(jsonText);
-      return result.ideas as string[];
-    } catch (parseError: any) {
-      console.error('JSON Parse Error:', {
-        error: parseError.message,
-        jsonText: jsonText.substring(0, 200)
-      });
-  // 모든 재시도 실패
-  const error = lastError || new Error('알 수 없는 오류');
-  console.error("Error generating ideas (모든 재시도 실패):", error);
-  
   let userMessage = "[오류] 아이디어 생성 중 오류가 발생했습니다.\n\n";
-  
+
   const errorString = JSON.stringify(error);
   const errorMessage = error.message || '';
-  
+
   if (errorString.includes('SERVICE_DISABLED') || errorString.includes('PERMISSION_DENIED') || errorMessage.includes('has not been used in project') || errorMessage.includes('is disabled')) {
     userMessage += "[원인]\n- API 키의 Generative Language API가 비활성화되어 있습니다\n\n[해결 방법]\n";
     userMessage += "1. https://aistudio.google.com/app/apikey 에서 새 API 키를 발급받으세요\n";
@@ -516,14 +482,14 @@ export const generateIdeas = async (
   } else {
     userMessage += "[가능한 원인]\n- AI 서버 일시적 오류\n- 네트워크 연결 문제\n\n[해결 방법]\n- 잠시 후 다시 시도해주세요\n- 새로고침 후 다시 시도해주세요";
   }
-  
+
   // 상세 오류 정보 추가
   userMessage += `\n\n[상세 정보]\n${errorMessage || '알 수 없는 오류'}`;
   if (error.stack) {
     const stackLines = error.stack.split('\n').slice(0, 3).join('\n');
     userMessage += `\n${stackLines}`;
   }
-  
+
   throw new Error(userMessage);
 };
 
@@ -542,17 +508,17 @@ export const generateNewPlan = async (
     try {
       const ai = createAI(apiKey);
 
-    // scriptStructure에서 원본 대본의 인용구(quotes)를 제거하여
-    // 구조와 목적만 전달하고, 원본 대본 내용이 새 대본에 영향을 주지 않도록 함
-    const cleanedScriptStructure = analysis.scriptStructure?.map((stage) => ({
-      stage: stage.stage,
-      purpose: stage.purpose,
-      // quotes는 제거 - 원본 대본 내용 누출 방지
-    }));
+      // scriptStructure에서 원본 대본의 인용구(quotes)를 제거하여
+      // 구조와 목적만 전달하고, 원본 대본 내용이 새 대본에 영향을 주지 않도록 함
+      const cleanedScriptStructure = analysis.scriptStructure?.map((stage) => ({
+        stage: stage.stage,
+        purpose: stage.purpose,
+        // quotes는 제거 - 원본 대본 내용 누출 방지
+      }));
 
-    // 도입부 스타일 정보는 유지 - 새 대본에서 동일한 스타일 적용
-    const openingStyleInfo = analysis.openingStyle 
-      ? `\n\n**원본 대본의 도입부 스타일 (반드시 따라야 함):**
+      // 도입부 스타일 정보는 유지 - 새 대본에서 동일한 스타일 적용
+      const openingStyleInfo = analysis.openingStyle
+        ? `\n\n**원본 대본의 도입부 스타일 (반드시 따라야 함):**
 - 어조: ${analysis.openingStyle.tone}
 - 시작 방식: ${analysis.openingStyle.startMethod}
 - 스타일 특징: ${analysis.openingStyle.styleDescription}
@@ -560,47 +526,47 @@ export const generateNewPlan = async (
 ${analysis.openingStyle.exampleLines.map((line, i) => `  ${i + 1}. ${line}`).join('\n')}
 
 **중요:** 새로운 대본의 도입부는 위의 스타일을 정확히 따라야 합니다. "안녕하세요 여러분" 같은 일반적인 인사말이 아니라, 원본 대본과 동일한 톤과 방식으로 시작해야 합니다.`
-      : '';
+        : '';
 
-    const analysisString = JSON.stringify(
-      {
-        keywords: analysis.keywords,
-        intent: analysis.intent,
-        scriptStructure: cleanedScriptStructure,
-      },
-      null,
-      2
-    );
+      const analysisString = JSON.stringify(
+        {
+          keywords: analysis.keywords,
+          intent: analysis.intent,
+          scriptStructure: cleanedScriptStructure,
+        },
+        null,
+        2
+      );
 
-    const isStoryChannel = category === "썰 채널";
-    const isVlogChannel = category === "브이로그";
-    const is49Channel = category === "49금";
-    const isYadamChannel = category === "야담";
-    const isMukbangChannel = category === "먹방";
-    const isGukppongChannel = category === "국뽕";
-    const isNorthKoreaChannel = category === "북한 이슈";
-    const schema =
-      isStoryChannel || is49Channel || isYadamChannel || isGukppongChannel || isNorthKoreaChannel
-        ? storyChannelNewPlanSchema
-        : structuredOutlinePlanSchema;
+      const isStoryChannel = category === "썰 채널";
+      const isVlogChannel = category === "브이로그";
+      const is49Channel = category === "49금";
+      const isYadamChannel = category === "야담";
+      const isMukbangChannel = category === "먹방";
+      const isGukppongChannel = category === "국뽕";
+      const isNorthKoreaChannel = category === "북한 이슈";
+      const schema =
+        isStoryChannel || is49Channel || isYadamChannel || isGukppongChannel || isNorthKoreaChannel
+          ? storyChannelNewPlanSchema
+          : structuredOutlinePlanSchema;
 
-    let contents;
-    
-    // 영상 길이에 따른 최소 대본 라인 수 계산
-    const getMinimumLines = (lengthStr: string): number => {
-      if (lengthStr.includes('1시간') || lengthStr.includes('60분')) return 200;
-      if (lengthStr.includes('30분')) return 100;
-      if (lengthStr.includes('8분')) return 30;
-      return 30;
-    };
-    
-    const minimumLines = getMinimumLines(length);
-    const lengthGuideline = length.includes('1시간') || length.includes('60분')
-      ? `\n\n**⚠️ 중요: 영상 길이 가이드 (${length})**\n- 최소 ${minimumLines}개 이상의 대사 라인을 생성해야 합니다\n- 1시간 = 약 18,000-21,000자 분량 (한국어 낭독 속도 기준)\n- 각 대사는 자연스러운 대화 길이로 작성하되, 전체 스토리가 ${length} 분량에 맞도록 충분히 상세하게 작성하세요\n- 장면 전환, 복선, 클라이맥스 등 스토리 요소를 풍부하게 포함하세요\n- 대사 사이의 자연스러운 간격과 감정 표현도 충분히 담아주세요`
-      : `\n\n**영상 길이 가이드 (${length})**: 최소 ${minimumLines}개 이상의 대사 라인을 생성하세요.`;
-    
-    if (isStoryChannel) {
-      contents = `"${newKeyword}"를 주제로 한 완전히 새로운 스토리 영상 기획안을 만들어 주세요. 목표 영상 길이는 약 ${length}입니다.${lengthGuideline}
+      let contents;
+
+      // 영상 길이에 따른 최소 대본 라인 수 계산
+      const getMinimumLines = (lengthStr: string): number => {
+        if (lengthStr.includes('1시간') || lengthStr.includes('60분')) return 200;
+        if (lengthStr.includes('30분')) return 100;
+        if (lengthStr.includes('8분')) return 30;
+        return 30;
+      };
+
+      const minimumLines = getMinimumLines(length);
+      const lengthGuideline = length.includes('1시간') || length.includes('60분')
+        ? `\n\n**⚠️ 중요: 영상 길이 가이드 (${length})**\n- 최소 ${minimumLines}개 이상의 대사 라인을 생성해야 합니다\n- 1시간 = 약 18,000-21,000자 분량 (한국어 낭독 속도 기준)\n- 각 대사는 자연스러운 대화 길이로 작성하되, 전체 스토리가 ${length} 분량에 맞도록 충분히 상세하게 작성하세요\n- 장면 전환, 복선, 클라이맥스 등 스토리 요소를 풍부하게 포함하세요\n- 대사 사이의 자연스러운 간격과 감정 표현도 충분히 담아주세요`
+        : `\n\n**영상 길이 가이드 (${length})**: 최소 ${minimumLines}개 이상의 대사 라인을 생성하세요.`;
+
+      if (isStoryChannel) {
+        contents = `"${newKeyword}"를 주제로 한 완전히 새로운 스토리 영상 기획안을 만들어 주세요. 목표 영상 길이는 약 ${length}입니다.${lengthGuideline}
 
 **절대 규칙:**
 - 아래 제공된 분석 자료의 **대본 구조(단계별 흐름)**만 참고하세요
@@ -628,30 +594,29 @@ ${openingStyleInfo}
 ${analysisString}
 
 위 구조의 단계별 흐름(예: 도입→전개→절정→결말)만 참고하여, "${newKeyword}"를 주제로 완전히 새로운 스토리를 창작해주세요. 모든 결과 항목을 지정된 구조에 맞춰 JSON 형식으로 제공해주세요.`;
-    } else if (isVlogChannel) {
-      const vlogTypePrompts: Record<string, string> = {
-        "모닝 루틴":
-          "아침 시간대의 루틴을 중심으로, 기상부터 외출 준비까지의 과정을 자연스럽게 보여주세요. 건강한 습관, 아침 식사, 메이크업/스타일링, 출근/등교 준비 등을 포함하세요.",
-        다이어트:
-          "다이어트 여정과 일상을 담아주세요. 식단 관리, 운동 루틴, 체중/체형 변화, 건강한 습관 만들기, 동기부여와 목표 달성 과정을 솔직하게 공유하세요.",
-        여행: "여행지 탐방과 경험을 중심으로 구성하세요. 이동 과정, 명소 방문, 로컬 음식, 숙소 투어, 여행 팁을 자연스럽게 녹여내세요.",
-        언박싱:
-          "새로 구매한 제품들을 언박싱하고 소개하는 과정을 담아주세요. 구매 동기, 가격, 착용/사용 후기를 솔직하게 전달하세요.",
-        패션: "패션과 스타일링을 중심으로 구성하세요. 코디 아이디어, OOTD, 쇼핑 하울, 스타일링 팁, 트렌드 소개를 감각적으로 담아주세요.",
-        공부: "공부하는 모습과 학습 방법을 보여주세요. 책상 세팅, 공부 타임랩스, 집중력 유지 팁, 휴식 시간을 자연스럽게 구성하세요.",
-        운동: "운동 루틴과 과정을 담아주세요. 준비운동, 본 운동, 식단 관리, 동기부여 메시지를 포함하여 건강한 라이프스타일을 보여주세요.",
-        일상: "특별한 테마 없이 하루의 자연스러운 흐름을 담아주세요. 일과, 소소한 행복, 예상치 못한 순간들을 솔직하게 공유하세요.",
-        데이트:
-          "데이트 과정을 로맨틱하게 담아주세요. 데이트 준비, 만남, 데이트 코스, 둘만의 대화를 감성적으로 표현하세요.",
-        요리: "요리 과정과 완성까지를 보여주세요. 레시피 소개, 조리 과정, 플레이팅, 시식 리액션을 자연스럽게 담아주세요.",
-      };
+      } else if (isVlogChannel) {
+        const vlogTypePrompts: Record<string, string> = {
+          "모닝 루틴":
+            "아침 시간대의 루틴을 중심으로, 기상부터 외출 준비까지의 과정을 자연스럽게 보여주세요. 건강한 습관, 아침 식사, 메이크업/스타일링, 출근/등교 준비 등을 포함하세요.",
+          다이어트:
+            "다이어트 여정과 일상을 담아주세요. 식단 관리, 운동 루틴, 체중/체형 변화, 건강한 습관 만들기, 동기부여와 목표 달성 과정을 솔직하게 공유하세요.",
+          여행: "여행지 탐방과 경험을 중심으로 구성하세요. 이동 과정, 명소 방문, 로컬 음식, 숙소 투어, 여행 팁을 자연스럽게 녹여내세요.",
+          언박싱:
+            "새로 구매한 제품들을 언박싱하고 소개하는 과정을 담아주세요. 구매 동기, 가격, 착용/사용 후기를 솔직하게 전달하세요.",
+          패션: "패션과 스타일링을 중심으로 구성하세요. 코디 아이디어, OOTD, 쇼핑 하울, 스타일링 팁, 트렌드 소개를 감각적으로 담아주세요.",
+          공부: "공부하는 모습과 학습 방법을 보여주세요. 책상 세팅, 공부 타임랩스, 집중력 유지 팁, 휴식 시간을 자연스럽게 구성하세요.",
+          운동: "운동 루틴과 과정을 담아주세요. 준비운동, 본 운동, 식단 관리, 동기부여 메시지를 포함하여 건강한 라이프스타일을 보여주세요.",
+          일상: "특별한 테마 없이 하루의 자연스러운 흐름을 담아주세요. 일과, 소소한 행복, 예상치 못한 순간들을 솔직하게 공유하세요.",
+          데이트:
+            "데이트 과정을 로맨틱하게 담아주세요. 데이트 준비, 만남, 데이트 코스, 둘만의 대화를 감성적으로 표현하세요.",
+          요리: "요리 과정과 완성까지를 보여주세요. 레시피 소개, 조리 과정, 플레이팅, 시식 리액션을 자연스럽게 담아주세요.",
+        };
 
-      const specificVlogPrompt =
-        vlogTypePrompts[vlogType || "일상"] || vlogTypePrompts["일상"];
+        const specificVlogPrompt =
+          vlogTypePrompts[vlogType || "일상"] || vlogTypePrompts["일상"];
 
-      contents = `"${newKeyword}"를 주제로 한 "${
-        vlogType || "일상"
-      }" 타입의 완전히 새로운 브이로그를 기획해주세요. 목표 영상 길이는 약 ${length}입니다.${lengthGuideline}
+        contents = `"${newKeyword}"를 주제로 한 "${vlogType || "일상"
+          }" 타입의 완전히 새로운 브이로그를 기획해주세요. 목표 영상 길이는 약 ${length}입니다.${lengthGuideline}
 
 **절대 규칙:**
 - 아래 제공된 분석 자료의 **대본 구조(단계별 흐름)**만 참고하세요
@@ -699,8 +664,8 @@ ${specificVlogPrompt}
 ${analysisString}
 
 위 구조의 흐름만 참고하여, "${newKeyword}"를 주제로 완전히 새로운 브이로그 장면과 대사를 창작해주세요. 모든 결과 항목을 지정된 구조에 맞춰 JSON 형식으로 제공해주세요.`;
-    } else if (isMukbangChannel) {
-      contents = `"${newKeyword}" 음식으로 완전히 새로운 먹방 영상 기획안을 만들어 주세요. 목표 영상 길이는 약 ${length}입니다.${lengthGuideline}
+      } else if (isMukbangChannel) {
+        contents = `"${newKeyword}" 음식으로 완전히 새로운 먹방 영상 기획안을 만들어 주세요. 목표 영상 길이는 약 ${length}입니다.${lengthGuideline}
 
 **절대 규칙:**
 - 아래 제공된 분석 자료의 **대본 구조(단계별 흐름)**만 참고하세요
@@ -734,8 +699,8 @@ ${analysisString}
 ${analysisString}
 
 위 구조의 흐름만 참고하여, "${newKeyword}"를 주제로 완전히 새로운 먹방 장면과 리액션을 창작해주세요. 모든 결과 항목을 지정된 구조에 맞춰 JSON 형식으로 제공해주세요.`;
-    } else if (category === "쇼핑 리뷰") {
-      contents = `"${newKeyword}" 제품에 대한 완전히 새로운 리뷰 영상 기획안을 만들어 주세요. 목표 영상 길이는 약 ${length}입니다.${lengthGuideline}
+      } else if (category === "쇼핑 리뷰") {
+        contents = `"${newKeyword}" 제품에 대한 완전히 새로운 리뷰 영상 기획안을 만들어 주세요. 목표 영상 길이는 약 ${length}입니다.${lengthGuideline}
 
 **절대 규칙:**
 - 아래 제공된 분석 자료의 **대본 구조(단계별 흐름)**만 참고하세요
@@ -755,8 +720,8 @@ ${analysisString}
 ${analysisString}
 
 위 구조의 흐름만 참고하여, "${newKeyword}"를 주제로 완전히 새로운 리뷰 내용을 창작해주세요. 모든 결과 항목을 지정된 구조에 맞춰 JSON 형식으로 제공해주세요.`;
-    } else if (category === "49금") {
-      contents = `성인 대상의 성숙한 연애/관계 이야기("${newKeyword}")를 다루는 영상 기획안을 만들어 주세요. 목표 영상 길이는 약 ${length}입니다.${lengthGuideline}
+      } else if (category === "49금") {
+        contents = `성인 대상의 성숙한 연애/관계 이야기("${newKeyword}")를 다루는 영상 기획안을 만들어 주세요. 목표 영상 길이는 약 ${length}입니다.${lengthGuideline}
 
 **중요: 콘텐츠 가이드라인**
 - 선정적이거나 노골적인 표현은 절대 사용하지 마세요
@@ -793,8 +758,8 @@ ${analysisString}
 모든 내용은 건전하고 교육적인 가치를 지니며, 플랫폼 가이드라인을 100% 준수해야 합니다.
 
 성공적인 동영상 분석 내용:\n\n${analysisString}\n\n이제 위 분석된 성공 구조를 따르되 새로운 키워드 "${newKeyword}"에 초점을 맞춘 완전히 새로운 기획안을 생성해주세요. 원본 대본의 내용을 사용하지 말고, 새로운 스토리와 대사를 창작해주세요. 모든 결과 항목을 지정된 구조에 맞춰 JSON 형식으로 제공해주세요.`;
-    } else if (isYadamChannel) {
-      contents = `조선시대를 배경으로 한 전통 야담 이야기("${newKeyword}")를 현대적으로 재해석한 영상 기획안을 만들어 주세요. 목표 영상 길이는 약 ${length}입니다.
+      } else if (isYadamChannel) {
+        contents = `조선시대를 배경으로 한 전통 야담 이야기("${newKeyword}")를 현대적으로 재해석한 영상 기획안을 만들어 주세요. 목표 영상 길이는 약 ${length}입니다.
 
 **중요: 야담 콘텐츠 가이드라인**
 - 야담은 조선시대의 민간 설화, 기록, 일화 등을 다루는 전통 스토리텔링입니다
@@ -837,8 +802,8 @@ ${analysisString}
 - 예시: "traditional Korean painting style of a scholar in hanbok under moonlight, ancient Joseon era, mysterious atmosphere, historical illustration, folklore art style"
 
 성공적인 동영상 분석 내용:\n\n${analysisString}\n\n이제 위 분석된 성공 구조를 따르되 새로운 키워드 "${newKeyword}"에 초점을 맞춘 완전히 새로운 조선시대 야담 이야기를 창작해주세요. 원본 대본의 내용이나 스토리를 사용하지 말고, 새로운 인물과 사건으로 구성된 독창적인 야담을 만들어주세요. 모든 결과 항목을 지정된 구조에 맞춰 JSON 형식으로 제공해주세요.`;
-    } else if (isGukppongChannel) {
-      contents = `한국의 우수성과 세계 속에서의 위상을 주제로 한 국뽕 콘텐츠("${newKeyword}")를 기획해 주세요. 목표 영상 길이는 약 ${length}입니다.${lengthGuideline}
+      } else if (isGukppongChannel) {
+        contents = `한국의 우수성과 세계 속에서의 위상을 주제로 한 국뽕 콘텐츠("${newKeyword}")를 기획해 주세요. 목표 영상 길이는 약 ${length}입니다.${lengthGuideline}
 
 **중요: 국뽕 콘텐츠 가이드라인**
 
@@ -937,8 +902,8 @@ ${analysisString}
 ${analysisString}
 
 위 구조의 흐름만 참고하여, "${newKeyword}"를 주제로 완전히 새로운 국뽕 스토리와 대사를 창작해주세요. 원본 대본의 사례나 내용은 사용하지 마세요. 모든 결과 항목을 지정된 구조에 맞춰 JSON 형식으로 제공해주세요.`;
-    } else if (isNorthKoreaChannel) {
-      contents = `북한 관련 이슈와 탈북민 이야기("${newKeyword}")를 다루는 영상 기획안을 만들어 주세요. 목표 영상 길이는 약 ${length}입니다.${lengthGuideline}
+      } else if (isNorthKoreaChannel) {
+        contents = `북한 관련 이슈와 탈북민 이야기("${newKeyword}")를 다루는 영상 기획안을 만들어 주세요. 목표 영상 길이는 약 ${length}입니다.${lengthGuideline}
 
 **절대 규칙:**
 - 아래 제공된 분석 자료의 **대본 구조(단계별 흐름)**만 참고하세요
@@ -1001,8 +966,8 @@ ${analysisString}
 ${analysisString}
 
 위 구조의 단계별 흐름(예: 도입→전개→절정→결말)만 참고하여, "${newKeyword}"를 주제로 완전히 새로운 북한 이슈 스토리를 창작해주세요. 모든 결과 항목을 지정된 구조에 맞춰 JSON 형식으로 제공해주세요.`;
-    } else {
-      contents = `"${newKeyword}" 주제에 대한 완전히 새로운 정보성 영상 기획안을 만들어 주세요. 목표 영상 길이는 약 ${length}입니다.${lengthGuideline}
+      } else {
+        contents = `"${newKeyword}" 주제에 대한 완전히 새로운 정보성 영상 기획안을 만들어 주세요. 목표 영상 길이는 약 ${length}입니다.${lengthGuideline}
 
 **절대 규칙:**
 - 아래 제공된 분석 자료의 **대본 구조(단계별 흐름)**만 참고하세요
@@ -1041,9 +1006,9 @@ ${analysisString}
 ${analysisString}
 
 위 구조의 흐름만 참고하여, "${newKeyword}"를 주제로 완전히 새로운 정보와 내용을 창작해주세요. 모든 결과 항목을 지정된 구조에 맞춰 JSON 형식으로 제공해주세요.`;
-    }
+      }
 
-console.log(`[generateNewPlan] 시도 ${attempt + 1}/${maxRetries + 1} - 키워드: ${newKeyword}, 길이: ${length}`);
+      console.log(`[generateNewPlan] 시도 ${attempt + 1}/${maxRetries + 1} - 키워드: ${newKeyword}, 길이: ${length}`);
 
       const response = await ai.models.generateContent({
         model: "gemini-2.5-flash",
@@ -1059,12 +1024,12 @@ console.log(`[generateNewPlan] 시도 ${attempt + 1}/${maxRetries + 1} - 키워�
       });
 
       const jsonText = response.text.trim();
-      
+
       // JSON 파싱 전에 응답 검증
       if (!jsonText) {
         throw new Error('EMPTY_RESPONSE: API 응답이 비어있습니다');
       }
-      
+
       // JSON이 완전한지 간단히 확인 (중괄호 균형)
       const openBraces = (jsonText.match(/{/g) || []).length;
       const closeBraces = (jsonText.match(/}/g) || []).length;
@@ -1076,17 +1041,17 @@ console.log(`[generateNewPlan] 시도 ${attempt + 1}/${maxRetries + 1} - 키워�
           textLength: jsonText.length,
           textPreview: jsonText.substring(0, 200)
         });
-        
+
         // 마지막 시도가 아니면 재시도
         if (attempt < maxRetries) {
           console.log('JSON 불완전, 재시도 중...');
           await new Promise(resolve => setTimeout(resolve, 2000 * (attempt + 1))); // 더 긴 대기
           continue;
         }
-        
+
         throw new Error(`JSON_INCOMPLETE: AI 응답이 불완전합니다 (길이: ${jsonText.length}자). 더 짧은 키워드로 시도하거나, 잠시 후 다시 시도해주세요.`);
       }
-      
+
       try {
         const result = JSON.parse(jsonText) as NewPlan;
         console.log(`[generateNewPlan] 성공 - 챕터 ${result.chapters?.length || 0}개 생성`);
@@ -1097,23 +1062,23 @@ console.log(`[generateNewPlan] 시도 ${attempt + 1}/${maxRetries + 1} - 키워�
           error: parseError.message,
           jsonText: jsonText.substring(0, 200)
         });
-        
+
         // 마지막 시도가 아니면 재시도
         if (attempt < maxRetries) {
           console.log('JSON 파싱 실패, 재시도 중...');
           await new Promise(resolve => setTimeout(resolve, 2000 * (attempt + 1)));
           continue;
         }
-        
+
         throw new Error(`JSON_PARSE_ERROR: AI 응답을 파싱할 수 없습니다`);
       }
     } catch (error: any) {
       lastError = error;
-      
+
       // 재시도 불가능한 오류는 즉시 던지기
       const errorString = JSON.stringify(error);
       const errorMessage = error.message || '';
-      
+
       if (
         errorString.includes('SERVICE_DISABLED') ||
         errorString.includes('PERMISSION_DENIED') ||
@@ -1124,7 +1089,7 @@ console.log(`[generateNewPlan] 시도 ${attempt + 1}/${maxRetries + 1} - 키워�
         // API 키 관련 오류는 재시도 불가
         throw error;
       }
-      
+
       // 마지막 시도가 아니면 재시도
       if (attempt < maxRetries) {
         console.log(`시도 ${attempt + 1} 실패, ${maxRetries - attempt}번 남음:`, errorMessage);
@@ -1137,21 +1102,12 @@ console.log(`[generateNewPlan] 시도 ${attempt + 1}/${maxRetries + 1} - 키워�
   // 모든 재시도 실패
   const error = lastError || new Error('알 수 없는 오류');
   console.error("Error generating new plan (모든 재시도 실패):", error);
-    
-// 모든 재시도 실패
-  const error = lastError || new Error('알 수 없는 오류');
-  console.error("Error generating new plan (모든 재시도 실패):", error);
-  
+
   let userMessage = "[오류] 새로운 기획안 생성 중 오류가 발생했습니다.\n\n";
-  
+
   const errorString = JSON.stringify(error);
   const errorMessage = error.message || '';
-    
-let userMessage = "[오류] 새로운 기획안 생성 중 오류가 발생했습니다.\n\n";
-  
-  const errorString = JSON.stringify(error);
-  const errorMessage = error.message || '';
-  
+
   if (errorString.includes('SERVICE_DISABLED') || errorString.includes('PERMISSION_DENIED') || errorMessage.includes('has not been used in project') || errorMessage.includes('is disabled')) {
     userMessage += "[원인]\n- API 키의 Generative Language API가 비활성화되어 있습니다\n\n[해결 방법]\n";
     userMessage += "1. https://aistudio.google.com/app/apikey 에서 새 API 키를 발급받으세요\n";
@@ -1170,14 +1126,14 @@ let userMessage = "[오류] 새로운 기획안 생성 중 오류가 발생했�
   } else {
     userMessage += "[가능한 원인]\n- 요청한 대본이 너무 길어 처리 시간이 초과되었습니다\n- AI 서버 일시적 오류\n- 네트워크 연결 문제\n\n[해결 방법]\n- 대본 길이를 줄여서 다시 시도해주세요\n- 더 간단한 키워드로 다시 시도해주세요\n- 5-10분 후 다시 시도해주세요";
   }
-  
+
   // 상세 오류 정보 추가
   userMessage += `\n\n[상세 정보]\n${errorMessage || '알 수 없는 오류'}`;
   if (error.stack) {
     const stackLines = error.stack.split('\n').slice(0, 3).join('\n');
     userMessage += `\n${stackLines}`;
   }
-  
+
   throw new Error(userMessage);
 };
 
@@ -1196,8 +1152,8 @@ export const generateSsml = async (
 ): Promise<{ ssml: string }> => {
   try {
     const ai = createAI(apiKey);
-    
-    const context = prompt 
+
+    const context = prompt
       ? `다음 텍스트를 Google Cloud Text-to-Speech에서 사용할 수 있는 SSML(Speech Synthesis Markup Language) 형식으로 변환해주세요. \n\n**연기 지시사항(Acting Instruction):** "${prompt}"\n\n이 지시사항에 맞춰 <prosody>, <break>, <emphasis>, <say-as> 태그를 적절히 사용하여 감정과 리듬을 표현하세요.`
       : `다음 텍스트를 Google Cloud Text-to-Speech에서 사용할 수 있는 SSML 형식으로 변환해주세요. 텍스트의 문맥을 분석하여 가장 자연스러운 호흡과 강조를 위해 <break>, <prosody> 태그를 적절히 추가하세요. 별도의 연기 지시가 없다면 자연스러운 낭독 톤을 유지하세요.`;
 
@@ -1212,12 +1168,12 @@ export const generateSsml = async (
     });
 
     const jsonText = response.text.trim();
-    
+
     // JSON 파싱 전에 응답 검증
     if (!jsonText) {
       throw new Error('EMPTY_RESPONSE: API 응답이 비어있습니다');
     }
-    
+
     try {
       return JSON.parse(jsonText) as { ssml: string };
     } catch (parseError: any) {
@@ -1239,7 +1195,7 @@ export const generateActingPrompt = async (
 ): Promise<string> => {
   try {
     const ai = createAI(apiKey);
-    
+
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: `다음 대본을 분석하여, TTS 음성 합성에 가장 어울리는 연기 톤과 감정을 한 문장으로 간결하게 표현해주세요.
