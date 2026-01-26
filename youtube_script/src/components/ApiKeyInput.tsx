@@ -169,12 +169,13 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
         if (apiType === "gemini") {
           payload.gemini_api_key = apiKey;
         } else if (apiType === "googleCloud" || apiType === "google-cloud") {
+          // Try to parse as JSON first (service account), otherwise treat as API Key string
           try {
             const json = JSON.parse(apiKey);
             payload.google_credit_json = json;
           } catch {
-            alert("⚠️ Google Cloud JSON 형식이 올바르지 않습니다.");
-            return;
+            // Assume it's a simple API Key string
+            payload.google_credit_json = { apiKey: apiKey };
           }
         }
 
@@ -206,11 +207,14 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
         testUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=test&type=video&maxResults=1&key=${apiKey}`;
       } else if (apiType === "googleCloud" || apiType === "google-cloud") {
         if (apiKey.trim().startsWith("{")) {
+          // Service Account JSON
           setTestResult("success");
           alert('✅ Google Cloud Key(JSON)가 저장되었습니다. (서버에서 검증됩니다)');
           setTestLoading(false);
           return;
         } else {
+          // API Key String - Test with TTS or YouTube
+          // We test with YouTube as it's a common use case for the API Key
           testUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=test&type=video&maxResults=1&key=${apiKey}`;
         }
       }
