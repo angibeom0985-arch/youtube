@@ -7,7 +7,7 @@ import { FiZap, FiLogOut, FiRefreshCw, FiUser } from 'react-icons/fi';
 interface UserCreditToolbarProps {
   user: User | null;
   onLogout: () => void;
-  tone?: 'orange' | 'blue'; // Example tones
+  tone?: 'orange' | 'blue' | 'red' | 'purple' | 'emerald' | 'indigo';
 }
 
 const UserCreditToolbar: React.FC<UserCreditToolbarProps> = ({ user, onLogout, tone = 'orange' }) => {
@@ -75,6 +75,38 @@ const UserCreditToolbar: React.FC<UserCreditToolbarProps> = ({ user, onLogout, t
       icon: 'text-blue-400',
       buttonBg: 'hover:bg-blue-500/20',
       avatarBorder: 'border-blue-500/50',
+    },
+    red: {
+      bg: 'bg-zinc-800/80',
+      border: 'border-red-500/30',
+      text: 'text-red-400',
+      icon: 'text-red-400',
+      buttonBg: 'hover:bg-red-500/20',
+      avatarBorder: 'border-red-500/50',
+    },
+    purple: {
+      bg: 'bg-zinc-800/80',
+      border: 'border-purple-500/30',
+      text: 'text-purple-400',
+      icon: 'text-purple-400',
+      buttonBg: 'hover:bg-purple-500/20',
+      avatarBorder: 'border-purple-500/50',
+    },
+    emerald: {
+      bg: 'bg-zinc-800/80',
+      border: 'border-emerald-500/30',
+      text: 'text-emerald-400',
+      icon: 'text-emerald-400',
+      buttonBg: 'hover:bg-emerald-500/20',
+      avatarBorder: 'border-emerald-500/50',
+    },
+    indigo: {
+      bg: 'bg-zinc-800/80',
+      border: 'border-indigo-500/30',
+      text: 'text-indigo-400',
+      icon: 'text-indigo-400',
+      buttonBg: 'hover:bg-indigo-500/20',
+      avatarBorder: 'border-indigo-500/50',
     },
   };
 

@@ -21,6 +21,9 @@ import {
   PhotoComposition,
   VideoSourceImage,
 } from "./types";
+import type { User } from "@supabase/supabase-js";
+import UserCreditToolbar from "../../components/UserCreditToolbar";
+import HomeBackButton from "../../components/HomeBackButton";
 import AspectRatioSelector from "./components/AspectRatioSelector";
 import Spinner from "./components/Spinner";
 import CharacterCard from "./components/CharacterCard";
@@ -53,10 +56,30 @@ const App: React.FC<ImageAppProps> = ({
     ((location.state as { script?: string } | null)?.script) || "";
   const normalizedBasePath =
     basePath && basePath !== "/" ? basePath.replace(/\/$/, "") : "";
-  
+
   // Check for no_ads query param
   const searchParams = new URLSearchParams(location.search);
   const noAds = searchParams.get("no_ads") === "true";
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/login");
+  };
 
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY || "";
   const [imageStyle, setImageStyle] = useState<"realistic" | "animation">(
@@ -100,7 +123,7 @@ const App: React.FC<ImageAppProps> = ({
   const [isContentWarningAcknowledged, setIsContentWarningAcknowledged] =
     useState<boolean>(false);
   const [hasContentWarning, setHasContentWarning] = useState<boolean>(false);
-  
+
   // 카메라 앵글 기능 관련 state
   const [cameraAngleSourceImage, setCameraAngleSourceImage] = useState<string | null>(null);
   const [selectedCameraAngles, setSelectedCameraAngles] = useState<CameraAngle[]>([
@@ -136,7 +159,7 @@ const App: React.FC<ImageAppProps> = ({
     if (!response.ok) {
       throw new Error(payload?.message || "크레딧 차감에 실패했습니다.");
     }
-    }, [getAuthHeaders]);
+  }, [getAuthHeaders]);
 
   const refundCredits = useCallback(async (cost: number) => {
     const { headers, token } = await getAuthHeaders();
@@ -151,7 +174,7 @@ const App: React.FC<ImageAppProps> = ({
         body: JSON.stringify({ action: "refund", cost }),
       });
       if (response.ok) {
-        }
+      }
     } catch (error) {
       console.error("크레딧 환불 실패:", error);
     }
@@ -192,7 +215,7 @@ const App: React.FC<ImageAppProps> = ({
     },
     [navigate, normalizedBasePath]
   );
-  
+
   // API 키 모달 자동 표시 비활성화 (사용자가 직접 입력)
   // useEffect(() => {
   //   if (!apiKey) {
@@ -205,15 +228,15 @@ const App: React.FC<ImageAppProps> = ({
     try {
       let savedData = localStorage.getItem("youtube_image_work_data");
       let source = "localStorage";
-      
+
       // localStorage에 없으면 sessionStorage 확인
       if (!savedData) {
         savedData = sessionStorage.getItem("youtube_image_work_data");
         source = "sessionStorage";
       }
-      
+
       console.log(`🔄 ${source}에서 데이터 불러오기 시도...`, savedData ? `${savedData.length} bytes` : "없음");
-      
+
       if (savedData) {
         const parsed = JSON.parse(savedData);
         console.log("📦 파싱된 데이터:", {
@@ -223,11 +246,11 @@ const App: React.FC<ImageAppProps> = ({
           savedAt: parsed.savedAt,
           version: parsed.version,
         });
-        
+
         // 복원된 항목 카운트
         let restoredCount = 0;
         const restoredItems: string[] = [];
-        
+
         if (parsed.characters && parsed.characters.length > 0) {
           setCharacters(parsed.characters);
           restoredCount++;
@@ -246,7 +269,7 @@ const App: React.FC<ImageAppProps> = ({
           restoredItems.push(`카메라앵글: ${parsed.cameraAngles.length}개`);
           console.log("? 카메라 앵글 복원:", parsed.cameraAngles.length, "개");
         }
-        
+
         // 설정 복원
         if (parsed.personaInput) setPersonaInput(parsed.personaInput);
         if (parsed.videoSourceScript)
@@ -282,19 +305,19 @@ const App: React.FC<ImageAppProps> = ({
           restoredItems.push("카메라앵글 원본 이미지 ?");
           console.log("? 카메라 앵글 원본 이미지 복원");
         }
-        
+
         console.log(`✅ 작업 데이터 복원 완료 (from ${source}):`, {
           페르소나: parsed.characters?.length || 0,
           영상소스: parsed.videoSource?.length || 0,
           카메라앵글: parsed.cameraAngles?.length || 0,
           savedAt: parsed.savedAt ? new Date(parsed.savedAt).toLocaleString('ko-KR') : 'unknown',
         });
-        
+
         // 복원 성공 시 콘솔에만 로그 (알림창 제거)
         if (restoredCount > 0 || restoredItems.length > 0) {
           // 마지막 작업 유형 파악 (저장된 값 우선 사용)
           let lastWorkType = parsed.lastWorkType || '';
-          
+
           // lastWorkType이 저장되지 않은 경우 (이전 버전 호환성)
           if (!lastWorkType) {
             if (parsed.cameraAngles?.length > 0) {
@@ -305,9 +328,9 @@ const App: React.FC<ImageAppProps> = ({
               lastWorkType = '페르소나 생성';
             }
           }
-          
+
           const savedTime = parsed.savedAt ? new Date(parsed.savedAt).toLocaleString('ko-KR') : '알 수 없음';
-          
+
           console.log("✅ 복원 완료!");
           console.log(`🧾 마지막 작업: ${lastWorkType}`);
           console.log(`? 저장 시각: ${savedTime}`);
@@ -369,7 +392,7 @@ const App: React.FC<ImageAppProps> = ({
       영상소스: videoSource.length,
       카메라앵글: cameraAngles.length
     });
-      
+
     try {
       // 이미지 압축 (용량 최적화)
       console.log(`🗜️ [${timestamp}] 이미지 압축 시작...`);
@@ -428,11 +451,11 @@ const App: React.FC<ImageAppProps> = ({
         photoComposition,
         customPrompt,
         selectedCameraAngles,
-        personaReferenceImage: personaReferenceImage 
-          ? await compressImage(personaReferenceImage, 400, 0.5) 
+        personaReferenceImage: personaReferenceImage
+          ? await compressImage(personaReferenceImage, 400, 0.5)
           : null,
-        referenceImage: referenceImage 
-          ? await compressImage(referenceImage, 400, 0.5) 
+        referenceImage: referenceImage
+          ? await compressImage(referenceImage, 400, 0.5)
           : null,
         imageStyle,
         characterStyle,
@@ -440,8 +463,8 @@ const App: React.FC<ImageAppProps> = ({
         aspectRatio,
         imageCount,
         subtitleEnabled,
-        cameraAngleSourceImage: cameraAngleSourceImage 
-          ? await compressImage(cameraAngleSourceImage, 600, 0.6) 
+        cameraAngleSourceImage: cameraAngleSourceImage
+          ? await compressImage(cameraAngleSourceImage, 600, 0.6)
           : null,
         cameraAngles: compressedCameraAngles,
         savedAt: new Date().toISOString(),
@@ -466,7 +489,7 @@ const App: React.FC<ImageAppProps> = ({
           cameraAngles: [],
         };
         const minimalJsonString = JSON.stringify(minimalData);
-        
+
         if (!canStoreInLocalStorage(minimalJsonString, 4)) {
           console.warn(`⚠️ [${timestamp}] 여전히 용량 초과, 영상 소스도 제외합니다.`);
           const veryMinimalData = {
@@ -560,11 +583,11 @@ const App: React.FC<ImageAppProps> = ({
       Boolean(customCharacterStyle.trim()) ||
       Boolean(customBackgroundStyle.trim()) ||
       Boolean(cameraAngleSourceImage);
-    
+
     if (!hasData) {
       return; // 데이터가 없으면 저장하지 않음
     }
-    
+
     // debounce를 위해 타이머 사용
     const timer = setTimeout(() => {
       console.log('💾 자동 저장 트리거 (1초 debounce 후)');
@@ -761,7 +784,7 @@ const App: React.FC<ImageAppProps> = ({
         e.stopPropagation();
         // 클립보드 지우기 시도
         if (navigator.clipboard) {
-          navigator.clipboard.writeText("").catch(() => {});
+          navigator.clipboard.writeText("").catch(() => { });
         }
         return false;
       }
@@ -1335,10 +1358,10 @@ const App: React.FC<ImageAppProps> = ({
 
     setIsDownloading(true);
     setError(null);
-    
+
     let successCount = 0;
     let cancelCount = 0;
-    
+
     try {
       // 각 이미지를 순차적으로 다운로드
       for (let index = 0; index < videoSource.length; index++) {
@@ -1347,12 +1370,12 @@ const App: React.FC<ImageAppProps> = ({
           .replace(/[^a-zA-Z0-9ㄱ-ㅎㅏ-ㅣ가-힣]/g, "_")
           .substring(0, 30);
         const fileName = `장면_${index + 1}_${safeDescription}.jpg`;
-        
+
         try {
           // Base64를 Blob으로 변환
           const base64Response = await fetch(`data:image/jpeg;base64,${item.image}`);
           const blob = await base64Response.blob();
-          
+
           // File System Access API 지원 확인
           if ('showSaveFilePicker' in window) {
             try {
@@ -1367,7 +1390,7 @@ const App: React.FC<ImageAppProps> = ({
                   },
                 ],
               });
-              
+
               const writable = await handle.createWritable();
               await writable.write(blob);
               await writable.close();
@@ -1391,7 +1414,7 @@ const App: React.FC<ImageAppProps> = ({
             document.body.removeChild(link);
             URL.revokeObjectURL(link.href);
             successCount++;
-            
+
             // 자동 다운로드 시 약간의 딜레이
             await new Promise(resolve => setTimeout(resolve, 300));
           }
@@ -1400,30 +1423,30 @@ const App: React.FC<ImageAppProps> = ({
           throw err;
         }
       }
-      
+
       // 다운로드 완료 메시지
       if (successCount > 0) {
-        setError(`? ${successCount}개의 이미지가 저장되었습니다!` + 
-                (cancelCount > 0 ? ` (${cancelCount}개 취소됨)` : ''));
+        setError(`? ${successCount}개의 이미지가 저장되었습니다!` +
+          (cancelCount > 0 ? ` (${cancelCount}개 취소됨)` : ''));
       } else if (cancelCount > 0) {
         setError(`모든 다운로드가 취소되었습니다.`);
       }
     } catch (e) {
       console.error("[개발자용] 이미지 다운로드 오류:", e);
-      
+
       // 사용자용 오류 메시지
       let userMessage = "파일 다운로드에 실패했습니다. 다시 시도해 주세요.";
-      
+
       if (e instanceof Error) {
         console.error(`[개발자용] 오류 상세: ${e.name} - ${e.message}`);
-        
+
         if (e.name === 'NotAllowedError') {
           userMessage = "파일 저장 권한이 거부되었습니다. 브라우저 설정을 확인해 주세요.";
         } else if (e.name === 'SecurityError') {
           userMessage = "보안 문제로 파일을 저장할 수 없습니다. 브라우저를 업데이트하거나 다른 브라우저를 사용해 주세요.";
         }
       }
-      
+
       setError(userMessage);
     } finally {
       setIsDownloading(false);
@@ -1461,9 +1484,15 @@ const App: React.FC<ImageAppProps> = ({
       {!noAds && <SideFloatingAd side="left" />}
       {!noAds && <SideFloatingAd side="right" />}
       <div
-        className="min-h-screen bg-gray-900 text-white font-sans p-4 sm:p-6 lg:p-8"
+        className="min-h-screen bg-gray-900 text-white font-sans p-4 sm:p-6 lg:p-8 relative"
         style={{ paddingBottom: "120px" }}
       >
+        <div className="absolute top-0 right-0 p-4 sm:p-6 flex gap-3 z-50 items-center">
+          <UserCreditToolbar user={user} onLogout={handleLogout} tone="indigo" />
+        </div>
+        <div className="absolute top-0 left-0 p-4 sm:p-6 z-50">
+          <HomeBackButton tone="indigo" />
+        </div>
         <div className="max-w-4xl mx-auto">
           <header className="text-center mb-8">
             <h1 className="text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-600">
@@ -1474,17 +1503,7 @@ const App: React.FC<ImageAppProps> = ({
             </p>
 
             {/* API 키 입력 */}
-            <div className="max-w-2xl mx-auto mt-6">
-              <ApiKeyInput
-                storageKey="gemini_api_key_image"
-                label="Gemini API 키"
-                placeholder="AIzaSy..."
-                helpText="브라우저에만 저장됩니다. 이미지 생성에 필요합니다."
-                guideRoute="/api-guide-aistudio"
-                theme="indigo"
-                apiType="gemini"
-              />
-            </div>
+
 
             {/* 데이터 복원 안내 (복원된 데이터가 있을 때만 표시) */}
             {(characters.length > 0 || videoSource.length > 0 || cameraAngles.length > 0) && (
@@ -1561,11 +1580,10 @@ const App: React.FC<ImageAppProps> = ({
                     </h4>
                     <button
                       onClick={() => setCharacterStyle("custom")}
-                      className={`py-1.5 px-4 rounded-lg font-medium text-xs transition-all duration-200 ${
-                        characterStyle === "custom"
-                          ? "bg-blue-600 text-white shadow-lg scale-105"
-                          : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                      }`}
+                      className={`py-1.5 px-4 rounded-lg font-medium text-xs transition-all duration-200 ${characterStyle === "custom"
+                        ? "bg-blue-600 text-white shadow-lg scale-105"
+                        : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                        }`}
                     >
                       직접 입력
                     </button>
@@ -1580,24 +1598,23 @@ const App: React.FC<ImageAppProps> = ({
                       ] as CharacterStyle[]
                     ).map((style) => {
                       const styleDescriptions: Record<CharacterStyle, string> =
-                        {
-                          "실사 극대화":
-                            "[TEST] 초현실적이고 사진 같은 퀄리티의 실사 인물",
-                          애니메이션: "🎨 밝고 화려한 애니메이션 스타일 캐릭터",
-                          동물: "🐾 귀여운 동물 캐릭터로 변환",
-                          웹툰: "🖊️ 깨끗한 선과 표현력 풍부한 한국 웹툰 스타일",
-                          custom: "",
-                        };
+                      {
+                        "실사 극대화":
+                          "[TEST] 초현실적이고 사진 같은 퀄리티의 실사 인물",
+                        애니메이션: "🎨 밝고 화려한 애니메이션 스타일 캐릭터",
+                        동물: "🐾 귀여운 동물 캐릭터로 변환",
+                        웹툰: "🖊️ 깨끗한 선과 표현력 풍부한 한국 웹툰 스타일",
+                        custom: "",
+                      };
 
                       return (
                         <div key={style} className="relative">
                           <button
                             onClick={() => setCharacterStyle(style)}
-                            className={`relative w-full h-32 rounded-lg font-medium text-sm transition-all duration-200 overflow-hidden group ${
-                              characterStyle === style
-                                ? "ring-4 ring-blue-500 shadow-2xl scale-105"
-                                : "hover:scale-105 hover:ring-2 hover:ring-blue-400"
-                            }`}
+                            className={`relative w-full h-32 rounded-lg font-medium text-sm transition-all duration-200 overflow-hidden group ${characterStyle === style
+                              ? "ring-4 ring-blue-500 shadow-2xl scale-105"
+                              : "hover:scale-105 hover:ring-2 hover:ring-blue-400"
+                              }`}
                             style={{
                               backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/${style}.png')`,
                               backgroundSize: 'cover',
@@ -1636,11 +1653,10 @@ const App: React.FC<ImageAppProps> = ({
                     </h4>
                     <button
                       onClick={() => setBackgroundStyle("custom")}
-                      className={`py-1.5 px-4 rounded-lg font-medium text-xs transition-all duration-200 ${
-                        backgroundStyle === "custom"
-                          ? "bg-blue-600 text-white shadow-lg scale-105"
-                          : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                      }`}
+                      className={`py-1.5 px-4 rounded-lg font-medium text-xs transition-all duration-200 ${backgroundStyle === "custom"
+                        ? "bg-blue-600 text-white shadow-lg scale-105"
+                        : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                        }`}
                     >
                       직접 입력
                     </button>
@@ -1667,35 +1683,34 @@ const App: React.FC<ImageAppProps> = ({
                       ] as BackgroundStyle[]
                     ).map((style) => {
                       const styleDescriptions: Record<BackgroundStyle, string> =
-                        {
-                          "감성 멜로": "💞 로맨틱하고 감성적인 따뜻한 분위기",
-                          서부극: "🤠 거친 사막과 카우보이 배경",
-                          "공포 스릴러": "👻 미스터리하고 긴장감 있는 분위기",
-                          사이버펑크: "🌃 네온사인 가득한 미래 도시",
-                          판타지: "🧙‍♂️ 마법적이고 신비로운 중세 배경",
-                          미니멀: "? 깔끔하고 단순한 중성톤 배경",
-                          빈티지: "🕰️ 클래식하고 향수를 자아내는 배경",
-                          모던: "🏙️ 현대적이고 세련된 도시 배경",
-                          "1980년대": "📻 80년대 레트로 패션과 분위기",
-                          "2000년대": "💿 2000년대 초반 감성과 스타일",
-                          먹방: "🍜 맛있는 음식이 가득한 먹방 분위기",
-                          귀여움: "🐰 귀엽고 사랑스러운 파스텔 감성",
-                          AI: "🤖 미래지향적인 하이테크 AI 분위기",
-                          괴이함: "🌀 독특하고 초현실적인 기묘한 분위기",
-                          창의적인: "✨ 상상력 넘치는 독창적인 예술 분위기",
-                          조선시대: "🏯 한옥과 전통 가옥, 따뜻하고 감성적인 조선 분위기",
-                          custom: "",
-                        };
+                      {
+                        "감성 멜로": "💞 로맨틱하고 감성적인 따뜻한 분위기",
+                        서부극: "🤠 거친 사막과 카우보이 배경",
+                        "공포 스릴러": "👻 미스터리하고 긴장감 있는 분위기",
+                        사이버펑크: "🌃 네온사인 가득한 미래 도시",
+                        판타지: "🧙‍♂️ 마법적이고 신비로운 중세 배경",
+                        미니멀: "? 깔끔하고 단순한 중성톤 배경",
+                        빈티지: "🕰️ 클래식하고 향수를 자아내는 배경",
+                        모던: "🏙️ 현대적이고 세련된 도시 배경",
+                        "1980년대": "📻 80년대 레트로 패션과 분위기",
+                        "2000년대": "💿 2000년대 초반 감성과 스타일",
+                        먹방: "🍜 맛있는 음식이 가득한 먹방 분위기",
+                        귀여움: "🐰 귀엽고 사랑스러운 파스텔 감성",
+                        AI: "🤖 미래지향적인 하이테크 AI 분위기",
+                        괴이함: "🌀 독특하고 초현실적인 기묘한 분위기",
+                        창의적인: "✨ 상상력 넘치는 독창적인 예술 분위기",
+                        조선시대: "🏯 한옥과 전통 가옥, 따뜻하고 감성적인 조선 분위기",
+                        custom: "",
+                      };
 
                       return (
                         <div key={style} className="relative">
                           <button
                             onClick={() => setBackgroundStyle(style)}
-                            className={`relative w-full h-32 rounded-lg font-medium text-sm transition-all duration-200 overflow-hidden group ${
-                              backgroundStyle === style
-                                ? "ring-4 ring-blue-500 shadow-2xl scale-105"
-                                : "hover:scale-105 hover:ring-2 hover:ring-blue-400"
-                            }`}
+                            className={`relative w-full h-32 rounded-lg font-medium text-sm transition-all duration-200 overflow-hidden group ${backgroundStyle === style
+                              ? "ring-4 ring-blue-500 shadow-2xl scale-105"
+                              : "hover:scale-105 hover:ring-2 hover:ring-blue-400"
+                              }`}
                             style={{
                               backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/${style === "AI" ? "ai" : style}.png')`,
                               backgroundSize: 'cover',
@@ -2012,16 +2027,16 @@ const App: React.FC<ImageAppProps> = ({
                       try {
                         let successCount = 0;
                         let cancelCount = 0;
-                        
+
                         for (let index = 0; index < characters.length; index++) {
                           const char = characters[index];
                           const safeCharName = char.name.replace(/[^a-zA-Z0-9ㄱ-ㅎㅏ-ㅣ가-힣]/g, '_');
                           const fileName = `${index + 1}_${safeCharName}.jpg`;
-                          
+
                           try {
                             const base64Response = await fetch(`data:image/jpeg;base64,${char.image}`);
                             const blob = await base64Response.blob();
-                            
+
                             if ('showSaveFilePicker' in window) {
                               try {
                                 const handle = await (window as any).showSaveFilePicker({
@@ -2035,7 +2050,7 @@ const App: React.FC<ImageAppProps> = ({
                                     },
                                   ],
                                 });
-                                
+
                                 const writable = await handle.createWritable();
                                 await writable.write(blob);
                                 await writable.close();
@@ -2064,28 +2079,28 @@ const App: React.FC<ImageAppProps> = ({
                             throw err;
                           }
                         }
-                        
+
                         if (successCount > 0) {
-                          setPersonaError(`✅ ${successCount}개의 페르소나가 저장되었습니다!` + 
-                                  (cancelCount > 0 ? ` (${cancelCount}개 취소됨)` : ''));
+                          setPersonaError(`✅ ${successCount}개의 페르소나가 저장되었습니다!` +
+                            (cancelCount > 0 ? ` (${cancelCount}개 취소됨)` : ''));
                         } else if (cancelCount > 0) {
                           setPersonaError(`모든 다운로드가 취소되었습니다.`);
                         }
                       } catch (error) {
                         console.error("[개발자용] 페르소나 다운로드 오류:", error);
-                        
+
                         let userMessage = "페르소나 다운로드에 실패했습니다. 다시 시도해 주세요.";
-                        
+
                         if (error instanceof Error) {
                           console.error(`[개발자용] 오류 상세: ${error.name} - ${error.message}`);
-                          
+
                           if (error.name === 'NotAllowedError') {
                             userMessage = "파일 저장 권한이 거부되었습니다. 브라우저 설정을 확인해 주세요.";
                           } else if (error.name === 'SecurityError') {
                             userMessage = "보안 문제로 파일을 저장할 수 없습니다. 브라우저를 업데이트하거나 다른 브라우저를 사용해 주세요.";
                           }
                         }
-                        
+
                         setPersonaError(userMessage);
                       }
                     }}
@@ -2479,11 +2494,10 @@ const App: React.FC<ImageAppProps> = ({
                   ].map((angle) => (
                     <label
                       key={angle.value}
-                      className={`flex items-center p-3 rounded-lg cursor-pointer transition-all ${
-                        selectedCameraAngles.includes(angle.value)
-                          ? 'bg-orange-600/40 border-2 border-orange-400'
-                          : 'bg-gray-700/50 border-2 border-gray-600 hover:bg-gray-600/50'
-                      }`}
+                      className={`flex items-center p-3 rounded-lg cursor-pointer transition-all ${selectedCameraAngles.includes(angle.value)
+                        ? 'bg-orange-600/40 border-2 border-orange-400'
+                        : 'bg-gray-700/50 border-2 border-gray-600 hover:bg-gray-600/50'
+                        }`}
                     >
                       <input
                         type="checkbox"
@@ -2542,11 +2556,10 @@ const App: React.FC<ImageAppProps> = ({
                   <button
                     onClick={handleGenerateCameraAngles}
                     disabled={!cameraAngleSourceImage || !apiKey || selectedCameraAngles.length === 0}
-                    className={`w-full py-4 rounded-lg font-bold text-lg transition-all ${
-                      !cameraAngleSourceImage || !apiKey || selectedCameraAngles.length === 0
-                        ? "bg-gray-600 text-gray-400 cursor-not-allowed"
-                        : "bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 shadow-lg hover:shadow-xl transform hover:scale-105"
-                    }`}
+                    className={`w-full py-4 rounded-lg font-bold text-lg transition-all ${!cameraAngleSourceImage || !apiKey || selectedCameraAngles.length === 0
+                      ? "bg-gray-600 text-gray-400 cursor-not-allowed"
+                      : "bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 shadow-lg hover:shadow-xl transform hover:scale-105"
+                      }`}
                   >
                     🚀 선택한 {selectedCameraAngles.length}가지 앵글 생성하기
                   </button>
@@ -2610,18 +2623,18 @@ const App: React.FC<ImageAppProps> = ({
                         try {
                           let successCount = 0;
                           let cancelCount = 0;
-                          
+
                           for (let index = 0; index < cameraAngles.length; index++) {
                             const angleImg = cameraAngles[index];
                             const fileName = `${index + 1}_${angleImg.angleName}.png`;
-                            
+
                             try {
-                              const base64Data = angleImg.image.includes(',') 
-                                ? angleImg.image.split(',')[1] 
+                              const base64Data = angleImg.image.includes(',')
+                                ? angleImg.image.split(',')[1]
                                 : angleImg.image;
                               const base64Response = await fetch(`data:image/png;base64,${base64Data}`);
                               const blob = await base64Response.blob();
-                              
+
                               if ('showSaveFilePicker' in window) {
                                 try {
                                   const handle = await (window as any).showSaveFilePicker({
@@ -2635,7 +2648,7 @@ const App: React.FC<ImageAppProps> = ({
                                       },
                                     ],
                                   });
-                                  
+
                                   const writable = await handle.createWritable();
                                   await writable.write(blob);
                                   await writable.close();
@@ -2664,28 +2677,28 @@ const App: React.FC<ImageAppProps> = ({
                               throw err;
                             }
                           }
-                          
+
                           if (successCount > 0) {
-                            setCameraAngleError(`? ${successCount}개의 카메라 앵글이 저장되었습니다!` + 
-                                    (cancelCount > 0 ? ` (${cancelCount}개 취소됨)` : ''));
+                            setCameraAngleError(`? ${successCount}개의 카메라 앵글이 저장되었습니다!` +
+                              (cancelCount > 0 ? ` (${cancelCount}개 취소됨)` : ''));
                           } else if (cancelCount > 0) {
                             setCameraAngleError(`모든 다운로드가 취소되었습니다.`);
                           }
                         } catch (error) {
                           console.error("[개발자용] 카메라 앵글 다운로드 오류:", error);
-                          
+
                           let userMessage = "카메라 앵글 다운로드에 실패했습니다. 다시 시도해 주세요.";
-                          
+
                           if (error instanceof Error) {
                             console.error(`[개발자용] 오류 상세: ${error.name} - ${error.message}`);
-                            
+
                             if (error.name === 'NotAllowedError') {
                               userMessage = "파일 저장 권한이 거부되었습니다. 브라우저 설정을 확인해 주세요.";
                             } else if (error.name === 'SecurityError') {
                               userMessage = "보안 문제로 파일을 저장할 수 없습니다. 브라우저를 업데이트하거나 다른 브라우저를 사용해 주세요.";
                             }
                           }
-                          
+
                           setCameraAngleError(userMessage);
                         }
                       }}
@@ -2726,7 +2739,7 @@ const App: React.FC<ImageAppProps> = ({
                                 // Base64를 Blob으로 변환
                                 const response = await fetch(angleImg.image);
                                 const blob = await response.blob();
-                                
+
                                 // File System Access API 지원 확인
                                 if ('showSaveFilePicker' in window) {
                                   try {
@@ -2741,7 +2754,7 @@ const App: React.FC<ImageAppProps> = ({
                                         },
                                       ],
                                     });
-                                    
+
                                     const writable = await handle.createWritable();
                                     await writable.write(blob);
                                     await writable.close();
@@ -2844,7 +2857,7 @@ const App: React.FC<ImageAppProps> = ({
         </svg>
         초기화
       </button>
-      
+
       {/* API Key Required Modal - 비활성화 (직접 입력 방식으로 변경) */}
       {/* <ApiKeyRequiredModal
         isOpen={showApiKeyModal}

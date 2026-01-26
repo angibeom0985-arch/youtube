@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { generateSsml, generateActingPrompt } from "../services/geminiService";
 import { FiPlay, FiPause, FiMic, FiSliders, FiCpu, FiInfo, FiUser, FiFileText, FiDownload } from "react-icons/fi";
 import { supabase } from "../services/supabase";
+import UserCreditToolbar from "../components/UserCreditToolbar";
+import HomeBackButton from "../components/HomeBackButton";
 import type { User } from "@supabase/supabase-js";
 import ErrorNotice from "../components/ErrorNotice";
 import ApiKeyInput from "../components/ApiKeyInput";
@@ -128,11 +130,11 @@ const TtsPage: React.FC = () => {
   useEffect(() => {
     if (text !== undefined) setStoredValue(STORAGE_KEYS.text, text);
   }, [text]);
-  
+
   useEffect(() => setStoredValue(STORAGE_KEYS.voice, voice), [voice]);
   useEffect(() => setStoredValue(STORAGE_KEYS.rate, String(speakingRate)), [speakingRate]);
   useEffect(() => setStoredValue(STORAGE_KEYS.pitch, String(pitch)), [pitch]);
-  
+
   useEffect(() => {
     // 오디오 소스가 너무 크면 저장하지 않음
     if (audioSrc && audioSrc.length < 2 * 1024 * 1024) {
@@ -192,7 +194,7 @@ const TtsPage: React.FC = () => {
       if (!response.ok) throw new Error("Preview failed");
       const data = await response.json();
       const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
-      
+
       audio.onended = () => setPlayingPreview(null);
       audio.play();
       setPreviewAudio(audio);
@@ -310,19 +312,19 @@ const TtsPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#050a0a] text-white relative">
       <div className="absolute inset-0 bg-gradient-to-br from-emerald-950/20 via-slate-950 to-emerald-900/20 pointer-events-none" />
-      
+
       {/* Auth Status - Top Right */}
       <div className="absolute top-0 right-0 p-4 sm:p-6 flex gap-3 z-50 items-center">
-        
+        <UserCreditToolbar user={user} onLogout={handleLogout} tone="emerald" />
+      </div>
+      <div className="absolute top-0 left-0 p-4 sm:p-6 z-50">
+        <HomeBackButton tone="emerald" />
       </div>
 
       <div className="relative mx-auto max-w-6xl px-6 py-12">
         {/* Header */}
         <div className="mb-10 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
           <div>
-            <Link to="/" className="text-emerald-400 hover:text-emerald-300 transition-colors flex items-center gap-2 mb-2 font-medium">
-               ← 메인으로 돌아가기
-            </Link>
             <h1 className="text-4xl font-black bg-gradient-to-r from-emerald-400 to-teal-300 bg-clip-text text-transparent">
               AI 성우 스튜디오
             </h1>
@@ -333,33 +335,24 @@ const TtsPage: React.FC = () => {
           </button>
         </div>
 
-        {/* API 키 입력 */}
-        <ApiKeyInput
-          storageKey="google_cloud_tts_api_key"
-          label="Google Cloud TTS API 키"
-          placeholder="Google Cloud TTS API 키"
-          helpText="브라우저에만 저장됩니다."
-          guideRoute="/api-guide-cloudconsole"
-          theme="emerald"
-          apiType="googleCloud"
-        />
+
 
         <div className="grid lg:grid-cols-12 gap-8">
           {/* Left Column: Controls */}
           <div className="lg:col-span-4 space-y-6">
-            
+
             {/* Voice Selection */}
             <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-md shadow-2xl">
               <h2 className="text-lg font-bold text-emerald-300 mb-5 flex items-center gap-2">
                 <FiUser /> 목소리 선택
               </h2>
-              
+
               <div className="space-y-6 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
                 <div>
                   <label className="text-xs font-black text-slate-500 uppercase tracking-widest mb-3 block">여성 성우</label>
                   <div className="space-y-2">
                     {filterVoices("female").map(v => (
-                      <div 
+                      <div
                         key={v.value}
                         onClick={() => setVoice(v.value)}
                         className={`group flex items-center justify-between p-3.5 rounded-xl cursor-pointer border transition-all ${voice === v.value ? 'bg-emerald-500/20 border-emerald-500/50 ring-1 ring-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.15)]' : 'bg-slate-900/40 border-white/5 hover:border-white/20'}`}
@@ -370,7 +363,7 @@ const TtsPage: React.FC = () => {
                           </span>
                           <span className="text-[11px] text-slate-500">{v.type}</span>
                         </div>
-                        <button 
+                        <button
                           onClick={(e) => { e.stopPropagation(); handlePreviewVoice(v.value); }}
                           className="p-2 rounded-full bg-white/5 hover:bg-emerald-500 hover:text-white text-emerald-400 transition-all"
                           title="미리듣기"
@@ -386,7 +379,7 @@ const TtsPage: React.FC = () => {
                   <label className="text-xs font-black text-slate-500 uppercase tracking-widest mb-3 block">남성 성우</label>
                   <div className="space-y-2">
                     {filterVoices("male").map(v => (
-                      <div 
+                      <div
                         key={v.value}
                         onClick={() => setVoice(v.value)}
                         className={`group flex items-center justify-between p-3.5 rounded-xl cursor-pointer border transition-all ${voice === v.value ? 'bg-emerald-500/20 border-emerald-500/50 ring-1 ring-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.15)]' : 'bg-slate-900/40 border-white/5 hover:border-white/20'}`}
@@ -397,7 +390,7 @@ const TtsPage: React.FC = () => {
                           </span>
                           <span className="text-[11px] text-slate-500">{v.type}</span>
                         </div>
-                        <button 
+                        <button
                           onClick={(e) => { e.stopPropagation(); handlePreviewVoice(v.value); }}
                           className="p-2 rounded-full bg-white/5 hover:bg-emerald-500 hover:text-white text-emerald-400 transition-all"
                           title="미리듣기"
@@ -453,7 +446,7 @@ const TtsPage: React.FC = () => {
 
           {/* Right Column: Text Input & Result */}
           <div className="lg:col-span-8 space-y-6">
-            
+
             {/* Acting Prompt Section */}
             <div className={`border rounded-2xl p-6 transition-all duration-500 ${useAIActing ? 'bg-emerald-900/10 border-emerald-500/40 shadow-[0_0_20px_rgba(16,185,129,0.1)]' : 'bg-white/5 border-white/10'}`}>
               <div className="flex items-center justify-between mb-4">
@@ -526,43 +519,43 @@ const TtsPage: React.FC = () => {
             </div>
 
             {/* Action Button */}
-              <button
-                type="button"
-                onClick={handleGenerate}
-                disabled={isGenerating || !text.trim()}
-                className={`w-full rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-4 text-lg font-black text-white shadow-[0_10px_30px_rgba(16,185,129,0.3)] transition-all hover:from-emerald-500 hover:to-teal-500 hover:-translate-y-0.5 active:scale-[0.98] disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-3`}
-              >
-                {isGenerating ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                    <span>{progressStep === 'analyzing' ? 'AI가 감정 분석 중...' : progressStep === 'requesting' ? '음성 생성 중...' : '처리 중...'}</span>
-                  </>
-                ) : (
-                  <>
-                    <FiMic size={22} />
-                    <span>TTS 음성 생성하기</span>
-                    {text.trim() && (
-                      <span className="bg-white/20 px-2.5 py-0.5 rounded-full text-xs font-bold ml-2">
-                        {Math.ceil(text.trim().length / 10)} ⚡
-                      </span>
-                    )}
-                  </>
-                )}
-              </button>
-
-              {isGenerating && (
-                <ProgressTracker
-                  currentStepIndex={ttsProgress.currentStep}
-                  stepLabels={ttsProgress.steps}
-                  stepDescriptions={[
-                    "텍스트를 분석하고 음성 생성을 준비하고 있습니다",
-                    "AI가 감정과 억양을 분석하고 있습니다",
-                    "Google Cloud TTS로 음성을 생성하고 있습니다",
-                    "음성 파일 생성이 완료되었습니다"
-                  ]}
-                  estimatedTimeSeconds={15}
-                />
+            <button
+              type="button"
+              onClick={handleGenerate}
+              disabled={isGenerating || !text.trim()}
+              className={`w-full rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-4 text-lg font-black text-white shadow-[0_10px_30px_rgba(16,185,129,0.3)] transition-all hover:from-emerald-500 hover:to-teal-500 hover:-translate-y-0.5 active:scale-[0.98] disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-3`}
+            >
+              {isGenerating ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  <span>{progressStep === 'analyzing' ? 'AI가 감정 분석 중...' : progressStep === 'requesting' ? '음성 생성 중...' : '처리 중...'}</span>
+                </>
+              ) : (
+                <>
+                  <FiMic size={22} />
+                  <span>TTS 음성 생성하기</span>
+                  {text.trim() && (
+                    <span className="bg-white/20 px-2.5 py-0.5 rounded-full text-xs font-bold ml-2">
+                      {Math.ceil(text.trim().length / 10)} ⚡
+                    </span>
+                  )}
+                </>
               )}
+            </button>
+
+            {isGenerating && (
+              <ProgressTracker
+                currentStepIndex={ttsProgress.currentStep}
+                stepLabels={ttsProgress.steps}
+                stepDescriptions={[
+                  "텍스트를 분석하고 음성 생성을 준비하고 있습니다",
+                  "AI가 감정과 억양을 분석하고 있습니다",
+                  "Google Cloud TTS로 음성을 생성하고 있습니다",
+                  "음성 파일 생성이 완료되었습니다"
+                ]}
+                estimatedTimeSeconds={15}
+              />
+            )}
 
             <ErrorNotice error={error} context="TTS 음성 생성" />
 

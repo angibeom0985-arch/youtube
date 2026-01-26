@@ -5,6 +5,7 @@ import type { User } from "@supabase/supabase-js";
 import HomeBackButton from "../components/HomeBackButton";
 import ApiKeyInput from "../components/ApiKeyInput";
 import { ProgressTracker } from "../components/ProgressIndicator";
+import UserCreditToolbar from "../components/UserCreditToolbar";
 
 interface DateOption {
   label: string;
@@ -70,7 +71,7 @@ const BenchmarkingPage: React.FC = () => {
   const [durationFilter, setDurationFilter] = useState(durationOptions[0].value);
   const [momentumLevel, setMomentumLevel] = useState(0); // 0이면 전체
   const [viewMode, setViewMode] = useState<"card" | "table">("card");
-  
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [summary, setSummary] = useState<SearchSummary | null>(null);
@@ -96,7 +97,7 @@ const BenchmarkingPage: React.FC = () => {
   const handleLogout = async () => {
     await supabase.auth.signOut();
   };
-  
+
   // 클라이언트 측 필터링 적용 (모멘텀 레벨 등)
   const filteredResults = useMemo(() => {
     if (momentumLevel === 0) return results;
@@ -121,7 +122,7 @@ const BenchmarkingPage: React.FC = () => {
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
       }
-      
+
       // Step 2: 영상 검색
       setSearchProgress(prev => ({ ...prev, currentStep: 1 }));
       const response = await fetch("/api/benchmarking/search", {
@@ -134,7 +135,7 @@ const BenchmarkingPage: React.FC = () => {
           maxScan: 100 // 최대 100개 스캔
         })
       });
-      
+
       // Step 3: 데이터 분석
       setSearchProgress(prev => ({ ...prev, currentStep: 2 }));
       const data = await response.json();
@@ -146,7 +147,7 @@ const BenchmarkingPage: React.FC = () => {
       // Step 4: 결과 정리
       setSearchProgress(prev => ({ ...prev, currentStep: 3 }));
       await new Promise(resolve => setTimeout(resolve, 300)); // UI 업데이트를 위한 짧은 지연
-      
+
       setResults(data.results || []);
       setSummary(data.summary || null);
     } catch (err) {
@@ -164,20 +165,20 @@ const BenchmarkingPage: React.FC = () => {
     const headers = ["순위", "제목", "채널명", "구독자", "조회수", "기여도", "길이", "게시일", "링크", "태그", "설명"];
     const csvRows = filteredResults.map((v, i) => [
       i + 1,
-      `"${v.title.replace(/"/g, '""')}"`, 
-      `"${v.channelTitle.replace(/"/g, '""')}"`, 
+      `"${v.title.replace(/"/g, '""')}"`,
+      `"${v.channelTitle.replace(/"/g, '""')}"`,
       v.subscribers,
       v.views,
       v.contribution,
       v.durationLabel,
       v.publishedAt.split('T')[0],
       v.link,
-      `"${(v.tags || []).join(', ').replace(/"/g, '""')}"`, 
+      `"${(v.tags || []).join(', ').replace(/"/g, '""')}"`,
       `"${v.description.substring(0, 100).replace(/"/g, '""').replace(/\n/g, ' ')}"...`
     ]);
 
     const csvContent = [headers, ...csvRows].map(e => e.join(",")).join("\n");
-    
+
     // UTF-8 BOM 추가 (\ufeff)
     const blob = new Blob(["\ufeff" + csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -190,7 +191,10 @@ const BenchmarkingPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white selection:bg-purple-500/30">
+    <div className="min-h-screen bg-black text-white selection:bg-purple-500/30 relative">
+      <div className="absolute top-0 right-0 p-4 sm:p-6 flex gap-3 z-50 items-center">
+        <UserCreditToolbar user={user} onLogout={handleLogout} tone="purple" />
+      </div>
 
       <div className="mx-auto max-w-[1600px] px-6 py-8">
         {/* Header */}
@@ -201,18 +205,18 @@ const BenchmarkingPage: React.FC = () => {
               벤치마킹 영상 발굴
             </h1>
           </div>
-          
+
           <div className="flex flex-wrap items-center justify-end gap-3">
-            
-            
+
+
             <div className="bg-slate-900 border border-slate-700 rounded-lg p-1 flex">
-              <button 
+              <button
                 onClick={() => setViewMode("card")}
                 className={`p-2 rounded-md transition-all ${viewMode === "card" ? "bg-purple-600 text-white shadow-lg" : "text-slate-400 hover:text-white"}`}
               >
                 <FiLayout size={18} />
               </button>
-              <button 
+              <button
                 onClick={() => setViewMode("table")}
                 className={`p-2 rounded-md transition-all ${viewMode === "table" ? "bg-purple-600 text-white shadow-lg" : "text-slate-400 hover:text-white"}`}
               >
@@ -222,16 +226,7 @@ const BenchmarkingPage: React.FC = () => {
           </div>
         </div>
 
-        {/* API 키 입력 */}
-        <ApiKeyInput
-          storageKey="youtube_api_key"
-          label="YouTube Data API 키"
-          placeholder="YouTube Data API v3 키"
-          helpText="브라우저에만 저장됩니다."
-          guideRoute="/api-guide-cloudconsole"
-          theme="blue"
-          apiType="youtube"
-        />
+
 
         {/* Search Form */}
         <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-8 mb-10 shadow-2xl backdrop-blur-sm">
@@ -259,7 +254,7 @@ const BenchmarkingPage: React.FC = () => {
                     }
                   />
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-bold text-slate-200 mb-3">업로드 기간</label>
@@ -329,7 +324,7 @@ const BenchmarkingPage: React.FC = () => {
                 </>
               )}
             </button>
-            
+
             {loading && (
               <div className="mt-4">
                 <ProgressTracker
@@ -371,7 +366,7 @@ const BenchmarkingPage: React.FC = () => {
                 ))}
               </div>
             </div>
-            
+
             <div className="flex items-center gap-4 w-full lg:w-auto">
               <div className="text-right flex-grow lg:flex-grow-0">
                 <span className="text-slate-400 text-sm">발견된 기회</span>
@@ -422,7 +417,7 @@ const BenchmarkingPage: React.FC = () => {
                       <div className="w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center text-[10px]">YT</div>
                       {video.channelTitle}
                     </div>
-                    
+
                     <div className="grid grid-cols-2 gap-3 mb-6">
                       <div className="bg-black/40 rounded-xl p-3 border border-slate-800">
                         <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">조회수</p>

@@ -49,6 +49,7 @@ import AdSense from "./components/AdSense";
 import Footer from "./components/Footer";
 import AdBlockDetector from "./components/AdBlockDetector";
 import AdBlockWarningModal from "./components/AdBlockWarningModal";
+import HomeBackButton from "./components/HomeBackButton";
 import FloatingAnchorAd from "./components/FloatingAnchorAd";
 import UserCreditToolbar from "./components/UserCreditToolbar";
 import ApiKeyInput from "./components/ApiKeyInput";
@@ -156,8 +157,8 @@ const SortableItem: React.FC<SortableItemProps> = ({
       style={style}
       onClick={onClick}
       className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${isSelected
-          ? "bg-gradient-to-br from-orange-600 to-orange-500 text-white shadow-[0_0_10px_rgba(249,115,22,0.5)]"
-          : "bg-[#2A2A2A] hover:bg-zinc-700 text-neutral-200"
+        ? "bg-gradient-to-br from-orange-600 to-orange-500 text-white shadow-[0_0_10px_rgba(249,115,22,0.5)]"
+        : "bg-[#2A2A2A] hover:bg-zinc-700 text-neutral-200"
         }`}
       {...attributes}
       {...listeners}
@@ -1472,6 +1473,11 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
         <UserCreditToolbar user={user} onLogout={handleLogout} tone="orange" />
       </div>
 
+      {/* Home Back Button - Top Left */}
+      <div className="absolute top-0 left-0 p-4 sm:p-6 z-50">
+        <HomeBackButton tone="orange" />
+      </div>
+
       {/* 애드블럭 감지 */}
       {!noAds && <AdBlockDetector onAdBlockDetected={handleAdBlockDetected} />}
 
@@ -1491,28 +1497,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
             떡상 영상을 분석하고, 나만의 새로운 대본을 1분만에 작성하세요!
           </p>
 
-          {/* API 키 입력 - pointer-events-auto로 클릭 가능하게 */}
-          <div className="max-w-2xl mx-auto mb-6 pointer-events-auto">
-            <ApiKeyInput
-              storageKey="gemini_api_key_script"
-              label="Gemini API 키"
-              placeholder="AIzaSy..."
-              helpText="브라우저에만 저장됩니다."
-              guideRoute="/api-guide-aistudio"
-              theme="orange"
-              apiType="gemini"
-            />
-            <ApiKeyInput
-              storageKey="google-cloud-key"
-              label="Google Cloud Credentials (JSON)"
-              placeholder='{"type": "service_account", ...}'
-              helpText="TTS 사용을 위한 서비스 계정 키(JSON)를 붙여넣으세요."
-              apiKeyLink="https://console.cloud.google.com/iam-admin/serviceaccounts"
-              guideRoute="/api-guide-googlecloud"
-              theme="blue"
-              apiType="googleCloud"
-            />
-          </div>
+
 
           <nav className="flex justify-center gap-3 flex-wrap">
             <a
@@ -1697,8 +1682,8 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                       key={vlogType}
                       onClick={() => setSelectedVlogType(vlogType)}
                       className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${selectedVlogType === vlogType
-                          ? "bg-gradient-to-br from-orange-600 to-orange-500 text-white shadow-[0_0_10px_rgba(249,115,22,0.5)]"
-                          : "bg-[#2A2A2A] hover:bg-zinc-700 text-neutral-200"
+                        ? "bg-gradient-to-br from-orange-600 to-orange-500 text-white shadow-[0_0_10px_rgba(249,115,22,0.5)]"
+                        : "bg-[#2A2A2A] hover:bg-zinc-700 text-neutral-200"
                         }`}
                     >
                       {vlogType}
@@ -1721,8 +1706,8 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                       key={type}
                       onClick={() => setContentType(type)}
                       className={`px-3 py-1 text-sm font-medium rounded-md transition-all duration-200 ${contentType === type
-                          ? "bg-gradient-to-br from-orange-600 to-orange-500 text-white"
-                          : "bg-[#2A2A2A] hover:bg-zinc-700 text-neutral-200"
+                        ? "bg-gradient-to-br from-orange-600 to-orange-500 text-white"
+                        : "bg-[#2A2A2A] hover:bg-zinc-700 text-neutral-200"
                         }`}
                     >
                       {type}
@@ -1993,8 +1978,8 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                         setCustomLength(option);
                       }}
                       className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${lengthMode === option
-                          ? "bg-gradient-to-br from-orange-600 to-orange-500 text-white shadow-[0_0_10px_rgba(249,115,22,0.5)]"
-                          : "bg-[#2A2A2A] hover:bg-zinc-700 text-neutral-200"
+                        ? "bg-gradient-to-br from-orange-600 to-orange-500 text-white shadow-[0_0_10px_rgba(249,115,22,0.5)]"
+                        : "bg-[#2A2A2A] hover:bg-zinc-700 text-neutral-200"
                         }`}
                     >
                       {option}
@@ -2007,8 +1992,8 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                       setCustomLength("");
                     }}
                     className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${lengthMode === "custom"
-                        ? "bg-gradient-to-br from-orange-600 to-orange-500 text-white shadow-[0_0_10px_rgba(249,115,22,0.5)]"
-                        : "bg-[#2A2A2A] hover:bg-zinc-700 text-neutral-200"
+                      ? "bg-gradient-to-br from-orange-600 to-orange-500 text-white shadow-[0_0_10px_rgba(249,115,22,0.5)]"
+                      : "bg-[#2A2A2A] hover:bg-zinc-700 text-neutral-200"
                       }`}
                   >
                     사용자 입력
@@ -2038,8 +2023,8 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                   <button
                     onClick={() => setScriptStyle("대화 버전")}
                     className={`flex-1 px-4 py-3 text-sm font-medium rounded-md transition-all duration-200 ${scriptStyle === "대화 버전"
-                        ? "bg-gradient-to-br from-orange-600 to-orange-500 text-white shadow-[0_0_10px_rgba(249,115,22,0.5)]"
-                        : "bg-[#2A2A2A] hover:bg-zinc-700 text-neutral-200"
+                      ? "bg-gradient-to-br from-orange-600 to-orange-500 text-white shadow-[0_0_10px_rgba(249,115,22,0.5)]"
+                      : "bg-[#2A2A2A] hover:bg-zinc-700 text-neutral-200"
                       }`}
                   >
                     <div className="text-center">
@@ -2050,8 +2035,8 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                   <button
                     onClick={() => setScriptStyle("나레이션 버전")}
                     className={`flex-1 px-4 py-3 text-sm font-medium rounded-md transition-all duration-200 ${scriptStyle === "나레이션 버전"
-                        ? "bg-gradient-to-br from-orange-600 to-orange-500 text-white shadow-[0_0_10px_rgba(249,115,22,0.5)]"
-                        : "bg-[#2A2A2A] hover:bg-zinc-700 text-neutral-200"
+                      ? "bg-gradient-to-br from-orange-600 to-orange-500 text-white shadow-[0_0_10px_rgba(249,115,22,0.5)]"
+                      : "bg-[#2A2A2A] hover:bg-zinc-700 text-neutral-200"
                       }`}
                   >
                     <div className="text-center">
@@ -2366,12 +2351,12 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
                                 }}
                                 disabled={!canGenerate || chapter.isGenerating}
                                 className={`p-4 rounded-lg border-2 transition-all text-left ${chapter.script
-                                    ? 'bg-orange-500/10 border-orange-500/50 cursor-default'
-                                    : chapter.isGenerating
-                                      ? 'bg-orange-500/10 border-orange-500/50 cursor-wait'
-                                      : canGenerate
-                                        ? 'bg-zinc-900 border-zinc-700 hover:border-orange-500 cursor-pointer'
-                                        : 'bg-zinc-900/50 border-zinc-800 cursor-not-allowed opacity-50'
+                                  ? 'bg-orange-500/10 border-orange-500/50 cursor-default'
+                                  : chapter.isGenerating
+                                    ? 'bg-orange-500/10 border-orange-500/50 cursor-wait'
+                                    : canGenerate
+                                      ? 'bg-zinc-900 border-zinc-700 hover:border-orange-500 cursor-pointer'
+                                      : 'bg-zinc-900/50 border-zinc-800 cursor-not-allowed opacity-50'
                                   }`}
                               >
                                 <div className="flex items-center justify-between mb-2">

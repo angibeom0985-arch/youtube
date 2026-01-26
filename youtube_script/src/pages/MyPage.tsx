@@ -157,26 +157,42 @@ const MyPage: React.FC = () => {
                 Google AI Studio 및 Google Cloud Console 키를 설정하면 더 안정적인 서비스를 이용할 수 있습니다.
               </p>
 
-              <div className="grid gap-4">
-                <ApiKeyInput
-                  storageKey="gemini_api_key_mypage"
-                  label="Gemini API 키"
-                  placeholder="AIzaSy..."
-                  helpText="대본 분석 및 생성에 사용됩니다."
-                  guideRoute="/api-guide-aistudio"
-                  theme="orange"
-                  apiType="gemini"
-                />
-                <ApiKeyInput
-                  storageKey="google_cloud_api_key_mypage"
-                  label="Google Cloud Credentials (JSON)"
-                  placeholder='{"type": "service_account", ...}'
-                  helpText="TTS 및 이미지 생성에 사용됩니다."
-                  guideRoute="/api-guide-cloudconsole"
-                  theme="blue"
-                  apiType="google-cloud"
-                />
-              </div>
+              <ApiKeyInput
+                storageKey="gemini_api_key_script"
+                label="Gemini API 키"
+                placeholder="AIzaSy..."
+                helpText="대본/건텐츠 분석 및 생성에 사용됩니다."
+                guideRoute="/api-guide-aistudio"
+                theme="orange"
+                apiType="gemini"
+              />
+              <ApiKeyInput
+                storageKey="google-cloud-key"
+                label="Google Cloud Credentials (JSON)"
+                placeholder='{"type": "service_account", ...}'
+                helpText="TTS 및 대규모 서비스 사용을 위한 서비스 계정 키입니다."
+                guideRoute="/api-guide-googlecloud"
+                theme="blue"
+                apiType="googleCloud"
+              />
+              <ApiKeyInput
+                storageKey="youtube_api_key"
+                label="YouTube Data API 키"
+                placeholder="AIzaSy..."
+                helpText="벤치마킹 및 유튜브 데이터 분석에 사용됩니다."
+                guideRoute="/api-guide-cloudconsole"
+                theme="red"
+                apiType="youtube"
+              />
+              <ApiKeyInput
+                storageKey="google_cloud_tts_api_key"
+                label="Google Cloud TTS API 키 (Optional)"
+                placeholder="AIzaSy..."
+                helpText="간편한 TTS 사용을 위한 API 키 (JSON 권장)"
+                guideRoute="/api-guide-cloudconsole"
+                theme="emerald"
+                apiType="googleCloud"
+              />
             </div>
 
             {/* Recent Activity (Placeholder) */}
