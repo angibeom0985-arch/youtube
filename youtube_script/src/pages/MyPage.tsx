@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../services/supabase";
 import type { User } from "@supabase/supabase-js";
-import { FiUser, FiClock, FiSettings } from "react-icons/fi";
+import { FiUser, FiClock, FiSettings, FiKey } from "react-icons/fi";
+import ApiKeyInput from "../components/ApiKeyInput";
 
 const MyPage: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -79,14 +80,14 @@ const MyPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-black text-white relative">
       <div className="absolute top-0 right-0 p-6 flex gap-3 z-10 items-center">
-        
+
       </div>
 
       <div className="max-w-4xl mx-auto px-6 py-20">
         <Link to="/" className="text-slate-400 hover:text-white transition-colors mb-8 inline-block">
           ← 메인으로 돌아가기
         </Link>
-        
+
         <h1 className="text-4xl font-bold mb-2">마이 페이지</h1>
         <p className="text-slate-400 mb-12">계정 정보를 확인하고 관리하세요.</p>
 
@@ -96,9 +97,9 @@ const MyPage: React.FC = () => {
             <div className="flex flex-col items-center text-center">
               <div className="w-24 h-24 rounded-full bg-zinc-800 flex items-center justify-center mb-4 border-2 border-white/10">
                 {user?.user_metadata?.avatar_url ? (
-                  <img 
-                    src={user.user_metadata.avatar_url} 
-                    alt="Profile" 
+                  <img
+                    src={user.user_metadata.avatar_url}
+                    alt="Profile"
                     className="w-full h-full rounded-full"
                   />
                 ) : (
@@ -109,8 +110,8 @@ const MyPage: React.FC = () => {
                 {user?.user_metadata?.full_name || "사용자"}
               </h2>
               <p className="text-sm text-slate-400 mb-6">{user?.email}</p>
-              
-              <button 
+
+              <button
                 onClick={handleLogout}
                 className="w-full py-2 rounded-lg border border-white/10 hover:bg-white/5 text-sm font-medium transition-colors text-slate-300"
               >
@@ -137,7 +138,7 @@ const MyPage: React.FC = () => {
                 <h3 className="font-bold text-slate-200">대본 관리</h3>
                 <p className="text-xs text-slate-500 mt-1">저장된 대본 보기</p>
               </Link>
-              
+
               <Link to="/video" className="bg-zinc-900 border border-white/10 p-5 rounded-2xl hover:border-white/30 transition-colors group">
                 <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center mb-3 group-hover:bg-red-500/20 transition-colors">
                   <span className="text-xl">🎬</span>
@@ -146,7 +147,38 @@ const MyPage: React.FC = () => {
                 <p className="text-xs text-slate-500 mt-1">진행 중인 프로젝트</p>
               </Link>
             </div>
-            
+
+            {/* API Settings Section */}
+            <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6">
+              <h3 className="font-bold text-white mb-4 flex items-center gap-2">
+                <FiKey className="text-orange-400" /> API 키 설정
+              </h3>
+              <p className="text-sm text-slate-400 mb-6">
+                Google AI Studio 및 Google Cloud Console 키를 설정하면 더 안정적인 서비스를 이용할 수 있습니다.
+              </p>
+
+              <div className="grid gap-4">
+                <ApiKeyInput
+                  storageKey="gemini_api_key_mypage"
+                  label="Gemini API 키"
+                  placeholder="AIzaSy..."
+                  helpText="대본 분석 및 생성에 사용됩니다."
+                  guideRoute="/api-guide-aistudio"
+                  theme="orange"
+                  apiType="gemini"
+                />
+                <ApiKeyInput
+                  storageKey="google_cloud_api_key_mypage"
+                  label="Google Cloud Credentials (JSON)"
+                  placeholder='{"type": "service_account", ...}'
+                  helpText="TTS 및 이미지 생성에 사용됩니다."
+                  guideRoute="/api-guide-cloudconsole"
+                  theme="blue"
+                  apiType="google-cloud"
+                />
+              </div>
+            </div>
+
             {/* Recent Activity (Placeholder) */}
             <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6">
               <h3 className="font-bold text-white mb-4 flex items-center gap-2">

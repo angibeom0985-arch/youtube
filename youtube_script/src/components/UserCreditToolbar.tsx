@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { supabase } from '../services/supabase';
 import type { User } from '@supabase/supabase-js';
 import { FiZap, FiLogOut, FiRefreshCw, FiUser } from 'react-icons/fi';
@@ -25,7 +26,7 @@ const UserCreditToolbar: React.FC<UserCreditToolbarProps> = ({ user, onLogout, t
         setCredits(0);
         return;
       }
-      
+
       const response = await fetch('/api/YOUTUBE/user', {
         method: 'GET',
         headers: {
@@ -57,7 +58,7 @@ const UserCreditToolbar: React.FC<UserCreditToolbarProps> = ({ user, onLogout, t
     window.addEventListener('creditRefresh', handleCreditRefresh);
     return () => window.removeEventListener('creditRefresh', handleCreditRefresh);
   }, [user]);
-  
+
   const colorClasses = {
     orange: {
       bg: 'bg-zinc-800/80',
@@ -107,12 +108,17 @@ const UserCreditToolbar: React.FC<UserCreditToolbarProps> = ({ user, onLogout, t
           <FiRefreshCw className={`text-sm ${colors.icon} ${loading ? 'animate-spin' : ''}`} />
         </button>
       </div>
-      
+
       <div className="h-6 border-l border-zinc-600"></div>
 
-      <button onClick={onLogout} title="Logout" className={`p-2 rounded-full transition-colors ${colors.buttonBg}`}>
-        <FiLogOut className={`${colors.icon} text-base`} />
-      </button>
+      <div className="flex items-center gap-2">
+        <Link to="/mypage" className={`p-2 rounded-full transition-colors ${colors.buttonBg} group`} title="마이페이지">
+          <FiUser className={`${colors.icon} text-base group-hover:text-white transition-colors`} />
+        </Link>
+        <button onClick={onLogout} title="Logout" className={`p-2 rounded-full transition-colors ${colors.buttonBg}`}>
+          <FiLogOut className={`${colors.icon} text-base`} />
+        </button>
+      </div>
     </div>
   );
 };

@@ -25,6 +25,7 @@ import { analyzeTranscript, generateIdeas, generateNewPlan } from "../services/g
 import { generateVideo } from "../services/videoService";
 import AdSense from "../components/AdSense";
 import { ProgressTracker } from "../components/ProgressIndicator";
+import UserCreditToolbar from "../components/UserCreditToolbar";
 
 const STORAGE_KEYS = {
   title: "video_project_title",
@@ -187,13 +188,13 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const navigate = useNavigate();
   const normalizedBasePath = basePath && basePath !== "/" ? basePath.replace(/\/$/, "") : "";
   const [user, setUser] = useState<User | null>(null);
-  
+
   console.log('[VideoPage] Rendering:', {
     pathname: location.pathname,
     basePath,
     normalizedBasePath
   });
-  
+
   // currentStep은 useEffect에서 URL 기반으로 설정됨
   const [currentStep, setCurrentStep] = useState(0);
   const [videoFormat, setVideoFormat] = useState<VideoFormat>(() => {
@@ -241,25 +242,25 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [scriptError, setScriptError] = useState("");
   const [isAnalyzingScript, setIsAnalyzingScript] = useState(false);
   const [isGeneratingScript, setIsGeneratingScript] = useState(false);
-  
+
   // Script sub-step management (대본 생성 단계의 하위 단계)
   const [scriptSubStep, setScriptSubStep] = useState(0); // 0: 입력, 1: 분석, 2: 주제선택, 3: 결과
-  
+
   // 대본 챕터별 접기/펼치기 상태
   const [expandedChapters, setExpandedChapters] = useState<Record<number, boolean>>({});
-  
+
   // Progress tracking for script analysis
   const [analyzeProgress, setAnalyzeProgress] = useState({
     currentStep: 0,
     steps: ["대본 구조 분석", "핵심 키워드 추출", "추천 주제 생성"],
   });
-  
+
   // Progress tracking for script generation
   const [generateProgress, setGenerateProgress] = useState({
     currentStep: 0,
     steps: ["대본 구조 설계", "콘텐츠 생성", "최종 검토"],
   });
-  
+
   const [ttsSamples, setTtsSamples] = useState<
     { id: number; voice: string; text: string; status: string }[]
   >([]);
@@ -300,7 +301,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   );
   const [assetFiles, setAssetFiles] = useState<File[]>([]);
   const [isPackaging, setIsPackaging] = useState(false);
-  
+
   // Video Generation State
   const [videoPrompt, setVideoPrompt] = useState("");
   const [isGeneratingVideo, setIsGeneratingVideo] = useState(false);
@@ -371,7 +372,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   useEffect(() => setStoredValue(STORAGE_KEYS.editNotes, editNotes), [editNotes]);
   useEffect(() => setStoredValue(STORAGE_KEYS.format, videoFormat), [videoFormat]);
   useEffect(() => setStoredValue(STORAGE_KEYS.step, String(currentStep)), [currentStep]);
-  
+
   // 분석 및 생성 결과 localStorage 저장
   useEffect(() => setStoredJson("videopage_scriptAnalysis", scriptAnalysis), [scriptAnalysis]);
   useEffect(() => setStoredJson("videopage_scriptIdeas", scriptIdeas), [scriptIdeas]);
@@ -555,7 +556,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
       // Supabase 세션 가져오기
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (!session) {
         alert('⚠️ 로그인이 필요합니다.');
         setIsPlayingPreview(false);
@@ -566,14 +567,14 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
       // TTS API 호출
       console.log('[TTS] API 호출 시작:', { voice: googleVoice, textLength: text.length });
-      
+
       const response = await fetch('/api/youtube_TTS/tts', {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           text: text,
           voice: googleVoice,
         })
@@ -590,7 +591,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       // JSON 응답에서 Base64 오디오 추출
       const data = await response.json();
       console.log('[TTS] 응답 데이터:', { hasAudioContent: !!data.audioContent });
-      
+
       if (!data.audioContent) {
         throw new Error('오디오 데이터가 없습니다');
       }
@@ -603,9 +604,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       }
       const audioBlob = new Blob([bytes], { type: 'audio/mpeg' });
       const audioUrl = URL.createObjectURL(audioBlob);
-      
+
       console.log('[TTS] 오디오 URL 생성 완료');
-      
+
       // 오디오 재생
       audioRef.current = new Audio(audioUrl);
       audioRef.current.onended = () => {
@@ -622,7 +623,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         setIsPlayingPreview(false);
         URL.revokeObjectURL(audioUrl);
       };
-      
+
       console.log('[TTS] 재생 시작');
       await audioRef.current.play();
       console.log('[TTS] 재생 중');
@@ -745,7 +746,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     const normalizedPath = normalizePath(location.pathname);
     const pathIndex = getStepIndexFromPath(normalizedPath);
     const storedIndex = getStoredStepIndex();
-    
+
     console.log('[VideoPage] URL 라우팅:', {
       pathname: location.pathname,
       normalizedPath,
@@ -754,19 +755,19 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       currentStep,
       stepPaths
     });
-    
+
     // /video 경로는 저장된 step이 있으면 그걸 사용하고, 없으면 /video/setup으로
     const isBaseVideoPath = normalizedPath === `${normalizedBasePath}/video` || normalizedPath === normalizedBasePath + '/video';
     const shouldUseStored = isBaseVideoPath && storedIndex !== 0;
     const nextIndex = shouldUseStored ? storedIndex : (pathIndex ?? (isBaseVideoPath ? 0 : storedIndex));
-    
+
     console.log('[VideoPage] Step 결정:', {
       isBaseVideoPath,
       shouldUseStored,
       nextIndex,
       willNavigate: normalizedPath !== stepPaths[nextIndex]
     });
-    
+
     if (nextIndex !== currentStep) {
       setCurrentStep(nextIndex);
     }
@@ -777,18 +778,18 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   }, [location.pathname, navigate, stepPaths, normalizedBasePath, currentStep]);
 
   const canGoPrev = currentStep > 0;
-  
+
   // 각 단계별로 다음 단계 진행 가능 여부 체크
   const canGoNext = (() => {
     if (currentStep >= steps.length - 1) return false;
-    
+
     const currentStepId = steps[currentStep].id;
-    
+
     // script 단계: 대본이 입력되어 있으면 다음으로 진행 가능
     if (currentStepId === 'script') {
       return scriptDraft.trim().length > 0;
     }
-    
+
     // 나머지 단계는 항상 진행 가능
     return true;
   })();
@@ -800,11 +801,11 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
   const handleNext = () => {
     if (!canGoNext) return;
-    
+
     // Step 2 (대본 작성)에서 Step 3 (음성 생성)으로 이동할 때 대본 자동 입력
     if (currentStep === 1 && generatedPlan) {
       const chapters: Array<{ title: string; content: string }> = [];
-      
+
       if (generatedPlan.chapters && generatedPlan.chapters.length > 0) {
         // chapters 형식 - 챕터별로 분리
         generatedPlan.chapters.forEach((chapter) => {
@@ -836,7 +837,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
           });
         });
       }
-      
+
       if (chapters.length > 0) {
         setChapterScripts(chapters);
         // 전체 스크립트도 설정
@@ -844,7 +845,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         setTtsScript(fullScript);
       }
     }
-    
+
     goToStep(currentStep + 1);
   };
 
@@ -931,22 +932,22 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       setScriptError("분석할 대본을 먼저 입력해 주세요.");
       return;
     }
-    
+
     const scriptLength = scriptDraft.trim().length;
-    
+
     setScriptError("");
     setIsAnalyzingScript(true);
     setAnalyzeProgress({ ...analyzeProgress, currentStep: 0 });
-    
+
     try {
       // Step 1: 대본 구조 분석
       setAnalyzeProgress(prev => ({ ...prev, currentStep: 0 }));
       const analysis = await analyzeTranscript(scriptDraft.trim(), "일반", "", projectTitle);
       setScriptAnalysis(analysis);
-      
+
       // Step 2: 핵심 키워드 추출 (이미 analysis에 포함됨)
       setAnalyzeProgress(prev => ({ ...prev, currentStep: 1 }));
-      
+
       // Step 3: 추천 주제 생성
       setAnalyzeProgress(prev => ({ ...prev, currentStep: 2 }));
       const ideas = await generateIdeas(analysis, "일반", "");
@@ -954,12 +955,12 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       if (ideas.length > 0) {
         setSelectedTopic(ideas[0]);
       }
-      
+
       // 분석 완료 후 다음 하위 단계(주제 선택)로 자동 이동
       setScriptSubStep(2);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "대본 분석에 실패했습니다.";
-      
+
       // Check if it's a timeout error or network error
       if (errorMessage.includes("FUNCTION_INVOCATION_TIMEOUT") || errorMessage.includes("timeout") || errorMessage.includes("timed out")) {
         setScriptError(
@@ -999,12 +1000,12 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     setScriptError("");
     setIsGeneratingScript(true);
     setGenerateProgress({ ...generateProgress, currentStep: 0 });
-    
+
     try {
       // Step 1: 대본 구조 설계
       setGenerateProgress(prev => ({ ...prev, currentStep: 0 }));
       await new Promise(resolve => setTimeout(resolve, 300)); // UI 업데이트를 위한 짧은 지연
-      
+
       // Step 2: 콘텐츠 생성
       setGenerateProgress(prev => ({ ...prev, currentStep: 1 }));
       const plan = await generateNewPlan(
@@ -1013,21 +1014,21 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         formatScriptLengthLabel(),
         "일반"
       );
-      
+
       // Step 3: AI 응답 정제 (마크다운 기호 제거)
       setGenerateProgress(prev => ({ ...prev, currentStep: 2 }));
       await new Promise(resolve => setTimeout(resolve, 300));
-      
+
       // 대본 내용에서 마크다운 기호 제거
       const cleanPlan = cleanAIResponse(plan);
-      
+
       setGeneratedPlan(cleanPlan);
-      
+
       // 대본 생성 완료 후 결과 단계로 자동 이동
       setScriptSubStep(3);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "대본 생성에 실패했습니다.";
-      
+
       // Check if it's a timeout error
       if (errorMessage.includes("FUNCTION_INVOCATION_TIMEOUT") || errorMessage.includes("timeout")) {
         setScriptError(
@@ -1045,7 +1046,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       setGenerateProgress({ ...generateProgress, currentStep: 0 });
     }
   };
-  
+
   // AI 응답 정제 함수 - 마크다운 기호 제거
   const cleanAIResponse = (plan: NewPlan): NewPlan => {
     const cleanText = (text: string): string => {
@@ -1060,7 +1061,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         .replace(/\#/g, '')       // # 제거
         .trim();
     };
-    
+
     return {
       ...plan,
       chapters: plan.chapters?.map(chapter => ({
@@ -1091,13 +1092,13 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       })),
     };
   };
-  
+
   // 챕터별 대본 다운로드 포맷
   const formatChapterScriptToText = (
     chapter: { title: string; script?: { character: string; line: string; timestamp?: string }[] }
   ): string => {
     if (!chapter.script) return "";
-    
+
     let text = `${chapter.title}\n${"=".repeat(50)}\n\n`;
     chapter.script.forEach((item) => {
       if (item.timestamp) {
@@ -1189,16 +1190,14 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       key={option.value}
                       type="button"
                       onClick={() => handleFormatChange(option.value)}
-                      className={`group rounded-2xl border px-5 py-6 text-center transition ${
-                        videoFormat === option.value
+                      className={`group rounded-2xl border px-5 py-6 text-center transition ${videoFormat === option.value
                           ? "border-red-400 bg-red-500/10 shadow-[0_10px_20px_rgba(239,68,68,0.2)]"
                           : "border-white/15 bg-black/30 hover:border-white/30 hover:bg-black/50"
-                      }`}
+                        }`}
                     >
                       <div className="flex flex-col items-center gap-3">
-                        <span className={`flex h-12 w-12 items-center justify-center rounded-full transition ${
-                          videoFormat === option.value ? "bg-red-500/20" : "bg-white/10 group-hover:bg-white/15"
-                        }`}>
+                        <span className={`flex h-12 w-12 items-center justify-center rounded-full transition ${videoFormat === option.value ? "bg-red-500/20" : "bg-white/10 group-hover:bg-white/15"
+                          }`}>
                           {option.icon}
                         </span>
                         <div className="text-center">
@@ -1209,14 +1208,12 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         <p className="mt-1 text-xs text-white/50">{option.description}</p>
                         <div className="mt-2 flex justify-center">
                           <div
-                            className={`relative transition ${
-                              option.ratio === "16:9" ? "h-16 w-28" : "h-28 w-16"
-                            }`}
+                            className={`relative transition ${option.ratio === "16:9" ? "h-16 w-28" : "h-28 w-16"
+                              }`}
                           >
                             <div
-                              className={`absolute inset-0 rounded-lg border transition ${
-                                videoFormat === option.value ? "border-red-400/70 shadow-[0_0_15px_rgba(239,68,68,0.3)]" : "border-white/20 group-hover:border-white/30"
-                              } bg-black/40`}
+                              className={`absolute inset-0 rounded-lg border transition ${videoFormat === option.value ? "border-red-400/70 shadow-[0_0_15px_rgba(239,68,68,0.3)]" : "border-white/20 group-hover:border-white/30"
+                                } bg-black/40`}
                             >
                               <div className="absolute inset-1 rounded-md bg-gradient-to-br from-white/10 to-white/5" />
                             </div>
@@ -1235,7 +1232,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
           .split("\n")
           .map((line) => line.trim())
           .filter(Boolean).length;
-        
+
         // 하위 단계별 제목과 설명
         const scriptSubSteps = [
           { title: "대본 입력", description: "입력 대본을 분석하고 원하는 길이에 맞춰 새 스크립트를 만들어 드립니다." },
@@ -1243,9 +1240,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
           { title: "주제 선택", description: "AI가 추천하는 주제 중 하나를 선택하거나 직접 입력하세요." },
           { title: "대본 생성 결과", description: "선택한 주제로 생성된 완성 대본을 확인하세요." },
         ];
-        
+
         const currentSubStep = scriptSubSteps[scriptSubStep];
-        
+
         return (
           <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
             <div className="rounded-[clamp(1rem,2vw,1.6rem)] border border-white/10 bg-black/40 p-[clamp(1.25rem,2vw,1.8rem)] shadow-[0_18px_40px_rgba(0,0,0,0.45)]">
@@ -1272,11 +1269,10 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   <React.Fragment key={index}>
                     <button
                       onClick={() => setScriptSubStep(index)}
-                      className={`px-3 py-1 text-xs rounded-full transition-all ${
-                        scriptSubStep === index
+                      className={`px-3 py-1 text-xs rounded-full transition-all ${scriptSubStep === index
                           ? 'bg-red-500/20 text-red-300 border border-red-400/50'
                           : 'bg-white/5 text-white/50 border border-white/10 hover:bg-white/10'
-                      }`}
+                        }`}
                     >
                       {index + 1}. {step.title}
                     </button>
@@ -1304,7 +1300,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       </span>
                       <span>대본 구조 분석용 입력</span>
                     </div>
-                    
+
                     {scriptDraft.length > 20000 && (
                       <div className="rounded-xl border border-blue-400/50 bg-blue-500/10 px-4 py-3 text-sm text-blue-300">
                         <div className="flex items-start gap-2">
@@ -1324,7 +1320,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         </div>
                       </div>
                     )}
-                    
+
                     {/* 하위 단계 이동 버튼 */}
                     <div className="flex justify-end items-center pt-4 border-t border-white/10">
                       <button
@@ -1338,7 +1334,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     </div>
                   </>
                 )}
-                
+
                 {/* Step 1: 대본 분석 */}
                 {scriptSubStep === 1 && (
                   <>
@@ -1352,7 +1348,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       >
                         {isAnalyzingScript ? "구조 분석 중..." : "대본 구조 분석하기"}
                       </button>
-                      
+
                       {isAnalyzingScript && (
                         <ProgressTracker
                           currentStepIndex={analyzeProgress.currentStep}
@@ -1365,7 +1361,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                           estimatedTimeSeconds={20}
                         />
                       )}
-                      
+
                       {scriptAnalysis?.scriptStructure && (
                         <div className="rounded-2xl border border-white/10 bg-black/30 p-5 text-sm text-white/70">
                           <div className="mb-4 pb-3 border-b border-white/10">
@@ -1390,7 +1386,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                           </div>
                         </div>
                       )}
-                      
+
                       {/* 하위 단계 이동 버튼 */}
                       {scriptAnalysis && (
                         <div className="flex justify-between items-center pt-4 border-t border-white/10">
@@ -1413,7 +1409,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     </div>
                   </>
                 )}
-                
+
                 {/* Step 2: 주제 선택 */}
                 {scriptSubStep === 2 && (
                   <>
@@ -1435,11 +1431,10 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                               key={option.value}
                               type="button"
                               onClick={() => handleSelectScriptLength(option.value)}
-                              className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
-                                scriptLengthMinutes === option.value
+                              className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${scriptLengthMinutes === option.value
                                   ? "border-purple-400 bg-purple-500/15 text-purple-200"
                                   : "border-white/15 bg-black/30 text-white/70 hover:border-white/30"
-                              }`}
+                                }`}
                             >
                               {option.label}
                             </button>
@@ -1464,87 +1459,86 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       </div>
 
                       {/* 주제 선택 섹션 */}
-                  {scriptIdeas.length === 0 ? (
-                    <div className="rounded-2xl border border-white/10 bg-black/30 p-5">
-                      <div className="mb-3 pb-3 border-b border-white/10">
-                        <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
-                          <span className="text-blue-400">💡</span>
-                          AI 추천 주제
-                        </h3>
-                        <p className="text-xs text-white/50">
-                          분석 결과를 바탕으로 생성할 수 있는 주제들입니다
-                        </p>
-                      </div>
-                      <p className="text-sm text-white/60 mb-4">
-                        구조 분석 후 추천 주제가 표시됩니다.
-                      </p>
-                      
-                      {/* 직접 입력 칸 */}
-                      <div className="space-y-2">
-                        <label className="text-sm font-semibold text-white/80 flex items-center gap-2">
-                          <span>✏️</span>
-                          또는 직접 주제 입력
-                        </label>
-                        <input
-                          type="text"
-                          value={selectedTopic}
-                          onChange={(e) => setSelectedTopic(e.target.value)}
-                          placeholder="원하는 주제를 직접 입력하세요 (예: 경제 위기 속에서 살아남는 방법)"
-                          className="w-full rounded-xl border border-white/20 bg-black/40 px-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="rounded-2xl border border-white/10 bg-black/30 p-5">
-                      <div className="mb-4 pb-3 border-b border-white/10">
-                        <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
-                          <span className="text-blue-400">💡</span>
-                          AI 추천 주제
-                        </h3>
-                        <p className="text-xs text-white/50">
-                          원하는 주제를 선택하면 해당 주제로 새로운 대본을 작성합니다 ({scriptIdeas.length}개)
-                        </p>
-                      </div>
-                      <div className="grid gap-2 mb-4">
-                        {scriptIdeas.map((idea, index) => (
-                          <button
-                            key={idea}
-                            type="button"
-                            onClick={() => setSelectedTopic(idea)}
-                            className={`rounded-xl border px-4 py-3 text-left text-sm transition ${
-                              selectedTopic === idea
-                                ? "border-red-400 bg-gradient-to-r from-red-500/20 to-orange-500/20 text-white shadow-lg"
-                                : "border-white/15 bg-black/30 text-white/70 hover:border-red-400/50 hover:bg-red-500/10"
-                            }`}
-                          >
-                            <span className="font-semibold text-white/80 mr-2">주제 {index + 1}.</span>
-                            {idea}
-                          </button>
-                        ))}
-                      </div>
-                      
-                      {/* 직접 입력 칸 */}
-                      <div className="space-y-2 pt-4 border-t border-white/10">
-                        <label className="text-sm font-semibold text-white/80 flex items-center gap-2">
-                          <span>✏️</span>
-                          또는 직접 주제 입력
-                        </label>
-                        <input
-                          type="text"
-                          value={selectedTopic && !scriptIdeas.includes(selectedTopic) ? selectedTopic : ''}
-                          onChange={(e) => setSelectedTopic(e.target.value)}
-                          placeholder="원하는 주제를 직접 입력하세요 (예: 경제 위기 속에서 살아남는 방법)"
-                          className="w-full rounded-xl border border-white/20 bg-black/40 px-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                        {selectedTopic && !scriptIdeas.includes(selectedTopic) && (
-                          <p className="text-xs text-blue-300 flex items-center gap-1">
-                            <span>✓</span>
-                            직접 입력한 주제로 대본을 작성합니다
+                      {scriptIdeas.length === 0 ? (
+                        <div className="rounded-2xl border border-white/10 bg-black/30 p-5">
+                          <div className="mb-3 pb-3 border-b border-white/10">
+                            <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
+                              <span className="text-blue-400">💡</span>
+                              AI 추천 주제
+                            </h3>
+                            <p className="text-xs text-white/50">
+                              분석 결과를 바탕으로 생성할 수 있는 주제들입니다
+                            </p>
+                          </div>
+                          <p className="text-sm text-white/60 mb-4">
+                            구조 분석 후 추천 주제가 표시됩니다.
                           </p>
-                        )}
-                      </div>
-                    </div>
-                  )}
+
+                          {/* 직접 입력 칸 */}
+                          <div className="space-y-2">
+                            <label className="text-sm font-semibold text-white/80 flex items-center gap-2">
+                              <span>✏️</span>
+                              또는 직접 주제 입력
+                            </label>
+                            <input
+                              type="text"
+                              value={selectedTopic}
+                              onChange={(e) => setSelectedTopic(e.target.value)}
+                              placeholder="원하는 주제를 직접 입력하세요 (예: 경제 위기 속에서 살아남는 방법)"
+                              className="w-full rounded-xl border border-white/20 bg-black/40 px-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="rounded-2xl border border-white/10 bg-black/30 p-5">
+                          <div className="mb-4 pb-3 border-b border-white/10">
+                            <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
+                              <span className="text-blue-400">💡</span>
+                              AI 추천 주제
+                            </h3>
+                            <p className="text-xs text-white/50">
+                              원하는 주제를 선택하면 해당 주제로 새로운 대본을 작성합니다 ({scriptIdeas.length}개)
+                            </p>
+                          </div>
+                          <div className="grid gap-2 mb-4">
+                            {scriptIdeas.map((idea, index) => (
+                              <button
+                                key={idea}
+                                type="button"
+                                onClick={() => setSelectedTopic(idea)}
+                                className={`rounded-xl border px-4 py-3 text-left text-sm transition ${selectedTopic === idea
+                                    ? "border-red-400 bg-gradient-to-r from-red-500/20 to-orange-500/20 text-white shadow-lg"
+                                    : "border-white/15 bg-black/30 text-white/70 hover:border-red-400/50 hover:bg-red-500/10"
+                                  }`}
+                              >
+                                <span className="font-semibold text-white/80 mr-2">주제 {index + 1}.</span>
+                                {idea}
+                              </button>
+                            ))}
+                          </div>
+
+                          {/* 직접 입력 칸 */}
+                          <div className="space-y-2 pt-4 border-t border-white/10">
+                            <label className="text-sm font-semibold text-white/80 flex items-center gap-2">
+                              <span>✏️</span>
+                              또는 직접 주제 입력
+                            </label>
+                            <input
+                              type="text"
+                              value={selectedTopic && !scriptIdeas.includes(selectedTopic) ? selectedTopic : ''}
+                              onChange={(e) => setSelectedTopic(e.target.value)}
+                              placeholder="원하는 주제를 직접 입력하세요 (예: 경제 위기 속에서 살아남는 방법)"
+                              className="w-full rounded-xl border border-white/20 bg-black/40 px-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                            {selectedTopic && !scriptIdeas.includes(selectedTopic) && (
+                              <p className="text-xs text-blue-300 flex items-center gap-1">
+                                <span>✓</span>
+                                직접 입력한 주제로 대본을 작성합니다
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* 하위 단계 이동 버튼 */}
@@ -1561,7 +1555,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                           estimatedTimeSeconds={25}
                         />
                       )}
-                      
+
                       <div className="flex justify-between items-center pt-4 border-t border-white/10">
                         <button
                           type="button"
@@ -1582,281 +1576,281 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     </div>
                   </>
                 )}
-                
+
                 {/* Step 3: 대본 생성 결과 */}
                 {scriptSubStep === 3 && generatedPlan && (
                   <>
                     <div className="space-y-3">
                       <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-                      <div className="mb-4 pb-3 border-b border-white/10">
-                        <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
-                          <span className="text-green-400">✨</span>
-                          생성된 대본
-                        </h3>
-                        <p className="text-xs text-white/50">
-                          AI가 선택한 주제로 작성한 완성된 대본입니다 ({generatedPlan.chapters?.length || 0}개 챕터)
-                        </p>
-                      </div>
-                      {generatedPlan.chapters && generatedPlan.chapters.length > 0 ? (
-                        <>
-                          <div className="space-y-4">
-                            {generatedPlan.chapters.map((chapter, index) => (
-                              <div
-                                key={chapter.id}
-                                className="rounded-xl border border-white/10 bg-black/30 p-4"
-                              >
-                                <div className="flex items-center justify-between mb-3">
-                                  <h4 className="text-base font-bold text-white flex items-center gap-2">
-                                    <span className="text-red-400">📖</span>
-                                    챕터 {index + 1}. {chapter.title}
-                                  </h4>
-                                  <button
-                                    onClick={() => {
-                                      setExpandedChapters(prev => ({
-                                        ...prev,
-                                        [index]: !prev[index]
-                                      }));
-                                    }}
-                                    className="px-3 py-1 rounded-full text-xs font-semibold bg-white/10 hover:bg-white/20 text-white transition-all flex items-center gap-1"
-                                  >
-                                    {expandedChapters[index] ? (
-                                      <>
-                                        <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                                        </svg>
-                                        접기
-                                      </>
-                                    ) : (
-                                      <>
-                                        <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                        </svg>
-                                        펼치기
-                                      </>
-                                    )}
-                                  </button>
-                                </div>
-                                <p className="text-sm text-white/60 mb-4 pb-3 border-b border-white/10">
-                                  {chapter.purpose}
-                                </p>
-                                {expandedChapters[index] && chapter.script && chapter.script.length > 0 && (
-                                  <>
-                                    <div className="space-y-3 max-h-[400px] overflow-y-auto p-3 bg-black/40 rounded-lg">
-                                      {chapter.script.map((line, lineIndex) => (
-                                        <div key={`${chapter.id}-${lineIndex}`}>
-                                          <div className="flex items-start gap-3">
-                                            <div className="w-24 flex-shrink-0 pt-0.5">
-                                              <span className={`font-bold text-sm ${characterColorMap.get(line.character) || "text-orange-400"}`}>
-                                                {line.character}
-                                              </span>
-                                              {line.timestamp && (
-                                                <div className="text-xs text-white/40 font-mono mt-0.5">
-                                                  [{line.timestamp}]
-                                                </div>
-                                              )}
-                                            </div>
-                                            <div className="flex-1 text-sm text-white/90 leading-relaxed">
-                                              {line.line}
-                                            </div>
-                                          </div>
-                                          {line.imagePrompt && (
-                                            <div className="mt-3 ml-[108px] p-3 rounded-md border bg-zinc-950 border-zinc-700/50">
-                                              <p className="text-xs font-semibold text-neutral-400 mb-1">
-                                                🎨 이미지 생성 프롬프트
-                                              </p>
-                                              <p className="text-sm text-neutral-300 font-mono">
-                                                {line.imagePrompt}
-                                              </p>
-                                            </div>
-                                          )}
-                                        </div>
-                                      ))}
-                                    </div>
-                                    
-                                    {/* 챕터별 다운로드 버튼 */}
-                                    <div className="mt-4 pt-4 border-t border-white/10 flex gap-3">
-                                      <button
-                                        onClick={() => {
-                                          const text = formatChapterScriptToText(chapter);
-                                          if (!text || text.trim() === "") {
-                                            alert("다운로드할 대본이 없습니다.");
-                                            return;
-                                          }
-                                          const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-                                          const url = URL.createObjectURL(blob);
-                                          const a = document.createElement("a");
-                                          a.href = url;
-                                          a.download = `chapter-${index + 1}-script.txt`;
-                                          a.click();
-                                          URL.revokeObjectURL(url);
-                                        }}
-                                        className="flex-1 px-4 py-2.5 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-400 hover:to-red-500 text-white font-semibold rounded-lg transition-all duration-200 shadow-lg flex items-center justify-center gap-2"
-                                      >
-                                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                        </svg>
-                                        📜 대본 다운로드
-                                      </button>
-                                    </div>
-                                  </>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                          
-                          {/* 전체 대본 다운로드 버튼 */}
-                          <div className="mt-4 pt-4 border-t border-white/10">
-                            <button
-                              onClick={() => {
-                                const text = formatAllChaptersToText(generatedPlan.chapters || []);
-                                if (!text || text.trim() === "") {
-                                  alert("다운로드할 대본이 없습니다.");
-                                  return;
-                                }
-                                const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-                                const url = URL.createObjectURL(blob);
-                                const a = document.createElement("a");
-                                a.href = url;
-                                a.download = "all-chapters-script.txt";
-                                a.click();
-                                URL.revokeObjectURL(url);
-                              }}
-                              className="w-full px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-white font-bold rounded-lg transition-all duration-200 shadow-lg flex items-center justify-center gap-2"
-                            >
-                              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                              </svg>
-                              📚 전체 대본 다운로드
-                            </button>
-                          </div>
-                        </>
-                      ) : generatedPlan.scriptWithCharacters && generatedPlan.scriptWithCharacters.length > 0 ? (
-                        <>
-                          <div className="mb-3">
-                            <button
-                              onClick={() => {
-                                setExpandedChapters(prev => ({
-                                  ...prev,
-                                  [0]: !prev[0]
-                                }));
-                              }}
-                              className="px-3 py-1 rounded-full text-xs font-semibold bg-white/10 hover:bg-white/20 text-white transition-all flex items-center gap-1"
-                            >
-                              {expandedChapters[0] ? (
-                                <>
-                                  <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                                  </svg>
-                                  접기
-                                </>
-                              ) : (
-                                <>
-                                  <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                  </svg>
-                                  펼치기
-                                </>
-                              )}
-                            </button>
-                          </div>
-                          {expandedChapters[0] && (
-                            <div className="space-y-3 max-h-[500px] overflow-y-auto p-3 bg-black/40 rounded-lg">
-                              {generatedPlan.scriptWithCharacters.map((line, lineIndex) => (
-                                <div key={`script-${lineIndex}`}>
-                                  <div className="flex items-start gap-3">
-                                    <div className="w-24 flex-shrink-0 pt-0.5">
-                                      <span className={`font-bold text-sm ${characterColorMap.get(line.character) || "text-orange-400"}`}>
-                                        {line.character}
-                                      </span>
-                                      {line.timestamp && (
-                                        <div className="text-xs text-white/40 font-mono mt-0.5">
-                                          [{line.timestamp}]
-                                        </div>
+                        <div className="mb-4 pb-3 border-b border-white/10">
+                          <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
+                            <span className="text-green-400">✨</span>
+                            생성된 대본
+                          </h3>
+                          <p className="text-xs text-white/50">
+                            AI가 선택한 주제로 작성한 완성된 대본입니다 ({generatedPlan.chapters?.length || 0}개 챕터)
+                          </p>
+                        </div>
+                        {generatedPlan.chapters && generatedPlan.chapters.length > 0 ? (
+                          <>
+                            <div className="space-y-4">
+                              {generatedPlan.chapters.map((chapter, index) => (
+                                <div
+                                  key={chapter.id}
+                                  className="rounded-xl border border-white/10 bg-black/30 p-4"
+                                >
+                                  <div className="flex items-center justify-between mb-3">
+                                    <h4 className="text-base font-bold text-white flex items-center gap-2">
+                                      <span className="text-red-400">📖</span>
+                                      챕터 {index + 1}. {chapter.title}
+                                    </h4>
+                                    <button
+                                      onClick={() => {
+                                        setExpandedChapters(prev => ({
+                                          ...prev,
+                                          [index]: !prev[index]
+                                        }));
+                                      }}
+                                      className="px-3 py-1 rounded-full text-xs font-semibold bg-white/10 hover:bg-white/20 text-white transition-all flex items-center gap-1"
+                                    >
+                                      {expandedChapters[index] ? (
+                                        <>
+                                          <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                                          </svg>
+                                          접기
+                                        </>
+                                      ) : (
+                                        <>
+                                          <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                          </svg>
+                                          펼치기
+                                        </>
                                       )}
-                                    </div>
-                                    <div className="flex-1 text-sm text-white/90 leading-relaxed">
-                                      {line.line}
-                                    </div>
+                                    </button>
                                   </div>
-                                  {line.imagePrompt && (
-                                    <div className="mt-3 ml-[108px] p-3 rounded-md border bg-zinc-950 border-zinc-700/50">
-                                      <p className="text-xs font-semibold text-neutral-400 mb-1">
-                                        🎨 이미지 생성 프롬프트
-                                      </p>
-                                      <p className="text-sm text-neutral-300 font-mono">
-                                        {line.imagePrompt}
-                                      </p>
-                                    </div>
+                                  <p className="text-sm text-white/60 mb-4 pb-3 border-b border-white/10">
+                                    {chapter.purpose}
+                                  </p>
+                                  {expandedChapters[index] && chapter.script && chapter.script.length > 0 && (
+                                    <>
+                                      <div className="space-y-3 max-h-[400px] overflow-y-auto p-3 bg-black/40 rounded-lg">
+                                        {chapter.script.map((line, lineIndex) => (
+                                          <div key={`${chapter.id}-${lineIndex}`}>
+                                            <div className="flex items-start gap-3">
+                                              <div className="w-24 flex-shrink-0 pt-0.5">
+                                                <span className={`font-bold text-sm ${characterColorMap.get(line.character) || "text-orange-400"}`}>
+                                                  {line.character}
+                                                </span>
+                                                {line.timestamp && (
+                                                  <div className="text-xs text-white/40 font-mono mt-0.5">
+                                                    [{line.timestamp}]
+                                                  </div>
+                                                )}
+                                              </div>
+                                              <div className="flex-1 text-sm text-white/90 leading-relaxed">
+                                                {line.line}
+                                              </div>
+                                            </div>
+                                            {line.imagePrompt && (
+                                              <div className="mt-3 ml-[108px] p-3 rounded-md border bg-zinc-950 border-zinc-700/50">
+                                                <p className="text-xs font-semibold text-neutral-400 mb-1">
+                                                  🎨 이미지 생성 프롬프트
+                                                </p>
+                                                <p className="text-sm text-neutral-300 font-mono">
+                                                  {line.imagePrompt}
+                                                </p>
+                                              </div>
+                                            )}
+                                          </div>
+                                        ))}
+                                      </div>
+
+                                      {/* 챕터별 다운로드 버튼 */}
+                                      <div className="mt-4 pt-4 border-t border-white/10 flex gap-3">
+                                        <button
+                                          onClick={() => {
+                                            const text = formatChapterScriptToText(chapter);
+                                            if (!text || text.trim() === "") {
+                                              alert("다운로드할 대본이 없습니다.");
+                                              return;
+                                            }
+                                            const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+                                            const url = URL.createObjectURL(blob);
+                                            const a = document.createElement("a");
+                                            a.href = url;
+                                            a.download = `chapter-${index + 1}-script.txt`;
+                                            a.click();
+                                            URL.revokeObjectURL(url);
+                                          }}
+                                          className="flex-1 px-4 py-2.5 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-400 hover:to-red-500 text-white font-semibold rounded-lg transition-all duration-200 shadow-lg flex items-center justify-center gap-2"
+                                        >
+                                          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                          </svg>
+                                          📜 대본 다운로드
+                                        </button>
+                                      </div>
+                                    </>
                                   )}
                                 </div>
                               ))}
                             </div>
-                          )}
-                          
-                          {/* 전체 대본 다운로드 버튼 */}
-                          <div className="mt-4 pt-4 border-t border-white/10">
-                            <button
-                              onClick={() => {
-                                if (!generatedPlan.scriptWithCharacters || generatedPlan.scriptWithCharacters.length === 0) {
-                                  alert("다운로드할 대본이 없습니다.");
-                                  return;
-                                }
-                                
-                                const text = generatedPlan.scriptWithCharacters
-                                  .map((line) => {
-                                    let result = `${line.character}: ${line.line}`;
-                                    if (line.imagePrompt) {
-                                      result += `\n[이미지 프롬프트] ${line.imagePrompt}`;
-                                    }
-                                    return result;
-                                  })
-                                  .join("\n\n");
-                                
-                                const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-                                const url = URL.createObjectURL(blob);
-                                const a = document.createElement("a");
-                                a.href = url;
-                                a.download = "script.txt";
-                                a.click();
-                                URL.revokeObjectURL(url);
-                              }}
-                              className="w-full px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-white font-bold rounded-lg transition-all duration-200 shadow-lg flex items-center justify-center gap-2"
-                            >
-                              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                              </svg>
-                              📚 대본 다운로드
-                            </button>
-                          </div>
-                        </>
-                      ) : generatedPlan.scriptOutline && generatedPlan.scriptOutline.length > 0 ? (
-                        <div className="space-y-3">
-                          {generatedPlan.scriptOutline.map((stage, index) => (
-                            <div
-                              key={`outline-${index}`}
-                              className="rounded-xl border border-white/10 bg-black/30 p-4"
-                            >
-                              <h4 className="text-base font-bold text-white mb-2 flex items-center gap-2">
-                                <span className="text-red-400">📋</span>
-                                {stage.stage}
-                              </h4>
-                              <p className="text-sm text-white/60 mb-3 pb-3 border-b border-white/10">
-                                {stage.purpose}
-                              </p>
-                              <div className="text-sm text-white/70 leading-relaxed whitespace-pre-wrap">
-                                {stage.details}
-                              </div>
+
+                            {/* 전체 대본 다운로드 버튼 */}
+                            <div className="mt-4 pt-4 border-t border-white/10">
+                              <button
+                                onClick={() => {
+                                  const text = formatAllChaptersToText(generatedPlan.chapters || []);
+                                  if (!text || text.trim() === "") {
+                                    alert("다운로드할 대본이 없습니다.");
+                                    return;
+                                  }
+                                  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+                                  const url = URL.createObjectURL(blob);
+                                  const a = document.createElement("a");
+                                  a.href = url;
+                                  a.download = "all-chapters-script.txt";
+                                  a.click();
+                                  URL.revokeObjectURL(url);
+                                }}
+                                className="w-full px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-white font-bold rounded-lg transition-all duration-200 shadow-lg flex items-center justify-center gap-2"
+                              >
+                                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                </svg>
+                                📚 전체 대본 다운로드
+                              </button>
                             </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="text-sm text-white/60 p-4 bg-black/30 rounded-lg text-center">
-                          대본 내용이 없습니다.
-                        </div>
-                      )}
+                          </>
+                        ) : generatedPlan.scriptWithCharacters && generatedPlan.scriptWithCharacters.length > 0 ? (
+                          <>
+                            <div className="mb-3">
+                              <button
+                                onClick={() => {
+                                  setExpandedChapters(prev => ({
+                                    ...prev,
+                                    [0]: !prev[0]
+                                  }));
+                                }}
+                                className="px-3 py-1 rounded-full text-xs font-semibold bg-white/10 hover:bg-white/20 text-white transition-all flex items-center gap-1"
+                              >
+                                {expandedChapters[0] ? (
+                                  <>
+                                    <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                                    </svg>
+                                    접기
+                                  </>
+                                ) : (
+                                  <>
+                                    <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                    펼치기
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                            {expandedChapters[0] && (
+                              <div className="space-y-3 max-h-[500px] overflow-y-auto p-3 bg-black/40 rounded-lg">
+                                {generatedPlan.scriptWithCharacters.map((line, lineIndex) => (
+                                  <div key={`script-${lineIndex}`}>
+                                    <div className="flex items-start gap-3">
+                                      <div className="w-24 flex-shrink-0 pt-0.5">
+                                        <span className={`font-bold text-sm ${characterColorMap.get(line.character) || "text-orange-400"}`}>
+                                          {line.character}
+                                        </span>
+                                        {line.timestamp && (
+                                          <div className="text-xs text-white/40 font-mono mt-0.5">
+                                            [{line.timestamp}]
+                                          </div>
+                                        )}
+                                      </div>
+                                      <div className="flex-1 text-sm text-white/90 leading-relaxed">
+                                        {line.line}
+                                      </div>
+                                    </div>
+                                    {line.imagePrompt && (
+                                      <div className="mt-3 ml-[108px] p-3 rounded-md border bg-zinc-950 border-zinc-700/50">
+                                        <p className="text-xs font-semibold text-neutral-400 mb-1">
+                                          🎨 이미지 생성 프롬프트
+                                        </p>
+                                        <p className="text-sm text-neutral-300 font-mono">
+                                          {line.imagePrompt}
+                                        </p>
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {/* 전체 대본 다운로드 버튼 */}
+                            <div className="mt-4 pt-4 border-t border-white/10">
+                              <button
+                                onClick={() => {
+                                  if (!generatedPlan.scriptWithCharacters || generatedPlan.scriptWithCharacters.length === 0) {
+                                    alert("다운로드할 대본이 없습니다.");
+                                    return;
+                                  }
+
+                                  const text = generatedPlan.scriptWithCharacters
+                                    .map((line) => {
+                                      let result = `${line.character}: ${line.line}`;
+                                      if (line.imagePrompt) {
+                                        result += `\n[이미지 프롬프트] ${line.imagePrompt}`;
+                                      }
+                                      return result;
+                                    })
+                                    .join("\n\n");
+
+                                  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+                                  const url = URL.createObjectURL(blob);
+                                  const a = document.createElement("a");
+                                  a.href = url;
+                                  a.download = "script.txt";
+                                  a.click();
+                                  URL.revokeObjectURL(url);
+                                }}
+                                className="w-full px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-white font-bold rounded-lg transition-all duration-200 shadow-lg flex items-center justify-center gap-2"
+                              >
+                                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                </svg>
+                                📚 대본 다운로드
+                              </button>
+                            </div>
+                          </>
+                        ) : generatedPlan.scriptOutline && generatedPlan.scriptOutline.length > 0 ? (
+                          <div className="space-y-3">
+                            {generatedPlan.scriptOutline.map((stage, index) => (
+                              <div
+                                key={`outline-${index}`}
+                                className="rounded-xl border border-white/10 bg-black/30 p-4"
+                              >
+                                <h4 className="text-base font-bold text-white mb-2 flex items-center gap-2">
+                                  <span className="text-red-400">📋</span>
+                                  {stage.stage}
+                                </h4>
+                                <p className="text-sm text-white/60 mb-3 pb-3 border-b border-white/10">
+                                  {stage.purpose}
+                                </p>
+                                <div className="text-sm text-white/70 leading-relaxed whitespace-pre-wrap">
+                                  {stage.details}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-sm text-white/60 p-4 bg-black/30 rounded-lg text-center">
+                            대본 내용이 없습니다.
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    </div>
-                    
+
                     {/* 하위 단계 이동 버튼 */}
                     <div className="flex justify-between items-center pt-4 border-t border-white/10">
                       <button
@@ -1947,11 +1941,10 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                 onClick={() => {
                                   setChapterVoices({ ...chapterVoices, [index]: voice.name });
                                 }}
-                                className={`px-4 py-2 rounded-lg border text-sm font-medium transition-all ${
-                                  (chapterVoices[index] || voiceOptions[0].name) === voice.name
+                                className={`px-4 py-2 rounded-lg border text-sm font-medium transition-all ${(chapterVoices[index] || voiceOptions[0].name) === voice.name
                                     ? "border-red-400 bg-gradient-to-r from-red-500/30 to-orange-500/30 text-red-200 shadow-lg"
                                     : "border-white/20 bg-black/40 text-white/70 hover:border-red-400/50 hover:bg-red-500/10"
-                                }`}
+                                  }`}
                               >
                                 {voice.name}
                                 <span className="text-xs ml-1 opacity-70">· {voice.label}</span>
@@ -1963,11 +1956,10 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                   playPreviewAudio(index, voice.name, sampleText);
                                 }}
                                 disabled={isPlayingPreview && playingChapter === index && playingVoice === voice.name}
-                                className={`p-2 rounded-lg border transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
-                                  playingChapter === index && playingVoice === voice.name
+                                className={`p-2 rounded-lg border transition-all disabled:opacity-50 disabled:cursor-not-allowed ${playingChapter === index && playingVoice === voice.name
                                     ? 'border-red-400 bg-red-500 shadow-lg'
                                     : 'border-white/10 bg-black/40 hover:bg-red-500/20 hover:border-red-400/50'
-                                }`}
+                                  }`}
                                 title={playingChapter === index && playingVoice === voice.name ? '정지' : '미리듣기'}
                               >
                                 {playingChapter === index && playingVoice === voice.name ? (
@@ -2023,11 +2015,10 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                               }
                             }}
                             disabled={isPlayingPreview && playingChapter !== index}
-                            className={`px-4 py-2 rounded-full text-white text-sm font-semibold shadow-lg transition-all flex items-center gap-2 ${
-                              playingChapter === index 
-                                ? 'bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-500 hover:to-pink-500' 
+                            className={`px-4 py-2 rounded-full text-white text-sm font-semibold shadow-lg transition-all flex items-center gap-2 ${playingChapter === index
+                                ? 'bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-500 hover:to-pink-500'
                                 : 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500'
-                            } disabled:opacity-50 disabled:cursor-not-allowed`}
+                              } disabled:opacity-50 disabled:cursor-not-allowed`}
                           >
                             {playingChapter === index ? (
                               <>
@@ -2076,165 +2067,162 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                               </button>
                             </div>
 
-                          <div className="p-6">
-                            {/* 추천 목소리 */}
-                            <div className="mb-6">
-                              <h4 className="text-base font-bold text-white mb-3 flex items-center gap-2">
-                                <span className="text-yellow-400">⭐</span>
-                                추천 목소리
-                              </h4>
-                              <div className="space-y-2">
-                                {allVoiceOptions.filter(v => v.category === "추천").map((voice) => (
-                                  <button
-                                    key={voice.name}
-                                    onClick={() => {
-                                      if (currentChapterForVoice !== null) {
-                                        setChapterVoices({ ...chapterVoices, [currentChapterForVoice]: voice.name });
-                                      }
-                                      setShowVoiceModal(false);
-                                    }}
-                                    className="w-full rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-white/0 hover:from-red-500/20 hover:to-orange-500/10 hover:border-red-400/50 transition-all group p-3 flex items-center gap-3"
-                                  >
-                                    <button 
-                                      onClick={(e) => {
-                                        e.stopPropagation();
+                            <div className="p-6">
+                              {/* 추천 목소리 */}
+                              <div className="mb-6">
+                                <h4 className="text-base font-bold text-white mb-3 flex items-center gap-2">
+                                  <span className="text-yellow-400">⭐</span>
+                                  추천 목소리
+                                </h4>
+                                <div className="space-y-2">
+                                  {allVoiceOptions.filter(v => v.category === "추천").map((voice) => (
+                                    <button
+                                      key={voice.name}
+                                      onClick={() => {
                                         if (currentChapterForVoice !== null) {
-                                          playPreviewAudio(currentChapterForVoice, voice.name, voice.sampleText);
+                                          setChapterVoices({ ...chapterVoices, [currentChapterForVoice]: voice.name });
                                         }
+                                        setShowVoiceModal(false);
                                       }}
-                                      disabled={isPlayingPreview}
-                                      className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
-                                        playingChapter === currentChapterForVoice && playingVoice === voice.name
-                                          ? 'bg-red-500 shadow-lg'
-                                          : 'bg-white/10 hover:bg-red-500/50'
-                                      }`}
-                                      title={playingChapter === currentChapterForVoice && playingVoice === voice.name ? '정지' : '미리듣기'}
+                                      className="w-full rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-white/0 hover:from-red-500/20 hover:to-orange-500/10 hover:border-red-400/50 transition-all group p-3 flex items-center gap-3"
                                     >
-                                      {playingChapter === currentChapterForVoice && playingVoice === voice.name ? (
-                                        <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                          <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
-                                        </svg>
-                                      ) : (
-                                        <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                          <path d="M8 5v14l11-7z" />
-                                        </svg>
-                                      )}
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          if (currentChapterForVoice !== null) {
+                                            playPreviewAudio(currentChapterForVoice, voice.name, voice.sampleText);
+                                          }
+                                        }}
+                                        disabled={isPlayingPreview}
+                                        className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed ${playingChapter === currentChapterForVoice && playingVoice === voice.name
+                                            ? 'bg-red-500 shadow-lg'
+                                            : 'bg-white/10 hover:bg-red-500/50'
+                                          }`}
+                                        title={playingChapter === currentChapterForVoice && playingVoice === voice.name ? '정지' : '미리듣기'}
+                                      >
+                                        {playingChapter === currentChapterForVoice && playingVoice === voice.name ? (
+                                          <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
+                                          </svg>
+                                        ) : (
+                                          <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M8 5v14l11-7z" />
+                                          </svg>
+                                        )}
+                                      </button>
+                                      <div className="flex-1 text-left">
+                                        <p className="text-base font-bold text-white group-hover:text-red-300 transition-colors">{voice.name}</p>
+                                        <p className="text-xs text-white/60 mt-0.5">{voice.label} · {voice.tone}</p>
+                                      </div>
                                     </button>
-                                    <div className="flex-1 text-left">
-                                      <p className="text-base font-bold text-white group-hover:text-red-300 transition-colors">{voice.name}</p>
-                                      <p className="text-xs text-white/60 mt-0.5">{voice.label} · {voice.tone}</p>
-                                    </div>
-                                  </button>
-                                ))}
+                                  ))}
+                                </div>
                               </div>
-                            </div>
 
-                            {/* 남성 목소리 */}
-                            <div className="mb-6">
-                              <h4 className="text-base font-bold text-white mb-3 flex items-center gap-2">
-                                <span className="text-blue-400">👨</span>
-                                남성 목소리
-                              </h4>
-                              <div className="space-y-2">
-                                {allVoiceOptions.filter(v => v.category === "남성").map((voice) => (
-                                  <button
-                                    key={voice.name}
-                                    onClick={() => {
-                                      if (currentChapterForVoice !== null) {
-                                        setChapterVoices({ ...chapterVoices, [currentChapterForVoice]: voice.name });
-                                      }
-                                      setShowVoiceModal(false);
-                                    }}
-                                    className="w-full rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-white/0 hover:from-blue-500/20 hover:to-cyan-500/10 hover:border-blue-400/50 transition-all group p-3 flex items-center gap-3"
-                                  >
-                                    <button 
-                                      onClick={(e) => {
-                                        e.stopPropagation();
+                              {/* 남성 목소리 */}
+                              <div className="mb-6">
+                                <h4 className="text-base font-bold text-white mb-3 flex items-center gap-2">
+                                  <span className="text-blue-400">👨</span>
+                                  남성 목소리
+                                </h4>
+                                <div className="space-y-2">
+                                  {allVoiceOptions.filter(v => v.category === "남성").map((voice) => (
+                                    <button
+                                      key={voice.name}
+                                      onClick={() => {
                                         if (currentChapterForVoice !== null) {
-                                          playPreviewAudio(currentChapterForVoice, voice.name, voice.sampleText);
+                                          setChapterVoices({ ...chapterVoices, [currentChapterForVoice]: voice.name });
                                         }
+                                        setShowVoiceModal(false);
                                       }}
-                                      disabled={isPlayingPreview}
-                                      className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
-                                        playingChapter === currentChapterForVoice && playingVoice === voice.name
-                                          ? 'bg-blue-500 shadow-lg'
-                                          : 'bg-white/10 hover:bg-blue-500/50'
-                                      }`}
-                                      title={playingChapter === currentChapterForVoice && playingVoice === voice.name ? '정지' : '미리듣기'}
+                                      className="w-full rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-white/0 hover:from-blue-500/20 hover:to-cyan-500/10 hover:border-blue-400/50 transition-all group p-3 flex items-center gap-3"
                                     >
-                                      {playingChapter === currentChapterForVoice && playingVoice === voice.name ? (
-                                        <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                          <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
-                                        </svg>
-                                      ) : (
-                                        <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                          <path d="M8 5v14l11-7z" />
-                                        </svg>
-                                      )}
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          if (currentChapterForVoice !== null) {
+                                            playPreviewAudio(currentChapterForVoice, voice.name, voice.sampleText);
+                                          }
+                                        }}
+                                        disabled={isPlayingPreview}
+                                        className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed ${playingChapter === currentChapterForVoice && playingVoice === voice.name
+                                            ? 'bg-blue-500 shadow-lg'
+                                            : 'bg-white/10 hover:bg-blue-500/50'
+                                          }`}
+                                        title={playingChapter === currentChapterForVoice && playingVoice === voice.name ? '정지' : '미리듣기'}
+                                      >
+                                        {playingChapter === currentChapterForVoice && playingVoice === voice.name ? (
+                                          <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
+                                          </svg>
+                                        ) : (
+                                          <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M8 5v14l11-7z" />
+                                          </svg>
+                                        )}
+                                      </button>
+                                      <div className="flex-1 text-left">
+                                        <p className="text-base font-bold text-white group-hover:text-blue-300 transition-colors">{voice.name}</p>
+                                        <p className="text-xs text-white/60 mt-0.5">{voice.label} · {voice.tone}</p>
+                                      </div>
                                     </button>
-                                    <div className="flex-1 text-left">
-                                      <p className="text-base font-bold text-white group-hover:text-blue-300 transition-colors">{voice.name}</p>
-                                      <p className="text-xs text-white/60 mt-0.5">{voice.label} · {voice.tone}</p>
-                                    </div>
-                                  </button>
-                                ))}
+                                  ))}
+                                </div>
                               </div>
-                            </div>
 
-                            {/* 여성 목소리 */}
-                            <div>
-                              <h4 className="text-base font-bold text-white mb-3 flex items-center gap-2">
-                                <span className="text-pink-400">👩</span>
-                                여성 목소리
-                              </h4>
-                              <div className="space-y-2">
-                                {allVoiceOptions.filter(v => v.category === "여성").map((voice) => (
-                                  <button
-                                    key={voice.name}
-                                    onClick={() => {
-                                      if (currentChapterForVoice !== null) {
-                                        setChapterVoices({ ...chapterVoices, [currentChapterForVoice]: voice.name });
-                                      }
-                                      setShowVoiceModal(false);
-                                    }}
-                                    className="w-full rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-white/0 hover:from-pink-500/20 hover:to-rose-500/10 hover:border-pink-400/50 transition-all group p-3 flex items-center gap-3"
-                                  >
-                                    <button 
-                                      onClick={(e) => {
-                                        e.stopPropagation();
+                              {/* 여성 목소리 */}
+                              <div>
+                                <h4 className="text-base font-bold text-white mb-3 flex items-center gap-2">
+                                  <span className="text-pink-400">👩</span>
+                                  여성 목소리
+                                </h4>
+                                <div className="space-y-2">
+                                  {allVoiceOptions.filter(v => v.category === "여성").map((voice) => (
+                                    <button
+                                      key={voice.name}
+                                      onClick={() => {
                                         if (currentChapterForVoice !== null) {
-                                          playPreviewAudio(currentChapterForVoice, voice.name, voice.sampleText);
+                                          setChapterVoices({ ...chapterVoices, [currentChapterForVoice]: voice.name });
                                         }
+                                        setShowVoiceModal(false);
                                       }}
-                                      disabled={isPlayingPreview}
-                                      className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
-                                        playingChapter === currentChapterForVoice && playingVoice === voice.name
-                                          ? 'bg-pink-500 shadow-lg'
-                                          : 'bg-white/10 hover:bg-pink-500/50'
-                                      }`}
-                                      title={playingChapter === currentChapterForVoice && playingVoice === voice.name ? '정지' : '미리듣기'}
+                                      className="w-full rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-white/0 hover:from-pink-500/20 hover:to-rose-500/10 hover:border-pink-400/50 transition-all group p-3 flex items-center gap-3"
                                     >
-                                      {playingChapter === currentChapterForVoice && playingVoice === voice.name ? (
-                                        <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                          <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
-                                        </svg>
-                                      ) : (
-                                        <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                          <path d="M8 5v14l11-7z" />
-                                        </svg>
-                                      )}
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          if (currentChapterForVoice !== null) {
+                                            playPreviewAudio(currentChapterForVoice, voice.name, voice.sampleText);
+                                          }
+                                        }}
+                                        disabled={isPlayingPreview}
+                                        className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed ${playingChapter === currentChapterForVoice && playingVoice === voice.name
+                                            ? 'bg-pink-500 shadow-lg'
+                                            : 'bg-white/10 hover:bg-pink-500/50'
+                                          }`}
+                                        title={playingChapter === currentChapterForVoice && playingVoice === voice.name ? '정지' : '미리듣기'}
+                                      >
+                                        {playingChapter === currentChapterForVoice && playingVoice === voice.name ? (
+                                          <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
+                                          </svg>
+                                        ) : (
+                                          <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M8 5v14l11-7z" />
+                                          </svg>
+                                        )}
+                                      </button>
+                                      <div className="flex-1 text-left">
+                                        <p className="text-base font-bold text-white group-hover:text-pink-300 transition-colors">{voice.name}</p>
+                                        <p className="text-xs text-white/60 mt-0.5">{voice.label} · {voice.tone}</p>
+                                      </div>
                                     </button>
-                                    <div className="flex-1 text-left">
-                                      <p className="text-base font-bold text-white group-hover:text-pink-300 transition-colors">{voice.name}</p>
-                                      <p className="text-xs text-white/60 mt-0.5">{voice.label} · {voice.tone}</p>
-                                    </div>
-                                  </button>
-                                ))}
+                                  ))}
+                                </div>
                               </div>
                             </div>
                           </div>
                         </div>
-                      </div>
                       )}
                     </div>
                   ))}
@@ -2315,40 +2303,40 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   </div>
                 ))}
               </div>
-                  <div className="mb-8 border-b border-white/10 pb-8">
-                    <h3 className="text-[clamp(1rem,1.6vw,1.2rem)] font-semibold text-white">
-                      AI 영상 생성 (Seedance)
-                    </h3>
-                    <p className="mt-2 text-[clamp(0.8rem,1.4vw,0.95rem)] text-white/60">
-                      프롬프트나 이미지를 입력하여 Seedance AI로 영상을 생성하세요.
-                    </p>
-                    <div className="mt-4 space-y-3">
-                       <textarea
-                         value={videoPrompt}
-                         onChange={(e) => setVideoPrompt(e.target.value)}
-                         placeholder="영상에 대한 설명을 입력하세요 (예: 춤추는 고양이)"
-                         className="w-full rounded-xl border border-white/20 bg-white px-4 py-3 text-sm text-black focus:outline-none focus:ring-2 focus:ring-red-500"
-                         rows={3}
-                       />
-                       <button
-                         onClick={handleGenerateVideo}
-                         disabled={isGeneratingVideo}
-                         className="rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-500 disabled:opacity-50"
-                       >
-                         {isGeneratingVideo ? "생성 중..." : "영상 생성하기"}
-                       </button>
-                    </div>
-                    {generatedVideoUrl && (
-                      <div className="mt-4">
-                        <video src={generatedVideoUrl} controls className="w-full rounded-lg" />
-                        <a href={generatedVideoUrl} download className="mt-2 inline-block text-sm text-red-400 hover:text-red-300">다운로드</a>
-                      </div>
-                    )}
+              <div className="mb-8 border-b border-white/10 pb-8">
+                <h3 className="text-[clamp(1rem,1.6vw,1.2rem)] font-semibold text-white">
+                  AI 영상 생성 (Seedance)
+                </h3>
+                <p className="mt-2 text-[clamp(0.8rem,1.4vw,0.95rem)] text-white/60">
+                  프롬프트나 이미지를 입력하여 Seedance AI로 영상을 생성하세요.
+                </p>
+                <div className="mt-4 space-y-3">
+                  <textarea
+                    value={videoPrompt}
+                    onChange={(e) => setVideoPrompt(e.target.value)}
+                    placeholder="영상에 대한 설명을 입력하세요 (예: 춤추는 고양이)"
+                    className="w-full rounded-xl border border-white/20 bg-white px-4 py-3 text-sm text-black focus:outline-none focus:ring-2 focus:ring-red-500"
+                    rows={3}
+                  />
+                  <button
+                    onClick={handleGenerateVideo}
+                    disabled={isGeneratingVideo}
+                    className="rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-500 disabled:opacity-50"
+                  >
+                    {isGeneratingVideo ? "생성 중..." : "영상 생성하기"}
+                  </button>
+                </div>
+                {generatedVideoUrl && (
+                  <div className="mt-4">
+                    <video src={generatedVideoUrl} controls className="w-full rounded-lg" />
+                    <a href={generatedVideoUrl} download className="mt-2 inline-block text-sm text-red-400 hover:text-red-300">다운로드</a>
                   </div>
+                )}
+              </div>
 
-                  <h3 className="text-[clamp(1rem,1.6vw,1.2rem)] font-semibold text-white">
-                    영상 패키지 재료 업로드
-                  </h3>
+              <h3 className="text-[clamp(1rem,1.6vw,1.2rem)] font-semibold text-white">
+                영상 패키지 재료 업로드
+              </h3>
               <label className="mt-2 inline-flex cursor-pointer items-center gap-2 rounded-2xl border border-dashed border-white/40 px-4 py-3 text-sm text-white/60">
                 <FiUpload />
                 파일 선택
@@ -2522,9 +2510,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       <div className="absolute -top-40 -left-28 h-[clamp(260px,40vw,460px)] w-[clamp(260px,40vw,460px)] rounded-full bg-gradient-to-br from-red-600/40 via-orange-500/20 to-transparent blur-3xl" />
       <div className="absolute -bottom-32 -right-28 h-[clamp(240px,36vw,420px)] w-[clamp(240px,36vw,420px)] rounded-full bg-gradient-to-tr from-rose-400/30 via-purple-500/10 to-transparent blur-3xl" />
 
-      <div className="absolute top-0 right-0 p-4 sm:p-6 flex gap-3 z-50 items-center">
-        
-      </div>
+      <UserCreditToolbar user={user} onLogout={handleLogout} tone="red" />
 
       <div className="relative mx-auto max-w-[min(1280px,94vw)] px-[clamp(1rem,3vw,2.5rem)] py-[clamp(2rem,4vw,3.8rem)]">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -2547,13 +2533,12 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
             {steps.map((step, index) => (
               <div
                 key={step.id}
-                className={`rounded-full border px-3 py-1 text-center transition-all ${
-                  index === currentStep
+                className={`rounded-full border px-3 py-1 text-center transition-all ${index === currentStep
                     ? "border-red-400/50 bg-red-500/10 text-red-200"
                     : index < currentStep
-                    ? "border-green-400/30 bg-green-500/5 text-green-200/70"
-                    : "border-white/10 bg-white/5 text-white/40"
-                }`}
+                      ? "border-green-400/30 bg-green-500/5 text-green-200/70"
+                      : "border-white/10 bg-white/5 text-white/40"
+                  }`}
               >
                 {index + 1}. {step.label}
               </div>
@@ -2561,38 +2546,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
           </div>
         </header>
 
-        {/* API 키 입력 섹션 - 통합 */}
-        <div className="mt-6">
-          <div className="rounded-2xl border border-red-500/30 bg-gradient-to-r from-red-500/10 to-orange-500/10 p-6">
-            <div className="mb-4">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                <span className="text-red-400">🔑</span>
-                API 키 설정
-              </h3>
-              <p className="text-xs text-white/60 mt-1">브라우저에만 저장되며 서버로 전송되지 않습니다.</p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <ApiKeyInput
-                storageKey={STORAGE_KEYS.geminiApiKey}
-                label="Gemini API 키"
-                placeholder="AIzaSy..."
-                helpText="대본 분석 및 생성용"
-                guideRoute="/api-guide-aistudio"
-                theme="red"
-                apiType="gemini"
-              />
-              <ApiKeyInput
-                storageKey={STORAGE_KEYS.cloudConsoleApiKey}
-                label="클라우드 콘솔 API 키"
-                placeholder="AIzaSy..."
-                helpText="TTS 및 이미지 생성용"
-                guideRoute="/api-guide-cloudconsole"
-                theme="red"
-                apiType="google-cloud"
-              />
-            </div>
-          </div>
-        </div>
+        {/* API 키 입력 섹션 제거됨 (마이페이지로 이동) */}
 
         <div className="mt-[clamp(2rem,4vw,3rem)]">
           <main className="rounded-[clamp(1.2rem,2.5vw,2rem)] border border-white/10 bg-white/5 shadow-[0_18px_40px_rgba(0,0,0,0.6)] backdrop-blur-2xl">
