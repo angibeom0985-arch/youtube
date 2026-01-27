@@ -4,6 +4,7 @@ import { supabase } from "../services/supabase";
 import type { User } from "@supabase/supabase-js";
 import { FiUser, FiClock, FiSettings, FiKey } from "react-icons/fi";
 import ApiKeyInput from "../components/ApiKeyInput";
+import HomeBackButton from "../components/HomeBackButton";
 
 const MyPage: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -84,9 +85,9 @@ const MyPage: React.FC = () => {
       </div>
 
       <div className="max-w-4xl mx-auto px-6 py-20">
-        <Link to="/" className="text-slate-400 hover:text-white transition-colors mb-8 inline-block">
-          ← 메인으로 돌아가기
-        </Link>
+        <div className="mb-8">
+          <HomeBackButton tone="purple" />
+        </div>
 
         <h1 className="text-4xl font-bold mb-2">마이 페이지</h1>
         <p className="text-slate-400 mb-12">계정 정보를 확인하고 관리하세요.</p>

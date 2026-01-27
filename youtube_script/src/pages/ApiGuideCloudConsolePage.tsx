@@ -346,7 +346,7 @@ const ApiGuideCloudConsolePage: React.FC = () => {
               className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-br from-blue-600 to-blue-500 text-white font-bold rounded-lg hover:from-blue-500 hover:to-blue-400 transition-all"
             >
               <FiHome size={20} />
-              메인으로 돌아가기
+              홈으로 돌아가기
             </a>
           </div>
         </main>
