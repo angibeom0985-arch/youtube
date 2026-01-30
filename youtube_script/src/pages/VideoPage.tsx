@@ -12,9 +12,9 @@ import {
   FiMic,
   FiSettings,
   FiSmartphone,
-  FiUpload,
+
 } from "react-icons/fi";
-import JSZip from "jszip";
+
 import { supabase } from "../services/supabase";
 import type { User } from "@supabase/supabase-js";
 import HomeBackButton from "../components/HomeBackButton";
@@ -22,7 +22,7 @@ import ErrorNotice from "../components/ErrorNotice";
 import ApiKeyInput from "../components/ApiKeyInput";
 import type { AnalysisResult, NewPlan } from "../types";
 import { analyzeTranscript, generateIdeas, generateNewPlan } from "../services/geminiService";
-import { generateVideo } from "../services/videoService";
+
 import AdSense from "../components/AdSense";
 import { ProgressTracker } from "../components/ProgressIndicator";
 import UserCreditToolbar from "../components/UserCreditToolbar";
@@ -271,10 +271,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     )
   );
   const [imageStyle, setImageStyle] = useState(imageStyles[0]);
-  const [imageCount, setImageCount] = useState(4);
-  const [imagePreviews, setImagePreviews] = useState<
-    { id: number; title: string; hint: string; duration: string }[]
-  >([]);
+
   const [renderDuration, setRenderDuration] = useState(() =>
     getStoredString(STORAGE_KEYS.renderDuration, "60")
   );
@@ -299,19 +296,11 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [editNotes, setEditNotes] = useState(() =>
     getStoredString(STORAGE_KEYS.editNotes, "컷 별 톤 3단계, 컬러는 따뜻하게.")
   );
-  const [assetFiles, setAssetFiles] = useState<File[]>([]);
-  const [isPackaging, setIsPackaging] = useState(false);
 
-  // Video Generation State
-  const [videoPrompt, setVideoPrompt] = useState("");
-  const [isGeneratingVideo, setIsGeneratingVideo] = useState(false);
-  const [generatedVideoUrl, setGeneratedVideoUrl] = useState<string | null>(null);
   const [rendering, setRendering] = useState(false);
   const [renderingStatus, setRenderingStatus] = useState<string | null>(null);
   const [renderingProgress, setRenderingProgress] = useState(0);
-  const [videoGenerating, setVideoGenerating] = useState(false);
-  const [videoUrl, setVideoUrl] = useState<string | null>(null);
-  const [videoError, setVideoError] = useState<string | null>(null);
+
   const progressTimerRef = useRef<number | null>(null);
   const [characterColorMap, setCharacterColorMap] = useState<Map<string, string>>(new Map());
 
@@ -383,57 +372,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     await supabase.auth.signOut();
   };
 
-  const handleGenerateVideo = async () => {
-    if (!videoPrompt.trim() && assetFiles.length === 0) {
-      alert("프롬프트나 참조 이미지가 필요합니다.");
-      return;
-    }
 
-    setIsGeneratingVideo(true);
-    setGeneratedVideoUrl(null);
-    setVideoError(null);
-
-    try {
-      // Use the first image as reference if available
-      let imageBase64: string | undefined;
-      const imageFile = assetFiles.find(f => f.type.startsWith('image/'));
-      if (imageFile) {
-        const reader = new FileReader();
-        imageBase64 = await new Promise((resolve) => {
-          reader.onload = (e) => {
-            const result = e.target?.result as string;
-            resolve(result.split(',')[1]);
-          };
-          reader.readAsDataURL(imageFile);
-        });
-      }
-
-      const url = await generateVideo({
-        prompt: videoPrompt,
-        image: imageBase64,
-      });
-
-      setGeneratedVideoUrl(url);
-    } catch (error: any) {
-      console.error("Video generation failed:", error);
-      const message =
-        error instanceof Error ? error.message : "영상 생성에 실패했습니다.";
-      setVideoError(message);
-    } finally {
-      setIsGeneratingVideo(false);
-    }
-  };
-
-  const handleFilesAdded = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const incoming = Array.from(event.target.files ?? []);
-    if (!incoming.length) return;
-    setAssetFiles((prev) => [...prev, ...incoming]);
-    event.target.value = "";
-  };
-
-  const handleRemoveFile = (index: number) => {
-    setAssetFiles((prev) => prev.filter((_, idx) => idx !== index));
-  };
 
   const downloadBlob = (blob: Blob, fileName: string) => {
     const url = URL.createObjectURL(blob);
@@ -444,54 +383,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     URL.revokeObjectURL(url);
   };
 
-  const handlePackageDownload = async () => {
-    if (!assetFiles.length) return;
-    setIsPackaging(true);
-    try {
-      const zip = new JSZip();
-      const assetsFolder = zip.folder("assets");
-      assetFiles.forEach((file, index) => {
-        const safeName = `${String(index + 1).padStart(2, "0")}_${file.name}`;
-        assetsFolder?.file(safeName, file);
-      });
 
-      const manifest = {
-        title: projectTitle || "비디오 프로젝트",
-        notes: projectNotes,
-        createdAt: new Date().toISOString(),
-        render: {
-          duration: `${renderDuration}초`,
-          ratio: renderRatio,
-          fps: renderFps,
-        },
-        assets: assetFiles.map((file, index) => ({
-          index: index + 1,
-          name: file.name,
-          size: file.size,
-        })),
-      };
-
-      zip.file("manifest.json", JSON.stringify(manifest, null, 2));
-      if (renderNotes.trim()) {
-        zip.file("render-notes.txt", renderNotes.trim());
-      }
-      if (editNotes.trim()) {
-        zip.file("edit-notes.txt", editNotes.trim());
-      }
-      zip.file(
-        "README.txt",
-        "올인원 영상 제작 스튜디오 패키지입니다.\nassets 폴더에 이미지와 음성, 영상 소스를 넣어주세요.\nmanifest.json에서 출력 설정을 확인할 수 있습니다."
-      );
-
-      const blob = await zip.generateAsync({ type: "blob" });
-      downloadBlob(blob, `${projectTitle || "video"}-package.zip`);
-    } catch (error) {
-      console.error("패키지 준비 중 오류", error);
-      alert("패키지 생성에 실패했습니다. 다시 시도해 주세요.");
-    } finally {
-      setIsPackaging(false);
-    }
-  };
 
   const handleDownloadEditNotes = () => {
     const content = editNotes.trim() || "편집 안내를 여기에 작성해 주세요.";
@@ -646,16 +538,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     setIsPlayingPreview(false);
   };
 
-  const handleGenerateImages = () => {
-    const previews = Array.from({ length: imageCount }, (_, index) => ({
-      id: index,
-      title: `컷 ${index + 1}`,
-      hint: `${imagePrompt} / ${imageStyle}`,
-      duration: `${4 + index}s`,
-    }));
-    setImagePreviews(previews);
-    setRenderingStatus(`이미지 ${imageCount}개를 생성했던 프롬프트를 기억했습니다.`);
-  };
+
 
   const startRendering = () => {
     if (rendering) return;
@@ -679,29 +562,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     progressTimerRef.current = interval;
   };
 
-  const handleVideoGenerate = async () => {
-    const prompt = scriptDraft.trim() || projectNotes.trim() || projectTitle.trim();
-    if (!prompt) {
-      setVideoError("영상 설명이나 대본을 먼저 입력해 주세요.");
-      return;
-    }
-    setVideoGenerating(true);
-    setVideoError(null);
-    try {
-      const url = await generateVideo({
-        prompt,
-        ratio: renderRatio,
-        duration: Number(renderDuration),
-      });
-      setVideoUrl(url);
-    } catch (error) {
-      setVideoError(
-        error instanceof Error ? error.message : "영상 생성에 실패했습니다."
-      );
-    } finally {
-      setVideoGenerating(false);
-    }
-  };
+
 
   const progressLabel = useMemo(() => `${currentStep + 1} / ${steps.length}`, [
     currentStep,
@@ -2280,131 +2141,29 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       }
       case "generate": {
         return (
-          <div className="mt-[clamp(1rem,2vw,2rem)] grid gap-[clamp(1.2rem,2vw,2rem)] lg:grid-cols-[minmax(0,1fr)_clamp(260px,28vw,340px)]">
-            <div className="rounded-[clamp(1rem,2vw,1.4rem)] border border-white/20 bg-black/40 p-[clamp(1rem,2vw,1.4rem)]">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-white/60">영상 생성</p>
-                  <h3 className="text-2xl font-bold text-white">씬을 구성해 볼까요</h3>
-                </div>
-                <span className="text-sm font-semibold text-red-300">{imagePreviews.length}컷 선택</span>
+          <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
+            <div className="rounded-[clamp(1rem,2vw,1.6rem)] border border-white/10 bg-black/40 p-[clamp(2rem,4vw,3rem)] text-center">
+              <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-white/5 text-4xl">
+                🚧
               </div>
-              <div className="mt-4 space-y-3">
-                {timelineScenes.map((scene) => (
-                  <div
-                    key={scene.id}
-                    className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/80"
-                  >
-                    <div>
-                      <p className="font-semibold text-white">{scene.label}</p>
-                      <p className="text-sm text-white/50 truncate">{scene.desc}</p>
-                    </div>
-                    <span className="text-sm text-white/50">{scene.duration}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="mb-8 border-b border-white/10 pb-8">
-                <h3 className="text-[clamp(1rem,1.6vw,1.2rem)] font-semibold text-white">
-                  AI 영상 생성 (Seedance)
-                </h3>
-                <p className="mt-2 text-[clamp(0.8rem,1.4vw,0.95rem)] text-white/60">
-                  프롬프트나 이미지를 입력하여 Seedance AI로 영상을 생성하세요.
-                </p>
-                <div className="mt-4 space-y-3">
-                  <textarea
-                    value={videoPrompt}
-                    onChange={(e) => setVideoPrompt(e.target.value)}
-                    placeholder="영상에 대한 설명을 입력하세요 (예: 춤추는 고양이)"
-                    className="w-full rounded-xl border border-white/20 bg-white px-4 py-3 text-sm text-black focus:outline-none focus:ring-2 focus:ring-red-500"
-                    rows={3}
-                  />
-                  <button
-                    onClick={handleGenerateVideo}
-                    disabled={isGeneratingVideo}
-                    className="rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-500 disabled:opacity-50"
-                  >
-                    {isGeneratingVideo ? "생성 중..." : "영상 생성하기"}
-                  </button>
-                </div>
-                {generatedVideoUrl && (
-                  <div className="mt-4">
-                    <video src={generatedVideoUrl} controls className="w-full rounded-lg" />
-                    <a href={generatedVideoUrl} download className="mt-2 inline-block text-sm text-red-400 hover:text-red-300">다운로드</a>
-                  </div>
-                )}
-              </div>
-
-              <h3 className="text-[clamp(1rem,1.6vw,1.2rem)] font-semibold text-white">
-                영상 패키지 재료 업로드
-              </h3>
-              <label className="mt-2 inline-flex cursor-pointer items-center gap-2 rounded-2xl border border-dashed border-white/40 px-4 py-3 text-sm text-white/60">
-                <FiUpload />
-                파일 선택
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*,video/*,audio/*"
-                  onChange={handleFilesAdded}
-                  className="hidden"
-                />
-              </label>
-              <div className="mt-3 space-y-2">
-                {assetFiles.length === 0 ? (
-                  <p className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/50">
-                    업로드한 자산이 없으면 프롬프트 기반으로 생성합니다.
-                  </p>
-                ) : (
-                  assetFiles.map((file, index) => (
-                    <div
-                      key={`${file.name}-${index}`}
-                      className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/70"
-                    >
-                      <div>
-                        <p className="font-semibold text-white truncate">{file.name}</p>
-                        <p className="text-sm text-white/50">{formatFileSize(file.size)}</p>
-                      </div>
-                      <button
-                        onClick={() => handleRemoveFile(index)}
-                        className="text-white/50 underline-offset-2 hover:text-red-300"
-                      >
-                        제거
-                      </button>
-                    </div>
-                  ))
-                )}
-              </div>
-              <button
-                onClick={handlePackageDownload}
-                disabled={!assetFiles.length || isPackaging}
-                className="mt-6 w-full rounded-2xl bg-gradient-to-r from-red-600 to-red-500 px-5 py-3 text-sm font-bold text-white shadow-[0_10px_30px_rgba(220,38,38,0.4)] disabled:opacity-60"
-              >
-                <FiDownload /> {isPackaging ? "패키지를 준비 중입니다" : "출력 패키지 다운로드"}
-              </button>
-            </div>
-            <div className="rounded-[clamp(1rem,2vw,1.4rem)] border border-white/20 bg-black/40 p-4">
-              <p className="text-sm font-semibold text-white/60">영상 스타일</p>
-              <div className="mt-4 space-y-2 text-sm text-white/70">
-                <p>?? 전체 시간: {renderDuration}초</p>
-                <p>?? 화면 비율: {renderRatio}</p>
-                <p>?? FPS: {renderFps}</p>
-                <p>?? 이미지 컷: {imagePreviews.length || imageCount}개</p>
-              </div>
-              <p className="mt-4 text-sm text-white/40">
-                템포나 분위기를 바꾸고 싶다면 상단 스텝으로 돌아가 수정하면 됩니다.
+              <h3 className="text-2xl font-bold text-white">영상 생성 기능 준비 중</h3>
+              <p className="mt-4 text-white/60 text-lg leading-relaxed">
+                현재 AI 영상 생성 단계는 <span className="text-red-400 font-semibold">크레딧 시스템</span>과 함께<br />
+                추후 업데이트될 예정입니다.
               </p>
-              <button
-                onClick={handleVideoGenerate}
-                disabled={videoGenerating}
-                className="mt-5 w-full rounded-2xl bg-gradient-to-r from-red-600 to-red-500 px-4 py-2 text-sm font-bold text-white shadow-[0_8px_20px_rgba(220,38,38,0.4)] disabled:opacity-60"
-              >
-                {videoGenerating ? "영상 생성 요청 중..." : "영상 생성 요청하기"}
-              </button>
-              <ErrorNotice error={videoError} context="영상 생성" />
-              {videoUrl && (
-                <div className="mt-4 overflow-hidden rounded-2xl border border-white/10 bg-black/40">
-                  <video src={videoUrl} controls className="w-full" />
-                </div>
-              )}
+              <p className="mt-2 text-white/40 text-sm">
+                지금은 바로 다음 단계인 '영상 편집'으로 이동하여 작업을 계속하실 수 있습니다.
+              </p>
+
+              <div className="mt-10">
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-red-600 to-red-500 px-8 py-3 text-base font-semibold text-white shadow-lg hover:from-red-500 hover:to-red-400 transition-all hover:scale-105 active:scale-95"
+                >
+                  영상 편집 단계로 이동 <FiChevronRight />
+                </button>
+              </div>
             </div>
           </div>
         );
