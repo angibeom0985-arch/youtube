@@ -213,7 +213,7 @@ const TtsPage: React.FC = () => {
 
     setGeneratingPrompt(true);
     try {
-      const prompt = await generateActingPrompt(text);
+      const prompt = await generateActingPrompt(text, "");
       setActingPrompt(prompt);
     } catch (error: any) {
       alert(error.message || "프롬프트 자동 생성에 실패했습니다.");
@@ -244,7 +244,7 @@ const TtsPage: React.FC = () => {
       if (useAIActing || actingPrompt.trim()) {
         setProgressStep("analyzing"); // 연기 분석 중
         setTtsProgress(prev => ({ ...prev, currentStep: 1 }));
-        finalSsml = await generateSsml(text, actingPrompt);
+        finalSsml = await generateSsml(text, actingPrompt, "");
       } else {
         // AI 연기를 사용하지 않으면 1단계 건너뛰기
         setTtsProgress(prev => ({ ...prev, currentStep: 1 }));

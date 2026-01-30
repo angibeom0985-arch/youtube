@@ -942,7 +942,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     try {
       // Step 1: 대본 구조 분석
       setAnalyzeProgress(prev => ({ ...prev, currentStep: 0 }));
-      const analysis = await analyzeTranscript(scriptDraft.trim(), "일반", projectTitle);
+      const analysis = await analyzeTranscript(scriptDraft.trim(), "일반", "", projectTitle);
       setScriptAnalysis(analysis);
 
       // Step 2: 핵심 키워드 추출 (이미 analysis에 포함됨)
@@ -950,7 +950,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
       // Step 3: 추천 주제 생성
       setAnalyzeProgress(prev => ({ ...prev, currentStep: 2 }));
-      const ideas = await generateIdeas(analysis, "일반");
+      const ideas = await generateIdeas(analysis, "일반", "");
       setScriptIdeas(ideas);
       if (ideas.length > 0) {
         setSelectedTopic(ideas[0]);

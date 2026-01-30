@@ -61,7 +61,7 @@ const retryWithBackoff = async <T>(
   onRetry?: (attempt: number, delay: number, error: any) => void
 ): Promise<T> => {
   let lastError: any;
-  
+
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       return await fn();
@@ -69,34 +69,34 @@ const retryWithBackoff = async <T>(
       lastError = error;
       const errorMessage = error?.message || String(error);
       const errorCode = error?.error?.code || error?.code;
-      
+
       // Rate Limit 또는 Quota 초과 에러인 경우만 재시도
-      const isRateLimitError = 
-        errorMessage.includes("RATE_LIMIT") || 
+      const isRateLimitError =
+        errorMessage.includes("RATE_LIMIT") ||
         errorMessage.includes("rate limit") ||
         errorMessage.includes("QUOTA_EXCEEDED") ||
         errorMessage.includes("quota") ||
         errorMessage.includes("RESOURCE_EXHAUSTED") ||
         errorCode === 429 ||
         errorCode === 503;
-      
+
       if (!isRateLimitError || attempt === maxRetries) {
         throw error; // 재시도하지 않을 에러이거나 마지막 시도면 throw
       }
-      
+
       // 지수 백오프 계산 (10초, 20초, 40초, 80초, 160초)
       const delay = initialDelay * Math.pow(2, attempt - 1);
-      
-      console.log(`⏳ API 한도 초과 감지. ${attempt}/${maxRetries}번째 재시도 - ${delay/1000}초 후 재시도...`);
-      
+
+      console.log(`⏳ API 한도 초과 감지. ${attempt}/${maxRetries}번째 재시도 - ${delay / 1000}초 후 재시도...`);
+
       if (onRetry) {
         onRetry(attempt, delay, error);
       }
-      
+
       await new Promise(resolve => setTimeout(resolve, delay));
     }
   }
-  
+
   throw lastError;
 };
 
@@ -365,7 +365,7 @@ export const generateCharacters = async (
     if (personaReferenceImage) {
       console.log("🖼️ Analyzing reference image with Gemini Vision...");
       onProgress?.("참조 이미지 분석 중...");
-      
+
       try {
         const visionResponse = await retryWithBackoff(
           () =>
@@ -391,11 +391,11 @@ export const generateCharacters = async (
           3,
           2000,
           (attempt, delay) => {
-            onProgress?.(`⏳ API 한도 초과 - ${delay/1000}초 후 자동 재시도 (${attempt}/3)...\n잠시만 기다려주세요. 작업 시간이 다소 지연될 수 있습니다.`);
+            onProgress?.(`⏳ API 한도 초과 - ${delay / 1000}초 후 자동 재시도 (${attempt}/3)...\n잠시만 기다려주세요. 작업 시간이 다소 지연될 수 있습니다.`);
           }
         );
-        
-        referenceImageAnalysis = visionResponse.text;
+
+        referenceImageAnalysis = visionResponse.text || "";
         console.log("✅ Reference image analysis completed:", referenceImageAnalysis.substring(0, 200) + "...");
       } catch (error) {
         console.warn("⚠️ Failed to analyze reference image, continuing without it:", error);
@@ -404,7 +404,7 @@ export const generateCharacters = async (
 
     console.log("🔄 Calling Gemini API for character analysis...");
     onProgress?.("대본 분석 중...");
-    
+
     const analysisResponse = await retryWithBackoff(
       () =>
         ai.models.generateContent({
@@ -428,11 +428,14 @@ export const generateCharacters = async (
       5,
       10000,
       (attempt, delay) => {
-        onProgress?.(`⏳ API 한도 초과 - ${delay/1000}초 후 자동 재시도 (${attempt}/5)...\n잠시만 기다려주세요. 작업 시간이 다소 지연될 수 있습니다.`);
+        onProgress?.(`⏳ API 한도 초과 - ${delay / 1000}초 후 자동 재시도 (${attempt}/5)...\n잠시만 기다려주세요. 작업 시간이 다소 지연될 수 있습니다.`);
       }
     );
 
     console.log("✅ Character analysis API call completed");
+    if (!analysisResponse.text) {
+      throw new Error("API returned empty response for character analysis");
+    }
     console.log("📄 Raw response:", analysisResponse.text);
 
     const characterData: RawCharacterData[] = JSON.parse(analysisResponse.text);
@@ -592,7 +595,7 @@ export const generateCharacters = async (
             responseModalities: [Modality.IMAGE, Modality.TEXT],
             aspectRatio: aspectRatio,  // "16:9", "9:16", "1:1" 문자열 그대로
           };
-          
+
           // 모든 경우에 generateContent 사용
           imageResponse = await retryWithBackoff(
             () =>
@@ -604,7 +607,7 @@ export const generateCharacters = async (
             5,
             10000,
             (attempt, delay) => {
-              onProgress?.(`⏳ API 한도 초과 - ${char.name} 이미지 생성 대기 중...\n${delay/1000}초 후 자동 재시도 (${attempt}/5)\n잠시만 기다려주세요. 작업 시간이 다소 지연될 수 있습니다.`);
+              onProgress?.(`⏳ API 한도 초과 - ${char.name} 이미지 생성 대기 중...\n${delay / 1000}초 후 자동 재시도 (${attempt}/5)\n잠시만 기다려주세요. 작업 시간이 다소 지연될 수 있습니다.`);
             }
           );
         } catch (firstError: any) {
@@ -651,7 +654,7 @@ export const generateCharacters = async (
 
               // 안전한 프롬프트로 parts 재구성 (영상소스와 동일)
               const safeParts: any[] = [];
-              
+
               if (personaReferenceImage) {
                 safeParts.push({
                   inlineData: {
@@ -663,7 +666,7 @@ export const generateCharacters = async (
                   text: "Reference style image - maintain visual consistency",
                 });
               }
-              
+
               safeParts.push({ text: finalPrompt });
 
               // 비율 설정 적용
@@ -683,7 +686,7 @@ export const generateCharacters = async (
                 5,
                 10000,
                 (attempt, delay) => {
-                  onProgress?.(`⏳ 콘텐츠 필터 우회 재시도 중 - ${char.name}\n${delay/1000}초 후 자동 재시도 (${attempt}/5)\n잠시만 기다려주세요.`);
+                  onProgress?.(`⏳ 콘텐츠 필터 우회 재시도 중 - ${char.name}\n${delay / 1000}초 후 자동 재시도 (${attempt}/5)\n잠시만 기다려주세요.`);
                 }
               );
             } else {
@@ -706,18 +709,18 @@ export const generateCharacters = async (
           );
           // 실패한 경우 더 간단한 프롬프트로 재시도
           // 비율 강조 추가
-          const ratioInstruction = aspectRatio === "16:9" 
+          const ratioInstruction = aspectRatio === "16:9"
             ? "MUST BE 16:9 landscape ratio (1920x1080). "
             : aspectRatio === "9:16"
-            ? "MUST BE 9:16 vertical ratio (1080x1920). "
-            : "MUST BE 1:1 square ratio (1080x1080). ";
-          
+              ? "MUST BE 9:16 vertical ratio (1080x1920). "
+              : "MUST BE 1:1 square ratio (1080x1080). ";
+
           const fallbackPrompt =
             personaStyle === "동물"
               ? `${ratioInstruction}${char.name}을 나타내는 귀여운 동물 캐릭터 한 마리. 심플하고 사랑스러운 동물 디자인, 깨끗한 배경, 카와이 스타일, 자막 없음, 말풍선 없음, 텍스트 없음.`
               : imageStyle === "animation"
-              ? `${ratioInstruction}${char.name}을 나타내는 한국인 한 명의 심플한 애니메이션 캐릭터. 깨끗한 애니메이션 스타일, 중립적인 배경, 자막 없음, 말풍선 없음, 텍스트 없음.`
-              : `${ratioInstruction}${char.name}을 나타내는 한국인 한 명의 전문 헤드샷. 깨끗한 배경, 중립적인 표정, 사실적인 스타일, 자막 없음, 말풍선 없음, 텍스트 없음.`;
+                ? `${ratioInstruction}${char.name}을 나타내는 한국인 한 명의 심플한 애니메이션 캐릭터. 깨끗한 애니메이션 스타일, 중립적인 배경, 자막 없음, 말풍선 없음, 텍스트 없음.`
+                : `${ratioInstruction}${char.name}을 나타내는 한국인 한 명의 전문 헤드샷. 깨끗한 배경, 중립적인 표정, 사실적인 스타일, 자막 없음, 말풍선 없음, 텍스트 없음.`;
 
           await new Promise((resolve) => setTimeout(resolve, 2000));
 
@@ -755,7 +758,7 @@ export const generateCharacters = async (
             (part: any) => part.inlineData?.mimeType?.startsWith("image/")
           );
           const fallbackBytes = fallbackPart?.inlineData?.data;
-          
+
           if (!fallbackBytes) {
             throw new Error(formatErrorMessage(
               { message: "No image data returned from both primary and fallback attempts" },
@@ -775,7 +778,7 @@ export const generateCharacters = async (
         } else {
           // 이미지 비율 조정
           const resizedImage = await resizeImageToAspectRatio(imageBytes, aspectRatio);
-          
+
           const character: Character = {
             id: self.crypto.randomUUID(),
             name: char.name,
@@ -800,7 +803,7 @@ export const generateCharacters = async (
         console.log(`Successfully generated image for ${char.name}`);
       } catch (error) {
         console.error(`Error generating image for ${char.name}:`, error);
-        
+
         // 에러 원인 분석
         let errorDetail = "Unknown error";
         if (error instanceof Error) {
@@ -817,7 +820,7 @@ export const generateCharacters = async (
             errorDetail = error.message;
           }
         }
-        
+
         failedErrors.push(`${char.name}: ${errorDetail}`);
       }
     }
@@ -829,9 +832,9 @@ export const generateCharacters = async (
         const policyErrors = failedErrors.filter(e => e.includes("정책"));
         const quotaErrors = failedErrors.filter(e => e.includes("사용량"));
         const networkErrors = failedErrors.filter(e => e.includes("네트워크"));
-        
+
         let errorMessage = "❌ 모든 캐릭터 생성이 실패했습니다.\n\n";
-        
+
         if (policyErrors.length > 0) {
           errorMessage += "📋 콘텐츠 정책 위반 캐릭터:\n";
           errorMessage += policyErrors.map(e => `  • ${e}`).join("\n");
@@ -840,7 +843,7 @@ export const generateCharacters = async (
           errorMessage += "  2. 중립적이고 긍정적인 표현으로 변경\n";
           errorMessage += "  3. 구체적인 신체 묘사 대신 성격이나 역할 중심으로 작성\n\n";
         }
-        
+
         if (quotaErrors.length > 0) {
           errorMessage += "📊 API 사용량 초과 캐릭터:\n";
           errorMessage += quotaErrors.map(e => `  • ${e}`).join("\n");
@@ -849,7 +852,7 @@ export const generateCharacters = async (
           errorMessage += "  2. 캐릭터 수를 1-3개로 줄여서 시도\n";
           errorMessage += "  3. Google Cloud Console에서 할당량 확인\n\n";
         }
-        
+
         if (networkErrors.length > 0) {
           errorMessage += "🌐 네트워크 오류 캐릭터:\n";
           errorMessage += networkErrors.map(e => `  • ${e}`).join("\n");
@@ -858,7 +861,7 @@ export const generateCharacters = async (
           errorMessage += "  2. 방화벽/보안 프로그램 확인\n";
           errorMessage += "  3. 다른 네트워크로 변경 후 재시도\n\n";
         }
-        
+
         const otherErrors = failedErrors.filter(
           e => !e.includes("정책") && !e.includes("사용량") && !e.includes("네트워크")
         );
@@ -867,7 +870,7 @@ export const generateCharacters = async (
           errorMessage += otherErrors.map(e => `  • ${e}`).join("\n");
           errorMessage += "\n";
         }
-        
+
         throw new Error(errorMessage);
       } else {
         // 일부만 성공한 경우 경고 메시지 추가
@@ -886,12 +889,12 @@ export const generateCharacters = async (
     // 더 구체적인 에러 메시지 제공
     if (error instanceof Error) {
       const errorMsg = error.message;
-      
+
       // 이미 한글 에러 메시지인 경우 그대로 전달
       if (errorMsg.includes("❌") || errorMsg.includes("해결 방법")) {
         throw error;
       }
-      
+
       // 콘텐츠 정책 위반 에러를 가장 먼저 체크 (구체적인 안내)
       if (
         errorMsg.toLowerCase().includes("safety") ||
@@ -910,7 +913,7 @@ export const generateCharacters = async (
           `📝 원본 오류 메시지: ${errorMsg}`
         );
       }
-      
+
       if (
         errorMsg.includes("API_KEY_INVALID") ||
         errorMsg.includes("Invalid API key")
@@ -999,7 +1002,7 @@ export const regenerateCharacterImage = async (
 
     // Gemini Vision API 사용 (영상소스와 동일)
     const parts = [{ text: imagePrompt }];
-    
+
     // 비율 설정 적용
     const imageConfig: any = {
       responseModalities: [Modality.IMAGE, Modality.TEXT],
@@ -1017,7 +1020,7 @@ export const regenerateCharacterImage = async (
       (part: any) => part.inlineData?.mimeType?.startsWith("image/")
     );
     const imageBytes = imagePart?.inlineData?.data;
-    
+
     if (!imageBytes) {
       // 실패한 경우 더 간단한 프롬프트로 재시도
       console.warn(
@@ -1030,7 +1033,7 @@ export const regenerateCharacterImage = async (
           : `반드시 ${aspectRatio} 비율로 생성. 친근한 사람 한 명의 심플한 전문 초상화. 깨끗한 스타일, 중립적인 배경, 자막 없음, 말풍선 없음, 텍스트 없음.`;
 
       const fallbackParts = [{ text: fallbackPrompt }];
-      
+
       // 비율 설정 적용
       const fallbackImageConfig: any = {
         responseModalities: [Modality.IMAGE, Modality.TEXT],
@@ -1165,6 +1168,9 @@ export const generateStoryboard = async (
       2000
     );
 
+    if (!scenesResponse.text) {
+      throw new Error("API returned empty response for storyboard analysis");
+    }
     sceneDescriptions = JSON.parse(scenesResponse.text);
   }
 
@@ -1250,18 +1256,16 @@ export const generateStoryboard = async (
       if (imageStyle === "animation") {
         imageGenPrompt = `${promptStart} 이 장면에 대한 애니메이션 스타일 이미지를 ${subtitleText} 만드세요: "${scene}".${characterConsistency} 
                 애니메이션/만화 스타일로 그려주세요. 밝고 컬러풀한 애니메이션 아트 스타일, ${aspectRatio} 비율로 이미지를 생성하고, 
-                주요 인물이나 사물이 잘리지 않도록 구도를 잡아주세요.${
-                  subtitleEnabled
-                    ? " 화면 하단에 한국어 자막을 자연스럽게 배치해주세요."
-                    : ""
-                }`;
-      } else {
-        imageGenPrompt = `${promptStart} 이 장면에 대한 사실적인 이미지를 ${subtitleText} 만드세요: "${scene}".${characterConsistency} 
-                실사 영화 스타일, 시네마틱 ${aspectRatio} 비율로 이미지를 생성하고, 주요 인물이나 사물이 잘리지 않도록 구도를 잡아주세요.${
-          subtitleEnabled
+                주요 인물이나 사물이 잘리지 않도록 구도를 잡아주세요.${subtitleEnabled
             ? " 화면 하단에 한국어 자막을 자연스럽게 배치해주세요."
             : ""
-        }`;
+          }`;
+      } else {
+        imageGenPrompt = `${promptStart} 이 장면에 대한 사실적인 이미지를 ${subtitleText} 만드세요: "${scene}".${characterConsistency} 
+                실사 영화 스타일, 시네마틱 ${aspectRatio} 비율로 이미지를 생성하고, 주요 인물이나 사물이 잘리지 않도록 구도를 잡아주세요.${subtitleEnabled
+            ? " 화면 하단에 한국어 자막을 자연스럽게 배치해주세요."
+            : ""
+          }`;
       }
       parts.push({ text: imageGenPrompt });
 
@@ -1279,14 +1283,14 @@ export const generateStoryboard = async (
               model: "gemini-2.5-flash-image-preview",
               contents: { parts },
               config: {
-                  responseModalities: [Modality.IMAGE, Modality.TEXT],
-                  aspectRatio: aspectRatio
-                } as any,
+                responseModalities: [Modality.IMAGE, Modality.TEXT],
+                aspectRatio: aspectRatio
+              } as any,
             }),
           5,
           10000,
           (attempt, delay) => {
-            onProgress?.(`⏳ API 한도 초과 - 영상 이미지 ${i + 1}/${sceneDescriptions.length} 생성 대기 중...\n${delay/1000}초 후 자동 재시도 (${attempt}/5)\n잠시만 기다려주세요. 작업 시간이 다소 지연될 수 있습니다.`);
+            onProgress?.(`⏳ API 한도 초과 - 영상 이미지 ${i + 1}/${sceneDescriptions.length} 생성 대기 중...\n${delay / 1000}초 후 자동 재시도 (${attempt}/5)\n잠시만 기다려주세요. 작업 시간이 다소 지연될 수 있습니다.`);
           }
         );
       } catch (firstError: any) {
@@ -1301,8 +1305,7 @@ export const generateStoryboard = async (
 
         if (isSafetyError) {
           console.warn(
-            `⚠️ Content policy violation detected for scene ${
-              i + 1
+            `⚠️ Content policy violation detected for scene ${i + 1
             }, attempting with safe words...`
           );
           contentPolicyRetry = true;
@@ -1373,7 +1376,7 @@ export const generateStoryboard = async (
               5,
               10000,
               (attempt, delay) => {
-                onProgress?.(`⏳ 콘텐츠 필터 우회 재시도 중 - 영상 이미지 ${i + 1}/${sceneDescriptions.length}\n${delay/1000}초 후 자동 재시도 (${attempt}/5)\n잠시만 기다려주세요.`);
+                onProgress?.(`⏳ 콘텐츠 필터 우회 재시도 중 - 영상 이미지 ${i + 1}/${sceneDescriptions.length}\n${delay / 1000}초 후 자동 재시도 (${attempt}/5)\n잠시만 기다려주세요.`);
               }
             );
           } else {
@@ -1420,7 +1423,7 @@ export const generateStoryboard = async (
       }
     } catch (error) {
       console.error(`Error generating scene ${i + 1}:`, error);
-      
+
       // 에러 원인 분석
       let errorReason = "";
       if (error instanceof Error) {
@@ -1437,7 +1440,7 @@ export const generateStoryboard = async (
           errorReason = ` (${error.message})`;
         }
       }
-      
+
       storyboardResults.push({
         id: self.crypto.randomUUID(),
         image: "",
@@ -1508,18 +1511,16 @@ export const regenerateStoryboardImage = async (
   if (imageStyle === "animation") {
     imageGenPrompt = `${promptStart} 이 장면에 대한 애니메이션 스타일 이미지를 ${subtitleText} 만드세요: "${sceneDescription}".${characterConsistency} 
         애니메이션/만화 스타일로 그려주세요. 밝고 컬러풀한 애니메이션 아트 스타일, ${aspectRatio} 비율로 이미지를 생성하고, 
-        주요 인물이나 사물이 잘리지 않도록 구도를 잡아주세요.${
-          subtitleEnabled
-            ? " 화면 하단에 한국어 자막을 자연스럽게 배치해주세요."
-            : ""
-        }`;
-  } else {
-    imageGenPrompt = `${promptStart} 이 장면에 대한 상세한 이미지를 ${subtitleText} 만드세요: "${sceneDescription}".${characterConsistency} 
-        시네마틱 ${aspectRatio} 비율로 이미지를 생성하고, 주요 인물이나 사물이 잘리지 않도록 구도를 잡아주세요.${
-      subtitleEnabled
+        주요 인물이나 사물이 잘리지 않도록 구도를 잡아주세요.${subtitleEnabled
         ? " 화면 하단에 한국어 자막을 자연스럽게 배치해주세요."
         : ""
-    }`;
+      }`;
+  } else {
+    imageGenPrompt = `${promptStart} 이 장면에 대한 상세한 이미지를 ${subtitleText} 만드세요: "${sceneDescription}".${characterConsistency} 
+        시네마틱 ${aspectRatio} 비율로 이미지를 생성하고, 주요 인물이나 사물이 잘리지 않도록 구도를 잡아주세요.${subtitleEnabled
+        ? " 화면 하단에 한국어 자막을 자연스럽게 배치해주세요."
+        : ""
+      }`;
   }
   parts.push({ text: imageGenPrompt });
 
@@ -1638,43 +1639,43 @@ const CAMERA_ANGLES: Array<{
   description: string;
   prompt: string;
 }> = [
-  {
-    angle: 'Front View',
-    nameKo: '정면',
-    description: '피사체를 정면에서 촬영',
-    prompt: 'front view, facing camera directly, centered composition, straight forward angle'
-  },
-  {
-    angle: 'Right Side View',
-    nameKo: '오른쪽 측면',
-    description: '피사체의 오른쪽 측면 촬영',
-    prompt: 'right side profile view, camera positioned to the RIGHT side of the subject, subject facing LEFT (towards camera left), showing the RIGHT ear and RIGHT side of face, 90 degree angle, lateral right side view, subject looking towards the left edge of the frame'
-  },
-  {
-    angle: 'Left Side View',
-    nameKo: '왼쪽 측면',
-    description: '피사체의 왼쪽 측면 촬영',
-    prompt: 'left side profile view, camera positioned to the LEFT side of the subject, subject facing RIGHT (towards camera right), showing the LEFT ear and LEFT side of face, 90 degree angle, lateral left side view, subject looking towards the right edge of the frame'
-  },
-  {
-    angle: 'Back View',
-    nameKo: '뒷모습',
-    description: '피사체의 뒷모습 촬영',
-    prompt: 'back view, rear view, view from behind, backside perspective'
-  },
-  {
-    angle: 'Full Body',
-    nameKo: '전신',
-    description: '머리부터 발끝까지 전체 촬영',
-    prompt: 'full body shot, head to toe, complete figure, full length view, showing entire body from head to feet'
-  },
-  {
-    angle: 'Close-up Face',
-    nameKo: '얼굴 근접',
-    description: '얼굴을 가까이 촬영',
-    prompt: 'close-up face, facial close-up, tight shot of face, detailed facial features'
-  }
-];
+    {
+      angle: 'Front View',
+      nameKo: '정면',
+      description: '피사체를 정면에서 촬영',
+      prompt: 'front view, facing camera directly, centered composition, straight forward angle'
+    },
+    {
+      angle: 'Right Side View',
+      nameKo: '오른쪽 측면',
+      description: '피사체의 오른쪽 측면 촬영',
+      prompt: 'right side profile view, camera positioned to the RIGHT side of the subject, subject facing LEFT (towards camera left), showing the RIGHT ear and RIGHT side of face, 90 degree angle, lateral right side view, subject looking towards the left edge of the frame'
+    },
+    {
+      angle: 'Left Side View',
+      nameKo: '왼쪽 측면',
+      description: '피사체의 왼쪽 측면 촬영',
+      prompt: 'left side profile view, camera positioned to the LEFT side of the subject, subject facing RIGHT (towards camera right), showing the LEFT ear and LEFT side of face, 90 degree angle, lateral left side view, subject looking towards the right edge of the frame'
+    },
+    {
+      angle: 'Back View',
+      nameKo: '뒷모습',
+      description: '피사체의 뒷모습 촬영',
+      prompt: 'back view, rear view, view from behind, backside perspective'
+    },
+    {
+      angle: 'Full Body',
+      nameKo: '전신',
+      description: '머리부터 발끝까지 전체 촬영',
+      prompt: 'full body shot, head to toe, complete figure, full length view, showing entire body from head to feet'
+    },
+    {
+      angle: 'Close-up Face',
+      nameKo: '얼굴 근접',
+      description: '얼굴을 가까이 촬영',
+      prompt: 'close-up face, facial close-up, tight shot of face, detailed facial features'
+    }
+  ];
 
 /**
  * 선택한 카메라 앵글로 이미지 생성
@@ -1695,7 +1696,7 @@ export const generateCameraAngles = async (
 ): Promise<CameraAngleImage[]> => {
   const ai = getGoogleAI(apiKey);
   const results: CameraAngleImage[] = [];
-  
+
   // 선택된 앵글 필터링
   const anglesToGenerate = CAMERA_ANGLES.filter(a => selectedAngles.includes(a.angle));
   const totalAngles = anglesToGenerate.length;
@@ -1705,19 +1706,19 @@ export const generateCameraAngles = async (
   }
 
   console.log(`🎬 Starting camera angle generation for ${totalAngles} angles...`);
-  
+
   // Step 1: Gemini Vision으로 원본 이미지 상세 분석
   onProgress?.("원본 이미지 분석 중...", 0, totalAngles);
-  
-  const base64Data = sourceImage.includes(',') 
-    ? sourceImage.split(',')[1] 
+
+  const base64Data = sourceImage.includes(',')
+    ? sourceImage.split(',')[1]
     : sourceImage;
 
   let imageAnalysis = "";
-  
+
   try {
     console.log("📸 Analyzing source image with Gemini Vision...");
-    
+
     const analysisPrompt = `🎯 CRITICAL TASK: Analyze this image with EXTREME precision to recreate THE EXACT SAME SUBJECT from different camera angles.
 
 ⚠️ MOST IMPORTANT: This analysis will be used to generate multiple images of the SAME person/object from different angles. Be HYPER-SPECIFIC about identifying features that make this subject UNIQUE and RECOGNIZABLE.
@@ -1785,7 +1786,7 @@ export const generateCameraAngles = async (
           contents: {
             parts: [
               { text: analysisPrompt },
-              { 
+              {
                 inlineData: {
                   mimeType: sourceImage.startsWith('data:image/png') ? "image/png" : "image/jpeg",
                   data: base64Data
@@ -1801,14 +1802,14 @@ export const generateCameraAngles = async (
       5,
       10000,
       (attempt, delay) => {
-        onProgress?.(`⏳ API 한도 초과 - 원본 이미지 분석 대기 중...\n${delay/1000}초 후 자동 재시도 (${attempt}/5)\n잠시만 기다려주세요.`, 0, anglesToGenerate.length);
+        onProgress?.(`⏳ API 한도 초과 - 원본 이미지 분석 대기 중...\n${delay / 1000}초 후 자동 재시도 (${attempt}/5)\n잠시만 기다려주세요.`, 0, anglesToGenerate.length);
       }
     );
 
     imageAnalysis = result.text || "";
     console.log(`✅ Image analysis complete (${imageAnalysis.length} characters)`);
     console.log(`📋 Analysis preview: ${imageAnalysis.substring(0, 300)}...`);
-    
+
   } catch (error) {
     console.error("❌ Image analysis failed:", error);
     throw new Error(formatErrorMessage(error, "Image analysis for camera angles"));
@@ -1891,7 +1892,7 @@ Generate the transformed image showing the same subject from the new angle.`;
         5,
         10000,
         (attempt, delay) => {
-          onProgress?.(`⏳ API 한도 초과 - ${angleInfo.nameKo} 생성 대기 중...\n${delay/1000}초 후 자동 재시도 (${attempt}/5)\n잠시만 기다려주세요.`, i + 1, totalAngles);
+          onProgress?.(`⏳ API 한도 초과 - ${angleInfo.nameKo} 생성 대기 중...\n${delay / 1000}초 후 자동 재시도 (${attempt}/5)\n잠시만 기다려주세요.`, i + 1, totalAngles);
         }
       );
 
@@ -1918,19 +1919,19 @@ Generate the transformed image showing the same subject from the new angle.`;
       });
 
       console.log(`✅ Successfully generated ${angleInfo.nameKo}`);
-      
+
     } catch (error) {
       console.error(`❌ Error generating ${angleInfo.nameKo}:`, error);
-      
+
       const errorMessage = error instanceof Error ? error.message : String(error);
-      
+
       // Quota 초과 시 즉시 중단
-      if (errorMessage.includes("QUOTA") || 
-          errorMessage.includes("429") ||
-          errorMessage.includes("quota") ||
-          errorMessage.includes("exceeded") ||
-          errorMessage.includes("RESOURCE_EXHAUSTED")) {
-        
+      if (errorMessage.includes("QUOTA") ||
+        errorMessage.includes("429") ||
+        errorMessage.includes("quota") ||
+        errorMessage.includes("exceeded") ||
+        errorMessage.includes("RESOURCE_EXHAUSTED")) {
+
         const generated = i;
         throw new Error(
           `❌ API 요청 속도 제한 (429 Error)\n\n` +
@@ -1945,7 +1946,7 @@ Generate the transformed image showing the same subject from the new angle.`;
           `3. 생성된 이미지는 먼저 다운로드하세요`
         );
       }
-      
+
       // 네트워크 에러
       if (errorMessage.includes("network") || errorMessage.includes("fetch")) {
         throw new Error(
@@ -1954,10 +1955,10 @@ Generate the transformed image showing the same subject from the new angle.`;
           `💡 인터넷 연결을 확인하고 다시 시도하세요`
         );
       }
-      
+
       // 기타 에러 처리
       const formattedError = formatErrorMessage(error, `Camera angle: ${angleInfo.nameKo}`);
-      
+
       results.push({
         id: self.crypto.randomUUID(),
         angle: angleInfo.angle,
@@ -1965,14 +1966,14 @@ Generate the transformed image showing the same subject from the new angle.`;
         angleName: angleInfo.nameKo,
         description: `생성 실패: ${formattedError.split('\n')[0].replace('❌ ', '')}`,
       });
-      
+
       console.warn(`⚠️ Continuing with remaining angles...`);
     }
   }
 
   const successCount = results.filter(r => r.image && r.image.trim() !== "").length;
   console.log(`🎉 Camera angle generation completed: ${successCount}/${totalAngles} successful`);
-  
+
   onProgress?.(`완료: ${successCount}/${totalAngles}개 생성됨`, totalAngles, totalAngles);
 
   return results;

@@ -1470,7 +1470,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
     <div className="min-h-screen bg-gradient-to-br from-black via-zinc-950 to-orange-950/30 text-white font-sans p-4 sm:p-8 pb-32 relative">
       {/* Auth Status - Top Right */}
       <div className="absolute top-0 right-0 p-4 sm:p-6 flex gap-3 z-50 items-center">
-        <UserCreditToolbar user={user} onLogout={handleLogout} tone="orange" showCredits={false} />
+        <UserCreditToolbar user={user} onLogout={handleLogout} tone="orange" />
       </div>
 
       {/* Home Back Button - Top Left */}

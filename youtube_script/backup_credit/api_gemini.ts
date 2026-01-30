@@ -190,10 +190,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           res.status(400).send("missing_fields");
           return;
         }
+        return;
+      }
         const result = await analyzeTranscript(transcript, category, effectiveApiKey, videoTitle);
         res.status(200).json(result);
         return;
-      }
+    }
       case "generateIdeas": {
       const analysis = payload.analysis;
       const category = payload.category as string;

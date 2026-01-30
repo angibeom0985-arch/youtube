@@ -54,10 +54,10 @@ const callGemini = async <T>(action: GeminiAction, payload: Record<string, unkno
   const { data: { session } } = await supabase.auth.getSession();
   const token = session?.access_token;
 
-  const headers: Record<string, string> = { 
-    "Content-Type": "application/json" 
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json"
   };
-  
+
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }
@@ -79,7 +79,6 @@ const callGemini = async <T>(action: GeminiAction, payload: Record<string, unkno
 export const analyzeTranscript = async (
   transcript: string,
   category: string,
-  _apiKey: string,
   videoTitle?: string
 ): Promise<AnalysisResult> => {
   return callGemini<AnalysisResult>("analyzeTranscript", {
@@ -92,7 +91,6 @@ export const analyzeTranscript = async (
 export const generateIdeas = async (
   analysis: AnalysisResult,
   category: string,
-  _apiKey: string,
   userKeyword?: string
 ): Promise<string[]> => {
   const data = await callGemini<{ ideas: string[] }>("generateIdeas", {
@@ -108,7 +106,6 @@ export const generateNewPlan = async (
   newKeyword: string,
   length: string,
   category: string,
-  _apiKey: string,
   vlogType?: string
 ): Promise<NewPlan> => {
   return callGemini<NewPlan>("generateNewPlan", {
@@ -122,8 +119,7 @@ export const generateNewPlan = async (
 
 export const generateSsml = async (
   text: string,
-  prompt: string,
-  _apiKey: string
+  prompt: string
 ): Promise<string> => {
   const data = await callGemini<{ ssml: string }>("generateSsml", {
     text,
@@ -133,8 +129,7 @@ export const generateSsml = async (
 };
 
 export const generateActingPrompt = async (
-  text: string,
-  _apiKey: string
+  text: string
 ): Promise<string> => {
   const data = await callGemini<{ prompt: string }>("generateActingPrompt", {
     text,

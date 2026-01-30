@@ -145,17 +145,40 @@ const App: React.FC<ImageAppProps> = ({
     return { headers, token };
   }, []);
 
-  const IMAGE_CREDIT_COST = 0;
-
   const deductCredits = useCallback(async (cost: number) => {
-    // 크레딧 시스템 비활성화
-    return;
-  }, []);
+    const { headers, token } = await getAuthHeaders();
+    if (!token) {
+      throw new Error("로그인이 필요한 서비스입니다.");
+    }
+    const response = await fetch("/api/YOUTUBE/user/credits-deduct", {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ cost }),
+    });
+    const payload = await response.json().catch(() => null);
+    if (!response.ok) {
+      throw new Error(payload?.message || "크레딧 차감에 실패했습니다.");
+    }
+  }, [getAuthHeaders]);
 
   const refundCredits = useCallback(async (cost: number) => {
-    // 크레딧 시스템 비활성화
-    return;
-  }, []);
+    const { headers, token } = await getAuthHeaders();
+    if (!token) {
+      console.error("토큰이 없어 환불할 수 없습니다.");
+      return;
+    }
+    try {
+      const response = await fetch("/api/YOUTUBE/user/credits-deduct", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ action: "refund", cost }),
+      });
+      if (response.ok) {
+      }
+    } catch (error) {
+      console.error("크레딧 환불 실패:", error);
+    }
+  }, [getAuthHeaders]);
 
   // URL 기반 현재 뷰 결정
   useEffect(() => {
@@ -1465,7 +1488,7 @@ const App: React.FC<ImageAppProps> = ({
         style={{ paddingBottom: "120px" }}
       >
         <div className="absolute top-0 right-0 p-4 sm:p-6 flex gap-3 z-50 items-center">
-          <UserCreditToolbar user={user} onLogout={handleLogout} tone="indigo" showCredits={false} />
+          <UserCreditToolbar user={user} onLogout={handleLogout} tone="indigo" />
         </div>
         <div className="absolute top-0 left-0 p-4 sm:p-6 z-50">
           <HomeBackButton tone="indigo" />

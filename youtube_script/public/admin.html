@@ -799,6 +799,19 @@
         const API_BASE_URL = window.location.hostname === 'localhost' 
             ? 'http://localhost:3003' 
             : '';  // 배포 환경에서는 상대 경로 사용 (Vercel Functions)
+
+        const PAGE_CONFIG = {
+            '/api-guide-aistudio': {
+                label: 'AI 스튜디오 API 발급방법',
+                load: '/api/guide/api-key',
+                save: '/api/guide/api-key'
+            },
+            '/api-guide-cloudconsole': {
+                label: '클라우드 콘솔 API 발급방법',
+                load: '/api/guide/user-guide',
+                save: '/api/guide/user-guide'
+            }
+        };
         
         console.log('API Base URL:', API_BASE_URL);
         console.log('Current hostname:', window.location.hostname);
@@ -1352,14 +1365,12 @@
                 // 로컬/배포 환경 모두 API 호출
                 let shouldCallAPI = true;
                 if (shouldCallAPI) {
-                    let apiEndpoint = '';
-                    if (currentPage === 'API 키 발급 가이드') {
-                        apiEndpoint = '/api/guide/api-key';
-                    } else if (currentPage === '사용법 가이드') {
-                        apiEndpoint = '/api/guide/user-guide';
-                    } else {
+                    const pageConfig = PAGE_CONFIG[currentPage];
+                    if (!pageConfig) {
                         throw new Error('알 수 없는 페이지입니다: ' + currentPage);
                     }
+
+                    const apiEndpoint = pageConfig.save;
 
                     console.log('API 호출:', `${API_BASE_URL}${apiEndpoint}`);
                     console.log('전송할 데이터 크기:', content.length, 'bytes');
@@ -1456,6 +1467,34 @@
             try {
                 // 먼저 localStorage에서 저장된 내용 확인
                 const localContent = localStorage.getItem(saveKey);
+
+                // API에서 페이지 내용 가져오기 (SPA 라우트는 실제 콘텐츠가 없음)
+                try {
+                    const pageConfig = PAGE_CONFIG[pageName];
+                    if (pageConfig) {
+                        const apiUrl = `${API_BASE_URL}${pageConfig.load}`;
+                        console.log(`🔍 API 콘텐츠 로드 시도: ${apiUrl}`);
+                        const response = await fetch(apiUrl);
+                        if (response.ok) {
+                            const result = await response.json();
+                            const extractedHTML = (result && result.content) ? result.content : '';
+                            contentEditor.value = extractedHTML;
+                            
+                            console.log(`✅ ${pageName} API 콘텐츠 로드 성공 (${extractedHTML.length} bytes)`);
+                            
+                            // 저장 버튼 활성화
+                            if (saveBtn) {
+                                saveBtn.disabled = false;
+                            }
+                            
+                            // 미리보기 업데이트
+                            updateHtmlPreview();
+                            return;
+                        }
+                    }
+                } catch (fetchError) {
+                    console.warn(`API 콘텐츠 로드 실패: ${fetchError.message}`);
+                }
                 
                 // 실제 페이지에서 HTML 내용을 fetch
                 try {
