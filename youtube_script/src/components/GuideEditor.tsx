@@ -9,26 +9,55 @@ interface GuideEditorProps {
 const GuideEditor: React.FC<GuideEditorProps> = ({ pageType }) => {
   const [guideData, setGuideData] = useState<GuidePageData | null>(null);
   const [saveMessage, setSaveMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    const data = loadGuideData(pageType);
-    setGuideData(data);
+    const fetchGuideData = async () => {
+      setLoading(true);
+      try {
+        const data = await loadGuideData(pageType);
+        setGuideData(data);
+      } catch (error) {
+        console.error('Failed to load guide data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGuideData();
   }, [pageType]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!guideData) return;
-    saveGuideData(pageType, guideData);
-    setSaveMessage('✅ 저장되었습니다!');
-    setTimeout(() => setSaveMessage(''), 3000);
+    setSaving(true);
+    try {
+      await saveGuideData(pageType, guideData);
+      setSaveMessage('✅ 저장되었습니다!');
+      setTimeout(() => setSaveMessage(''), 3000);
+    } catch (error) {
+      setSaveMessage('❌ 저장 실패!');
+      console.error(error);
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleReset = () => {
+  const handleReset = async () => {
     if (!window.confirm('기본값으로 초기화하시겠습니까?')) return;
-    resetGuideData(pageType);
-    const data = loadGuideData(pageType);
-    setGuideData(data);
-    setSaveMessage('🔄 초기화되었습니다!');
-    setTimeout(() => setSaveMessage(''), 3000);
+    setLoading(true);
+    try {
+      await resetGuideData(pageType);
+      const data = await loadGuideData(pageType);
+      setGuideData(data);
+      setSaveMessage('🔄 초기화되었습니다!');
+      setTimeout(() => setSaveMessage(''), 3000);
+    } catch (error) {
+      console.error(error);
+      setSaveMessage('❌ 초기화 실패!');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const updateField = (field: keyof GuidePageData, value: any) => {
@@ -84,9 +113,9 @@ const GuideEditor: React.FC<GuideEditorProps> = ({ pageType }) => {
 
   const addFAQ = () => {
     if (!guideData) return;
-    setGuideData({ 
-      ...guideData, 
-      faqs: [...guideData.faqs, { question: '질문을 입력하세요', answer: '답변을 입력하세요' }] 
+    setGuideData({
+      ...guideData,
+      faqs: [...guideData.faqs, { question: '질문을 입력하세요', answer: '답변을 입력하세요' }]
     });
   };
 
@@ -108,9 +137,8 @@ const GuideEditor: React.FC<GuideEditorProps> = ({ pageType }) => {
   return (
     <div className="space-y-6">
       {saveMessage && (
-        <div className={`p-3 rounded-lg ${
-          saveMessage.includes('✅') ? 'bg-green-900/20 border border-green-700 text-green-300' : 'bg-blue-900/20 border border-blue-700 text-blue-300'
-        }`}>
+        <div className={`p-3 rounded-lg ${saveMessage.includes('✅') ? 'bg-green-900/20 border border-green-700 text-green-300' : 'bg-blue-900/20 border border-blue-700 text-blue-300'
+          }`}>
           {saveMessage}
         </div>
       )}
@@ -118,15 +146,17 @@ const GuideEditor: React.FC<GuideEditorProps> = ({ pageType }) => {
       <div className="flex gap-3 justify-end">
         <button
           onClick={handleReset}
-          className="px-4 py-2 bg-yellow-600/20 hover:bg-yellow-600/30 border border-yellow-500/40 text-yellow-100 rounded-lg transition font-bold flex items-center gap-2"
+          disabled={loading || saving}
+          className="px-4 py-2 bg-yellow-600/20 hover:bg-yellow-600/30 border border-yellow-500/40 text-yellow-100 rounded-lg transition font-bold flex items-center gap-2 disabled:opacity-50"
         >
-          <FiRefreshCw /> 초기화
+          <FiRefreshCw className={loading ? "animate-spin" : ""} /> {loading ? "처리 중..." : "초기화"}
         </button>
         <button
           onClick={handleSave}
-          className="px-4 py-2 bg-gradient-to-r from-red-600 via-red-500 to-orange-500 text-white rounded-lg transition font-bold flex items-center gap-2 shadow-[0_0_20px_rgba(239,68,68,0.4)]"
+          disabled={loading || saving}
+          className="px-4 py-2 bg-gradient-to-r from-red-600 via-red-500 to-orange-500 text-white rounded-lg transition font-bold flex items-center gap-2 shadow-[0_0_20px_rgba(239,68,68,0.4)] disabled:opacity-50"
         >
-          <FiSave /> 저장
+          <FiSave /> {saving ? "저장 중..." : "저장"}
         </button>
       </div>
 

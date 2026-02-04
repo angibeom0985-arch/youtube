@@ -1,4 +1,5 @@
-// API 가이드 페이지 데이터 관리
+import { supabase } from './supabase';
+
 export interface GuideStep {
   id: number;
   title: string;
@@ -14,8 +15,6 @@ export interface GuidePageData {
   steps: GuideStep[];
   faqs: { question: string; answer: string }[];
 }
-
-const STORAGE_KEY_PREFIX = 'api_guide_data_';
 
 // 기본 AI Studio 가이드 데이터
 export const defaultAiStudioData: GuidePageData = {
@@ -120,30 +119,56 @@ export const defaultCloudConsoleData: GuidePageData = {
 };
 
 // 데이터 저장
-export const saveGuideData = (pageType: 'aistudio' | 'cloudconsole', data: GuidePageData): void => {
+export const saveGuideData = async (pageType: 'aistudio' | 'cloudconsole', data: GuidePageData): Promise<void> => {
   try {
-    localStorage.setItem(`${STORAGE_KEY_PREFIX}${pageType}`, JSON.stringify(data));
+    const { error } = await supabase
+      .from('guides')
+      .upsert({
+        page_type: pageType,
+        data: data,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'page_type' });
+
+    if (error) throw error;
   } catch (error) {
     console.error('Failed to save guide data:', error);
+    throw error;
   }
 };
 
 // 데이터 불러오기
-export const loadGuideData = (pageType: 'aistudio' | 'cloudconsole'): GuidePageData => {
+export const loadGuideData = async (pageType: 'aistudio' | 'cloudconsole'): Promise<GuidePageData> => {
   try {
-    const stored = localStorage.getItem(`${STORAGE_KEY_PREFIX}${pageType}`);
-    if (stored) {
-      return JSON.parse(stored);
+    const { data, error } = await supabase
+      .from('guides')
+      .select('data')
+      .eq('page_type', pageType)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') { // No rows found
+        console.log(`No existing data found for ${pageType}, using defaults.`);
+      } else {
+        throw error;
+      }
+    }
+
+    if (data?.data) {
+      return data.data as GuidePageData;
     }
   } catch (error) {
     console.error('Failed to load guide data:', error);
   }
-  
+
   // 기본 데이터 반환
   return pageType === 'aistudio' ? defaultAiStudioData : defaultCloudConsoleData;
 };
 
 // 데이터 초기화
-export const resetGuideData = (pageType: 'aistudio' | 'cloudconsole'): void => {
-  localStorage.removeItem(`${STORAGE_KEY_PREFIX}${pageType}`);
+export const resetGuideData = async (pageType: 'aistudio' | 'cloudconsole'): Promise<void> => {
+  try {
+    await supabase.from('guides').delete().eq('page_type', pageType);
+  } catch (error) {
+    console.error('Failed to reset guide data:', error);
+  }
 };
