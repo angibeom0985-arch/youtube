@@ -1,4 +1,4 @@
-
+﻿
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
@@ -315,6 +315,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [playingChapter, setPlayingChapter] = useState<number | null>(null);
   const [playingVoice, setPlayingVoice] = useState<string | null>(null);
   const [isPlayingPreview, setIsPlayingPreview] = useState(false);
+  const previewAbortRef = useRef<AbortController | null>(null);
+  const previewRequestIdRef = useRef(0);
+  const previewCacheRef = useRef<Map<string, string>>(new Map());
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -475,7 +478,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
   // 오디오 재생 함수 (간단한 미리듣기용)
   const playPreviewAudio = async (chapterIndex: number, voiceName: string, text: string) => {
-    // 이미 재생 중인 경우 정지
     if (audioRef.current && (playingChapter === chapterIndex && playingVoice === voiceName)) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
@@ -486,106 +488,113 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     }
 
     try {
-      setIsPlayingPreview(true);
-      setPlayingChapter(chapterIndex);
-      setPlayingVoice(voiceName);
-
-      // 기존 오디오 정지
+      previewAbortRef.current?.abort();
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
       }
 
-      // 목소리 이름을 Google TTS 형식으로 변환
+      const requestId = ++previewRequestIdRef.current;
+      setIsPlayingPreview(true);
+      setPlayingChapter(chapterIndex);
+      setPlayingVoice(voiceName);
+
       const voiceMap: Record<string, string> = {
         '민준': 'ko-KR-Standard-C',
         '서연': 'ko-KR-Standard-A',
-        '소희': 'ko-KR-Standard-B',
-        '지훈': 'ko-KR-Standard-D',
-        '유나': 'ko-KR-Wavenet-A',
-        '태양': 'ko-KR-Wavenet-C',
-        '하늘': 'ko-KR-Wavenet-B',
-        '준서': 'ko-KR-Wavenet-D',
-        '수아': 'ko-KR-Neural2-A',
-        '동현': 'ko-KR-Neural2-C',
+        '수현': 'ko-KR-Standard-B',
+        '지수': 'ko-KR-Standard-D',
+        '하나': 'ko-KR-Wavenet-A',
+        '세영': 'ko-KR-Wavenet-C',
+        '해준': 'ko-KR-Wavenet-B',
+        '준호': 'ko-KR-Wavenet-D',
+        '하림': 'ko-KR-Neural2-A',
+        '도현': 'ko-KR-Neural2-C',
       };
 
       const googleVoice = voiceMap[voiceName] || 'ko-KR-Standard-A';
+      const cacheKey = `${googleVoice}::${text}`;
+      const cachedUrl = previewCacheRef.current.get(cacheKey);
 
-      // Supabase 세션 가져오기
       const { data: { session } } = await supabase.auth.getSession();
 
       if (!session) {
-        alert('⚠️ 로그인이 필요합니다.');
+        alert('로그인이 필요합니다.');
         setIsPlayingPreview(false);
         setPlayingChapter(null);
         setPlayingVoice(null);
         return;
       }
 
-      // TTS API 호출
-      console.log('[TTS] API 호출 시작:', { voice: googleVoice, textLength: text.length });
+      let audioUrl = cachedUrl || "";
 
-      const response = await fetch('/api/youtube_TTS/tts', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
-          text: text,
-          voice: googleVoice,
-        })
-      });
+      if (!audioUrl) {
+        const controller = new AbortController();
+        previewAbortRef.current = controller;
 
-      console.log('[TTS] API 응답:', { status: response.status, ok: response.ok });
+        const response = await fetch('/api/youtube_TTS/tts', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            text: text,
+            voice: googleVoice,
+          }),
+          signal: controller.signal,
+        });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('[TTS] API 오류:', errorText);
-        throw new Error(`음성 생성 실패: ${response.status}`);
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('[TTS] API 오류:', errorText);
+          throw new Error(`음성 생성 실패: ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (!data.audioContent) {
+          throw new Error('오디오 데이터가 없습니다');
+        }
+
+        const binaryString = atob(data.audioContent);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        const audioBlob = new Blob([bytes], { type: 'audio/mpeg' });
+        audioUrl = URL.createObjectURL(audioBlob);
+
+        previewCacheRef.current.set(cacheKey, audioUrl);
+        if (previewCacheRef.current.size > 8) {
+          const firstKey = previewCacheRef.current.keys().next().value;
+          const oldUrl = previewCacheRef.current.get(firstKey);
+          if (oldUrl) URL.revokeObjectURL(oldUrl);
+          previewCacheRef.current.delete(firstKey);
+        }
       }
 
-      // JSON 응답에서 Base64 오디오 추출
-      const data = await response.json();
-      console.log('[TTS] 응답 데이터:', { hasAudioContent: !!data.audioContent });
-
-      if (!data.audioContent) {
-        throw new Error('오디오 데이터가 없습니다');
+      if (requestId !== previewRequestIdRef.current) {
+        return;
       }
 
-      // Base64를 Blob으로 변환
-      const binaryString = atob(data.audioContent);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-      const audioBlob = new Blob([bytes], { type: 'audio/mpeg' });
-      const audioUrl = URL.createObjectURL(audioBlob);
-
-      console.log('[TTS] 오디오 URL 생성 완료');
-
-      // 오디오 재생
       audioRef.current = new Audio(audioUrl);
       audioRef.current.onended = () => {
-        console.log('[TTS] 재생 완료');
         setPlayingChapter(null);
         setPlayingVoice(null);
         setIsPlayingPreview(false);
-        URL.revokeObjectURL(audioUrl);
       };
       audioRef.current.onerror = (e) => {
         console.error('[TTS] 오디오 재생 오류:', e);
         setPlayingChapter(null);
         setPlayingVoice(null);
         setIsPlayingPreview(false);
-        URL.revokeObjectURL(audioUrl);
       };
 
-      console.log('[TTS] 재생 시작');
       await audioRef.current.play();
-      console.log('[TTS] 재생 중');
     } catch (error) {
+      if ((error as any)?.name === 'AbortError') {
+        return;
+      }
       console.error('[TTS] 오디오 재생 실패:', error);
       alert(`음성 재생에 실패했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
       setIsPlayingPreview(false);
@@ -595,6 +604,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   };
 
   const stopAudio = () => {
+    previewAbortRef.current?.abort();
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
@@ -602,6 +612,16 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     setPlayingChapter(null);
     setPlayingVoice(null);
     setIsPlayingPreview(false);
+  };
+
+  const applyVoiceToAllChapters = (voiceName: string) => {
+    if (!voiceName) return;
+    const next: Record<number, string> = {};
+    chapterScripts.forEach((_, index) => {
+      next[index] = voiceName;
+    });
+    setChapterVoices(next);
+    setSelectedVoice(voiceName);
   };
 
 
@@ -1883,6 +1903,21 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
               {chapterScripts.length > 0 ? (
                 <div className="space-y-4 overflow-visible">
+                  <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-white/10 bg-black/30 px-4 py-3">
+                    <span className="text-sm font-semibold text-white/70">전체 목소리 적용</span>
+                    <select
+                      className="rounded-lg border border-white/20 bg-black/60 px-3 py-2 text-sm text-white/90 focus:outline-none focus:ring-2 focus:ring-red-500"
+                      value=""
+                      onChange={(e) => applyVoiceToAllChapters(e.target.value)}
+                    >
+                      <option value="" disabled>목소리 선택</option>
+                      {allVoiceOptions.map((voice) => (
+                        <option key={voice.name} value={voice.name}>
+                          {voice.name} · {voice.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                   {chapterScripts.map((chapter, index) => (
                     <div key={index} className="relative rounded-2xl border border-white/10 bg-black/30 p-5 overflow-visible">
                       <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/10">
@@ -1995,7 +2030,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                 playPreviewAudio(index, voiceName, text);
                               }
                             }}
-                            disabled={isPlayingPreview && playingChapter !== index}
+                            disabled={isPlayingPreview && playingChapter === index}
                             className={`px-4 py-2 rounded-full text-white text-sm font-semibold shadow-lg transition-all flex items-center gap-2 ${playingChapter === index
                               ? 'bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-500 hover:to-pink-500'
                               : 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500'
@@ -2062,6 +2097,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                       onClick={() => {
                                         if (currentChapterForVoice !== null) {
                                           setChapterVoices({ ...chapterVoices, [currentChapterForVoice]: voice.name });
+                                          playPreviewAudio(currentChapterForVoice, voice.name, voice.sampleText);
                                         }
                                         setShowVoiceModal(false);
                                       }}
@@ -2074,7 +2110,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                             playPreviewAudio(currentChapterForVoice, voice.name, voice.sampleText);
                                           }
                                         }}
-                                        disabled={isPlayingPreview}
+                                        disabled={isPlayingPreview && playingChapter === currentChapterForVoice && playingVoice === voice.name}
                                         className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed ${playingChapter === currentChapterForVoice && playingVoice === voice.name
                                           ? 'bg-red-500 shadow-lg'
                                           : 'bg-white/10 hover:bg-red-500/50'
@@ -2113,6 +2149,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                       onClick={() => {
                                         if (currentChapterForVoice !== null) {
                                           setChapterVoices({ ...chapterVoices, [currentChapterForVoice]: voice.name });
+                                          playPreviewAudio(currentChapterForVoice, voice.name, voice.sampleText);
                                         }
                                         setShowVoiceModal(false);
                                       }}
@@ -2125,7 +2162,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                             playPreviewAudio(currentChapterForVoice, voice.name, voice.sampleText);
                                           }
                                         }}
-                                        disabled={isPlayingPreview}
+                                        disabled={isPlayingPreview && playingChapter === currentChapterForVoice && playingVoice === voice.name}
                                         className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed ${playingChapter === currentChapterForVoice && playingVoice === voice.name
                                           ? 'bg-blue-500 shadow-lg'
                                           : 'bg-white/10 hover:bg-blue-500/50'
@@ -2164,6 +2201,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                       onClick={() => {
                                         if (currentChapterForVoice !== null) {
                                           setChapterVoices({ ...chapterVoices, [currentChapterForVoice]: voice.name });
+                                          playPreviewAudio(currentChapterForVoice, voice.name, voice.sampleText);
                                         }
                                         setShowVoiceModal(false);
                                       }}
@@ -2176,7 +2214,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                             playPreviewAudio(currentChapterForVoice, voice.name, voice.sampleText);
                                           }
                                         }}
-                                        disabled={isPlayingPreview}
+                                        disabled={isPlayingPreview && playingChapter === currentChapterForVoice && playingVoice === voice.name}
                                         className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed ${playingChapter === currentChapterForVoice && playingVoice === voice.name
                                           ? 'bg-pink-500 shadow-lg'
                                           : 'bg-white/10 hover:bg-pink-500/50'
