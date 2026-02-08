@@ -803,13 +803,15 @@
         const PAGE_CONFIG = {
             '/api-guide-aistudio': {
                 label: 'AI 스튜디오 API 발급방법',
-                load: '/api/guide/api-key',
-                save: '/api/guide/api-key'
+                pageType: 'api-guide-aistudio',
+                load: '/api/YOUTUBE/admin/page-content',
+                save: '/api/YOUTUBE/admin/page-content'
             },
             '/api-guide-cloudconsole': {
                 label: '클라우드 콘솔 API 발급방법',
-                load: '/api/guide/user-guide',
-                save: '/api/guide/user-guide'
+                pageType: 'api-guide-cloudconsole',
+                load: '/api/YOUTUBE/admin/page-content',
+                save: '/api/YOUTUBE/admin/page-content'
             }
         };
         
@@ -857,6 +859,7 @@
             if (username === 'akb0811' && password === 'rlqja0985!') {
                 isLoggedIn = true;
                 sessionStorage.setItem('adminLoggedIn', 'true');
+                sessionStorage.setItem('adminUsername', username); // 사용자명 저장
                 showAdminPanel();
             } else {
                 showError('아이디 또는 비밀번호가 잘못되었습니다.');
@@ -867,6 +870,7 @@
         logoutBtn.addEventListener('click', function() {
             isLoggedIn = false;
             sessionStorage.removeItem('adminLoggedIn');
+            sessionStorage.removeItem('adminUsername'); // 사용자명 제거
             showLoginForm();
         });
 
@@ -1370,7 +1374,7 @@
                         throw new Error('알 수 없는 페이지입니다: ' + currentPage);
                     }
 
-                    const apiEndpoint = pageConfig.save;
+                    const apiEndpoint = `${pageConfig.save}?pageType=${pageConfig.pageType}`;
 
                     console.log('API 호출:', `${API_BASE_URL}${apiEndpoint}`);
                     console.log('전송할 데이터 크기:', content.length, 'bytes');
@@ -1380,7 +1384,11 @@
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({ content })
+                        body: JSON.stringify({ 
+                            content,
+                            mode: currentMode,
+                            username: sessionStorage.getItem('adminUsername') || 'admin'
+                        })
                     });
 
                     console.log('서버 응답 상태:', response.status, response.statusText);
@@ -1399,10 +1407,10 @@
                 localStorage.setItem('adminCurrentPage', currentPage);
                 
                 // 성공 메시지
-                if (API_BASE_URL) {
-                    showSuccessModal(`✅ ${currentPage} 페이지가 로컬 서버와 브라우저에 저장되었습니다!`);
+                if (shouldCallAPI) {
+                    showSuccessModal(`✅ ${currentPage} 페이지가 성공적으로 저장되었습니다!\n\n데이터베이스에 안전하게 저장되었으며,\n웹사이트에 즉시 반영됩니다.`);
                 } else {
-                    showSuccessModal(`✅ ${currentPage} 페이지가 브라우저에 저장되었습니다!\n\n⚠️ 실제 웹사이트에 반영하려면:\n1. 아래 내용을 복사하세요\n2. 해당 React 컴포넌트 파일을 직접 수정하세요\n3. Git 커밋/푸시하여 배포하세요`);
+                    showSuccessModal(`✅ ${currentPage} 페이지가 브라우저에 저장되었습니다!`);
                 }
             } catch (error) {
                 console.error('저장 오류:', error);
@@ -1468,11 +1476,11 @@
                 // 먼저 localStorage에서 저장된 내용 확인
                 const localContent = localStorage.getItem(saveKey);
 
-                // API에서 페이지 내용 가져오기 (SPA 라우트는 실제 콘텐츠가 없음)
+                // API에서 페이지 내용 가져오기
                 try {
                     const pageConfig = PAGE_CONFIG[pageName];
                     if (pageConfig) {
-                        const apiUrl = `${API_BASE_URL}${pageConfig.load}`;
+                        const apiUrl = `${API_BASE_URL}${pageConfig.load}?pageType=${pageConfig.pageType}`;
                         console.log(`🔍 API 콘텐츠 로드 시도: ${apiUrl}`);
                         const response = await fetch(apiUrl);
                         if (response.ok) {
@@ -1482,6 +1490,11 @@
                             
                             console.log(`✅ ${pageName} API 콘텐츠 로드 성공 (${extractedHTML.length} bytes)`);
                             
+                            // 모드 설정 (저장된 모드가 있으면 그것 사용)
+                            if (result.mode) {
+                                switchMode(result.mode);
+                            }
+                            
                             // 저장 버튼 활성화
                             if (saveBtn) {
                                 saveBtn.disabled = false;
@@ -1489,6 +1502,9 @@
                             
                             // 미리보기 업데이트
                             updateHtmlPreview();
+                            
+                            // 성공 메시지 표시
+                            showStatusMessage('success', '페이지 내용을 불러왔습니다.');
                             return;
                         }
                     }
