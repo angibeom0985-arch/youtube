@@ -2337,7 +2337,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
             <div className="p-[clamp(1.5rem,3vw,2.5rem)]">{renderStepContent()}</div>
 
             {/* script 단계는 하위 단계별 네비게이션을 사용하므로 전체 네비게이션 숨김 */}
-            {currentStep !== "script" && (
+            {steps[currentStep].id !== "script" && (
               <div className="border-t border-white/10 p-[clamp(1.2rem,2.5vw,2rem)]">
                 <AdSense adSlot="3672059148" className="mb-2 rounded-2xl border border-white/10 bg-black/30 px-4 py-3" />
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
