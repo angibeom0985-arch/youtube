@@ -34,6 +34,8 @@ const STORAGE_KEYS = {
   scriptTitle: "video_project_script_title",
   script: "video_project_script",
   tts: "video_project_tts",
+  ttsChapters: "video_project_tts_chapters",
+  ttsChapterVoices: "video_project_tts_chapter_voices",
   imagePrompt: "video_project_image_prompt",
   renderDuration: "video_project_render_duration",
   renderRatio: "video_project_render_ratio",
@@ -242,8 +244,12 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [ttsSpeed, setTtsSpeed] = useState(1);
   const [showVoiceModal, setShowVoiceModal] = useState(false);
   const [currentChapterForVoice, setCurrentChapterForVoice] = useState<number | null>(null);
-  const [chapterVoices, setChapterVoices] = useState<Record<number, string>>({});
-  const [chapterScripts, setChapterScripts] = useState<Array<{ title: string; content: string }>>([]);
+  const [chapterVoices, setChapterVoices] = useState<Record<number, string>>(() =>
+    getStoredJson(STORAGE_KEYS.ttsChapterVoices, {})
+  );
+  const [chapterScripts, setChapterScripts] = useState<Array<{ title: string; content: string }>>(() =>
+    getStoredJson(STORAGE_KEYS.ttsChapters, [])
+  );
   const [scriptLengthMinutes, setScriptLengthMinutes] = useState("8");
   const [customScriptLength, setCustomScriptLength] = useState("5");
   const [scriptAnalysis, setScriptAnalysis] = useState<AnalysisResult | null>(() =>
@@ -362,11 +368,53 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     }
   }, [generatedPlan]);
 
+  useEffect(() => {
+    if (!generatedPlan || chapterScripts.length > 0) return;
+
+    const chapters: Array<{ title: string; content: string }> = [];
+
+    if (generatedPlan.chapters && generatedPlan.chapters.length > 0) {
+      generatedPlan.chapters.forEach((chapter) => {
+        const lines = (chapter.script || [])
+          .map((line) => `${line.character}: ${line.line}`)
+          .join("\n");
+        if (lines.trim()) {
+          chapters.push({
+            title: chapter.title || `챕터 ${chapters.length + 1}`,
+            content: lines.trim(),
+          });
+        }
+      });
+    } else if (generatedPlan.scriptWithCharacters && generatedPlan.scriptWithCharacters.length > 0) {
+      const scriptText = generatedPlan.scriptWithCharacters
+        .map((line) => `${line.character}: ${line.line}`)
+        .join("\n");
+      chapters.push({
+        title: "전체 대본",
+        content: scriptText.trim(),
+      });
+    } else if (generatedPlan.scriptOutline && generatedPlan.scriptOutline.length > 0) {
+      generatedPlan.scriptOutline.forEach((stage) => {
+        chapters.push({
+          title: stage.stage,
+          content: stage.details.trim(),
+        });
+      });
+    }
+
+    if (chapters.length > 0) {
+      setChapterScripts(chapters);
+      setTtsScript(chapters.map(ch => ch.content).join("\n\n"));
+    }
+  }, [generatedPlan, chapterScripts.length]);
+
   useEffect(() => setStoredValue(STORAGE_KEYS.title, projectTitle), [projectTitle]);
   useEffect(() => setStoredValue(STORAGE_KEYS.notes, projectNotes), [projectNotes]);
   useEffect(() => setStoredValue(STORAGE_KEYS.scriptTitle, scriptTitle), [scriptTitle]);
   useEffect(() => setStoredValue(STORAGE_KEYS.script, scriptDraft), [scriptDraft]);
   useEffect(() => setStoredValue(STORAGE_KEYS.tts, ttsScript), [ttsScript]);
+  useEffect(() => setStoredJson(STORAGE_KEYS.ttsChapters, chapterScripts), [chapterScripts]);
+  useEffect(() => setStoredJson(STORAGE_KEYS.ttsChapterVoices, chapterVoices), [chapterVoices]);
   useEffect(() => setStoredValue(STORAGE_KEYS.imagePrompt, imagePrompt), [
     imagePrompt,
   ]);
@@ -415,6 +463,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     localStorage.removeItem('videopage_scriptIdeas');
     localStorage.removeItem('videopage_selectedTopic');
     localStorage.removeItem('videopage_generatedPlan');
+    localStorage.removeItem(STORAGE_KEYS.ttsChapters);
+    localStorage.removeItem(STORAGE_KEYS.ttsChapterVoices);
 
     // 페이지 새로고침
     window.location.reload();
