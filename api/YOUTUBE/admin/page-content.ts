@@ -68,7 +68,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             message: 'No content found for this page'
           });
         }
-        throw error;
+        console.error('Database error on GET:', error);
+        return res.status(500).json({
+          error: 'Database error',
+          message: error.message,
+          details: error.details || error.hint
+        });
       }
 
       return res.status(200).json({
@@ -91,14 +96,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         });
       }
 
-      // 데이터 준비
-      const guideData: Partial<GuideData> = {
+      // 데이터 준비 (updated_at 명시적 설정)
+      const guideData = {
         page_type: pageType,
         data: {
           content,
           mode: mode || 'basic',
           updated_by: username || 'admin'
-        }
+        },
+        updated_at: new Date().toISOString()
       };
 
       // UPSERT: 존재하면 업데이트, 없으면 생성
@@ -112,7 +118,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       if (error) {
         console.error('Database error:', error);
-        throw error;
+        return res.status(500).json({
+          error: 'Database error',
+          message: error.message,
+          details: error.details || error.hint
+        });
       }
 
       return res.status(200).json({
