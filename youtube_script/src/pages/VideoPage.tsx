@@ -817,8 +817,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         setSelectedTopic(ideas[0]);
       }
 
-      // 분석 완료 후 다음 하위 단계(주제 선택)로 자동 이동
-      setScriptSubStep(2);
+      // 분석 완료! 사용자가 결과를 확인하고 "다음 단계" 버튼으로 진행하도록 유지
+      // (자동 이동 제거: 사용자가 분석 결과를 볼 수 있도록 함)
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "대본 분석에 실패했습니다.";
 
