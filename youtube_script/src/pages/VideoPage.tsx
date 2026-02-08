@@ -215,6 +215,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [scriptDraft, setScriptDraft] = useState(() =>
     getStoredString(STORAGE_KEYS.script, "")
   );
+  const [scriptTitle, setScriptTitle] = useState(() =>
+    getStoredString(STORAGE_KEYS.scriptTitle, "")
+  );
   const [ttsScript, setTtsScript] = useState(() =>
     getStoredString(
       STORAGE_KEYS.tts,
