@@ -226,6 +226,19 @@ const ideaSchema = {
   required: ["ideas"],
 };
 
+const formattedIdeasSchema = {
+  type: Type.OBJECT,
+  properties: {
+    ideas: {
+      type: Type.ARRAY,
+      description:
+        "A list of reformatted ideas that match the given title style. Must keep the same order and count.",
+      items: { type: Type.STRING },
+    },
+  },
+  required: ["ideas"],
+};
+
 const reformatTopicSchema = {
   type: Type.OBJECT,
   properties: {
@@ -460,6 +473,36 @@ export const generateIdeas = async (
       try {
         const result = JSON.parse(jsonText);
         console.log(`[generateIdeas] 성공 - ${result.ideas?.length || 0}개 아이디어 생성`);
+
+        if (titleFormat && Array.isArray(result.ideas) && result.ideas.length > 0) {
+          try {
+            const formatPrompt = `다음은 영상 주제 아이디어 목록입니다. 아래 예시 제목의 말투/리듬/문장 구조/기호 사용을 "형식"만 참고하여 각 아이디어를 제목으로 다시 작성해주세요.\n\n요구사항:\n- 의미는 유지하되 문장 표현은 새로 쓰세요.\n- 예시 제목을 그대로 복붙하거나 1:1 치환하지 마세요.\n- 예시 제목에서 6자 이상 연속으로 그대로 가져오지 마세요.\n- 아이디어의 순서와 개수는 그대로 유지하세요.\n- 결과는 JSON 형식으로만 반환하세요.\n\n예시 제목:\n${titleFormat}\n\n아이디어 목록:\n${result.ideas.map((idea: string, index: number) => `${index + 1}. ${idea}`).join("\n")}`;
+
+            const formatResponse = await ai.models.generateContent({
+              model: "gemini-2.5-flash",
+              contents: formatPrompt,
+              config: {
+                systemInstruction:
+                  "You are a Korean YouTube title editor. Output JSON only. Do not copy the example title.",
+                responseMimeType: "application/json",
+                responseSchema: formattedIdeasSchema,
+                maxOutputTokens: 2048,
+                temperature: 0.5,
+              },
+            });
+
+            const formatJson = formatResponse.text.trim();
+            if (formatJson) {
+              const formatted = JSON.parse(formatJson);
+              if (Array.isArray(formatted.ideas) && formatted.ideas.length === result.ideas.length) {
+                return formatted.ideas as string[];
+              }
+            }
+          } catch (formatError) {
+            console.warn("Idea formatting failed, fallback to raw ideas.", formatError);
+          }
+        }
+
         return result.ideas as string[];
       } catch (parseError: any) {
         console.error('JSON Parse Error:', {
