@@ -31,6 +31,7 @@ import UserCreditToolbar from "../components/UserCreditToolbar";
 const STORAGE_KEYS = {
   title: "video_project_title",
   notes: "video_project_notes",
+  scriptTitle: "video_project_script_title",
   script: "video_project_script",
   tts: "video_project_tts",
   imagePrompt: "video_project_image_prompt",
@@ -342,6 +343,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
   useEffect(() => setStoredValue(STORAGE_KEYS.title, projectTitle), [projectTitle]);
   useEffect(() => setStoredValue(STORAGE_KEYS.notes, projectNotes), [projectNotes]);
+  useEffect(() => setStoredValue(STORAGE_KEYS.scriptTitle, scriptTitle), [scriptTitle]);
   useEffect(() => setStoredValue(STORAGE_KEYS.script, scriptDraft), [scriptDraft]);
   useEffect(() => setStoredValue(STORAGE_KEYS.tts, ttsScript), [ttsScript]);
   useEffect(() => setStoredValue(STORAGE_KEYS.imagePrompt, imagePrompt), [
@@ -820,15 +822,15 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     try {
       // Step 1: 대본 구조 분석
       setAnalyzeProgress(prev => ({ ...prev, currentStep: 0 }));
-      const analysis = await analyzeTranscript(scriptDraft.trim(), "일반", projectTitle);
+      const analysis = await analyzeTranscript(scriptDraft.trim(), "일반", scriptTitle || projectTitle);
       setScriptAnalysis(analysis);
 
       // Step 2: 핵심 키워드 추출 (이미 analysis에 포함됨)
       setAnalyzeProgress(prev => ({ ...prev, currentStep: 1 }));
 
-      // Step 3: 추천 주제 생성
+      // Step 3: 추천 주제 생성 (제목 형식 반영)
       setAnalyzeProgress(prev => ({ ...prev, currentStep: 2 }));
-      const ideas = await generateIdeas(analysis, "일반");
+      const ideas = await generateIdeas(analysis, "일반", scriptTitle);
       setScriptIdeas(ideas);
       if (ideas.length > 0) {
         setSelectedTopic(ideas[0]);
@@ -1165,13 +1167,36 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 {/* Step 0: 대본 입력 */}
                 {scriptSubStep === 0 && (
                   <>
-                    <textarea
-                      value={scriptDraft}
-                      onChange={(event) => setScriptDraft(event.target.value)}
-                      rows={7}
-                      className="transcript-input w-full rounded-2xl border border-white/20 bg-black/30 px-4 py-4 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-red-500"
-                      placeholder={SCRIPT_USAGE_GUIDE}
-                    />
+                    {/* 제목 입력 */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-white/80">
+                        🏷️ 대본 제목 (선택사항)
+                      </label>
+                      <input
+                        type="text"
+                        value={scriptTitle}
+                        onChange={(event) => setScriptTitle(event.target.value)}
+                        className="w-full rounded-xl border border-white/20 bg-black/30 px-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-red-500"
+                        placeholder="예: 경제 위기 속 재테크 주식 투자 전략"
+                      />
+                      <p className="text-xs text-white/50">
+                        제목을 입력하면 AI 추천 주제가 비슷한 형식으로 생성됩니다
+                      </p>
+                    </div>
+
+                    {/* 대본 내용 입력 */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-white/80">
+                        📝 대본 내용
+                      </label>
+                      <textarea
+                        value={scriptDraft}
+                        onChange={(event) => setScriptDraft(event.target.value)}
+                        rows={7}
+                        className="transcript-input w-full rounded-2xl border border-white/20 bg-black/30 px-4 py-4 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-red-500"
+                        placeholder="분석할 대본 내용을 입력하세요.\n\n예:\n(온도) 그럼 여기서 말하는 건 뭐냐? 졸라 좋은 주식은 뭐냐?..."
+                      />
+                    </div>
                     <div className="flex flex-wrap items-center justify-between text-sm text-white/50">
                       <span>
                         {scriptLineCount}줄 · {scriptDraft.length.toLocaleString()}자
