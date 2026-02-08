@@ -244,6 +244,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [scriptError, setScriptError] = useState("");
   const [isAnalyzingScript, setIsAnalyzingScript] = useState(false);
   const [isGeneratingScript, setIsGeneratingScript] = useState(false);
+  const [isReformattingTopic, setIsReformattingTopic] = useState(false);
 
   // Script sub-step management (대본 생성 단계의 하위 단계)
   const [scriptSubStep, setScriptSubStep] = useState(0); // 0: 입력, 1: 분석, 2: 주제선택, 3: 결과
@@ -391,6 +392,47 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
     // 페이지 새로고침
     window.location.reload();
+  };
+
+  const handleReformatTopic = async () => {
+    if (!selectedTopic.trim()) {
+      alert('변환할 주제를 먼저 입력해주세요.');
+      return;
+    }
+
+    if (!scriptTitle.trim()) {
+      alert('제목 형식으로 변환하려면 먼저 대본 제목을 입력해주세요.');
+      return;
+    }
+
+    setIsReformattingTopic(true);
+    try {
+      const response = await fetch('/api/youtube_script/gemini', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'reformatTopic',
+          topic: selectedTopic.trim(),
+          titleFormat: scriptTitle.trim(),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('주제 변환에 실패했습니다.');
+      }
+
+      const data = await response.json();
+      if (data.reformattedTopic) {
+        setSelectedTopic(data.reformattedTopic);
+      } else {
+        throw new Error('변환된 주제를 받지 못했습니다.');
+      }
+    } catch (error) {
+      console.error('주제 변환 오류:', error);
+      alert('주제 변환 중 오류가 발생했습니다. 다시 시도해주세요.');
+    } finally {
+      setIsReformattingTopic(false);
+    }
   };
 
   const downloadBlob = (blob: Blob, fileName: string) => {
@@ -1384,13 +1426,28 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                               <span>✏️</span>
                               또는 직접 주제 입력
                             </label>
-                            <input
-                              type="text"
-                              value={selectedTopic}
-                              onChange={(e) => setSelectedTopic(e.target.value)}
-                              placeholder="원하는 주제를 직접 입력하세요 (예: 경제 위기 속에서 살아남는 방법)"
-                              className="w-full rounded-xl border border-white/20 bg-black/40 px-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                value={selectedTopic}
+                                onChange={(e) => setSelectedTopic(e.target.value)}
+                                placeholder="원하는 주제를 직접 입력하세요 (예: 경제 위기 속에서 살아남는 방법)"
+                                className="flex-1 rounded-xl border border-white/20 bg-black/40 px-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              />
+                              <button
+                                onClick={handleReformatTopic}
+                                disabled={isReformattingTopic || !selectedTopic.trim() || !scriptTitle.trim()}
+                                className="px-4 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 text-white text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition"
+                                title="대본 제목 형식으로 변환"
+                              >
+                                {isReformattingTopic ? '변환 중...' : '형식 변환'}
+                              </button>
+                            </div>
+                            {scriptTitle.trim() && (
+                              <p className="text-xs text-white/50">
+                                '{scriptTitle}' 형식으로 변환됩니다
+                              </p>
+                            )}
                           </div>
                         </div>
                       ) : (
@@ -1427,13 +1484,28 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                               <span>✏️</span>
                               또는 직접 주제 입력
                             </label>
-                            <input
-                              type="text"
-                              value={selectedTopic && !scriptIdeas.includes(selectedTopic) ? selectedTopic : ''}
-                              onChange={(e) => setSelectedTopic(e.target.value)}
-                              placeholder="원하는 주제를 직접 입력하세요 (예: 경제 위기 속에서 살아남는 방법)"
-                              className="w-full rounded-xl border border-white/20 bg-black/40 px-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                value={selectedTopic && !scriptIdeas.includes(selectedTopic) ? selectedTopic : ''}
+                                onChange={(e) => setSelectedTopic(e.target.value)}
+                                placeholder="원하는 주제를 직접 입력하세요 (예: 경제 위기 속에서 살아남는 방법)"
+                                className="flex-1 rounded-xl border border-white/20 bg-black/40 px-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              />
+                              <button
+                                onClick={handleReformatTopic}
+                                disabled={isReformattingTopic || !selectedTopic.trim() || !scriptTitle.trim()}
+                                className="px-4 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 text-white text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition"
+                                title="대본 제목 형식으로 변환"
+                              >
+                                {isReformattingTopic ? '변환 중...' : '형식 변환'}
+                              </button>
+                            </div>
+                            {scriptTitle.trim() && (
+                              <p className="text-xs text-white/50">
+                                '{scriptTitle}' 형식으로 변환됩니다
+                              </p>
+                            )}
                             {selectedTopic && !scriptIdeas.includes(selectedTopic) && (
                               <p className="text-xs text-blue-300 flex items-center gap-1">
                                 <span>✓</span>

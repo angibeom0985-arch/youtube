@@ -5,6 +5,7 @@ import {
   generateNewPlan,
   generateSsml,
   generateActingPrompt,
+  reformatTopic,
 } from "../_lib/geminiService.js";
 import {
   generateChapterOutline,
@@ -131,6 +132,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       cost = CREDIT_COSTS.ANALYSIS; // Low cost
       break;
     case "generateActingPrompt":
+      cost = CREDIT_COSTS.ANALYSIS; // Low cost
+      break;
+    case "reformatTopic":
       cost = CREDIT_COSTS.ANALYSIS; // Low cost
       break;
     default:
@@ -299,6 +303,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       res.status(200).json({ prompt: result });
       return;
     }
+      case "reformatTopic": {
+        const topic = body.topic as string;
+        const titleFormat = body.titleFormat as string;
+        if (!topic || !titleFormat) {
+          res.status(400).send("missing_fields");
+          return;
+        }
+        const result = await reformatTopic(topic, titleFormat, effectiveApiKey);
+        res.status(200).json({ reformattedTopic: result });
+        return;
+      }
       default:
     res.status(400).send("unknown_action");
     return;
