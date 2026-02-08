@@ -378,7 +378,8 @@ export const generateIdeas = async (
   analysis: AnalysisResult,
   category: string,
   apiKey: string,
-  userKeyword?: string
+  userKeyword?: string,
+  titleFormat?: string
 ): Promise<string[]> => {
   const maxRetries = 2;
   let lastError: any = null;
@@ -398,16 +399,20 @@ export const generateIdeas = async (
 
       const isShoppingReview = category === "쇼핑 리뷰";
       const keywordInstruction = userKeyword
-        ? `\n\n**중요: 사용자가 원하는 키워드 "${userKeyword}"를 반드시 포함하거나 관련된 아이디어를 생성해주세요.**`
+        ? `\n\n**중요: 사용자 키워드 "${userKeyword}"를 반드시 포함하거나 밀접히 관련된 주제로 아이디어를 생성하세요.**`
+        : "";
+
+      const titleFormatInstruction = titleFormat
+        ? `\n\n**제목 형식 기준:** 아래 예시 제목의 말투/리듬/문장 구조/기호 사용(… , ㄷㄷ, ?, ! 등)을 따라 작성하세요.\n- 예시 제목을 그대로 복붙하거나 1:1 치환하지 마세요.\n- 예시 제목에서 6자 이상 연속으로 그대로 가져오지 마세요.\n- 의미는 새롭게, 형식만 비슷하게 유지하세요.\n\n예시 제목:\n${titleFormat}\n`
         : "";
 
       const prompt = isShoppingReview
-        ? `다음은 성공적인 '쇼핑 리뷰' 영상 분석 결과입니다. 이 분석을 바탕으로, 한국의 이커머스 사이트 '쿠팡(Coupang)'에서 현재 판매량이 가장 많거나 후기가 많은 제품 중, 영상 리뷰 콘텐츠로 만들기에 적합한 제품 6가지를 추천해주세요. 아이디어는 한국어로 작성하고 JSON 형식의 배열로 제공해주세요.${keywordInstruction}\n\n분석 내용:\n${analysisString}`
-        : `다음은 성공적인 유튜브 영상 분석 결과입니다. 이 분석을 바탕으로, 비슷한 성공 가능성이 있는 새롭고 창의적인 영상 주제 아이디어 6가지를 제안해주세요. 아이디어는 한국어로 작성하고 JSON 형식의 배열로 제공해주세요.${keywordInstruction}\n\n분석 내용:\n${analysisString}`;
+        ? `다음은 성공적인 "쇼핑 리뷰" 영상 분석 결과입니다. 이 분석을 바탕으로 쿠팡에서 현재 판매량이 높거나 후기 반응이 좋은 제품 중 리뷰 콘텐츠로 적합한 6가지 아이디어를 제안해주세요.\n아이디어는 한국어로 작성하고 JSON 배열로만 출력하세요.${keywordInstruction}${titleFormatInstruction}\n\n분석 내용:\n${analysisString}`
+        : `다음은 성공적인 유튜브 영상 분석 결과입니다. 이 분석을 바탕으로 조회수 가능성이 높은 새로운 영상 주제 아이디어 6가지를 제안해주세요.\n아이디어는 한국어로 작성하고 JSON 배열로만 출력하세요.${keywordInstruction}${titleFormatInstruction}\n\n분석 내용:\n${analysisString}`;
 
       const systemInstruction = isShoppingReview
-        ? "당신은 최신 트렌드에 밝은 쇼핑 전문가입니다. 성공적인 리뷰 영상을 분석하여, 다음 히트할 만한 리뷰 제품을 추천하는 역할을 합니다."
-        : "당신은 트렌드를 잘 읽는 유튜브 콘텐츠 기획자입니다. 성공 사례를 분석하여 새로운 히트 아이디어를 제안하는 역할을 합니다.";
+        ? "You are a Korean YouTube shopping review title editor. Generate 6 ideas with strong hooks. If a title format example is provided, mimic its style but do NOT copy it."
+        : "You are a Korean YouTube title editor. Generate 6 punchy ideas. If a title format example is provided, mimic its style but do NOT copy it.";
 
       console.log(`[generateIdeas] 시도 ${attempt + 1}/${maxRetries + 1}`);
 

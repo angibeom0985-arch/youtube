@@ -936,7 +936,6 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
         const ideas = await generateIdeas(
           result,
           selectedCategory,
-          apiKey,
           appliedIdeaKeyword || undefined
         );
         setSuggestedIdeas(ideas);
@@ -962,7 +961,6 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
       const ideas = await generateIdeas(
         analysisResult,
         selectedCategory,
-        apiKey,
         appliedIdeaKeyword || undefined
       );
       setSuggestedIdeas(ideas);
@@ -985,7 +983,6 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
       const ideas = await generateIdeas(
         analysisResult,
         selectedCategory,
-        apiKey,
         userIdeaKeyword || undefined
       );
       setSuggestedIdeas(ideas);
@@ -1006,7 +1003,6 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
       const ideas = await generateIdeas(
         analysisResult,
         selectedCategory,
-        apiKey,
         undefined
       );
       setSuggestedIdeas(ideas);

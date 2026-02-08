@@ -202,6 +202,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const analysis = payload.analysis;
       const category = payload.category as string;
       const userKeyword = payload.userKeyword as string | undefined;
+      const titleFormat = payload.titleFormat as string | undefined;
       if (!analysis || !category) {
         res.status(400).send("missing_fields");
         return;
@@ -210,7 +211,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         analysis as any,
         category,
         effectiveApiKey,
-        userKeyword
+        userKeyword,
+        titleFormat
       );
       res.status(200).json({ ideas: result });
       return;

@@ -91,12 +91,14 @@ export const analyzeTranscript = async (
 export const generateIdeas = async (
   analysis: AnalysisResult,
   category: string,
-  userKeyword?: string
+  userKeyword?: string,
+  titleFormat?: string
 ): Promise<string[]> => {
   const data = await callGemini<{ ideas: string[] }>("generateIdeas", {
     analysis,
     category,
     userKeyword,
+    titleFormat,
   });
   return data.ideas;
 };
