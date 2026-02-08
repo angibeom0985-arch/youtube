@@ -1,9 +1,10 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { getSupabaseUser, supabaseAdmin } from "../../_lib/supabase.js";
+import { checkAndDeductCredits } from "../../_lib/creditService.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, DELETE, OPTIONS");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
   if (req.method === "OPTIONS") {
@@ -25,6 +26,78 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(401).json({ error: "Invalid token" });
   }
 
+  // POST: 크레딧 차감 또는 환불
+  if (req.method === "POST") {
+    res.setHeader("Cache-Control", "no-store");
+
+    let body: any = req.body;
+    if (typeof body === "string") {
+      try {
+        body = JSON.parse(body);
+      } catch {
+        return res.status(400).send("invalid_json");
+      }
+    }
+
+    const action = body?.action || "deduct";
+    const cost = Number(body?.cost);
+    
+    if (!Number.isFinite(cost) || cost <= 0) {
+      return res.status(400).json({ message: "invalid_cost" });
+    }
+
+    // 환불 처리
+    if (action === "refund") {
+      try {
+        const { data: profile, error: fetchError } = await supabaseClient
+          .from("profiles")
+          .select("credits")
+          .eq("id", user.id)
+          .single();
+
+        if (fetchError) {
+          console.error("Profile fetch error:", fetchError);
+          return res.status(500).json({ message: "failed_to_fetch_credits" });
+        }
+
+        const currentCredits = profile?.credits ?? 0;
+        const newCredits = currentCredits + cost;
+
+        const { error: updateError } = await supabaseClient
+          .from("profiles")
+          .update({ credits: newCredits })
+          .eq("id", user.id);
+
+        if (updateError) {
+          console.error("Credit refund error:", updateError);
+          return res.status(500).json({ message: "failed_to_refund_credits" });
+        }
+
+        return res.status(200).json({ 
+          credits: newCredits,
+          refunded: cost,
+          message: "credits_refunded_successfully"
+        });
+      } catch (error) {
+        console.error("Unexpected error during refund:", error);
+        return res.status(500).json({ message: "internal_server_error" });
+      }
+    }
+
+    // 차감 처리
+    const creditResult = await checkAndDeductCredits(req, res, cost);
+    if (!creditResult.allowed) {
+      return res.status(creditResult.status || 402).json({
+        message: creditResult.message || "Credits required",
+        error: "credit_limit",
+        currentCredits: creditResult.currentCredits,
+      });
+    }
+
+    return res.status(200).json({ credits: creditResult.currentCredits });
+  }
+
+  // DELETE: 계정 삭제
   if (req.method === "DELETE") {
     if (!supabaseAdmin) {
       return res.status(500).json({ error: "Admin client unavailable" });

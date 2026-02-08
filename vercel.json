@@ -41,6 +41,10 @@
       "destination": "/api/youtube_script/benchmarking/search.ts"
     },
     {
+      "source": "/api/YOUTUBE/user/credits-deduct",
+      "destination": "/api/YOUTUBE/user/index.ts"
+    },
+    {
       "source": "/admin",
       "destination": "/admin.html"
     },
