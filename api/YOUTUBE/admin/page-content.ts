@@ -11,52 +11,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).end();
   }
 
-  const { pageType } = req.query;
-
   try {
-    // 환경 변수 체크
-    const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+    const { pageType } = req.query;
 
-    console.log('Environment check:', {
-      hasUrl: !!supabaseUrl,
-      hasKey: !!supabaseKey,
-      urlPrefix: supabaseUrl?.substring(0, 20),
-      pageType
-    });
-
-    if (!supabaseUrl || !supabaseKey) {
-      return res.status(500).json({
-        error: 'Configuration error',
-        message: 'Supabase credentials not found',
-        debug: {
-          hasUrl: !!supabaseUrl,
-          hasKey: !!supabaseKey
-        }
+    // pageType 검증
+    if (!pageType || typeof pageType !== 'string') {
+      return res.status(400).json({
+        error: 'Invalid request',
+        message: 'pageType query parameter is required'
       });
     }
 
-  // pageType 검증
-  if (!pageType || typeof pageType !== 'string') {
-    return res.status(400).json({
-      error: 'Invalid request',
-      message: 'pageType query parameter is required'
-    });
-  }
+    // 허용된 페이지 타입인지 확인
+    const allowedPageTypes = ['api-guide-aistudio', 'api-guide-cloudconsole'];
+    if (!allowedPageTypes.includes(pageType)) {
+      return res.status(400).json({
+        error: 'Invalid page type',
+        message: `Allowed page types: ${allowedPageTypes.join(', ')}`
+      });
+    }
 
-  // 허용된 페이지 타입인지 확인
-  const allowedPageTypes = ['api-guide-aistudio', 'api-guide-cloudconsole'];
-  if (!allowedPageTypes.includes(pageType)) {
-    return res.status(400).json({
-      error: 'Invalid page type',
-      message: `Allowed page types: ${allowedPageTypes.join(', ')}`
-    });
-  }
-
-  try {
     // 환경 변수 체크
     const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
 
     console.log('Environment check:', {
       hasUrl: !!supabaseUrl,
