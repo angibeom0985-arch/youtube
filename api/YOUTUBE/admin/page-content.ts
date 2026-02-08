@@ -83,15 +83,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // GET: 페이지 내용 불러오기
     if (req.method === 'GET') {
+      console.log('=== GET Request ===');
+      console.log('Querying guides table for pageType:', pageType);
+      
       const { data, error } = await supabase
         .from('guides')
         .select('*')
         .eq('page_type', pageType)
         .single();
 
+      console.log('Query result - data:', !!data, 'error:', !!error);
+      
       if (error) {
-        console.error('Database error:', error);
+        console.error('Database error:', JSON.stringify(error, null, 2));
         if (error.code === 'PGRST116') {
+          console.log('No content found, returning empty');
           // 데이터가 없는 경우 빈 내용 반환
           return res.status(200).json({
             page_type: pageType,
@@ -103,10 +109,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(500).json({
           error: 'Database error',
           message: error.message,
+          code: error.code,
           details: error.details || error.hint
         });
       }
 
+      console.log('Returning data successfully');
       return res.status(200).json({
         page_type: data.page_type,
         content: data.data?.content || '',
@@ -150,4 +158,39 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (error) {
         console.error('Database error:', error);
         return res.status(500).json({
-          error: 
+          error: 'Database error',
+          message: error.message,
+          details: error.details || error.hint
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: 'Page content saved successfully',
+        page_type: data.page_type,
+        updated_at: data.updated_at
+      });
+    }
+
+    // 지원하지 않는 메서드
+    return res.status(405).json({
+      error: 'Method not allowed',
+      message: 'Only GET and POST methods are supported'
+    });
+
+  } catch (error: any) {
+    console.error('=== FATAL ERROR ===');
+    console.error('Error name:', error.name);
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
+    console.error('Full error:', JSON.stringify(error, null, 2));
+    
+    return res.status(500).json({
+      error: 'Internal server error',
+      message: error.message || 'An unexpected error occurred',
+      errorName: error.name,
+      errorCode: error.code,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+}
