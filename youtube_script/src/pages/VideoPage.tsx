@@ -12,6 +12,7 @@ import {
   FiMic,
   FiSettings,
   FiSmartphone,
+  FiTrash2,
 
 } from "react-icons/fi";
 
@@ -372,7 +373,23 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     await supabase.auth.signOut();
   };
 
+  const handleReset = () => {
+    if (!window.confirm('모든 작업 내용을 초기화하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.')) {
+      return;
+    }
 
+    // localStorage 초기화
+    Object.values(STORAGE_KEYS).forEach(key => {
+      localStorage.removeItem(key);
+    });
+    localStorage.removeItem('videopage_scriptAnalysis');
+    localStorage.removeItem('videopage_scriptIdeas');
+    localStorage.removeItem('videopage_selectedTopic');
+    localStorage.removeItem('videopage_generatedPlan');
+
+    // 페이지 새로고침
+    window.location.reload();
+  };
 
   const downloadBlob = (blob: Blob, fileName: string) => {
     const url = URL.createObjectURL(blob);
@@ -2271,6 +2288,14 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       <div className="absolute -bottom-32 -right-28 h-[clamp(240px,36vw,420px)] w-[clamp(240px,36vw,420px)] rounded-full bg-gradient-to-tr from-rose-400/30 via-purple-500/10 to-transparent blur-3xl" />
 
       <div className="absolute top-0 right-0 p-4 sm:p-6 flex gap-3 z-50 items-center">
+        <button
+          onClick={handleReset}
+          className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-white text-sm font-medium transition-all flex items-center gap-2"
+          title="모든 작업 내용 초기화"
+        >
+          <FiTrash2 size={16} />
+          초기화
+        </button>
         <UserCreditToolbar user={user} onLogout={handleLogout} tone="red" />
       </div>
       <div className="absolute top-0 left-0 p-4 sm:p-6 z-50">
