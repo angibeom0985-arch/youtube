@@ -236,164 +236,32 @@ export const analyzeTranscript = async (
     const ai = createAI(apiKey);
     const normalizedTranscript = (transcript || "").trim();
 
-    const CHUNK_CHAR_LIMIT = 6000;
-    const SPLIT_THRESHOLD = 6500;
-    const MAX_CHUNKS = 6;
-    const OPENING_SNIPPET_CHARS = 1200;
-
-    const splitTranscriptToChunks = (input: string, maxChars: number): string[] => {
-      const lines = input.split(/\r?\n+/);
-      const chunks: string[] = [];
-      let current = "";
-
-      for (const rawLine of lines) {
-        const line = rawLine.trim();
-        if (!line) continue;
-
-        if (line.length > maxChars) {
-          if (current) {
-            chunks.push(current);
-            current = "";
-          }
-          let start = 0;
-          while (start < line.length) {
-            chunks.push(line.slice(start, start + maxChars));
-            start += maxChars;
-          }
-          continue;
-        }
-
-        if (!current) {
-          current = line;
-          continue;
-        }
-
-        if ((current + "\n" + line).length > maxChars) {
-          chunks.push(current);
-          current = line;
-        } else {
-          current += "\n" + line;
-        }
-      }
-
-      if (current) chunks.push(current);
-
-      if (chunks.length > MAX_CHUNKS) {
-        const headCount = Math.min(4, MAX_CHUNKS - 2);
-        const tailCount = MAX_CHUNKS - headCount;
-        return [...chunks.slice(0, headCount), ...chunks.slice(-tailCount)];
-      }
-
-      return chunks;
-    };
-
     const fullAnalysisSchema = {
       type: Type.OBJECT,
       properties: storyChannelAnalysisSchema,
       required: [...baseAnalysisSchema.required, "scriptStructure", "openingStyle"],
     };
 
-    const chunkAnalysisSchema = {
-      type: Type.OBJECT,
-      properties: baseAnalysisSchema.properties,
-      required: baseAnalysisSchema.required,
-    };
-
     const analysisContext = videoTitle
       ? `다음은 제목이 "${videoTitle}"인 성공적인 '${category}' 카테고리 YouTube 동영상입니다. 영상의 제목과 스크립트를 종합적으로 고려하여 심층적으로 분석하고, 각 항목을 지정된 구조에 맞춰 JSON 형식으로 제공해주세요:`
       : `다음은 성공적인 '${category}' 카테고리 YouTube 동영상의 스크립트입니다. 이 카테고리의 특성을 고려하여 심층적으로 분석하고, 각 항목을 지정된 구조에 맞춰 JSON 형식으로 제공해주세요:`;
 
-    const shouldSplit = normalizedTranscript.length > SPLIT_THRESHOLD;
-
-    if (shouldSplit) {
-      const chunks = splitTranscriptToChunks(normalizedTranscript, CHUNK_CHAR_LIMIT);
-      console.log(`[analyzeTranscript] 긴 대본 감지 - ${chunks.length}개 조각으로 분할`);
-
-      const chunkAnalyses: AnalysisResult[] = [];
-
-      for (let index = 0; index < chunks.length; index += 1) {
-        const chunk = chunks[index];
-        const response = await ai.models.generateContent({
-          model: "gemini-2.5-flash",
-          contents: `${analysisContext}\n\n[조각 ${index + 1}/${chunks.length}]\n---\n${chunk}\n---`,
-          config: {
-            systemInstruction: `당신은 '${category}' 전문 YouTube 콘텐츠 전략가입니다. 제공된 대본 조각만을 바탕으로 핵심 키워드와 기획 의도, 조회수 예측 이유를 간결하게 분석해주세요. 모든 텍스트는 평문으로 작성하고, 마크다운 특수문자(*, **, _, __, #, - 등)를 절대 사용하지 마세요. 문단 사이는 두 번의 줄바꿈으로 구분하세요.`,
-            responseMimeType: "application/json",
-            responseSchema: chunkAnalysisSchema,
-            maxOutputTokens: 4096,
-            temperature: 0.6,
-          },
-        });
-
-        const jsonText = response.text.trim();
-        if (!jsonText) {
-          throw new Error("EMPTY_RESPONSE: API 응답이 비어있습니다");
-        }
-
-        const openBraces = (jsonText.match(/{/g) || []).length;
-        const closeBraces = (jsonText.match(/}/g) || []).length;
-        if (openBraces !== closeBraces) {
-          // JSON 자동 복구 시도
-          let fixedJson = jsonText;
-          const deficit = openBraces - closeBraces;
-          if (deficit > 0) {
-            fixedJson = jsonText + '}'.repeat(deficit);
-            try {
-              chunkAnalyses.push(JSON.parse(fixedJson) as AnalysisResult);
-              continue;
-            } catch (e) {
-              throw new Error("대본 조각 분석 중 오류가 발생했습니다. 대본을 더 작은 챕터로 나눠주세요.");
-            }
-          }
-          throw new Error("대본 조각 분석 중 오류가 발생했습니다. 대본을 더 작은 챕터로 나눠주세요.");
-        }
-
-        chunkAnalyses.push(JSON.parse(jsonText) as AnalysisResult);
-      }
-
-      const openingSnippet = normalizedTranscript.slice(0, OPENING_SNIPPET_CHARS);
-      const mergePrompt = `다음은 긴 대본을 여러 조각으로 나눈 분석 결과입니다. 아래 정보를 종합하여 전체 영상 분석을 완성하세요.\n\n[조건]\n1. keywords는 조각 분석의 핵심 키워드를 중복 제거하여 5-10개로 정리하세요.\n2. intent와 viewPrediction은 조각 분석의 공통점을 통합해 일관된 메시지로 작성하세요.\n3. scriptStructure는 전체 흐름 기준으로 10-15개 핵심 단계로 요약하세요.\n4. openingStyle은 아래의 openingSnippet을 중심으로 분석하세요.\n\n[openingSnippet]\n${openingSnippet}\n\n[chunkAnalyses]\n${JSON.stringify(chunkAnalyses, null, 2)}\n\n위 조건을 반드시 지키고, 지정된 JSON 스키마에 맞춰 결과를 제공해주세요.`;
-
-      const mergeResponse = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: mergePrompt,
-        config: {
-          systemInstruction: `당신은 '${category}' 전문 YouTube 콘텐츠 전략가입니다. 여러 조각의 분석을 통합하여 전체 영상 분석을 생성합니다. 모든 텍스트는 평문으로 작성하고, 마크다운 특수문자(*, **, _, __, #, - 등)를 절대 사용하지 마세요. 문단 사이는 두 번의 줄바꿈으로 구분하세요.`,
-          responseMimeType: "application/json",
-          responseSchema: fullAnalysisSchema,
-          maxOutputTokens: 8192,
-          temperature: 0.7,
-        },
-      });
-
-      const mergedText = mergeResponse.text.trim();
-      if (!mergedText) {
-        throw new Error("EMPTY_RESPONSE: API 응답이 비어있습니다");
-      }
-
-      const openBraces = (mergedText.match(/{/g) || []).length;
-      const closeBraces = (mergedText.match(/}/g) || []).length;
-      if (openBraces !== closeBraces) {
-        // JSON 자동 복구 시도
-        let fixedJson = mergedText;
-        const deficit = openBraces - closeBraces;
-        if (deficit > 0) {
-          fixedJson = mergedText + '}'.repeat(deficit);
-          try {
-            return JSON.parse(fixedJson) as AnalysisResult;
-          } catch (e) {
-            throw new Error("대본 통합 분석 중 오류가 발생했습니다. 대본을 더 작은 챕터로 나눠주세요.");
-          }
-        }
-        throw new Error("대본 통합 분석 중 오류가 발생했습니다. 대본을 더 작은 챕터로 나눠주세요.");
-      }
-
-      return JSON.parse(mergedText) as AnalysisResult;
+    // 매우 긴 대본의 경우 스마트 샘플링 (앞 60% + 뒤 40%)
+    let transcriptToAnalyze = normalizedTranscript;
+    const MAX_CHARS = 100000; // 100,000자까지는 전체 분석
+    
+    if (normalizedTranscript.length > MAX_CHARS) {
+      const frontPortion = Math.floor(MAX_CHARS * 0.6);
+      const backPortion = Math.floor(MAX_CHARS * 0.4);
+      const front = normalizedTranscript.slice(0, frontPortion);
+      const back = normalizedTranscript.slice(-backPortion);
+      transcriptToAnalyze = front + "\n\n[... 중간 부분 생략 ...]\n\n" + back;
+      console.log(`[analyzeTranscript] 긴 대본 샘플링: ${normalizedTranscript.length}자 -> ${transcriptToAnalyze.length}자`);
     }
 
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
-      contents: `${analysisContext}\n\n스크립트(길이 제한됨):\n---\n${transcript.slice(0, 30000)}\n---`,
+      contents: `${analysisContext}\n\n스크립트:\n---\n${transcriptToAnalyze}\n---`,
       config: {
         systemInstruction: `당신은 '${category}' 전문 YouTube 콘텐츠 전략가입니다. 당신의 임무는 비디오 스크립트를 분석하고 벤치마킹을 위해 핵심 요소에 대한 구조화된 분석을 제공하는 것입니다. \n\n중요: 응답 시간을 단축하기 위해 'scriptStructure'는 가장 중요한 핵심 단계 10-15개로 요약해서 구성해주세요. 모든 텍스트는 평문으로 작성하고, 마크다운 특수문자(*, **, _, __, #, - 등)를 절대 사용하지 마세요. 문단 사이는 두 번의 줄바꿈으로 구분하세요. 반드시 완전한 JSON 형식으로 응답해주세요.`,
         responseMimeType: "application/json",
@@ -439,7 +307,7 @@ export const analyzeTranscript = async (
         }
       }
       
-      throw new Error(`대본 분석 중 오류가 발생했습니다.\n\n대본을 여러 챕터로 나눠서 작성해주세요. 각 챕터는 2-3분 분량으로 구성하고, 전체 대본이 아닌 챕터별로 분석하면 더 정확한 결과를 얻을 수 있습니다.`);
+      throw new Error(`대본 분석 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.`);
     }
 
     // JSON 파싱 시도 및 상세한 에러 처리
