@@ -62,21 +62,35 @@ type Step = {
 
 const voiceOptions = [
   { name: "민준", label: "남성 캐주얼", tone: "신뢰감 있는 다큐 스타일" },
+  { name: "지훈", label: "남성 중년", tone: "정중한 해설 톤" },
+  { name: "준서", label: "남성 내레이션", tone: "다큐멘터리 전문" },
   { name: "서연", label: "여성 아나운서", tone: "차분한 뉴스 톤" },
+  { name: "유나", label: "여성 활발", tone: "밝고 친근한 진행" },
+  { name: "혜진", label: "여성 중년", tone: "안정적인 라디오 톤" },
 ];
 
 // 확장된 목소리 옵션 (모달용)
 const allVoiceOptions = [
   { name: "민준", label: "남성 캐주얼", tone: "신뢰감 있는 다큐 스타일", category: "추천", sampleText: "오늘은 여러분께 정말 흥미로운 이야기를 들려드리려고 합니다." },
   { name: "서연", label: "여성 아나운서", tone: "차분한 뉴스 톤", category: "추천", sampleText: "지금부터 중요한 정보를 정확하게 전달해 드리겠습니다." },
-  { name: "소희", label: "여성 ASMR", tone: "부드러운 집중용 음성", category: "여성", sampleText: "편안하게 들으시면서, 천천히 따라오세요." },
-  { name: "지훈", label: "남성 비즈니스", tone: "프로페셔널한 프레젠테이션", category: "남성", sampleText: "오늘 발표할 내용은 우리 사업의 핵심 전략입니다." },
-  { name: "유나", label: "여성 상냥", tone: "밝고 친근한 목소리", category: "여성", sampleText: "안녕하세요! 오늘도 즐거운 하루 보내고 계신가요?" },
-  { name: "태양", label: "남성 에너지", tone: "활기찬 운동 코치 스타일", category: "남성", sampleText: "자, 이제 시작합니다! 힘차게 따라오세요!" },
-  { name: "하늘", label: "여성 차분", tone: "명상 가이드 톤", category: "여성", sampleText: "깊게 숨을 들이마시고, 천천히 내쉬어 보세요." },
-  { name: "준서", label: "남성 내레이션", tone: "다큐멘터리 전문", category: "남성", sampleText: "이 장면에서 우리는 자연의 경이로운 순간을 목격하게 됩니다." },
-  { name: "수아", label: "여성 활발", tone: "쇼핑호스트 스타일", category: "여성", sampleText: "와! 이 제품 정말 대박이에요! 지금 바로 확인해보세요!" },
+  { name: "지훈", label: "남성 비즈니스", tone: "프로페셔널 프레젠테이션", category: "추천", sampleText: "오늘 발표할 내용은 우리 사업의 핵심 전략입니다." },
+  { name: "유나", label: "여성 상냥", tone: "밝고 친근한 진행", category: "추천", sampleText: "안녕하세요! 오늘도 즐거운 하루 보내고 계신가요?" },
+  { name: "혜진", label: "여성 중년", tone: "안정적인 라디오 톤", category: "추천", sampleText: "차분하게 핵심만 정리해서 전달드리겠습니다." },
+  { name: "도현", label: "남성 내레이션", tone: "정중한 해설 톤", category: "추천", sampleText: "지금부터 핵심 내용을 차근차근 짚어보겠습니다." },
+
+  { name: "태양", label: "남성 에너지", tone: "활기찬 운동 코치", category: "남성", sampleText: "자, 이제 시작합니다! 힘차게 따라오세요!" },
+  { name: "준서", label: "남성 다큐", tone: "깊이 있는 내레이션", category: "남성", sampleText: "이 장면에서 우리는 자연의 경이로운 순간을 목격하게 됩니다." },
   { name: "동현", label: "남성 카리스마", tone: "리더십 강연 톤", category: "남성", sampleText: "성공하고 싶다면, 지금 바로 행동으로 옮겨야 합니다." },
+  { name: "상호", label: "남성 중년", tone: "따뜻한 해설 톤", category: "남성", sampleText: "천천히 정리하면 결국 답이 보입니다." },
+  { name: "재훈", label: "남성 젊은", tone: "경쾌한 진행", category: "남성", sampleText: "오늘 주제, 정말 재밌게 풀어보겠습니다!" },
+  { name: "성민", label: "남성 시니어", tone: "묵직한 조언 톤", category: "남성", sampleText: "경험에서 나온 조언은 단순하지만 강력합니다." },
+
+  { name: "소희", label: "여성 ASMR", tone: "부드러운 집중용 음성", category: "여성", sampleText: "편안하게 들으시면서, 천천히 따라오세요." },
+  { name: "하늘", label: "여성 차분", tone: "명상 가이드 톤", category: "여성", sampleText: "깊게 숨을 들이마시고, 천천히 내쉬어 보세요." },
+  { name: "수아", label: "여성 활발", tone: "쇼핑호스트 스타일", category: "여성", sampleText: "와! 이 제품 정말 대박이에요! 지금 바로 확인해보세요!" },
+  { name: "예린", label: "여성 젊은", tone: "가벼운 브이로그 톤", category: "여성", sampleText: "오늘 하루 같이 가볍게 시작해볼까요?" },
+  { name: "미정", label: "여성 중년", tone: "안정적 설명 톤", category: "여성", sampleText: "핵심만 간단하게 정리해 드릴게요." },
+  { name: "순자", label: "여성 시니어", tone: "따뜻한 이야기 톤", category: "여성", sampleText: "옛날 이야기도 요즘엔 다 이유가 있답니다." },
 ];
 
 const imageStyles = [
@@ -378,6 +392,12 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   useEffect(() => setStoredValue("videopage_selectedTopic", selectedTopic), [selectedTopic]);
   useEffect(() => setStoredJson("videopage_generatedPlan", generatedPlan), [generatedPlan]);
 
+  useEffect(() => {
+    if (chapterScripts.length > 0 && currentChapterForVoice === null) {
+      setCurrentChapterForVoice(0);
+    }
+  }, [chapterScripts, currentChapterForVoice]);
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
   };
@@ -501,7 +521,25 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
       const voiceMap: Record<string, string> = {
         '민준': 'ko-KR-Standard-C',
+        '지훈': 'ko-KR-Standard-B',
+        '준서': 'ko-KR-Standard-D',
+        '도현': 'ko-KR-Neural2-C',
+        '태양': 'ko-KR-Wavenet-D',
+        '동현': 'ko-KR-Standard-C',
+        '상호': 'ko-KR-Standard-B',
+        '재훈': 'ko-KR-Wavenet-B',
+        '성민': 'ko-KR-Standard-D',
+
         '서연': 'ko-KR-Standard-A',
+        '유나': 'ko-KR-Wavenet-C',
+        '혜진': 'ko-KR-Standard-A',
+        '소희': 'ko-KR-Neural2-A',
+        '하늘': 'ko-KR-Wavenet-A',
+        '수아': 'ko-KR-Standard-A',
+        '예린': 'ko-KR-Wavenet-C',
+        '미정': 'ko-KR-Standard-A',
+        '순자': 'ko-KR-Standard-A',
+
         '수현': 'ko-KR-Standard-B',
         '지수': 'ko-KR-Standard-D',
         '하나': 'ko-KR-Wavenet-A',
@@ -509,7 +547,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         '해준': 'ko-KR-Wavenet-B',
         '준호': 'ko-KR-Wavenet-D',
         '하림': 'ko-KR-Neural2-A',
-        '도현': 'ko-KR-Neural2-C',
       };
 
       const googleVoice = voiceMap[voiceName] || 'ko-KR-Standard-A';
@@ -1903,6 +1940,29 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
               {chapterScripts.length > 0 ? (
                 <div className="space-y-4 overflow-visible">
+                  {currentStep === steps.findIndex((step) => step.id === "tts") && chapterScripts.length > 0 && (
+                    <div className="fixed right-6 top-1/2 z-[80] hidden -translate-y-1/2 lg:flex flex-col items-end gap-3">
+                      <div className="rounded-2xl border border-white/15 bg-gradient-to-b from-black/80 to-black/50 px-4 py-3 shadow-[0_20px_60px_rgba(0,0,0,0.45)] backdrop-blur">
+                        <p className="text-xs text-white/50">현재 선택</p>
+                        <p className="text-sm font-semibold text-white">
+                          {currentChapterForVoice !== null
+                            ? chapterScripts[currentChapterForVoice]?.title || `챕터 ${currentChapterForVoice + 1}`
+                            : "챕터 선택 필요"}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const index = currentChapterForVoice ?? 0;
+                            setCurrentChapterForVoice(index);
+                            setShowVoiceModal(true);
+                          }}
+                          className="mt-3 inline-flex items-center gap-2 rounded-full border border-orange-400/60 bg-orange-500/20 px-4 py-2 text-sm font-semibold text-orange-100 hover:bg-orange-500/30 transition"
+                        >
+                          ✨ 더 많은 TTS
+                        </button>
+                      </div>
+                    </div>
+                  )}
                   <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-white/10 bg-black/30 px-4 py-3">
                     <span className="text-sm font-semibold text-white/70">전체 목소리 적용</span>
                     <select
@@ -1955,6 +2015,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                               <button
                                 type="button"
                                 onClick={() => {
+                                  setCurrentChapterForVoice(index);
                                   setChapterVoices({ ...chapterVoices, [index]: voice.name });
                                 }}
                                 className={`px-4 py-2 rounded-lg border text-sm font-medium transition-all ${(chapterVoices[index] || voiceOptions[0].name) === voice.name
@@ -1968,6 +2029,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                               <button
                                 type="button"
                                 onClick={() => {
+                                  setCurrentChapterForVoice(index);
                                   const sampleText = allVoiceOptions.find(v => v.name === voice.name)?.sampleText || "안녕하세요. 샘플 음성입니다.";
                                   playPreviewAudio(index, voice.name, sampleText);
                                 }}
@@ -2022,6 +2084,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         <div className="flex gap-2">
                           <button
                             onClick={() => {
+                              setCurrentChapterForVoice(index);
                               const voiceName = chapterVoices[index] || '민준';
                               const text = chapter.content;
                               if (playingChapter === index) {
