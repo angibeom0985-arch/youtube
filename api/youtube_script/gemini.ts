@@ -304,8 +304,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return;
     }
       case "reformatTopic": {
-        const topic = body.topic as string;
-        const titleFormat = body.titleFormat as string;
+        const topic = payload.topic as string;
+        const titleFormat = payload.titleFormat as string;
         if (!topic || !titleFormat) {
           res.status(400).send("missing_fields");
           return;

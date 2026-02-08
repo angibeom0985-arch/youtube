@@ -415,8 +415,10 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'reformatTopic',
-          topic: selectedTopic.trim(),
-          titleFormat: scriptTitle.trim(),
+          payload: {
+            topic: selectedTopic.trim(),
+            titleFormat: scriptTitle.trim(),
+          },
         }),
       });
 
