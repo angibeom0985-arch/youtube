@@ -2336,27 +2336,30 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
             <div className="p-[clamp(1.5rem,3vw,2.5rem)]">{renderStepContent()}</div>
 
-            <div className="border-t border-white/10 p-[clamp(1.2rem,2.5vw,2rem)]">
-              <AdSense adSlot="3672059148" className="mb-2 rounded-2xl border border-white/10 bg-black/30 px-4 py-3" />
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <button
-                  type="button"
-                  onClick={handlePrev}
-                  disabled={!canGoPrev}
-                  className="inline-flex items-center justify-center gap-2 rounded-full border border-white/20 px-6 py-3 text-base font-semibold text-white/70 transition hover:border-white/40 disabled:opacity-40 hover:scale-105 active:scale-95"
-                >
-                  <FiChevronLeft size={20} /> 이전 단계
-                </button>
-                <button
-                  type="button"
-                  onClick={handleNext}
-                  disabled={!canGoNext}
-                  className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-red-600 to-red-500 px-8 py-3 text-base font-semibold text-white shadow-[0_10px_20px_rgba(220,38,38,0.4)] transition hover:translate-x-0.5 disabled:opacity-40 hover:scale-105 active:scale-95"
-                >
-                  다음 단계 <FiChevronRight size={20} />
-                </button>
+            {/* script 단계는 하위 단계별 네비게이션을 사용하므로 전체 네비게이션 숨김 */}
+            {currentStep !== "script" && (
+              <div className="border-t border-white/10 p-[clamp(1.2rem,2.5vw,2rem)]">
+                <AdSense adSlot="3672059148" className="mb-2 rounded-2xl border border-white/10 bg-black/30 px-4 py-3" />
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <button
+                    type="button"
+                    onClick={handlePrev}
+                    disabled={!canGoPrev}
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-white/20 px-6 py-3 text-base font-semibold text-white/70 transition hover:border-white/40 disabled:opacity-40 hover:scale-105 active:scale-95"
+                  >
+                    <FiChevronLeft size={20} /> 이전 단계
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleNext}
+                    disabled={!canGoNext}
+                    className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-red-600 to-red-500 px-8 py-3 text-base font-semibold text-white shadow-[0_10px_20px_rgba(220,38,38,0.4)] transition hover:translate-x-0.5 disabled:opacity-40 hover:scale-105 active:scale-95"
+                  >
+                    다음 단계 <FiChevronRight size={20} />
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
           </main>
         </div>
       </div>
