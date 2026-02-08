@@ -337,7 +337,7 @@ export const analyzeTranscript = async (
       userMessage += "[API 키 재발급 방법]\n";
       userMessage += "- https://aistudio.google.com/app/apikey 방문\n";
       userMessage += "- 'Create API key' 버튼 클릭\n";
-      userMessage += "- 새 API 키를 복사하여 사용하세요";
+      userMessage += "- 새 API 키를 복사하여 사용하세요\n";
     } else if (errorMessage.includes('API_KEY') || errorMessage.includes('invalid') || errorString.includes('INVALID_ARGUMENT')) {
       userMessage += "[원인]\n- API 키가 유효하지 않거나 만료되었습니다\n\n[해결 방법]\n- API 키를 다시 확인하고 재설정해주세요\n- API 키 발급 가이드를 참고하여 새로운 키를 발급받으세요";
     } else if (errorMessage.includes('quota') || errorString.includes('RESOURCE_EXHAUSTED')) {

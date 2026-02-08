@@ -80,111 +80,111 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
-  if (!apiKey) {
-    res.status(500).send("missing_api_key");
-    return;
-  }
-
-  if (!applyRateLimit(req, res)) {
-    return;
-  }
-
-  let body: any = req.body;
-  if (typeof body === "string") {
-    try {
-      body = JSON.parse(body);
-    } catch (error) {
-      res.status(400).send("invalid_json");
+  try {
+    const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+    if (!apiKey) {
+      res.status(500).send("missing_api_key");
       return;
     }
-  }
 
-  const action = body?.action as string | undefined;
-  const payload = body?.payload as Record<string, unknown> | undefined;
-  const clientFingerprint =
-    typeof body?.client?.fingerprint === "string" ? body.client.fingerprint : null;
+    if (!applyRateLimit(req, res)) {
+      return;
+    }
 
-  if (!action || !payload) {
-    res.status(400).send("invalid_request");
-    return;
-  }
+    let body: any = req.body;
+    if (typeof body === "string") {
+      try {
+        body = JSON.parse(body);
+      } catch (error) {
+        res.status(400).send("invalid_json");
+        return;
+      }
+    }
 
-  // 1. Determine Cost based on Action
-  let cost = 0;
-  switch (action) {
-    case "analyzeTranscript":
-      cost = CREDIT_COSTS.ANALYSIS;
-      break;
-    case "generateIdeas":
-      cost = CREDIT_COSTS.IDEATION;
-      break;
-    case "generateNewPlan":
-      cost = CREDIT_COSTS.SCRIPT_PLAN;
-      break;
-    case "generateChapterOutline":
-      cost = CREDIT_COSTS.SCRIPT_OUTLINE;
-      break;
-    case "generateChapterScript":
-      cost = CREDIT_COSTS.SCRIPT_CHUNK;
-      break;
-    case "generateSsml":
-      cost = CREDIT_COSTS.ANALYSIS; // Low cost
-      break;
-    case "generateActingPrompt":
-      cost = CREDIT_COSTS.ANALYSIS; // Low cost
-      break;
-    case "reformatTopic":
-      cost = CREDIT_COSTS.ANALYSIS; // Low cost
-      break;
-    default:
-      cost = 1; // Default low cost
-  }
+    const action = body?.action as string | undefined;
+    const payload = body?.payload as Record<string, unknown> | undefined;
+    const clientFingerprint =
+      typeof body?.client?.fingerprint === "string" ? body.client.fingerprint : null;
 
-  // 2. Check and Deduct Credits (Enforces Login)
-  const creditResult = await checkAndDeductCredits(req, res, cost);
-  if (!creditResult.allowed) {
-    res.status(creditResult.status || 402).json({
-      message: creditResult.message || "Credits required",
-      error: "credit_limit"
+    if (!action || !payload) {
+      res.status(400).send("invalid_request");
+      return;
+    }
+
+    // 1. Determine Cost based on Action
+    let cost = 0;
+    switch (action) {
+      case "analyzeTranscript":
+        cost = CREDIT_COSTS.ANALYSIS;
+        break;
+      case "generateIdeas":
+        cost = CREDIT_COSTS.IDEATION;
+        break;
+      case "generateNewPlan":
+        cost = CREDIT_COSTS.SCRIPT_PLAN;
+        break;
+      case "generateChapterOutline":
+        cost = CREDIT_COSTS.SCRIPT_OUTLINE;
+        break;
+      case "generateChapterScript":
+        cost = CREDIT_COSTS.SCRIPT_CHUNK;
+        break;
+      case "generateSsml":
+        cost = CREDIT_COSTS.ANALYSIS; // Low cost
+        break;
+      case "generateActingPrompt":
+        cost = CREDIT_COSTS.ANALYSIS; // Low cost
+        break;
+      case "reformatTopic":
+        cost = CREDIT_COSTS.ANALYSIS; // Low cost
+        break;
+      default:
+        cost = 1; // Default low cost
+    }
+
+    // 2. Check and Deduct Credits (Enforces Login)
+    const creditResult = await checkAndDeductCredits(req, res, cost);
+    if (!creditResult.allowed) {
+      res.status(creditResult.status || 402).json({
+        message: creditResult.message || "Credits required",
+        error: "credit_limit"
+      });
+      return;
+    }
+
+    // [NEW] Check for User API Key override
+    let effectiveApiKey = apiKey;
+    if (creditResult.userId && supabaseAdmin) {
+      const { data } = await supabaseAdmin
+        .from("profiles")
+        .select("gemini_api_key")
+        .eq("id", creditResult.userId)
+        .single();
+      if (data?.gemini_api_key) {
+        effectiveApiKey = data.gemini_api_key;
+      }
+    }
+
+    const guard = await enforceAbusePolicy(req, action, clientFingerprint);
+    if (!guard.allowed) {
+      res.status(guard.status || 403).send(guard.reason || "abuse_blocked");
+      return;
+    }
+
+    const usage = await enforceUsageLimit(req, clientFingerprint);
+    if (!usage.allowed) {
+      if (usage.retryAfterSeconds) {
+        res.setHeader("Retry-After", usage.retryAfterSeconds.toString());
+      }
+      res.status(usage.status || 429).send(usage.reason || "usage_limit");
+      return;
+    }
+
+    // Fire and forget - do not await
+    recordUsageEvent(req, action, clientFingerprint).catch(err => {
+      console.error("Failed to record usage event:", err);
     });
-    return;
-  }
 
-  // [NEW] Check for User API Key override
-  let effectiveApiKey = apiKey;
-  if (creditResult.userId && supabaseAdmin) {
-    const { data } = await supabaseAdmin
-      .from("profiles")
-      .select("gemini_api_key")
-      .eq("id", creditResult.userId)
-      .single();
-    if (data?.gemini_api_key) {
-      effectiveApiKey = data.gemini_api_key;
-    }
-  }
-
-  const guard = await enforceAbusePolicy(req, action, clientFingerprint);
-  if (!guard.allowed) {
-    res.status(guard.status || 403).send(guard.reason || "abuse_blocked");
-    return;
-  }
-
-  const usage = await enforceUsageLimit(req, clientFingerprint);
-  if (!usage.allowed) {
-    if (usage.retryAfterSeconds) {
-      res.setHeader("Retry-After", usage.retryAfterSeconds.toString());
-    }
-    res.status(usage.status || 429).send(usage.reason || "usage_limit");
-    return;
-  }
-
-  // Fire and forget - do not await
-  recordUsageEvent(req, action, clientFingerprint).catch(err => {
-    console.error("Failed to record usage event:", err);
-  });
-
-  try {
     switch (action) {
       case "analyzeTranscript": {
         const transcript = payload.transcript as string;
@@ -320,6 +320,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
   } catch (error: any) {
   console.error("[api/gemini] error:", error);
-  res.status(500).send(error?.message || "server_error");
+  if (!res.headersSent) {
+    res.status(500).send(error?.message || "server_error");
+  }
 }
 }
