@@ -333,7 +333,19 @@ export const analyzeTranscript = async (
         const openBraces = (jsonText.match(/{/g) || []).length;
         const closeBraces = (jsonText.match(/}/g) || []).length;
         if (openBraces !== closeBraces) {
-          throw new Error("JSON_INCOMPLETE: AI 응답이 불완전합니다");
+          // JSON 자동 복구 시도
+          let fixedJson = jsonText;
+          const deficit = openBraces - closeBraces;
+          if (deficit > 0) {
+            fixedJson = jsonText + '}'.repeat(deficit);
+            try {
+              chunkAnalyses.push(JSON.parse(fixedJson) as AnalysisResult);
+              continue;
+            } catch (e) {
+              throw new Error("대본 조각 분석 중 오류가 발생했습니다. 대본을 더 작은 챕터로 나눠주세요.");
+            }
+          }
+          throw new Error("대본 조각 분석 중 오류가 발생했습니다. 대본을 더 작은 챕터로 나눠주세요.");
         }
 
         chunkAnalyses.push(JSON.parse(jsonText) as AnalysisResult);
@@ -362,7 +374,18 @@ export const analyzeTranscript = async (
       const openBraces = (mergedText.match(/{/g) || []).length;
       const closeBraces = (mergedText.match(/}/g) || []).length;
       if (openBraces !== closeBraces) {
-        throw new Error("JSON_INCOMPLETE: AI 응답이 불완전합니다");
+        // JSON 자동 복구 시도
+        let fixedJson = mergedText;
+        const deficit = openBraces - closeBraces;
+        if (deficit > 0) {
+          fixedJson = mergedText + '}'.repeat(deficit);
+          try {
+            return JSON.parse(fixedJson) as AnalysisResult;
+          } catch (e) {
+            throw new Error("대본 통합 분석 중 오류가 발생했습니다. 대본을 더 작은 챕터로 나눠주세요.");
+          }
+        }
+        throw new Error("대본 통합 분석 중 오류가 발생했습니다. 대본을 더 작은 챕터로 나눠주세요.");
       }
 
       return JSON.parse(mergedText) as AnalysisResult;
@@ -372,10 +395,10 @@ export const analyzeTranscript = async (
       model: "gemini-2.5-flash",
       contents: `${analysisContext}\n\n스크립트(길이 제한됨):\n---\n${transcript.slice(0, 30000)}\n---`,
       config: {
-        systemInstruction: `당신은 '${category}' 전문 YouTube 콘텐츠 전략가입니다. 당신의 임무는 비디오 스크립트를 분석하고 벤치마킹을 위해 핵심 요소에 대한 구조화된 분석을 제공하는 것입니다. \n\n중요: 응답 시간을 단축하기 위해 'scriptStructure'는 가장 중요한 핵심 단계 10-15개로 요약해서 구성해주세요. 모든 텍스트는 평문으로 작성하고, 마크다운 특수문자(*, **, _, __, #, - 등)를 절대 사용하지 마세요. 문단 사이는 두 번의 줄바꿈으로 구분하세요.`,
+        systemInstruction: `당신은 '${category}' 전문 YouTube 콘텐츠 전략가입니다. 당신의 임무는 비디오 스크립트를 분석하고 벤치마킹을 위해 핵심 요소에 대한 구조화된 분석을 제공하는 것입니다. \n\n중요: 응답 시간을 단축하기 위해 'scriptStructure'는 가장 중요한 핵심 단계 10-15개로 요약해서 구성해주세요. 모든 텍스트는 평문으로 작성하고, 마크다운 특수문자(*, **, _, __, #, - 등)를 절대 사용하지 마세요. 문단 사이는 두 번의 줄바꿈으로 구분하세요. 반드시 완전한 JSON 형식으로 응답해주세요.`,
         responseMimeType: "application/json",
         responseSchema: fullAnalysisSchema,
-        maxOutputTokens: 16384,
+        maxOutputTokens: 32768,
         temperature: 0.7,
       },
     });
@@ -395,9 +418,28 @@ export const analyzeTranscript = async (
         openBraces,
         closeBraces,
         textLength: jsonText.length,
-        textPreview: jsonText.substring(0, 500)
+        textPreview: jsonText.substring(0, 500),
+        textEnd: jsonText.substring(jsonText.length - 500)
       });
-      throw new Error(`JSON_INCOMPLETE: AI 응답이 불완전합니다 (길이: ${jsonText.length}자). 스크립트를 더 짧게 나누거나, 잠시 후 다시 시도해주세요.`);
+      
+      // JSON 자동 복구 시도
+      let fixedJson = jsonText;
+      const deficit = openBraces - closeBraces;
+      if (deficit > 0) {
+        // 닫는 괄호 추가
+        fixedJson = jsonText + '}'.repeat(deficit);
+        console.log('JSON 복구 시도:', { deficit, fixedLength: fixedJson.length });
+        
+        try {
+          const recovered = JSON.parse(fixedJson);
+          console.log('JSON 복구 성공');
+          return recovered as AnalysisResult;
+        } catch (e) {
+          console.error('JSON 복구 실패:', e);
+        }
+      }
+      
+      throw new Error(`대본 분석 중 오류가 발생했습니다.\n\n대본을 여러 챕터로 나눠서 작성해주세요. 각 챕터는 2-3분 분량으로 구성하고, 전체 대본이 아닌 챕터별로 분석하면 더 정확한 결과를 얻을 수 있습니다.`);
     }
 
     // JSON 파싱 시도 및 상세한 에러 처리
