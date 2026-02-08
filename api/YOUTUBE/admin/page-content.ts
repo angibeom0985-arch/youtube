@@ -22,11 +22,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).end();
   }
 
+  // 환경 변수 디버깅
+  console.log('Environment check:', {
+    hasSupabaseUrl: !!process.env.SUPABASE_URL,
+    hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+    hasAnonKey: !!process.env.SUPABASE_ANON_KEY,
+    hasViteSupabaseAnonKey: !!process.env.VITE_SUPABASE_ANON_KEY,
+    supabaseAdminExists: !!supabaseAdmin
+  });
+
   // Supabase 클라이언트 확인
   if (!supabaseAdmin) {
+    console.error('Supabase admin client not initialized');
     return res.status(500).json({
       error: 'Database not configured',
-      message: 'Supabase configuration is missing'
+      message: 'Supabase configuration is missing. Please check environment variables.',
+      debug: {
+        hasSupabaseUrl: !!process.env.SUPABASE_URL,
+        hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY
+      }
     });
   }
 
