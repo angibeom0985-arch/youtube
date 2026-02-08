@@ -114,6 +114,18 @@ create table guides (
 }
 ```
 
+### 마이그레이션 실행
+
+**Supabase SQL Editor에서 실행:**
+
+1. `youtube_script/supabase/migrations/20240204_create_guides_table.sql` 실행
+2. `youtube_script/supabase/migrations/20240208_add_guides_trigger.sql` 실행 (updated_at 자동 업데이트)
+
+또는 Supabase CLI 사용:
+```bash
+npx supabase db push
+```
+
 ## 보안 사항
 
 ### 현재 구현
