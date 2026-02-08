@@ -62,7 +62,7 @@ const callGemini = async <T>(action: GeminiAction, payload: Record<string, unkno
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const response = await fetch("/api/gemini", {
+  const response = await fetch("/api/youtube_script/gemini", {
     method: "POST",
     headers,
     body: JSON.stringify({ action, payload, client: clientPayload }),
