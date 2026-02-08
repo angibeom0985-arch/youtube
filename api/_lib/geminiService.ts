@@ -226,6 +226,17 @@ const ideaSchema = {
   required: ["ideas"],
 };
 
+const reformatTopicSchema = {
+  type: Type.OBJECT,
+  properties: {
+    reformattedTopic: {
+      type: Type.STRING,
+      description: "The reformatted topic in the requested title style.",
+    },
+  },
+  required: ["reformattedTopic"],
+};
+
 export const analyzeTranscript = async (
   transcript: string,
   category: string,
@@ -524,6 +535,51 @@ export const generateIdeas = async (
   }
 
   throw new Error(userMessage);
+};
+
+export const reformatTopic = async (
+  topic: string,
+  titleFormat: string,
+  apiKey: string
+): Promise<string> => {
+  try {
+    const ai = createAI(apiKey);
+    const prompt = `Reformat the following topic to match the given title style. Keep the meaning, keep it concise, and output only the reformatted topic text.\n\nTopic:\n${topic}\n\nTitle Style Example:\n${titleFormat}`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+      config: {
+        systemInstruction:
+          "You are a YouTube title editor. Output only the final reformatted topic text, no quotes, no extra commentary.",
+        responseMimeType: "application/json",
+        responseSchema: reformatTopicSchema,
+        maxOutputTokens: 256,
+        temperature: 0.4,
+      },
+    });
+
+    const jsonText = response.text.trim();
+    if (!jsonText) {
+      throw new Error("EMPTY_RESPONSE: API response was empty");
+    }
+
+    try {
+      const parsed = JSON.parse(jsonText) as { reformattedTopic: string };
+      return parsed.reformattedTopic;
+    } catch (parseError: any) {
+      console.error("JSON Parse Error (reformatTopic):", {
+        error: parseError.message,
+        jsonText: jsonText.substring(0, 200),
+      });
+      throw new Error("JSON_PARSE_ERROR: reformatTopic response parsing failed");
+    }
+  } catch (error: any) {
+    console.error("Error reformatting topic:", error);
+    throw new Error(
+      "Topic reformatting failed: " + (error.message || "Unknown error")
+    );
+  }
 };
 
 export const generateNewPlan = async (
