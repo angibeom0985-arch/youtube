@@ -103,23 +103,6 @@ const setStoredJson = (key: string, value: unknown) => {
 };
 
 
-  return (
-    <button
-      ref={setNodeRef}
-      style={style}
-      onClick={onClick}
-      className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${isSelected
-        ? "bg-gradient-to-br from-orange-600 to-orange-500 text-white shadow-[0_0_10px_rgba(249,115,22,0.5)]"
-        : "bg-[#2A2A2A] hover:bg-zinc-700 text-neutral-200"
-        }`}
-      {...attributes}
-      {...listeners}
-    >
-      {category}
-    </button>
-  );
-};
-
 type AppProps = {
   allowDevtools?: boolean;
 };
