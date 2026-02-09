@@ -321,6 +321,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       "미래 도시 배경 속 경제 그래프 앞에 서 있는 캐릭터"
     )
   );
+  const [chapterImagePrompts, setChapterImagePrompts] = useState<Record<number, string>>({});
+  const [isGeneratingImagePrompt, setIsGeneratingImagePrompt] = useState(false);
+  const [generatingPromptChapter, setGeneratingPromptChapter] = useState<number | null>(null);
   const [imageStyle, setImageStyle] = useState(imageStyles[0]);
 
   const [renderDuration, setRenderDuration] = useState(() =>
