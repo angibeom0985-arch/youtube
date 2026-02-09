@@ -23,6 +23,7 @@ import ErrorNotice from "../components/ErrorNotice";
 import ApiKeyInput from "../components/ApiKeyInput";
 import type { AnalysisResult, NewPlan } from "../types";
 import { analyzeTranscript, generateIdeas, generateNewPlan } from "../services/geminiService";
+import { regenerateStoryboardImage } from "../features/image/services/geminiService";
 
 import AdSense from "../components/AdSense";
 import { ProgressTracker } from "../components/ProgressIndicator";
@@ -548,26 +549,30 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   };
 
   const handleGenerateImage = async (chapterIndex: number, chapterTitle: string, chapterContent: string) => {
+    if (generatingImageChapter !== null) return;
     setGeneratingImageChapter(chapterIndex);
 
     try {
-      // 대본 내용 기반 프롬프트 자동 생성
-      const contentSummary = chapterContent.slice(0, 200).replace(/\n/g, ' ');
-      const prompt = `${chapterTitle}: ${contentSummary}. ${imageStyle} 스타일, 고품질, 시네마틱 조명`;
+      // 대본 내용 기반 프롬프트 생성
+      const prompt = `${chapterTitle}: ${chapterContent}`;
 
-      // Placeholder: 실제 이미지 생성 API 호출이 필요합니다
-      // 현재는 /image 페이지로 프롬프트를 전달하여 생성하도록 안내
-      const imageUrl = `/image?prompt=${encodeURIComponent(prompt)}&style=${encodeURIComponent(imageStyle)}&seed=${useConsistentSeed ? imageSeed : ''}&no_ads=true`;
-      
-      // 이미지 URL을 저장 (실제로는 생성된 이미지 URL이어야 함)
-      setChapterImages({ ...chapterImages, [chapterIndex]: imageUrl });
-      
-      // 2초 후 로딩 해제 (실제 API에서는 응답 받을 때까지 대기)
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
+      // 이미지 생성 API 호출 (iframe 대신 직접 생성)
+      const base64Image = await regenerateStoryboardImage(
+        prompt,
+        [], // characters (현재 VideoPage에서는 관리하지 않음)
+        geminiApiKey,
+        imageStyle === 'animation' ? 'animation' : 'realistic',
+        false, // 자막 없음
+        null, // 참조 이미지 없음
+        "16:9" // 기본 비율
+      );
+
+      // 생성된 이미지(Base64) 저장
+      setChapterImages(prev => ({ ...prev, [chapterIndex]: `data:image/jpeg;base64,${base64Image}` }));
+
     } catch (error) {
       console.error('이미지 생성 오류:', error);
-      alert('이미지 생성 중 오류가 발생했습니다. 다시 시도해주세요.');
+      alert('이미지 생성 중 오류가 발생했습니다: ' + (error instanceof Error ? error.message : String(error)));
     } finally {
       setGeneratingImageChapter(null);
     }
@@ -2584,7 +2589,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 <span className="text-2xl">🎨</span>
                 이미지 생성 설정
               </h3>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* 이미지 스타일 선택 */}
                 <div className="space-y-2">
@@ -2619,7 +2624,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     🔄 일관성 유지
                   </label>
                   <p className="text-xs text-white/50">
-                    {useConsistentSeed 
+                    {useConsistentSeed
                       ? `모든 이미지가 유사한 스타일로 생성됩니다 (시드: ${imageSeed})`
                       : '각 이미지가 독립적으로 생성됩니다'
                     }
@@ -2660,10 +2665,10 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   {/* 생성된 이미지 표시 */}
                   {chapterImages[index] && !generatingImageChapter && (
                     <div className="mt-4 rounded-xl overflow-hidden border border-white/20 bg-black/40">
-                      <iframe
+                      <img
                         src={chapterImages[index]}
-                        title={`${chapter.title} 이미지 생성`}
-                        className="w-full h-[500px] rounded-t-xl"
+                        alt={`${chapter.title} 이미지`}
+                        className="w-full h-auto min-h-[300px] max-h-[600px] object-contain bg-black/50 rounded-t-xl"
                       />
                       <div className="bg-black/60 p-3 flex gap-2">
                         <button

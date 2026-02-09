@@ -1524,11 +1524,11 @@ const App: React.FC<ImageAppProps> = ({
                   </p>
                   <ul className="text-blue-300 text-sm space-y-1 ml-4">
                     <li>
-                      ? <strong>인물 묘사:</strong> "20대 중반 여성, 긴 흑발,
+                      👤 <strong>인물 묘사:</strong> "20대 중반 여성, 긴 흑발,
                       밝은 미소, 캐주얼한 옷차림"
                     </li>
                     <li>
-                      ? <strong>대본 입력:</strong> 전체 스토리 대본을 넣으면
+                      📜 <strong>대본 입력:</strong> 전체 스토리 대본을 넣으면
                       등장인물 자동 추출
                     </li>
                   </ul>
@@ -1577,7 +1577,7 @@ const App: React.FC<ImageAppProps> = ({
                       const styleDescriptions: Record<CharacterStyle, string> =
                       {
                         "실사 극대화":
-                          "[TEST] 초현실적이고 사진 같은 퀄리티의 실사 인물",
+                          "📸 초현실적이고 사진 같은 퀄리티의 실사 인물",
                         애니메이션: "🎨 밝고 화려한 애니메이션 스타일 캐릭터",
                         동물: "🐾 귀여운 동물 캐릭터로 변환",
                         웹툰: "🖊️ 깨끗한 선과 표현력 풍부한 한국 웹툰 스타일",
@@ -1666,7 +1666,7 @@ const App: React.FC<ImageAppProps> = ({
                         "공포 스릴러": "👻 미스터리하고 긴장감 있는 분위기",
                         사이버펑크: "🌃 네온사인 가득한 미래 도시",
                         판타지: "🧙‍♂️ 마법적이고 신비로운 중세 배경",
-                        미니멀: "? 깔끔하고 단순한 중성톤 배경",
+                        미니멀: "⬜ 깔끔하고 단순한 중성톤 배경",
                         빈티지: "🕰️ 클래식하고 향수를 자아내는 배경",
                         모던: "🏙️ 현대적이고 세련된 도시 배경",
                         "1980년대": "📻 80년대 레트로 패션과 분위기",
@@ -1788,7 +1788,7 @@ const App: React.FC<ImageAppProps> = ({
                 {!personaReferenceImage ? (
                   <label className="block w-full cursor-pointer">
                     <div className="border-2 border-dashed border-blue-500 rounded-lg p-8 text-center hover:border-blue-400 hover:bg-blue-900/10 transition-all">
-                      <div className="text-blue-300 text-4xl mb-3">🖼️?</div>
+                      <div className="text-blue-300 text-4xl mb-3">🖼️</div>
                       <p className="text-blue-200 font-medium mb-1">
                         참조 이미지 업로드
                       </p>
@@ -1834,7 +1834,7 @@ const App: React.FC<ImageAppProps> = ({
                       ? 삭제
                     </button>
                     <p className="text-green-400 text-sm mt-2 flex items-center">
-                      <span className="mr-2">?</span>
+                      <span className="mr-2">✅</span>
                       참조 이미지가 업로드되었습니다
                     </p>
                   </div>
@@ -1845,7 +1845,7 @@ const App: React.FC<ImageAppProps> = ({
               <div className="mb-6 bg-blue-900/20 border border-blue-500/50 rounded-lg p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-blue-300 font-medium flex items-center">
-                    <span className="mr-2">?</span>
+                    <span className="mr-2">✏️</span>
                     커스텀 이미지 프롬프트 (선택사항)
                   </h3>
                   <button
@@ -1952,7 +1952,7 @@ const App: React.FC<ImageAppProps> = ({
                         : "text-red-400 text-xl mr-3"
                     }
                   >
-                    {personaError.startsWith("?") ? "?" : "?"}
+                    {personaError.startsWith("✅") ? "✅" : "❌"}
                   </span>
                   <div className="flex-1">
                     <pre className="font-medium mb-2 whitespace-pre-wrap text-sm leading-relaxed">{personaError}</pre>
@@ -1980,12 +1980,12 @@ const App: React.FC<ImageAppProps> = ({
                 {loadingProgress && (
                   <div className="mt-4 bg-blue-900/30 border border-blue-500/50 rounded-lg p-4 max-w-md mx-auto">
                     <p className="text-blue-300 font-bold text-lg animate-pulse">
-                      ? {loadingProgress}
+                      ⏳ {loadingProgress}
                     </p>
                   </div>
                 )}
                 <p className="mt-4 text-gray-400 text-sm">
-                  ? API 과부하 방지를 위해 캐릭터 간 3-4초 대기 시간이 있습니다.
+                  ℹ️ API 과부하 방지를 위해 캐릭터 간 3-4초 대기 시간이 있습니다.
                 </p>
                 <p className="mt-2 text-gray-500 text-xs">
                   잠시만 기다려 주세요. 고품질 이미지를 생성하는 중입니다.
@@ -2119,11 +2119,11 @@ const App: React.FC<ImageAppProps> = ({
                   </p>
                   <ul className="text-blue-300 text-sm space-y-1 ml-4">
                     <li>
-                      ? <strong>전체 대본:</strong> 완전한 스크립트나 스토리를
+                      📜 <strong>전체 대본:</strong> 완전한 스크립트나 스토리를
                       입력
                     </li>
                     <li>
-                      ? <strong>시퀀스별 장면:</strong> 각 줄에 하나씩 장면
+                      🎬 <strong>시퀀스별 장면:</strong> 각 줄에 하나씩 장면
                       설명을 입력
                     </li>
                   </ul>
@@ -2156,7 +2156,7 @@ const App: React.FC<ImageAppProps> = ({
                       htmlFor="referenceImageInput"
                       className="cursor-pointer flex flex-col items-center space-y-2 hover:text-blue-300 transition-colors"
                     >
-                      <div className="text-3xl">🖼️?</div>
+                      <div className="text-3xl">🖼️</div>
                       <div className="text-blue-300 font-medium">
                         참조 이미지 업로드
                       </div>
@@ -2282,7 +2282,7 @@ const App: React.FC<ImageAppProps> = ({
               <div className="bg-red-900/50 border border-red-500 text-red-300 p-4 rounded-lg">
                 <div className="flex items-start">
                   <span className="text-red-400 text-xl mr-3">
-                    {error.startsWith("?") ? "?" : "?"}
+                    {error.startsWith("✅") ? "✅" : "❌"}
                   </span>
                   <div className="flex-1">
                     <pre className="font-medium mb-2 whitespace-pre-wrap text-sm leading-relaxed">{error}</pre>
@@ -2300,12 +2300,12 @@ const App: React.FC<ImageAppProps> = ({
                 {loadingProgress && (
                   <div className="mt-4 bg-green-900/30 border border-green-500/50 rounded-lg p-4 max-w-md mx-auto">
                     <p className="text-green-300 font-bold text-lg animate-pulse">
-                      ? {loadingProgress}
+                      ⏳ {loadingProgress}
                     </p>
                   </div>
                 )}
                 <p className="mt-4 text-gray-400 text-sm">
-                  ? API 과부하 방지를 위해 이미지 간 3-4초 대기 시간이 있습니다.
+                  ℹ️ API 과부하 방지를 위해 이미지 간 3-4초 대기 시간이 있습니다.
                 </p>
                 <p className="mt-2 text-gray-500 text-xs">
                   이 작업은 시간이 걸릴 수 있습니다. 잠시만 기다려 주세요.
@@ -2416,7 +2416,7 @@ const App: React.FC<ImageAppProps> = ({
                       htmlFor="cameraAngleImageInput"
                       className="cursor-pointer flex flex-col items-center space-y-2 hover:text-blue-300 transition-colors"
                     >
-                      <div className="text-3xl">🖼️?</div>
+                      <div className="text-3xl">🖼️</div>
                       <div className="text-blue-300 font-medium">
                         원본 이미지 업로드
                       </div>
@@ -2459,17 +2459,17 @@ const App: React.FC<ImageAppProps> = ({
               {/* 앵글 선택 섹션 */}
               <div className="mb-6 bg-blue-900/20 border border-blue-500/50 rounded-lg p-6">
                 <h3 className="text-blue-300 font-medium mb-3 flex items-center">
-                  <span className="mr-2">?</span>
+                  <span className="mr-2">📸</span>
                   생성할 앵글 선택 ({selectedCameraAngles.length}/6)
                 </h3>
                 <div className="grid grid-cols-2 gap-3">
                   {[
-                    { value: 'Front View' as CameraAngle, label: '정면', emoji: '🙂', direction: '' },
-                    { value: 'Right Side View' as CameraAngle, label: '오른쪽 측면', emoji: '🙂', direction: '(왼쪽을 바라봄)' },
-                    { value: 'Left Side View' as CameraAngle, label: '왼쪽 측면', emoji: '🙂', direction: '(오른쪽을 바라봄)' },
-                    { value: 'Back View' as CameraAngle, label: '뒷모습', emoji: '🙂', direction: '' },
-                    { value: 'Full Body' as CameraAngle, label: '전신', emoji: '🙂', direction: '' },
-                    { value: 'Close-up Face' as CameraAngle, label: '얼굴 근접', emoji: '🙂', direction: '' },
+                    { value: 'Front View' as CameraAngle, label: '정면', emoji: '🧍', direction: '' },
+                    { value: 'Right Side View' as CameraAngle, label: '오른쪽 측면', emoji: '➡️', direction: '(왼쪽을 바라봄)' },
+                    { value: 'Left Side View' as CameraAngle, label: '왼쪽 측면', emoji: '⬅️', direction: '(오른쪽을 바라봄)' },
+                    { value: 'Back View' as CameraAngle, label: '뒷모습', emoji: '🔙', direction: '' },
+                    { value: 'Full Body' as CameraAngle, label: '전신', emoji: '🧍', direction: '' },
+                    { value: 'Close-up Face' as CameraAngle, label: '얼굴 근접', emoji: '🧐', direction: '' },
                   ].map((angle) => (
                     <label
                       key={angle.value}
@@ -2559,10 +2559,10 @@ const App: React.FC<ImageAppProps> = ({
                       <Spinner size="lg" />
                       <div className="text-center">
                         <p className="text-blue-300 font-bold text-2xl animate-pulse">
-                          ? {cameraAngleProgress}
+                          ⏳ {cameraAngleProgress}
                         </p>
                         <p className="mt-3 text-blue-400 text-base">
-                          ? 앵글 간 5-6초 대기 (API 할당량 보호)
+                          ℹ️ 앵글 간 5-6초 대기 (API 할당량 보호)
                         </p>
                         <p className="mt-2 text-blue-500 text-sm">
                           선택한 {selectedCameraAngles.length}가지 앵글 생성에는 약 {Math.ceil(selectedCameraAngles.length * 6 / 60)}분 소요
