@@ -72,7 +72,7 @@ const StoryboardImage: React.FC<StoryboardImageProps> = ({
       // Base64를 Blob으로 변환
       const base64Response = await fetch(`data:image/jpeg;base64,${item.image}`);
       const blob = await base64Response.blob();
-      
+
       // File System Access API 지원 확인
       if ('showSaveFilePicker' in window) {
         const handle = await (window as any).showSaveFilePicker({
@@ -86,7 +86,7 @@ const StoryboardImage: React.FC<StoryboardImageProps> = ({
             },
           ],
         });
-        
+
         const writable = await handle.createWritable();
         await writable.write(blob);
         await writable.close();
@@ -104,7 +104,7 @@ const StoryboardImage: React.FC<StoryboardImageProps> = ({
       if (err.name !== 'AbortError') {
         console.error('[개발자용] 영상 소스 다운로드 오류:', err);
         console.error(`[개발자용] 오류 상세: ${err.name} - ${err.message}`);
-        
+
         // 폴백: 기존 다운로드 방식
         const link = document.createElement('a');
         link.href = `data:image/jpeg;base64,${item.image}`;
@@ -196,6 +196,13 @@ const StoryboardImage: React.FC<StoryboardImageProps> = ({
             alt={item.sceneDescription}
             className="w-full h-full object-cover aspect-video transition-transform duration-300 group-hover:scale-105 cursor-pointer"
             onClick={handleImageClick}
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+              e.currentTarget.parentElement?.classList.add('bg-zinc-800', 'flex', 'items-center', 'justify-center');
+              const fallback = document.createElement('div');
+              fallback.innerHTML = '<span class="text-4xl">❌</span>';
+              e.currentTarget.parentElement?.appendChild(fallback);
+            }}
           />
           {isRegenerating && (
             <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center z-10">
