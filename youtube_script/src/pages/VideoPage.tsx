@@ -540,6 +540,25 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     }
   };
 
+  const handleGenerateImagePrompt = async (chapterIndex: number, chapterTitle: string, chapterContent: string) => {
+    setIsGeneratingImagePrompt(true);
+    setGeneratingPromptChapter(chapterIndex);
+
+    try {
+      // 대본 내용에서 시각적 요소 추출을 위한 프롬프트 생성
+      const imagePromptText = `${chapterTitle} 장면을 표현하는 이미지: ${chapterContent.slice(0, 200).replace(/\n/g, ' ')}... - 영화 같은 구도, 고품질 디테일, 시네마틱 조명, ${projectTitle} 스타일`;
+      setChapterImagePrompts({ ...chapterImagePrompts, [chapterIndex]: imagePromptText });
+      
+      setIsGeneratingImagePrompt(false);
+      setGeneratingPromptChapter(null);
+    } catch (error) {
+      console.error('이미지 프롬프트 생성 오류:', error);
+      alert('이미지 프롬프트 생성 중 오류가 발생했습니다.');
+      setIsGeneratingImagePrompt(false);
+      setGeneratingPromptChapter(null);
+    }
+  };
+
   const downloadBlob = (blob: Blob, fileName: string) => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -2525,26 +2544,93 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         );
       }
       case "image": {
+        if (!chapterScripts || chapterScripts.length === 0) {
+          return (
+            <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
+              <div className="rounded-2xl border border-white/10 bg-black/30 p-8 text-center">
+                <div className="text-4xl mb-4">⚠️</div>
+                <h3 className="text-xl font-bold text-white mb-2">대본이 없습니다</h3>
+                <p className="text-white/60">먼저 대본 생성 단계에서 대본을 작성해주세요.</p>
+                <button
+                  onClick={() => goToStep(1)}
+                  className="mt-6 px-6 py-3 rounded-xl bg-gradient-to-r from-red-500 to-orange-500 text-white font-semibold hover:shadow-lg transition"
+                >
+                  대본 생성하러 가기
+                </button>
+              </div>
+            </div>
+          );
+        }
+
         return (
           <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
-            <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-white/60 mb-4">
-              <span>이미지 생성 화면에서 스토리보드를 바로 만들 수 있습니다.</span>
-              <a
-                href="/image?no_ads=true"
-                target="_blank"
-                rel="noreferrer"
-                className="rounded-full border border-red-500/30 px-4 py-1 text-sm font-semibold text-red-300 hover:border-red-400"
-              >
-                새 창에서 열기
-              </a>
+            <div className="mb-6 rounded-2xl border border-white/10 bg-black/30 p-6">
+              <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                <span className="text-2xl">🎨</span>
+                스토리보드 기반 이미지 생성
+              </h3>
+              <p className="text-sm text-white/60">
+                각 챕터별로 이미지 프롬프트를 생성하거나 수정하여 영상에 사용할 이미지를 만들어보세요.
+              </p>
             </div>
-            <div className="overflow-hidden rounded-[clamp(1rem,2vw,1.5rem)] border border-white/20 bg-black/40">
-              <iframe
-                title="이미지 생성"
-                src="/image?no_ads=true"
-                className="h-[clamp(600px,72vh,800px)] w-full"
-                loading="lazy"
-              />
+
+            <div className="space-y-4">
+              {chapterScripts.map((chapter, index) => (
+                <div key={index} className="rounded-2xl border border-white/10 bg-black/30 p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <h4 className="text-base font-bold text-white flex items-center gap-2">
+                        <span className="text-red-400">📝</span>
+                        {chapter.title}
+                      </h4>
+                      <p className="text-xs text-white/50 mt-1">{chapter.content.length}자</p>
+                    </div>
+                    <button
+                      onClick={() => handleGenerateImagePrompt(index, chapter.title, chapter.content)}
+                      disabled={isGeneratingImagePrompt && generatingPromptChapter === index}
+                      className="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 text-white text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition"
+                    >
+                      {isGeneratingImagePrompt && generatingPromptChapter === index ? '생성 중...' : '✨ AI 프롬프트 생성'}
+                    </button>
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="text-sm font-semibold text-white/70">🖼️ 이미지 프롬프트</label>
+                    <textarea
+                      value={chapterImagePrompts[index] || ''}
+                      onChange={(e) => setChapterImagePrompts({ ...chapterImagePrompts, [index]: e.target.value })}
+                      placeholder={`"${chapter.title}" 장면을 표현할 이미지 프롬프트를 입력하거나 AI 생성을 사용하세요.`}
+                      rows={3}
+                      className="w-full rounded-xl border border-white/20 bg-black/40 px-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+                    />
+
+                    {chapterImagePrompts[index] && (
+                      <div className="flex gap-2">
+                        <a
+                          href={`/image?prompt=${encodeURIComponent(chapterImagePrompts[index])}&no_ads=true`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="px-4 py-2 rounded-lg border border-red-400/50 bg-red-500/10 text-red-300 text-sm font-semibold hover:bg-red-500/20 transition-all"
+                        >
+                          🖼️ 이미지 생성 페이지로 이동
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-6 rounded-2xl border border-blue-400/30 bg-blue-500/10 p-6">
+              <h4 className="text-base font-bold text-blue-300 mb-2 flex items-center gap-2">
+                <span>💡</span>
+                팁
+              </h4>
+              <ul className="text-sm text-blue-200/80 space-y-2">
+                <li>• AI 프롬프트 생성을 클릭하면 대본 내용을 기반으로 자동으로 프롬프트가 만들어집니다</li>
+                <li>• 생성된 프롬프트를 수정하여 원하는 이미지 스타일로 조정할 수 있습니다</li>
+                <li>• "이미지 생성 페이지로 이동" 버튼을 클릭하면 해당 프롬프트로 이미지를 생성할 수 있습니다</li>
+              </ul>
             </div>
           </div>
         );
