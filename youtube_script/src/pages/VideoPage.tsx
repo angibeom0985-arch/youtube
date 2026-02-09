@@ -982,7 +982,12 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     try {
       // Step 1: 대본 구조 분석
       setAnalyzeProgress(prev => ({ ...prev, currentStep: 0 }));
-      const analysis = await analyzeTranscript(scriptDraft.trim(), "일반", scriptTitle || projectTitle);
+      const analysis = await analyzeTranscript(
+        scriptDraft.trim(),
+        "일반",
+        scriptTitle || projectTitle,
+        !options?.showDetails
+      );
       setScriptAnalysis(analysis);
 
       // Step 2: 핵심 키워드 추출 (이미 analysis에 포함됨)

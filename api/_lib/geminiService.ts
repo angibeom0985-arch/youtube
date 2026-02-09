@@ -254,7 +254,8 @@ export const analyzeTranscript = async (
   transcript: string,
   category: string,
   apiKey: string,
-  videoTitle?: string
+  videoTitle?: string,
+  fastMode: boolean = false
 ): Promise<AnalysisResult> => {
   try {
     const ai = createAI(apiKey);
@@ -264,6 +265,12 @@ export const analyzeTranscript = async (
       type: Type.OBJECT,
       properties: storyChannelAnalysisSchema,
       required: [...baseAnalysisSchema.required, "scriptStructure", "openingStyle"],
+    };
+
+    const fastAnalysisSchema = {
+      type: Type.OBJECT,
+      properties: baseAnalysisSchema.properties,
+      required: baseAnalysisSchema.required,
     };
 
     const analysisContext = videoTitle
@@ -289,7 +296,7 @@ export const analyzeTranscript = async (
       config: {
         systemInstruction: `당신은 '${category}' 전문 YouTube 콘텐츠 전략가입니다. 당신의 임무는 비디오 스크립트를 분석하고 벤치마킹을 위해 핵심 요소에 대한 구조화된 분석을 제공하는 것입니다. \n\n중요: 응답 시간을 단축하기 위해 'scriptStructure'는 가장 중요한 핵심 단계 10-15개로 요약해서 구성해주세요. 모든 텍스트는 평문으로 작성하고, 마크다운 특수문자(*, **, _, __, #, - 등)를 절대 사용하지 마세요. 문단 사이는 두 번의 줄바꿈으로 구분하세요. 반드시 완전한 JSON 형식으로 응답해주세요.`,
         responseMimeType: "application/json",
-        responseSchema: fullAnalysisSchema,
+        responseSchema: fastMode ? fastAnalysisSchema : fullAnalysisSchema,
         maxOutputTokens: 32768,
         temperature: 0.7,
       },
@@ -419,9 +426,11 @@ export const generateIdeas = async (
         ? `\n\n**제목 형식 기준:** 아래 예시 제목의 말투/리듬/문장 구조/기호 사용(… , ㄷㄷ, ?, ! 등)을 따라 작성하세요.\n- 예시 제목을 그대로 복붙하거나 1:1 치환하지 마세요.\n- 예시 제목에서 6자 이상 연속으로 그대로 가져오지 마세요.\n- 의미는 새롭게, 형식만 비슷하게 유지하세요.\n\n예시 제목:\n${titleFormat}\n`
         : "";
 
+      const noveltyInstruction = `\n\n**소재 분리 규칙:**\n- 벤치마킹한 원본 영상의 소재/사례/장소/제품과 동일한 내용을 피하세요.\n- 같은 카테고리 안에서 소재를 바꾼 새로운 아이디어를 제시하세요.\n- 고유명사(브랜드/장소/인물)는 원본과 겹치지 않게 하세요.\n- 각 아이디어는 서로도 겹치지 않게 다양하게 작성하세요.\n`;
+
       const prompt = isShoppingReview
-        ? `다음은 성공적인 "쇼핑 리뷰" 영상 분석 결과입니다. 이 분석을 바탕으로 쿠팡에서 현재 판매량이 높거나 후기 반응이 좋은 제품 중 리뷰 콘텐츠로 적합한 6가지 아이디어를 제안해주세요.\n아이디어는 한국어로 작성하고 JSON 배열로만 출력하세요.${keywordInstruction}${titleFormatInstruction}\n\n분석 내용:\n${analysisString}`
-        : `다음은 성공적인 유튜브 영상 분석 결과입니다. 이 분석을 바탕으로 조회수 가능성이 높은 새로운 영상 주제 아이디어 6가지를 제안해주세요.\n아이디어는 한국어로 작성하고 JSON 배열로만 출력하세요.${keywordInstruction}${titleFormatInstruction}\n\n분석 내용:\n${analysisString}`;
+        ? `다음은 성공적인 "쇼핑 리뷰" 영상 분석 결과입니다. 이 분석을 바탕으로 쿠팡에서 현재 판매량이 높거나 후기 반응이 좋은 제품 중 리뷰 콘텐츠로 적합한 6가지 아이디어를 제안해주세요.\n아이디어는 한국어로 작성하고 JSON 배열로만 출력하세요.${keywordInstruction}${titleFormatInstruction}${noveltyInstruction}\n\n분석 내용:\n${analysisString}`
+        : `다음은 성공적인 유튜브 영상 분석 결과입니다. 이 분석을 바탕으로 조회수 가능성이 높은 새로운 영상 주제 아이디어 6가지를 제안해주세요.\n아이디어는 한국어로 작성하고 JSON 배열로만 출력하세요.${keywordInstruction}${titleFormatInstruction}${noveltyInstruction}\n\n분석 내용:\n${analysisString}`;
 
       const systemInstruction = isShoppingReview
         ? "You are a Korean YouTube shopping review title editor. Generate 6 ideas with strong hooks. If a title format example is provided, mimic its style but do NOT copy it."

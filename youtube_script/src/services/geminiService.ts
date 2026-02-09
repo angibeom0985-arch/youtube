@@ -79,12 +79,14 @@ const callGemini = async <T>(action: GeminiAction, payload: Record<string, unkno
 export const analyzeTranscript = async (
   transcript: string,
   category: string,
-  videoTitle?: string
+  videoTitle?: string,
+  fastMode?: boolean
 ): Promise<AnalysisResult> => {
   return callGemini<AnalysisResult>("analyzeTranscript", {
     transcript,
     category,
     videoTitle,
+    fastMode,
   });
 };
 
