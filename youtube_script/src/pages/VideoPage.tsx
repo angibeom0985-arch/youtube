@@ -255,6 +255,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [scriptAnalysis, setScriptAnalysis] = useState<AnalysisResult | null>(() =>
     getStoredJson("videopage_scriptAnalysis", null)
   );
+  const [showAnalysisDetails, setShowAnalysisDetails] = useState(false);
   const [scriptIdeas, setScriptIdeas] = useState<string[]>(() =>
     getStoredJson("videopage_scriptIdeas", [])
   );
@@ -961,7 +962,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         return true;
     }
   };
-  const handleAnalyzeScript = async () => {
+  const handleAnalyzeScript = async (options?: { autoAdvance?: boolean; showDetails?: boolean }) => {
     if (!scriptDraft.trim()) {
       setScriptError("분석할 대본을 먼저 입력해 주세요.");
       return;
@@ -970,8 +971,13 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     const scriptLength = scriptDraft.trim().length;
 
     setScriptError("");
+    setShowAnalysisDetails(!!options?.showDetails);
     setIsAnalyzingScript(true);
     setAnalyzeProgress({ ...analyzeProgress, currentStep: 0 });
+
+    if (options?.autoAdvance) {
+      setScriptSubStep(2);
+    }
 
     try {
       // Step 1: 대본 구조 분석
@@ -1398,14 +1404,24 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   <>
                     {/* 대본 분석 버튼 및 결과 */}
                     <div className="space-y-3">
-                      <button
-                        type="button"
-                        onClick={handleAnalyzeScript}
-                        disabled={isAnalyzingScript || !isScriptStepReady(0)}
-                        className="w-full rounded-full bg-gradient-to-r from-orange-600 to-red-600 px-5 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(251,146,60,0.4)] hover:from-orange-500 hover:to-red-500 transition-all disabled:opacity-60"
-                      >
-                        {isAnalyzingScript ? "구조 분석 중..." : "대본 구조 분석하기"}
-                      </button>
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        <button
+                          type="button"
+                          onClick={() => handleAnalyzeScript({ autoAdvance: true, showDetails: false })}
+                          disabled={isAnalyzingScript || !isScriptStepReady(0)}
+                          className="w-full rounded-full bg-gradient-to-r from-orange-600 to-red-600 px-5 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(251,146,60,0.4)] hover:from-orange-500 hover:to-red-500 transition-all disabled:opacity-60"
+                        >
+                          {isAnalyzingScript ? "주제 추천 준비 중..." : "빠르게 주제 추천"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleAnalyzeScript({ autoAdvance: false, showDetails: true })}
+                          disabled={isAnalyzingScript || !isScriptStepReady(0)}
+                          className="w-full rounded-full border border-white/20 bg-black/40 px-5 py-2 text-sm font-semibold text-white/80 hover:bg-white/10 transition-all disabled:opacity-60"
+                        >
+                          {isAnalyzingScript ? "구조 분석 중..." : "대본 구조 분석 보기"}
+                        </button>
+                      </div>
 
                       {isAnalyzingScript && (
                         <ProgressTracker
@@ -1420,7 +1436,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         />
                       )}
 
-                      {scriptAnalysis?.scriptStructure && (
+                      {showAnalysisDetails && scriptAnalysis?.scriptStructure && (
                         <div className="rounded-2xl border border-white/10 bg-black/30 p-5 text-sm text-white/70">
                           <div className="mb-4 pb-3 border-b border-white/10">
                             <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
@@ -1517,6 +1533,36 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       </div>
 
                       {/* 주제 선택 섹션 */}
+                      {scriptAnalysis && (
+                        <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm font-semibold text-white">대본 구조 분석 (선택)</p>
+                              <p className="text-xs text-white/50">궁금한 경우에만 열어보세요</p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setShowAnalysisDetails((prev) => !prev)}
+                              className="rounded-full border border-white/20 px-4 py-2 text-xs font-semibold text-white/80 hover:bg-white/10 transition-all"
+                            >
+                              {showAnalysisDetails ? "닫기" : "분석 결과 보기"}
+                            </button>
+                          </div>
+                          {showAnalysisDetails && scriptAnalysis?.scriptStructure && (
+                            <div className="mt-3 grid gap-2">
+                              {scriptAnalysis.scriptStructure.map((stage) => (
+                                <div
+                                  key={stage.stage}
+                                  className="rounded-xl border border-white/10 bg-white/5 px-3 py-2"
+                                >
+                                  <p className="text-sm font-semibold text-white">{stage.stage}</p>
+                                  <p className="text-xs text-white/50">{stage.purpose}</p>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
                       {scriptIdeas.length === 0 ? (
                         <div className="rounded-2xl border border-white/10 bg-black/30 p-5">
                           <div className="mb-3 pb-3 border-b border-white/10">
@@ -1529,8 +1575,22 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                             </p>
                           </div>
                           <p className="text-sm text-white/60 mb-4">
-                            구조 분석 후 추천 주제가 표시됩니다.
+                            {isAnalyzingScript
+                              ? "추천 주제를 생성 중입니다. 잠시만 기다려 주세요."
+                              : "추천 주제를 보려면 빠르게 주제 추천을 실행해주세요."}
                           </p>
+                          {isAnalyzingScript && (
+                            <ProgressTracker
+                              currentStepIndex={analyzeProgress.currentStep}
+                              stepLabels={analyzeProgress.steps}
+                              stepDescriptions={[
+                                "대본의 전체 구조와 흐름을 분석하고 있습니다",
+                                "중요한 키워드와 주제를 추출하고 있습니다",
+                                "분석 결과를 바탕으로 새로운 주제를 생성하고 있습니다"
+                              ]}
+                              estimatedTimeSeconds={20}
+                            />
+                          )}
 
                           {/* 직접 입력 칸 */}
                           <div className="space-y-2">
