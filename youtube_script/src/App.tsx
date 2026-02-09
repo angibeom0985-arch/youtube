@@ -1338,46 +1338,45 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
               </div>
             </div>
             <div className="transcript-input">
-                <textarea
-                  id="transcript"
-                  rows={10}
-                  value={transcript}
-                  onChange={(e) => setTranscript(e.target.value)}
-                  placeholder="여기에 스크립트를 붙여넣어 주세요."
-                  className="w-full bg-[#121212] border border-[#2A2A2A] rounded-md p-2 text-neutral-200 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition"
-                  style={
-                    {
-                      userSelect: "text",
-                      WebkitUserSelect: "text",
-                    } as React.CSSProperties
-                  }
-                />
-                {error && (
-                  <div className="bg-zinc-900/90 border-2 border-orange-500 text-orange-100 p-5 rounded-xl mt-3 shadow-[0_0_20px_rgba(234,88,12,0.2)]">
-                    <div className="flex items-center gap-2 font-bold text-xl mb-3">
-                      <span className="text-2xl">🚨</span>
-                      <span>오류 발생</span>
-                    </div>
-                    <div className="bg-black/40 rounded-lg p-4 mb-3">
-                      <pre className="whitespace-pre-wrap overflow-auto max-h-96 font-mono text-sm text-orange-200 leading-relaxed">
-                        {error}
-                      </pre>
-                    </div>
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(error);
-                        alert("오류 메시지가 복사되었습니다. 개발자에게 전달해주세요.");
-                      }}
-                      className="w-full bg-orange-600 hover:bg-orange-500 text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                      </svg>
-                      오류 메시지 복사하기
-                    </button>
+              <textarea
+                id="transcript"
+                rows={10}
+                value={transcript}
+                onChange={(e) => setTranscript(e.target.value)}
+                placeholder="여기에 스크립트를 붙여넣어 주세요."
+                className="w-full bg-[#121212] border border-[#2A2A2A] rounded-md p-2 text-neutral-200 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition"
+                style={
+                  {
+                    userSelect: "text",
+                    WebkitUserSelect: "text",
+                  } as React.CSSProperties
+                }
+              />
+              {error && (
+                <div className="bg-zinc-900/90 border-2 border-orange-500 text-orange-100 p-5 rounded-xl mt-3 shadow-[0_0_20px_rgba(234,88,12,0.2)]">
+                  <div className="flex items-center gap-2 font-bold text-xl mb-3">
+                    <span className="text-2xl">🚨</span>
+                    <span>오류 발생</span>
                   </div>
-                )}
-              </div>
+                  <div className="bg-black/40 rounded-lg p-4 mb-3">
+                    <pre className="whitespace-pre-wrap overflow-auto max-h-96 font-mono text-sm text-orange-200 leading-relaxed">
+                      {error}
+                    </pre>
+                  </div>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(error);
+                      alert("오류 메시지가 복사되었습니다. 개발자에게 전달해주세요.");
+                    }}
+                    className="w-full bg-orange-600 hover:bg-orange-500 text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    오류 메시지 복사하기
+                  </button>
+                </div>
+              )}
             </div>
             <button
               onClick={handleAnalyze}
@@ -1413,7 +1412,6 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
               </div>
             )}
           </div>
-
           {!noAds && <AdSense />}
 
           {/* --- SEPARATOR --- */}
@@ -2354,7 +2352,4 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
 };
 
 export default App;
-
-
-
 
