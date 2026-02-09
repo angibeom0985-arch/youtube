@@ -325,6 +325,10 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [isGeneratingImagePrompt, setIsGeneratingImagePrompt] = useState(false);
   const [generatingPromptChapter, setGeneratingPromptChapter] = useState<number | null>(null);
   const [imageStyle, setImageStyle] = useState(imageStyles[0]);
+  const [chapterImages, setChapterImages] = useState<Record<number, string>>({});
+  const [generatingImageChapter, setGeneratingImageChapter] = useState<number | null>(null);
+  const [useConsistentSeed, setUseConsistentSeed] = useState(true);
+  const [imageSeed, setImageSeed] = useState<number>(Math.floor(Math.random() * 1000000));
 
   const [renderDuration, setRenderDuration] = useState(() =>
     getStoredString(STORAGE_KEYS.renderDuration, "60")
@@ -543,22 +547,29 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     }
   };
 
-  const handleGenerateImagePrompt = async (chapterIndex: number, chapterTitle: string, chapterContent: string) => {
-    setIsGeneratingImagePrompt(true);
-    setGeneratingPromptChapter(chapterIndex);
+  const handleGenerateImage = async (chapterIndex: number, chapterTitle: string, chapterContent: string) => {
+    setGeneratingImageChapter(chapterIndex);
 
     try {
-      // 대본 내용에서 시각적 요소 추출을 위한 프롬프트 생성
-      const imagePromptText = `${chapterTitle} 장면을 표현하는 이미지: ${chapterContent.slice(0, 200).replace(/\n/g, ' ')}... - 영화 같은 구도, 고품질 디테일, 시네마틱 조명, ${projectTitle} 스타일`;
-      setChapterImagePrompts({ ...chapterImagePrompts, [chapterIndex]: imagePromptText });
+      // 대본 내용 기반 프롬프트 자동 생성
+      const contentSummary = chapterContent.slice(0, 200).replace(/\n/g, ' ');
+      const prompt = `${chapterTitle}: ${contentSummary}. ${imageStyle} 스타일, 고품질, 시네마틱 조명`;
+
+      // Placeholder: 실제 이미지 생성 API 호출이 필요합니다
+      // 현재는 /image 페이지로 프롬프트를 전달하여 생성하도록 안내
+      const imageUrl = `/image?prompt=${encodeURIComponent(prompt)}&style=${encodeURIComponent(imageStyle)}&seed=${useConsistentSeed ? imageSeed : ''}&no_ads=true`;
       
-      setIsGeneratingImagePrompt(false);
-      setGeneratingPromptChapter(null);
+      // 이미지 URL을 저장 (실제로는 생성된 이미지 URL이어야 함)
+      setChapterImages({ ...chapterImages, [chapterIndex]: imageUrl });
+      
+      // 2초 후 로딩 해제 (실제 API에서는 응답 받을 때까지 대기)
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
     } catch (error) {
-      console.error('이미지 프롬프트 생성 오류:', error);
-      alert('이미지 프롬프트 생성 중 오류가 발생했습니다.');
-      setIsGeneratingImagePrompt(false);
-      setGeneratingPromptChapter(null);
+      console.error('이미지 생성 오류:', error);
+      alert('이미지 생성 중 오류가 발생했습니다. 다시 시도해주세요.');
+    } finally {
+      setGeneratingImageChapter(null);
     }
   };
 
@@ -2567,16 +2578,65 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
         return (
           <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
+            {/* 이미지 설정 */}
             <div className="mb-6 rounded-2xl border border-white/10 bg-black/30 p-6">
-              <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+              <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
                 <span className="text-2xl">🎨</span>
-                스토리보드 기반 이미지 생성
+                이미지 생성 설정
               </h3>
-              <p className="text-sm text-white/60">
-                각 챕터별로 이미지 프롬프트를 생성하거나 수정하여 영상에 사용할 이미지를 만들어보세요.
-              </p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* 이미지 스타일 선택 */}
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-white/70">🎭 이미지 스타일</label>
+                  <select
+                    value={imageStyle}
+                    onChange={(e) => setImageStyle(e.target.value)}
+                    className="w-full rounded-lg border border-white/20 bg-black/60 px-3 py-2 text-sm text-white/90 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  >
+                    {imageStyles.map((style) => (
+                      <option key={style} value={style}>
+                        {style}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* 일관성 유지 */}
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-white/70 flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={useConsistentSeed}
+                      onChange={(e) => {
+                        setUseConsistentSeed(e.target.checked);
+                        if (e.target.checked && !imageSeed) {
+                          setImageSeed(Math.floor(Math.random() * 1000000));
+                        }
+                      }}
+                      className="rounded"
+                    />
+                    🔄 일관성 유지
+                  </label>
+                  <p className="text-xs text-white/50">
+                    {useConsistentSeed 
+                      ? `모든 이미지가 유사한 스타일로 생성됩니다 (시드: ${imageSeed})`
+                      : '각 이미지가 독립적으로 생성됩니다'
+                    }
+                  </p>
+                  {useConsistentSeed && (
+                    <button
+                      onClick={() => setImageSeed(Math.floor(Math.random() * 1000000))}
+                      className="text-xs text-purple-300 hover:text-purple-200 underline"
+                    >
+                      새로운 시드로 변경
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
 
+            {/* 챕터별 이미지 생성 */}
             <div className="space-y-4">
               {chapterScripts.map((chapter, index) => (
                 <div key={index} className="rounded-2xl border border-white/10 bg-black/30 p-6">
@@ -2589,37 +2649,49 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       <p className="text-xs text-white/50 mt-1">{chapter.content.length}자</p>
                     </div>
                     <button
-                      onClick={() => handleGenerateImagePrompt(index, chapter.title, chapter.content)}
-                      disabled={isGeneratingImagePrompt && generatingPromptChapter === index}
+                      onClick={() => handleGenerateImage(index, chapter.title, chapter.content)}
+                      disabled={generatingImageChapter === index}
                       className="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 text-white text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition"
                     >
-                      {isGeneratingImagePrompt && generatingPromptChapter === index ? '생성 중...' : '✨ AI 프롬프트 생성'}
+                      {generatingImageChapter === index ? '🎨 생성 중...' : '✨ 이미지 생성'}
                     </button>
                   </div>
 
-                  <div className="space-y-3">
-                    <label className="text-sm font-semibold text-white/70">🖼️ 이미지 프롬프트</label>
-                    <textarea
-                      value={chapterImagePrompts[index] || ''}
-                      onChange={(e) => setChapterImagePrompts({ ...chapterImagePrompts, [index]: e.target.value })}
-                      placeholder={`"${chapter.title}" 장면을 표현할 이미지 프롬프트를 입력하거나 AI 생성을 사용하세요.`}
-                      rows={3}
-                      className="w-full rounded-xl border border-white/20 bg-black/40 px-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
-                    />
-
-                    {chapterImagePrompts[index] && (
-                      <div className="flex gap-2">
+                  {/* 생성된 이미지 표시 */}
+                  {chapterImages[index] && !generatingImageChapter && (
+                    <div className="mt-4 rounded-xl overflow-hidden border border-white/20 bg-black/40">
+                      <iframe
+                        src={chapterImages[index]}
+                        title={`${chapter.title} 이미지 생성`}
+                        className="w-full h-[500px] rounded-t-xl"
+                      />
+                      <div className="bg-black/60 p-3 flex gap-2">
+                        <button
+                          onClick={() => handleGenerateImage(index, chapter.title, chapter.content)}
+                          className="px-3 py-1 rounded-lg bg-white/10 text-white text-xs hover:bg-white/20 transition"
+                        >
+                          🔄 재생성
+                        </button>
                         <a
-                          href={`/image?prompt=${encodeURIComponent(chapterImagePrompts[index])}&no_ads=true`}
+                          href={chapterImages[index]}
                           target="_blank"
                           rel="noreferrer"
-                          className="px-4 py-2 rounded-lg border border-red-400/50 bg-red-500/10 text-red-300 text-sm font-semibold hover:bg-red-500/20 transition-all"
+                          className="px-3 py-1 rounded-lg bg-white/10 text-white text-xs hover:bg-white/20 transition"
                         >
-                          🖼️ 이미지 생성 페이지로 이동
+                          🖼️ 새 창에서 열기
                         </a>
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
+
+                  {/* 로딩 상태 */}
+                  {generatingImageChapter === index && (
+                    <div className="mt-4 rounded-xl border border-purple-400/30 bg-purple-500/10 p-6 text-center">
+                      <div className="animate-spin w-8 h-8 border-4 border-purple-400 border-t-transparent rounded-full mx-auto mb-3"></div>
+                      <p className="text-sm text-purple-300">AI가 이미지를 생성하고 있습니다...</p>
+                      <p className="text-xs text-purple-400/70 mt-1">스타일: {imageStyle}</p>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -2630,9 +2702,10 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 팁
               </h4>
               <ul className="text-sm text-blue-200/80 space-y-2">
-                <li>• AI 프롬프트 생성을 클릭하면 대본 내용을 기반으로 자동으로 프롬프트가 만들어집니다</li>
-                <li>• 생성된 프롬프트를 수정하여 원하는 이미지 스타일로 조정할 수 있습니다</li>
-                <li>• "이미지 생성 페이지로 이동" 버튼을 클릭하면 해당 프롬프트로 이미지를 생성할 수 있습니다</li>
+                <li>• 이미지 스타일을 선택하면 모든 챕터에 동일한 스타일이 적용됩니다</li>
+                <li>• 일관성 유지를 활성화하면 모든 이미지가 유사한 느낌으로 생성됩니다</li>
+                <li>• 각 챕터의 대본 내용을 기반으로 자동으로 이미지가 생성됩니다</li>
+                <li>• 생성된 이미지가 마음에 들지 않으면 재생성 버튼을 눌러보세요</li>
               </ul>
             </div>
           </div>
