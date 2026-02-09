@@ -4,6 +4,8 @@ import { Link } from "react-router-dom";
 import { supabase } from "../services/supabase";
 
 interface ApiKeyInputProps {
+  apiKey: string; // <-- Add apiKey prop
+  setApiKey: (key: string) => void; // <-- Add setApiKey prop
   storageKey: string;
   label?: string;
   placeholder?: string;
@@ -68,6 +70,8 @@ const themeStyles = {
 };
 
 const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
+  apiKey: propApiKey, // Rename prop to avoid conflict with internal state variable
+  setApiKey: setPropApiKey, // Rename prop setter
   storageKey,
   label = "Gemini API 키",
   placeholder = "API 키를 입력하세요",
@@ -77,7 +81,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
   theme = "orange",
   apiType,
 }) => {
-  const [apiKey, setApiKey] = useState("");
+  // Remove internal apiKey state, use propApiKey directly
   const [showApiKey, setShowApiKey] = useState(false);
   const [testLoading, setTestLoading] = useState(false);
   const [testResult, setTestResult] = useState<"success" | "error" | null>(null);
@@ -86,7 +90,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
   const styles = themeStyles[theme];
 
   // Helper to fetch keys from backend
-  const fetchBackendKeys = async () => {
+  const fetchBackendKeys = useCallback(async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
 
@@ -99,11 +103,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
         let backendKey = "";
         if (apiType === "gemini" && data.gemini_api_key) {
           backendKey = data.gemini_api_key;
-        } else if (apiType === "googleCloud" && data.google_credit_json) {
-          backendKey = typeof data.google_credit_json === 'string'
-            ? data.google_credit_json
-            : JSON.stringify(data.google_credit_json);
-        } else if ((apiType === "google-cloud" || apiType === "googleCloud") && data.google_credit_json) {
+        } else if ((apiType === "googleCloud" || apiType === "google-cloud") && data.google_credit_json) {
           // Handle both types just in case
           backendKey = typeof data.google_credit_json === 'string'
             ? data.google_credit_json
@@ -111,32 +111,40 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
         }
 
         if (backendKey) {
-          setApiKey(backendKey);
-          localStorage.setItem(storageKey, backendKey);
+          setPropApiKey(backendKey); // Use prop setter
+          try {
+            localStorage.setItem(storageKey, backendKey);
+          } catch (error) {
+            console.error("API 키를 저장하는데 실패했습니다:", error);
+          }
           setIsCollapsed(true);
         }
       }
     } catch (e) {
       console.error("Failed to fetch backend settings", e);
     }
-  };
+  }, [storageKey, apiType, setPropApiKey]); // Add setPropApiKey to dependency array
 
   useEffect(() => {
+    // Initialize from localStorage first, then try fetching from backend
     try {
       const stored = localStorage.getItem(storageKey);
-      if (stored) {
-        setApiKey(stored);
+      if (stored && stored !== propApiKey) { // Only update if stored is different from prop to avoid infinite loop
+        setPropApiKey(stored);
+        setIsCollapsed(true);
+      } else if (!stored && propApiKey) { // If propApiKey exists but not in localStorage, save it
+        localStorage.setItem(storageKey, propApiKey);
         setIsCollapsed(true);
       }
     } catch (error) {
-      console.error("API 키를 불러오는데 실패했습니다:", error);
+      console.error("API 키를 불러오거나 저장하는데 실패했습니다:", error);
     }
     fetchBackendKeys();
-  }, [storageKey, apiType]);
+  }, [storageKey, apiType, fetchBackendKeys, propApiKey, setPropApiKey]); // Add propApiKey and setPropApiKey
 
   const handleApiKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    setApiKey(value);
+    setPropApiKey(value); // Use prop setter
     try {
       localStorage.setItem(storageKey, value);
     } catch (error) {
@@ -149,13 +157,13 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
   };
 
   const saveAndTestApiKey = async () => {
-    if (!apiKey) {
+    if (!propApiKey) { // Use propApiKey
       alert('⚠️ API 키를 먼저 입력해주세요.');
       return;
     }
 
     try {
-      localStorage.setItem(storageKey, apiKey);
+      localStorage.setItem(storageKey, propApiKey); // Use propApiKey
     } catch (error) {
       alert('❌ API 키 저장에 실패했습니다.');
       return;
@@ -167,15 +175,15 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
       try {
         const payload: any = {};
         if (apiType === "gemini") {
-          payload.gemini_api_key = apiKey;
+          payload.gemini_api_key = propApiKey; // Use propApiKey
         } else if (apiType === "googleCloud" || apiType === "google-cloud") {
           // Try to parse as JSON first (service account), otherwise treat as API Key string
           try {
-            const json = JSON.parse(apiKey);
+            const json = JSON.parse(propApiKey); // Use propApiKey
             payload.google_credit_json = json;
           } catch {
             // Assume it's a simple API Key string
-            payload.google_credit_json = { apiKey: apiKey };
+            payload.google_credit_json = { apiKey: propApiKey }; // Use propApiKey
           }
         }
 
@@ -202,11 +210,11 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
       let testUrl = "";
 
       if (apiType === "gemini") {
-        testUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
+        testUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${propApiKey}`; // Use propApiKey
       } else if (apiType === "youtube") {
-        testUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=test&type=video&maxResults=1&key=${apiKey}`;
+        testUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=test&type=video&maxResults=1&key=${propApiKey}`; // Use propApiKey
       } else if (apiType === "googleCloud" || apiType === "google-cloud") {
-        if (apiKey.trim().startsWith("{")) {
+        if (propApiKey.trim().startsWith("{")) { // Use propApiKey
           // Service Account JSON
           setTestResult("success");
           alert('✅ Google Cloud Key(JSON)가 저장되었습니다. (서버에서 검증됩니다)');
@@ -215,7 +223,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
         } else {
           // API Key String - Test with TTS or YouTube
           // We test with YouTube as it's a common use case for the API Key
-          testUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=test&type=video&maxResults=1&key=${apiKey}`;
+          testUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=test&type=video&maxResults=1&key=${propApiKey}`; // Use propApiKey
         }
       }
 
@@ -245,11 +253,11 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
         <label className={`text-sm font-semibold ${styles.label}`}>
           {label}
         </label>
-        {apiKey && (
+        {propApiKey && ( // Use propApiKey
           <span className="text-xs text-green-400 ml-2">✓ 저장됨</span>
         )}
         <div className="ml-auto flex gap-2">
-          {apiKey && (
+          {propApiKey && ( // Use propApiKey
             <button
               onClick={() => setIsCollapsed(!isCollapsed)}
               className="text-xs px-2 py-1 rounded hover:bg-white/10 transition-colors"
@@ -274,7 +282,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
           <div className="relative">
             <input
               type={showApiKey ? "text" : "password"}
-              value={apiKey}
+              value={propApiKey} // Use propApiKey
               onChange={handleApiKeyChange}
               placeholder={placeholder}
               autoComplete="off"
@@ -292,7 +300,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
               {apiType && (
                 <button
                   onClick={saveAndTestApiKey}
-                  disabled={testLoading || !apiKey}
+                  disabled={testLoading || !propApiKey} // Use propApiKey
                   className={`px-2 py-1 bg-green-600/20 hover:bg-green-600/30 border border-green-500/40 text-green-100 rounded text-xs font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 whitespace-nowrap`}
                   title="API 키 저장 및 테스트"
                 >
@@ -308,7 +316,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
             </div>
           </div>
 
-          {!apiKey && (
+          {!propApiKey && ( // Use propApiKey
             <p className={`mt-2 text-xs ${styles.warning} flex items-center gap-1`}>
               <span>⚠️</span>
               <span>API 키를 입력해주세요.</span>
