@@ -36,6 +36,8 @@ const STORAGE_KEYS = {
   tts: "video_project_tts",
   ttsChapters: "video_project_tts_chapters",
   ttsChapterVoices: "video_project_tts_chapter_voices",
+  youtubeUrl: "video_project_youtube_url",
+  scriptCategory: "video_project_script_category",
   imagePrompt: "video_project_image_prompt",
   renderDuration: "video_project_render_duration",
   renderRatio: "video_project_render_ratio",
@@ -93,6 +95,24 @@ const allVoiceOptions = [
   { name: "예린", label: "여성 젊은", tone: "가벼운 브이로그 톤", category: "여성", sampleText: "오늘 하루 같이 가볍게 시작해볼까요?" },
   { name: "미정", label: "여성 중년", tone: "안정적 설명 톤", category: "여성", sampleText: "핵심만 간단하게 정리해 드릴게요." },
   { name: "순자", label: "여성 시니어", tone: "따뜻한 이야기 톤", category: "여성", sampleText: "옛날 이야기도 요즘엔 다 이유가 있답니다." },
+];
+
+const scriptCategories = [
+  "썰 채널",
+  "건강",
+  "미스터리",
+  "야담",
+  "49금",
+  "국뽕",
+  "북한 이슈",
+  "정보 전달",
+  "쇼핑 리뷰",
+  "IT/테크",
+  "요리/쿡방",
+  "뷰티",
+  "게임",
+  "먹방",
+  "브이로그",
 ];
 
 const imageStyles = [
@@ -233,6 +253,12 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   );
   const [scriptTitle, setScriptTitle] = useState(() =>
     getStoredString(STORAGE_KEYS.scriptTitle, "")
+  );
+  const [youtubeUrl, setYoutubeUrl] = useState(() =>
+    getStoredString(STORAGE_KEYS.youtubeUrl, "")
+  );
+  const [selectedCategory, setSelectedCategory] = useState(() =>
+    getStoredString(STORAGE_KEYS.scriptCategory, scriptCategories[0])
   );
   const [ttsScript, setTtsScript] = useState(() =>
     getStoredString(
@@ -412,6 +438,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   useEffect(() => setStoredValue(STORAGE_KEYS.title, projectTitle), [projectTitle]);
   useEffect(() => setStoredValue(STORAGE_KEYS.notes, projectNotes), [projectNotes]);
   useEffect(() => setStoredValue(STORAGE_KEYS.scriptTitle, scriptTitle), [scriptTitle]);
+  useEffect(() => setStoredValue(STORAGE_KEYS.youtubeUrl, youtubeUrl), [youtubeUrl]);
+  useEffect(() => setStoredValue(STORAGE_KEYS.scriptCategory, selectedCategory), [selectedCategory]);
   useEffect(() => setStoredValue(STORAGE_KEYS.script, scriptDraft), [scriptDraft]);
   useEffect(() => setStoredValue(STORAGE_KEYS.tts, ttsScript), [ttsScript]);
   useEffect(() => setStoredJson(STORAGE_KEYS.ttsChapters, chapterScripts), [chapterScripts]);
@@ -984,7 +1012,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       setAnalyzeProgress(prev => ({ ...prev, currentStep: 0 }));
       const analysis = await analyzeTranscript(
         scriptDraft.trim(),
-        "일반",
+        selectedCategory,
         scriptTitle || projectTitle,
         !options?.showDetails
       );
@@ -995,7 +1023,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
       // Step 3: 추천 주제 생성 (제목 형식 반영)
       setAnalyzeProgress(prev => ({ ...prev, currentStep: 2 }));
-      const ideas = await generateIdeas(analysis, "일반", undefined, scriptTitle);
+      const ideas = await generateIdeas(analysis, selectedCategory, undefined, scriptTitle);
       setScriptIdeas(ideas);
       if (ideas.length > 0) {
         setSelectedTopic(ideas[0]);
@@ -1057,7 +1085,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         scriptAnalysis,
         selectedTopic,
         formatScriptLengthLabel(),
-        "일반"
+        selectedCategory
       );
 
       // Step 3: AI 응답 정제 (마크다운 기호 제거)
@@ -1347,6 +1375,45 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       <p className="text-xs text-white/50">
                         제목을 입력하면 AI 추천 주제가 비슷한 형식으로 생성됩니다
                       </p>
+                    </div>
+
+                    {/* 유튜브 URL 입력 */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-white/80">
+                        🔗 유튜브 URL 입력 (선택사항)
+                      </label>
+                      <input
+                        type="text"
+                        value={youtubeUrl}
+                        onChange={(event) => setYoutubeUrl(event.target.value)}
+                        className="w-full rounded-xl border border-white/20 bg-black/30 px-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-red-500"
+                        placeholder="https://www.youtube.com/watch?v=..."
+                      />
+                      <p className="text-xs text-white/50">
+                        대본을 직접 입력해 주세요. (대본 추출 기능은 제거되었습니다)
+                      </p>
+                    </div>
+
+                    {/* 카테고리 선택 */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-white/80">
+                        🗂️ 카테고리 선택
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        {scriptCategories.map((category) => (
+                          <button
+                            key={category}
+                            type="button"
+                            onClick={() => setSelectedCategory(category)}
+                            className={`rounded-full border px-3 py-2 text-xs font-semibold transition ${selectedCategory === category
+                              ? "border-red-400 bg-red-500/15 text-red-200"
+                              : "border-white/15 bg-black/30 text-white/70 hover:border-white/30"
+                              }`}
+                          >
+                            {category}
+                          </button>
+                        ))}
+                      </div>
                     </div>
 
                     {/* 대본 내용 입력 */}

@@ -1,27 +1,11 @@
-import React, { useState, useCallback, useEffect, useRef } from "react";
+﻿import React, { useState, useCallback, useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { FiCpu, FiSettings, FiTrash2 } from "react-icons/fi";
 import { supabase } from "./services/supabase";
 import Login from "./components/Login";
 import type { User } from "@supabase/supabase-js";
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-} from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  useSortable,
-  horizontalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
+ 
 import {
   analyzeTranscript,
   generateNewPlan,
@@ -31,9 +15,7 @@ import {
   generateChapterOutline,
   generateChapterScript,
 } from "./services/chapterService";
-import { getVideoDetails } from "./services/youtubeService";
-import { fetchTranscript } from "./services/transcriptService";
-import type { VideoDetails } from "./services/youtubeService";
+ 
 import type {
   AnalysisResult,
   NewPlan,
@@ -121,36 +103,6 @@ const setStoredJson = (key: string, value: unknown) => {
 };
 
 
-// SortableItem 컴포넌트
-interface SortableItemProps {
-  id: string;
-  category: string;
-  isSelected: boolean;
-  onClick: () => void;
-}
-
-const SortableItem: React.FC<SortableItemProps> = ({
-  id,
-  category,
-  isSelected,
-  onClick,
-}) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-    cursor: isDragging ? "grabbing" : "grab",
-  };
-
   return (
     <button
       ref={setNodeRef}
@@ -199,14 +151,6 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
     setUser(null);
   };
 
-  // 카테고리 순서 관리
-  const [categories, setCategories] = useState<string[]>(() => {
-    return getStoredJson("categoriesOrder", defaultCategories);
-  });
-
-  const [youtubeUrl, setYoutubeUrl] = useState<string>(() =>
-    getStoredString("youtubeUrl")
-  );
   const [transcript, setTranscript] = useState<string>(() =>
     getStoredString("transcript")
   );
@@ -237,14 +181,10 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [isGeneratingIdeas, setIsGeneratingIdeas] = useState<boolean>(false);
-  const [isFetchingDetails, setIsFetchingDetails] = useState(false);
-  const [isFetchingTranscript, setIsFetchingTranscript] = useState(false);
   // API 키 검증 로직 제거됨
   const [error, setError] = useState<string | null>(null);
 
-  const [selectedCategory, setSelectedCategory] = useState<string>(() =>
-    getStoredString("selectedCategory", categories[0])
-  );
+  const [selectedCategory] = useState<string>(defaultCategories[0]);
   const [selectedVlogType, setSelectedVlogType] = useState<string>(() =>
     getStoredString("selectedVlogType", vlogTypes[0])
   );
@@ -261,7 +201,6 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
     getStoredString("scriptStyle", "대화 버전")
   ); // "대화 버전" | "나레이션 버전"
 
-  const [videoDetails, setVideoDetails] = useState<VideoDetails | null>(null);
   const [characterColorMap, setCharacterColorMap] = useState(
     new Map<string, string>()
   );
@@ -281,64 +220,6 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
     setAdBlockDetected(true);
   };
 
-  // 드래그 앤 드롭 센서 설정
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8, // 8px 이상 드래그해야 활성화
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
-  // 드래그 종료 핸들러
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-
-    if (over && active.id !== over.id) {
-      setCategories((items) => {
-        const oldIndex = items.indexOf(active.id as string);
-        const newIndex = items.indexOf(over.id as string);
-        return arrayMove(items, oldIndex, newIndex);
-      });
-    }
-  };
-
-  // 카테고리 순서 저장
-
-  useEffect(() => {
-    const fetchVideoDetails = async () => {
-      const trimmedUrl = youtubeUrl.trim();
-      if (!trimmedUrl) {
-        setVideoDetails(null);
-        setError(null);
-        return;
-      }
-
-      setIsFetchingDetails(true);
-      setError(null);
-      try {
-        const details = await getVideoDetails(youtubeUrl);
-        setVideoDetails(details);
-      } catch (err) {
-        setVideoDetails(null);
-        setError(
-          "유효하지 않은 YouTube URL이거나 영상 정보를 가져올 수 없습니다."
-        );
-      } finally {
-        setIsFetchingDetails(false);
-      }
-    };
-
-    const timer = setTimeout(() => {
-      fetchVideoDetails();
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [youtubeUrl]);
-
   useEffect(() => {
     if (lengthMode !== "custom") {
       setCustomLength(lengthMode);
@@ -354,14 +235,6 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
       setCharacterColorMap(newMap);
     }
   }, [newPlan]);
-
-  useEffect(() => {
-    if (youtubeUrl) {
-      localStorage.setItem("youtubeUrl", youtubeUrl);
-    } else {
-      localStorage.removeItem("youtubeUrl");
-    }
-  }, [youtubeUrl]);
 
   useEffect(() => {
     if (transcript) {
@@ -410,17 +283,6 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
       localStorage.removeItem("suggestedIdeas");
     }
   }, [suggestedIdeas]);
-
-  useEffect(() => {
-    setStoredJson("categoriesOrder", categories);
-  }, [categories]);
-
-
-  useEffect(() => {
-    if (selectedCategory) {
-      localStorage.setItem("selectedCategory", selectedCategory);
-    }
-  }, [selectedCategory]);
 
   useEffect(() => {
     if (selectedVlogType) {
@@ -780,72 +642,64 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
     };
   }, [allowDevtools]);
 
-  const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newUrl = e.target.value;
-    setYoutubeUrl(newUrl);
-    setAnalysisResult(null);
-    setNewPlan(null);
-    setSuggestedIdeas([]);
-  };
-
-  const handleRemoveUrl = () => {
-    setYoutubeUrl("");
-    setAnalysisResult(null);
-    setNewPlan(null);
-    setSuggestedIdeas([]);
-    setError(null);
-  };
-
-  const handleFetchTranscript = useCallback(async () => {
-    const trimmedUrl = youtubeUrl.trim();
-    if (!trimmedUrl) {
-      setError("유튜브 URL을 먼저 입력해주세요.");
-      return;
-    }
-
-    setIsFetchingTranscript(true);
-    setError(null);
-    try {
-      const result = await fetchTranscript(trimmedUrl);
-      setTranscript(result.text);
+  // 저장된 데이터 초기화
+  const handleClearData = () => {
+    const confirmed = window.confirm(
+      "저장된 모든 데이터를 삭제하시겠습니까?\n(분석 결과, 기획안, 추천 아이디어 등)"
+    );
+    if (confirmed) {
+      localStorage.removeItem("analysisResult");
+      localStorage.removeItem("newPlan");
+      localStorage.removeItem("suggestedIdeas");
+      localStorage.removeItem("transcript");
+      localStorage.removeItem("newKeyword");
+      localStorage.removeItem("userIdeaKeyword");
+      localStorage.removeItem("appliedIdeaKeyword");
+      localStorage.removeItem("selectedVlogType");
+      localStorage.removeItem("contentType");
+      localStorage.removeItem("lengthMode");
+      localStorage.removeItem("customLength");
+      localStorage.removeItem("scriptStyle");
+      localStorage.removeItem("lastAnalysisTimestamp");
+      localStorage.removeItem("lastPlanTimestamp");
+      localStorage.removeItem("lastTranscript");
+      localStorage.removeItem("lastNewKeyword");
+      localStorage.removeItem("lastAnalysisResult");
+      localStorage.removeItem("lastNewPlan");
+      localStorage.removeItem("lastSuggestedIdeas");
+      localStorage.removeItem("lastNewPlanTimestamp");
       setAnalysisResult(null);
       setNewPlan(null);
       setSuggestedIdeas([]);
-    } catch (err: any) {
-      setError(err?.message || "대본을 불러오는 중 오류가 발생했습니다.");
-    } finally {
-      setIsFetchingTranscript(false);
-    }
-  }, [youtubeUrl]);
+      setTranscript("");
+      setNewKeyword("");
 
-  // 전체 초기화 함수
+      alert("✅ 모든 데이터가 삭제되었습니다.");
+    }
+  };
+
   const handleReset = () => {
     const confirmed = window.confirm(
       "모든 분석 내용과 입력값이 초기화됩니다. 계속하시겠습니까?"
     );
     if (!confirmed) return;
 
-    // 상태 초기화
-    setYoutubeUrl("");
     setTranscript("");
     setNewKeyword("");
+    setUserIdeaKeyword("");
+    setAppliedIdeaKeyword("");
     setAnalysisResult(null);
     setNewPlan(null);
     setSuggestedIdeas([]);
-    setVideoDetails(null);
     setError(null);
 
-    // localStorage 초기화
-    // localStorage 초기화
     localStorage.removeItem("analysisResult");
     localStorage.removeItem("newPlan");
     localStorage.removeItem("suggestedIdeas");
-    localStorage.removeItem("youtubeUrl");
     localStorage.removeItem("transcript");
     localStorage.removeItem("newKeyword");
     localStorage.removeItem("userIdeaKeyword");
     localStorage.removeItem("appliedIdeaKeyword");
-    localStorage.removeItem("selectedCategory");
     localStorage.removeItem("selectedVlogType");
     localStorage.removeItem("contentType");
     localStorage.removeItem("lengthMode");
@@ -857,49 +711,9 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
     localStorage.removeItem("lastNewPlanTimestamp");
     localStorage.removeItem("lastSuggestedIdeas");
     localStorage.removeItem("lastTranscript");
-    localStorage.removeItem("lastYoutubeUrl");
     localStorage.removeItem("lastNewKeyword");
+
     alert("✅ 모든 내용이 초기화되었습니다!");
-  };
-
-  // 저장된 데이터 초기화
-  const handleClearData = () => {
-    const confirmed = window.confirm(
-      "저장된 모든 데이터를 삭제하시겠습니까?\n(분석 결과, 기획안, 추천 아이디어 등)"
-    );
-    if (confirmed) {
-      localStorage.removeItem("analysisResult");
-      localStorage.removeItem("newPlan");
-      localStorage.removeItem("suggestedIdeas");
-      localStorage.removeItem("youtubeUrl");
-      localStorage.removeItem("transcript");
-      localStorage.removeItem("newKeyword");
-      localStorage.removeItem("userIdeaKeyword");
-      localStorage.removeItem("appliedIdeaKeyword");
-      localStorage.removeItem("selectedCategory");
-      localStorage.removeItem("selectedVlogType");
-      localStorage.removeItem("contentType");
-      localStorage.removeItem("lengthMode");
-      localStorage.removeItem("customLength");
-      localStorage.removeItem("scriptStyle");
-      localStorage.removeItem("lastAnalysisTimestamp");
-      localStorage.removeItem("lastPlanTimestamp");
-      localStorage.removeItem("lastTranscript");
-      localStorage.removeItem("lastYoutubeUrl");
-      localStorage.removeItem("lastNewKeyword");
-      localStorage.removeItem("lastAnalysisResult");
-      localStorage.removeItem("lastNewPlan");
-      localStorage.removeItem("lastSuggestedIdeas");
-      localStorage.removeItem("lastNewPlanTimestamp");
-      setAnalysisResult(null);
-      setNewPlan(null);
-      setSuggestedIdeas([]);
-      setTranscript("");
-      setYoutubeUrl("");
-      setNewKeyword("");
-
-      alert("✅ 모든 데이터가 삭제되었습니다.");
-    }
   };
 
   const handleAnalyze = useCallback(async () => {
@@ -923,8 +737,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
       const result = await analyzeTranscript(
         transcript,
         selectedCategory,
-        apiKey,
-        videoDetails?.title
+        apiKey
       );
       setAnalysisResult(result);
 
@@ -951,7 +764,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
     } finally {
       setIsAnalyzing(false);
     }
-  }, [transcript, selectedCategory, videoDetails, apiKey, appliedIdeaKeyword, abuseDecision]);
+  }, [transcript, selectedCategory, apiKey, appliedIdeaKeyword, abuseDecision]);
 
   const handleRefreshIdeas = useCallback(async () => {
     if (!analysisResult || !apiKey) return;
@@ -1519,199 +1332,29 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
         <main>
           {/* --- INPUT SECTION --- */}
           <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6 mb-8">
-            <div className="mb-6">
+            <div className="flex items-center justify-between mb-3">
               <label
-                htmlFor="youtube-url"
-                className="block text-2xl font-bold text-neutral-100 mb-3"
+                htmlFor="transcript"
+                className="block text-2xl font-bold text-neutral-100"
               >
-                유튜브 URL 입력
+                대본 입력
               </label>
-              {!videoDetails ? (
-                <div className="relative mt-1 youtube-url-input">
-                  <input
-                    type="text"
-                    id="youtube-url"
-                    value={youtubeUrl}
-                    onChange={handleUrlChange}
-                    placeholder="https://www.youtube.com/watch?v=..."
-                    className="w-full bg-[#121212] border border-[#2A2A2A] rounded-md p-2 text-neutral-200 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition"
-                    style={
-                      {
-                        userSelect: "text",
-                        WebkitUserSelect: "text",
-                      } as React.CSSProperties
-                    }
-                  />
-                  {isFetchingDetails && (
-                    <div className="absolute inset-y-0 right-3 flex items-center pr-1">
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-orange-500"></div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="relative group mt-2">
-                  <div className="border border-[#2A2A2A] rounded-lg overflow-hidden bg-zinc-900/50 focus-within:ring-2 focus-within:ring-orange-500">
-                    <a
-                      href={youtubeUrl}
-                      className="block hover:opacity-90 transition-opacity focus:outline-none"
-                    >
-                      <img
-                        src={videoDetails.thumbnailUrl}
-                        alt="YouTube Video Thumbnail"
-                        className="w-full object-cover aspect-video"
-                      />
-                      <div className="p-4 border-t border-[#2A2A2A]">
-                        <p
-                          className="font-semibold text-white mb-1 truncate"
-                          title={videoDetails.title}
-                        >
-                          {videoDetails.title}
-                        </p>
-                        <p className="text-xs text-neutral-400">
-                          www.youtube.com
-                        </p>
-                      </div>
-                    </a>
-                    <button
-                      onClick={handleRemoveUrl}
-                      className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
-                      aria-label="링크 제거"
-                      title="링크 제거"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M6 18L18 6M6 6l12 12"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="mb-6 flex flex-wrap gap-3">
-              <button
-                onClick={handleFetchTranscript}
-                disabled={!youtubeUrl.trim() || isFetchingTranscript}
-                className="px-4 py-2 bg-gradient-to-br from-orange-600 to-orange-500 text-white font-semibold rounded-md hover:from-orange-500 hover:to-orange-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-              >
-                {isFetchingTranscript ? "대본 추출 중..." : "대본 추출"}
-              </button>
-              <p className="text-xs text-neutral-400 flex items-center">
-                유튜브 자막이 있는 영상만 추출됩니다.
-              </p>
-            </div>
-
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-3">
-                <label className="block text-2xl font-bold text-neutral-100">
-                  카테고리 선택
-                  <span className="text-sm font-normal text-neutral-400 ml-2">
-                    (드래그하여 순서 변경)
-                  </span>
-                </label>
-                <button
-                  onClick={() => {
-                    setCategories(defaultCategories);
-                    localStorage.setItem("categoriesOrder", JSON.stringify(defaultCategories));
-                  }}
-                  className="px-3 py-1.5 text-xs font-medium bg-zinc-700 hover:bg-zinc-600 text-neutral-200 rounded-md transition-all duration-200 flex items-center gap-1"
-                  title="기본 순서로 초기화"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-3.5 w-3.5"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
+              <div className="flex gap-2">
+                {contentTypes.map((type) => (
+                  <button
+                    key={type}
+                    onClick={() => setContentType(type)}
+                    className={`px-3 py-1 text-sm font-medium rounded-md transition-all duration-200 ${contentType === type
+                      ? "bg-gradient-to-br from-orange-600 to-orange-500 text-white"
+                      : "bg-[#2A2A2A] hover:bg-zinc-700 text-neutral-200"
+                      }`}
                   >
-                    <path
-                      fillRule="evenodd"
-                      d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  순서 초기화
-                </button>
+                    {type}
+                  </button>
+                ))}
               </div>
-              <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragEnd={handleDragEnd}
-              >
-                <SortableContext
-                  items={categories}
-                  strategy={horizontalListSortingStrategy}
-                >
-                  <div className="flex flex-wrap gap-2">
-                    {categories.map((category) => (
-                      <SortableItem
-                        key={category}
-                        id={category}
-                        category={category}
-                        isSelected={selectedCategory === category}
-                        onClick={() => setSelectedCategory(category)}
-                      />
-                    ))}
-                  </div>
-                </SortableContext>
-              </DndContext>
             </div>
-
-            {/* 브이로그 서브타입 선택 */}
-            {selectedCategory === "브이로그" && (
-              <div className="mb-6">
-                <label className="block text-xl font-bold text-neutral-100 mb-3">
-                  브이로그 타입
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {vlogTypes.map((vlogType) => (
-                    <button
-                      key={vlogType}
-                      onClick={() => setSelectedVlogType(vlogType)}
-                      className={`px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${selectedVlogType === vlogType
-                        ? "bg-gradient-to-br from-orange-600 to-orange-500 text-white shadow-[0_0_10px_rgba(249,115,22,0.5)]"
-                        : "bg-[#2A2A2A] hover:bg-zinc-700 text-neutral-200"
-                        }`}
-                    >
-                      {vlogType}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <label
-                  htmlFor="transcript"
-                  className="block text-2xl font-bold text-neutral-100"
-                >
-                  대본 입력
-                </label>
-                <div className="flex gap-2">
-                  {contentTypes.map((type) => (
-                    <button
-                      key={type}
-                      onClick={() => setContentType(type)}
-                      className={`px-3 py-1 text-sm font-medium rounded-md transition-all duration-200 ${contentType === type
-                        ? "bg-gradient-to-br from-orange-600 to-orange-500 text-white"
-                        : "bg-[#2A2A2A] hover:bg-zinc-700 text-neutral-200"
-                        }`}
-                    >
-                      {type}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="transcript-input">
+            <div className="transcript-input">
                 <textarea
                   id="transcript"
                   rows={10}
@@ -2697,7 +2340,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
       <Footer />
 
       {/* 플로팅 초기화 버튼 */}
-      {(analysisResult || newPlan || transcript || youtubeUrl) && (
+      {(analysisResult || newPlan || transcript) && (
         <button
           onClick={handleReset}
           className="fixed bottom-24 right-6 bg-orange-600 hover:bg-orange-500 text-white px-5 py-3 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 flex items-center gap-2 font-semibold z-50 border-2 border-orange-400"
@@ -2728,3 +2371,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
 };
 
 export default App;
+
+
+
+
