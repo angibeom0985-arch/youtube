@@ -29,6 +29,7 @@
   },
   "exclude": [
     "image",
-    "node_modules"
+    "node_modules",
+    "backup_credit"
   ]
 }

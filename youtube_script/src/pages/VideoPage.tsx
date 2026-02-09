@@ -24,6 +24,8 @@ import ApiKeyInput from "../components/ApiKeyInput";
 import type { AnalysisResult, NewPlan } from "../types";
 import { analyzeTranscript, generateIdeas, generateNewPlan } from "../services/geminiService";
 import { regenerateStoryboardImage } from "../features/image/services/geminiService";
+import type { CharacterStyle, BackgroundStyle, AspectRatio } from "../features/image/types";
+
 
 import AdSense from "../components/AdSense";
 import { ProgressTracker } from "../components/ProgressIndicator";
@@ -114,12 +116,7 @@ const scriptCategories = [
   "브이로그",
 ];
 
-const imageStyles = [
-  "미니멀 애니메이션",
-  "실사 느낌",
-  "카툰 스타일",
-  "하이퍼 리얼",
-];
+// const imageStyles removed
 
 const characterColors = [
   "text-orange-400",
@@ -325,7 +322,14 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [chapterImagePrompts, setChapterImagePrompts] = useState<Record<number, string>>({});
   const [isGeneratingImagePrompt, setIsGeneratingImagePrompt] = useState(false);
   const [generatingPromptChapter, setGeneratingPromptChapter] = useState<number | null>(null);
-  const [imageStyle, setImageStyle] = useState(imageStyles[0]);
+
+  // Image Style States
+  const [characterStyle, setCharacterStyle] = useState<CharacterStyle>("실사 극대화");
+  const [backgroundStyle, setBackgroundStyle] = useState<BackgroundStyle>("모던");
+  const [customCharacterStyle, setCustomCharacterStyle] = useState<string>("");
+  const [customBackgroundStyle, setCustomBackgroundStyle] = useState<string>("");
+  const [imageStyle, setImageStyle] = useState<"realistic" | "animation">("realistic"); // Derived/Synced
+
   const [chapterImages, setChapterImages] = useState<Record<number, string>>({});
   const [generatingImageChapter, setGeneratingImageChapter] = useState<number | null>(null);
   const [useConsistentSeed, setUseConsistentSeed] = useState(true);
@@ -400,6 +404,17 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       setCharacterColorMap(newMap);
     }
   }, [generatedPlan]);
+
+  // Sync imageStyle based on characterStyle
+  useEffect(() => {
+    if (characterStyle === "애니메이션" || characterStyle === "웹툰") {
+      setImageStyle("animation");
+    } else {
+      setImageStyle("realistic");
+    }
+  }, [characterStyle]);
+
+
 
   useEffect(() => {
     if (!generatedPlan || chapterScripts.length > 0) return;
@@ -549,26 +564,46 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   };
 
   const handleGenerateImage = async (chapterIndex: number, chapterTitle: string, chapterContent: string) => {
-    if (generatingImageChapter !== null) return;
+    if (!geminiApiKey) {
+      alert("API 키가 설정되지 않았습니다. 설정 메뉴에서 API 키를 입력해주세요.");
+      return;
+    }
+
     setGeneratingImageChapter(chapterIndex);
 
     try {
-      // 대본 내용 기반 프롬프트 생성
-      const prompt = `${chapterTitle}: ${chapterContent}`;
+      const contentSummary = chapterContent.slice(0, 300).replace(/\n/g, ' ');
 
-      // 이미지 생성 API 호출 (iframe 대신 직접 생성)
-      const base64Image = await regenerateStoryboardImage(
-        prompt,
-        [], // characters (현재 VideoPage에서는 관리하지 않음)
+      // Construct detailed style prompt
+      let stylePrompt = "";
+      if (characterStyle === "custom") {
+        stylePrompt += `Character Style: ${customCharacterStyle}. `;
+      } else {
+        stylePrompt += `Character Style: ${characterStyle}. `;
+      }
+
+      if (backgroundStyle === "custom") {
+        stylePrompt += `Background Style: ${customBackgroundStyle}. `;
+      } else {
+        stylePrompt += `Background Style: ${backgroundStyle}. `;
+      }
+
+      const fullPrompt = `${chapterTitle}: ${contentSummary}. ${stylePrompt} High quality, detailed.`;
+
+      // Use regenerateStoryboardImage from geminiService
+      // Note: We pass empty array for characters as VideoPage doesn't have full Character objects yet.
+      // We rely on the prompt to describe the scene.
+      const imageUrl = await regenerateStoryboardImage(
+        fullPrompt,
+        [],
         geminiApiKey,
-        imageStyle === 'animation' ? 'animation' : 'realistic',
-        false, // 자막 없음
-        null, // 참조 이미지 없음
-        "16:9" // 기본 비율
+        imageStyle,
+        false, // subtitleEnabled
+        null, // referenceImage
+        renderRatio as AspectRatio
       );
 
-      // 생성된 이미지(Base64) 저장
-      setChapterImages(prev => ({ ...prev, [chapterIndex]: `data:image/jpeg;base64,${base64Image}` }));
+      setChapterImages({ ...chapterImages, [chapterIndex]: imageUrl });
 
     } catch (error) {
       console.error('이미지 생성 오류:', error);
@@ -2563,6 +2598,58 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         );
       }
       case "image": {
+        const characterStylesOptions = [
+          "실사 극대화",
+          "애니메이션",
+          "동물",
+          "웹툰",
+        ] as CharacterStyle[];
+        const characterStyleDescriptions: Record<CharacterStyle, string> = {
+          "실사 극대화": "📸 초현실적이고 사진 같은 퀄리티의 실사 인물",
+          애니메이션: "🎨 밝고 화려한 애니메이션 스타일 캐릭터",
+          동물: "🐾 귀여운 동물 캐릭터로 변환",
+          웹툰: "🖊️ 깨끗한 선과 표현력 풍부한 한국 웹툰 스타일",
+          custom: "",
+        };
+
+        const backgroundStylesOptions = [
+          "감성 멜로",
+          "서부극",
+          "공포 스릴러",
+          "사이버펑크",
+          "판타지",
+          "미니멀",
+          "빈티지",
+          "모던",
+          "1980년대",
+          "2000년대",
+          "먹방",
+          "귀여움",
+          "AI",
+          "괴이함",
+          "창의적인",
+          "조선시대",
+        ] as BackgroundStyle[];
+        const backgroundStyleDescriptions: Record<BackgroundStyle, string> = {
+          "감성 멜로": "💞 로맨틱하고 감성적인 따뜻한 분위기",
+          서부극: "🤠 거친 사막과 카우보이 배경",
+          "공포 스릴러": "👻 미스터리하고 긴장감 있는 분위기",
+          사이버펑크: "🌃 네온사인 가득한 미래 도시",
+          판타지: "🧙‍♂️ 마법적이고 신비로운 중세 배경",
+          미니멀: "⬜ 깔끔하고 단순한 중성톤 배경",
+          빈티지: "🕰️ 클래식하고 향수를 자아내는 배경",
+          모던: "🏙️ 현대적이고 세련된 도시 배경",
+          "1980년대": "📻 80년대 레트로 패션과 분위기",
+          "2000년대": "💿 2000년대 초반 감성과 스타일",
+          먹방: "🍜 맛있는 음식이 가득한 먹방 분위기",
+          귀여움: "🐰 귀엽고 사랑스러운 파스텔 감성",
+          AI: "🤖 미래지향적인 하이테크 AI 분위기",
+          괴이함: "🌀 독특하고 초현실적인 기묘한 분위기",
+          창의적인: "✨ 상상력 넘치는 독창적인 예술 분위기",
+          조선시대: "🏯 한옥과 전통 가옥, 따뜻하고 감성적인 조선 분위기",
+          custom: "",
+        };
+
         if (!chapterScripts || chapterScripts.length === 0) {
           return (
             <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
@@ -2590,366 +2677,214 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 이미지 생성 설정
               </h3>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* 이미지 스타일 선택 */}
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-white/70">🎭 이미지 스타일</label>
-                  <select
-                    value={imageStyle}
-                    onChange={(e) => setImageStyle(e.target.value)}
-                    className="w-full rounded-lg border border-white/20 bg-black/60 px-3 py-2 text-sm text-white/90 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  >
-                    {imageStyles.map((style) => (
-                      <option key={style} value={style}>
-                        {style}
-                      </option>
+              <div className="mt-6">
+                <label className="block text-xl font-bold text-white mb-3">
+                  프롬프트 (선택사항)
+                </label>
+                <textarea
+                  value={imagePrompt}
+                  onChange={(e) => setImagePrompt(e.target.value)}
+                  rows={4}
+                  className="w-full rounded-xl border border-white/20 bg-black/30 px-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  placeholder="예: 미래 도시 배경 속 경제 그래프 앞에 서 있는 캐릭터"
+                />
+                <p className="text-xs text-white/50 mt-2">
+                  각 컷의 이미지 생성 시 기본적으로 적용될 프롬프트입니다.
+                </p>
+              </div>
+
+              {/* 이미지 스타일 선택 */}
+              <div className="mt-8 bg-black/30 border border-white/10 rounded-xl p-[clamp(1rem,2vw,1.4rem)]">
+                <h3 className="text-red-300 font-medium mb-6 flex items-center text-xl">
+                  <span className="mr-2">🎨</span>
+                  이미지 스타일 선택
+                </h3>
+
+                {/* 인물 스타일 */}
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-red-200 font-medium flex items-center text-base">
+                      <span className="mr-2">👤</span>
+                      인물 스타일
+                    </h4>
+                    <button
+                      onClick={() => setCharacterStyle("custom")}
+                      className={`py-1.5 px-4 rounded-lg font-medium text-xs transition-all duration-200 ${characterStyle === "custom"
+                        ? "bg-red-600 text-white shadow-lg scale-105"
+                        : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                        }`}
+                    >
+                      직접 입력
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                    {characterStylesOptions.map((style) => (
+                      <div key={style} className="relative">
+                        <button
+                          onClick={() => setCharacterStyle(style)}
+                          className={`relative w-full h-24 rounded-lg font-medium text-sm transition-all duration-200 overflow-hidden group ${characterStyle === style
+                            ? "ring-2 ring-red-500 shadow-lg scale-105"
+                            : "hover:scale-105 hover:ring-1 hover:ring-red-400"
+                            }`}
+                          style={{
+                            backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('/${style}.png')`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center'
+                          }}
+                        >
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+                          <div className="relative h-full flex flex-col justify-end p-3 text-left">
+                            <div className="text-white font-bold text-sm mb-0.5">{style}</div>
+                            <div className="text-gray-200 text-xs leading-tight">
+                              {characterStyleDescriptions[style]}
+                            </div>
+                          </div>
+                        </button>
+                      </div>
                     ))}
-                  </select>
+                  </div>
+                  {characterStyle === "custom" && (
+                    <input
+                      type="text"
+                      value={customCharacterStyle}
+                      onChange={(e) => setCustomCharacterStyle(e.target.value)}
+                      placeholder="원하는 인물 스타일을 입력하세요 (예: 르네상스, 빅토리아 시대 등)"
+                      className="w-full p-3 bg-black/40 border border-white/20 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors mt-3 text-white text-sm"
+                    />
+                  )}
                 </div>
 
-                {/* 일관성 유지 */}
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-white/70 flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={useConsistentSeed}
-                      onChange={(e) => {
-                        setUseConsistentSeed(e.target.checked);
-                        if (e.target.checked && !imageSeed) {
-                          setImageSeed(Math.floor(Math.random() * 1000000));
-                        }
-                      }}
-                      className="rounded"
-                    />
-                    🔄 일관성 유지
-                  </label>
-                  <p className="text-xs text-white/50">
-                    {useConsistentSeed
-                      ? `모든 이미지가 유사한 스타일로 생성됩니다 (시드: ${imageSeed})`
-                      : '각 이미지가 독립적으로 생성됩니다'
-                    }
-                  </p>
-                  {useConsistentSeed && (
+                {/* 배경/분위기 스타일 */}
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-red-200 font-medium flex items-center text-base">
+                      <span className="mr-2">🌆</span>
+                      배경/분위기 스타일
+                    </h4>
                     <button
-                      onClick={() => setImageSeed(Math.floor(Math.random() * 1000000))}
-                      className="text-xs text-purple-300 hover:text-purple-200 underline"
+                      onClick={() => setBackgroundStyle("custom")}
+                      className={`py-1.5 px-4 rounded-lg font-medium text-xs transition-all duration-200 ${backgroundStyle === "custom"
+                        ? "bg-red-600 text-white shadow-lg scale-105"
+                        : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                        }`}
                     >
-                      새로운 시드로 변경
+                      직접 입력
                     </button>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-3">
+                    {backgroundStylesOptions.map((style) => (
+                      <button
+                        key={style}
+                        onClick={() => setBackgroundStyle(style)}
+                        className={`px-3 py-2 rounded-lg text-xs font-semibold transition-all ${backgroundStyle === style
+                          ? "bg-blue-600 text-white shadow-lg scale-105"
+                          : "bg-white/10 text-white/70 hover:bg-white/20"
+                          }`}
+                        style={{
+                          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('/${style === "AI" ? "ai" : style}.png')`,
+                          backgroundSize: 'cover',
+                          backgroundPosition: 'center'
+                        }}
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+                        <div className="relative h-full flex flex-col justify-end p-3 text-left">
+                          <div className="text-white font-bold text-sm mb-0.5">{style}</div>
+                          <div className="text-white/70 text-[10px] leading-tight line-clamp-2">
+                            {backgroundStyleDescriptions[style]}
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                  {backgroundStyle === "custom" && (
+                    <input
+                      type="text"
+                      value={customBackgroundStyle}
+                      onChange={(e) => setCustomBackgroundStyle(e.target.value)}
+                      placeholder="원하는 배경/분위기를 입력하세요 (예: 우주 정거장, 열대 해변 등)"
+                      className="w-full p-3 bg-black/40 border border-white/20 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors mt-3 text-white text-sm"
+                    />
                   )}
                 </div>
               </div>
-            </div>
 
-            {/* 챕터별 이미지 생성 */}
-            <div className="space-y-4">
-              {chapterScripts.map((chapter, index) => (
-                <div key={index} className="rounded-2xl border border-white/10 bg-black/30 p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <h4 className="text-base font-bold text-white flex items-center gap-2">
-                        <span className="text-red-400">📝</span>
-                        {chapter.title}
-                      </h4>
-                      <p className="text-xs text-white/50 mt-1">{chapter.content.length}자</p>
-                    </div>
-                    <button
-                      onClick={() => handleGenerateImage(index, chapter.title, chapter.content)}
-                      disabled={generatingImageChapter === index}
-                      className="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 text-white text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition"
-                    >
-                      {generatingImageChapter === index ? '🎨 생성 중...' : '✨ 이미지 생성'}
-                    </button>
-                  </div>
+              {/* 일관성 유지 */}
+              <div className="space-y-2 pt-4 border-t border-white/10">
+                <label className="text-sm font-semibold text-white/70 flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={useConsistentSeed}
+                    onChange={(e) => {
+                      setUseConsistentSeed(e.target.checked);
+                      if (e.target.checked && !imageSeed) {
+                        setImageSeed(Math.floor(Math.random() * 1000000));
+                      }
+                    }}
+                    className="rounded bg-white/10 border-white/30 text-blue-500 focus:ring-offset-0 focus:ring-blue-500"
+                  />
+                  🔄 일관성 유지
+                </label>
+                <p className="text-xs text-white/50">
+                  {useConsistentSeed
+                    ? `모든 이미지가 유사한 스타일로 생성됩니다 (시드: ${imageSeed})`
+                    : '각 이미지가 독립적으로 생성됩니다'
+                  }
+                </p>
+                {useConsistentSeed && (
+                  <button
+                    onClick={() => setImageSeed(Math.floor(Math.random() * 1000000))}
+                    className="text-xs text-blue-300 hover:text-blue-200 underline"
+                  >
+                    새로운 시드로 변경
+                  </button>
+                )}
+              </div>
 
-                  {/* 생성된 이미지 표시 */}
-                  {chapterImages[index] && !generatingImageChapter && (
-                    <div className="mt-4 rounded-xl overflow-hidden border border-white/20 bg-black/40">
-                      <img
-                        src={chapterImages[index]}
-                        alt={`${chapter.title} 이미지`}
-                        className="w-full h-auto min-h-[300px] max-h-[600px] object-contain bg-black/50 rounded-t-xl"
-                      />
-                      <div className="bg-black/60 p-3 flex gap-2">
-                        <button
-                          onClick={() => handleGenerateImage(index, chapter.title, chapter.content)}
-                          className="px-3 py-1 rounded-lg bg-white/10 text-white text-xs hover:bg-white/20 transition"
-                        >
-                          🔄 재생성
-                        </button>
-                        <a
-                          href={chapterImages[index]}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="px-3 py-1 rounded-lg bg-white/10 text-white text-xs hover:bg-white/20 transition"
-                        >
-                          🖼️ 새 창에서 열기
-                        </a>
-                      </div>
-                    </div>
-                  )}
+              {/* API 키 입력 섹션 */}
+              <div className="mt-6">
+                <ApiKeyInput
+                  apiKey={geminiApiKey}
+                  setApiKey={setGeminiApiKey}
+                  label="Gemini API Key"
+                  placeholder="Gemini API Key를 입력해주세요."
+                  description="이미지 생성에 사용되는 Gemini API Key입니다."
+                />
+              </div>
 
-                  {/* 로딩 상태 */}
-                  {generatingImageChapter === index && (
-                    <div className="mt-4 rounded-xl border border-purple-400/30 bg-purple-500/10 p-6 text-center">
-                      <div className="animate-spin w-8 h-8 border-4 border-purple-400 border-t-transparent rounded-full mx-auto mb-3"></div>
-                      <p className="text-sm text-purple-300">AI가 이미지를 생성하고 있습니다...</p>
-                      <p className="text-xs text-purple-400/70 mt-1">스타일: {imageStyle}</p>
+              {generatedPlan?.chapters?.map((chapter, chapterIndex) => (
+                <div key={chapterIndex} className="mt-8">
+                  <h4 className="text-xl font-bold text-white mb-4">
+                    챕터 {chapterIndex + 1}: {chapter.title}
+                  </h4>
+                  {chapter.script?.map((line, lineIndex) => (
+                    <div key={lineIndex} className="bg-black/30 p-4 rounded-lg border border-white/10 mb-4">
+                      <p className="text-sm text-white/70 mb-2">
+                        <span className={`font-bold ${characterColorMap.get(line.character) || "text-red-400"}`}>
+                          {line.character}:
+                        </span>{" "}
+                        {line.line}
+                      </p>
+                      {line.imagePrompt && (
+                        <div className="mb-2 p-2 bg-white/5 rounded-md text-xs text-white/60 font-mono">
+                          Image Prompt: {line.imagePrompt}
+                        </div>
+                      )}
+                      <button
+                        onClick={() => handleGenerateImage(chapterIndex, chapter.title || '', line.imagePrompt || line.line)}
+                        disabled={generatingImageChapter === chapterIndex}
+                        className="mt-2 w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg disabled:opacity-50"
+                      >
+                        {generatingImageChapter === chapterIndex ? "생성 중..." : "이미지 생성"}
+                      </button>
+                      {chapterImages[chapterIndex] && (
+                        <img
+                          src={chapterImages[chapterIndex]}
+                          alt={`Chapter ${chapterIndex + 1} Image`}
+                          className="mt-4 max-w-full h-auto rounded-lg"
+                        />
+                      )}
                     </div>
-                  )}
+                  ))}
                 </div>
               ))}
             </div>
-
-            <div className="mt-6 rounded-2xl border border-blue-400/30 bg-blue-500/10 p-6">
-              <h4 className="text-base font-bold text-blue-300 mb-2 flex items-center gap-2">
-                <span>💡</span>
-                팁
-              </h4>
-              <ul className="text-sm text-blue-200/80 space-y-2">
-                <li>• 이미지 스타일을 선택하면 모든 챕터에 동일한 스타일이 적용됩니다</li>
-                <li>• 일관성 유지를 활성화하면 모든 이미지가 유사한 느낌으로 생성됩니다</li>
-                <li>• 각 챕터의 대본 내용을 기반으로 자동으로 이미지가 생성됩니다</li>
-                <li>• 생성된 이미지가 마음에 들지 않으면 재생성 버튼을 눌러보세요</li>
-              </ul>
-            </div>
-          </div>
-        );
-      }
-      case "generate": {
-        return (
-          <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
-            <div className="rounded-[clamp(1rem,2vw,1.6rem)] border border-white/10 bg-black/40 p-[clamp(2rem,4vw,3rem)] text-center">
-              <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-white/5 text-4xl">
-                🚧
-              </div>
-              <h3 className="text-2xl font-bold text-white">영상 생성 기능 준비 중</h3>
-              <p className="mt-4 text-white/60 text-lg leading-relaxed">
-                현재 AI 영상 생성 단계는 <span className="text-red-400 font-semibold">크레딧 시스템</span>과 함께<br />
-                추후 업데이트될 예정입니다.
-              </p>
-              <p className="mt-2 text-white/40 text-sm">
-                지금은 바로 다음 단계인 '영상 편집'으로 이동하여 작업을 계속하실 수 있습니다.
-              </p>
-
-              <div className="mt-10">
-                <button
-                  type="button"
-                  onClick={handleNext}
-                  className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-red-600 to-red-500 px-8 py-3 text-base font-semibold text-white shadow-lg hover:from-red-500 hover:to-red-400 transition-all hover:scale-105 active:scale-95"
-                >
-                  영상 편집 단계로 이동 <FiChevronRight />
-                </button>
-              </div>
-            </div>
-          </div>
-        );
-      }
-      case "render": {
-        return (
-          <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
-            <div className="rounded-[clamp(1rem,2vw,1.6rem)] border border-white/10 bg-white/95 p-[clamp(1.25rem,2vw,1.8rem)] text-slate-900 shadow-[0_20px_40px_rgba(15,23,42,0.15)]">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-sm font-semibold text-slate-400">영상 출력</p>
-                  <h3 className="text-2xl font-bold text-slate-900 mt-1">모든 요소를 조합해 최종 영상을 생성합니다.</h3>
-                </div>
-                <span className="text-sm text-slate-500">진행도 {renderingProgress}%</span>
-              </div>
-              <div className="mt-4 flex gap-3 overflow-x-auto pb-2">
-                {timelineScenes.map((scene) => (
-                  <div
-                    key={scene.id}
-                    className="min-w-[120px] rounded-xl border border-slate-200 bg-slate-50 p-2"
-                  >
-                    <div className="h-14 rounded-lg bg-gradient-to-br from-slate-200 to-slate-100" />
-                    <p className="mt-2 text-sm font-semibold text-slate-700">{scene.label}</p>
-                    <p className="text-sm text-slate-400">{scene.duration}</p>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <div className="rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700">
-                  <p className="text-sm font-semibold text-slate-400">출력 요약</p>
-                  <div className="mt-2 space-y-1 text-sm">
-                    <div className="flex justify-between">
-                      <span>예상 길이</span>
-                      <span>{renderDuration}초</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>구간 수</span>
-                      <span>{timelineScenes.length}개</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>출력 형식</span>
-                      <span>MP4 (1080p)</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700">
-                  <p className="text-sm font-semibold text-slate-400">출력 메모</p>
-                  <textarea
-                    value={editNotes}
-                    onChange={(event) => setEditNotes(event.target.value)}
-                    rows={4}
-                    className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500"
-                    placeholder="편집 키워드, 자막 스타일 등을 기록하세요."
-                  />
-                </div>
-              </div>
-              <div className="mt-4 flex flex-wrap items-center gap-3">
-                <label className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600">
-                  <input type="checkbox" className="h-4 w-4 rounded border-slate-300" defaultChecked />
-                  자막 포함
-                </label>
-                <button
-                  type="button"
-                  onClick={handleDownloadEditNotes}
-                  className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600"
-                >
-                  편집 노트 다운로드
-                </button>
-              </div>
-              <div className="mt-6 h-2 w-full rounded-full bg-slate-200">
-                <div
-                  style={{ width: `${renderingProgress}%` }}
-                  className="h-full rounded-full bg-gradient-to-r from-red-500 to-orange-400"
-                />
-              </div>
-              <p className="mt-3 text-sm text-slate-500">
-                {renderingStatus || "출력을 시작하면 자동으로 모든 컷을 조합해 영상을 완성합니다."}
-              </p>
-              <button
-                onClick={startRendering}
-                disabled={rendering}
-                className="mt-6 w-full rounded-2xl bg-gradient-to-r from-red-600 to-red-500 px-5 py-3 text-sm font-bold text-white shadow-[0_10px_30px_rgba(220,38,38,0.4)] disabled:opacity-60"
-              >
-                {rendering ? "출력 중..." : "영상 출력 시작"}
-              </button>
-            </div>
-          </div>
-        );
-      }
-      default:
-        return null;
-    }
-  };
-
-  return (
-    <div
-      className="min-h-screen bg-[#0a0505] text-white relative overflow-hidden"
-      style={{
-        fontFamily: '"Pretendard", "SUIT", "Apple SD Gothic Neo", sans-serif',
-      }}
-    >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,76,76,0.18),_transparent_48%),radial-gradient(circle_at_80%_10%,_rgba(251,146,60,0.18),_transparent_40%),radial-gradient(circle_at_bottom,_rgba(120,55,255,0.12),_transparent_50%)]" />
-      <div className="absolute -top-40 -left-28 h-[clamp(260px,40vw,460px)] w-[clamp(260px,40vw,460px)] rounded-full bg-gradient-to-br from-red-600/40 via-orange-500/20 to-transparent blur-3xl" />
-      <div className="absolute -bottom-32 -right-28 h-[clamp(240px,36vw,420px)] w-[clamp(240px,36vw,420px)] rounded-full bg-gradient-to-tr from-rose-400/30 via-purple-500/10 to-transparent blur-3xl" />
-
-      <div className="absolute top-0 right-0 p-4 sm:p-6 flex gap-3 z-50 items-center">
-        <button
-          onClick={handleReset}
-          className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-white text-sm font-medium transition-all flex items-center gap-2"
-          title="모든 작업 내용 초기화"
-        >
-          <FiTrash2 size={16} />
-          초기화
-        </button>
-        <UserCreditToolbar user={user} onLogout={handleLogout} tone="red" />
-      </div>
-      <div className="absolute top-0 left-0 p-4 sm:p-6 z-50">
-        <HomeBackButton tone="red" />
-      </div>
-
-      <div className="relative mx-auto max-w-[min(1280px,94vw)] px-[clamp(1rem,3vw,2.5rem)] py-[clamp(2rem,4vw,3.8rem)]">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-        </div>
-
-        <header className="mt-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-2xl">
-            <p className="text-[clamp(0.7rem,1.2vw,0.85rem)] font-semibold uppercase tracking-[0.35em] text-white/40">
-              All-in-one studio
-            </p>
-            <h1 className="mt-3 text-[clamp(2.1rem,3.2vw,3.4rem)] font-black text-white">
-              올인원 영상 제작 스튜디오
-            </h1>
-            <p className="mt-3 text-[clamp(0.95rem,1.6vw,1.1rem)] text-white/70 text-balance">
-              필요한 단계를 쉽게 확인하고, 빠르게 영상 제작 기능을 이어서 사용할 수 있어요.
-            </p>
-          </div>
-          <div className="grid w-full gap-2 text-xs text-white/70 sm:max-w-[520px] sm:grid-cols-3">
-            {steps.map((step, index) => (
-              <div
-                key={step.id}
-                className={`rounded-full border px-3 py-1 text-center transition-all ${index === currentStep
-                  ? "border-red-400/50 bg-red-500/10 text-red-200"
-                  : index < currentStep
-                    ? "border-green-400/30 bg-green-500/5 text-green-200/70"
-                    : "border-white/10 bg-white/5 text-white/40"
-                  }`}
-              >
-                {index + 1}. {step.label}
-              </div>
-            ))}
-          </div>
-        </header>
-
-        {/* API 키 입력 섹션 제거됨 (마이페이지로 이동) */}
-
-        <div className="mt-[clamp(2rem,4vw,3rem)]">
-          <main className="rounded-[clamp(1.2rem,2.5vw,2rem)] border border-white/10 bg-white/5 shadow-[0_18px_40px_rgba(0,0,0,0.6)] backdrop-blur-2xl">
-            <div className="border-b border-white/10 px-[clamp(1.5rem,3vw,2.5rem)] py-[clamp(1.1rem,2.4vw,1.8rem)]">
-              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                <div>
-                  <p className="text-[clamp(0.6rem,1vw,0.75rem)] font-semibold uppercase tracking-[0.3em] text-white/40">
-                    STEP {currentStep + 1}
-                  </p>
-                  <h2 className="mt-2 text-[clamp(1.6rem,2.6vw,2.2rem)] font-bold text-white">
-                    {activeStep.label}
-                  </h2>
-                  <p className="mt-2 text-[clamp(0.9rem,1.5vw,1.05rem)] text-white/70">
-                    {activeStep.description}
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-sm text-white/70">
-                  <p className="text-xs uppercase tracking-[0.2em] text-white/40">Progress</p>
-                  <p className="mt-2 text-lg font-semibold text-white">{progressLabel}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="p-[clamp(1.5rem,3vw,2.5rem)]">{renderStepContent()}</div>
-
-            {/* script 단계는 하위 단계별 네비게이션을 사용하므로 전체 네비게이션 숨김 */}
-            {steps[currentStep].id !== "script" && (
-              <div className="border-t border-white/10 p-[clamp(1.2rem,2.5vw,2rem)]">
-                <AdSense adSlot="3672059148" className="mb-2 rounded-2xl border border-white/10 bg-black/30 px-4 py-3" />
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <button
-                    type="button"
-                    onClick={handlePrev}
-                    disabled={!canGoPrev}
-                    className="inline-flex items-center justify-center gap-2 rounded-full border border-white/20 px-6 py-3 text-base font-semibold text-white/70 transition hover:border-white/40 disabled:opacity-40 hover:scale-105 active:scale-95"
-                  >
-                    <FiChevronLeft size={20} /> 이전 단계
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleNext}
-                    disabled={!canGoNext}
-                    className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-red-600 to-red-500 px-8 py-3 text-base font-semibold text-white shadow-[0_10px_20px_rgba(220,38,38,0.4)] transition hover:translate-x-0.5 disabled:opacity-40 hover:scale-105 active:scale-95"
-                  >
-                    다음 단계 <FiChevronRight size={20} />
-                  </button>
-                </div>
-              </div>
-            )}
-          </main>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default VideoPage;
-
