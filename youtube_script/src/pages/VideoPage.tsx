@@ -50,6 +50,8 @@ const STORAGE_KEYS = {
   step: "video_project_step",
 };
 
+const VIDEO_IMAGE_SEED_KEY = "video_project_image_seed_script";
+
 type StepId = "setup" | "script" | "tts" | "image" | "generate" | "render";
 type VideoFormat = "long" | "short";
 
@@ -65,12 +67,8 @@ type Step = {
 };
 
 const voiceOptions = [
-  { name: "민준", label: "남성 캐주얼", tone: "신뢰감 있는 다큐 스타일" },
-  { name: "지훈", label: "남성 중년", tone: "정중한 해설 톤" },
-  { name: "준서", label: "남성 내레이션", tone: "다큐멘터리 전문" },
-  { name: "서연", label: "여성 아나운서", tone: "차분한 뉴스 톤" },
-  { name: "유나", label: "여성 활발", tone: "밝고 친근한 진행" },
-  { name: "혜진", label: "여성 중년", tone: "안정적인 라디오 톤" },
+  { name: "민준", label: "남성 대표", tone: "신뢰감 있는 다큐 스타일" },
+  { name: "서연", label: "여성 대표", tone: "차분한 뉴스 톤" },
 ];
 
 // 확장된 목소리 옵션 (모달용)
@@ -2153,11 +2151,20 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       onChange={(e) => applyVoiceToAllChapters(e.target.value)}
                     >
                       <option value="" disabled>목소리 선택</option>
-                      {allVoiceOptions.map((voice) => (
-                        <option key={voice.name} value={voice.name}>
-                          {voice.name} · {voice.label}
-                        </option>
-                      ))}
+                      <optgroup label="👨 남성">
+                        {allVoiceOptions.filter(v => v.category === "남성" || (v.category === "추천" && ["민준", "지훈", "도현", "태양", "준서", "동현", "상호", "재훈", "성민"].includes(v.name))).map((voice) => (
+                          <option key={voice.name} value={voice.name}>
+                            {voice.name} · {voice.label}
+                          </option>
+                        ))}
+                      </optgroup>
+                      <optgroup label="👩 여성">
+                        {allVoiceOptions.filter(v => v.category === "여성" || (v.category === "추천" && ["서연", "유나", "혜진"].includes(v.name))).map((voice) => (
+                          <option key={voice.name} value={voice.name}>
+                            {voice.name} · {voice.label}
+                          </option>
+                        ))}
+                      </optgroup>
                     </select>
                   </div>
                   {chapterScripts.map((chapter, index) => (
@@ -2310,8 +2317,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
                       {/* 더 많은 TTS 목소리 선택 모달 - 오른쪽 사이드바 */}
                       {showVoiceModal && currentChapterForVoice === index && (
-                        <div className="fixed inset-0 z-[100] pointer-events-none">
-                          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm pointer-events-auto" onClick={() => setShowVoiceModal(false)} />
+                        <div className="fixed inset-0 z-[9999] pointer-events-none">
+                          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm pointer-events-auto" onClick={() => setShowVoiceModal(false)} />
                           <div className="absolute top-0 right-0 h-full w-[90%] max-w-[450px] bg-gradient-to-br from-zinc-900 to-zinc-800 border-l border-white/20 shadow-2xl overflow-y-auto pointer-events-auto animate-slide-in-right" onClick={(e) => e.stopPropagation()}>
                             <div className="sticky top-0 bg-gradient-to-br from-zinc-900 to-zinc-800 border-b border-white/10 px-6 py-4 flex items-center justify-between z-10">
                               <div>
