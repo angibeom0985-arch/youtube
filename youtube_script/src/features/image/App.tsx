@@ -2007,3 +2007,5 @@ const App: React.FC<ImageAppProps> = ({
       </>
     );
   };
+
+export default App;

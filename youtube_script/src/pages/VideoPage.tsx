@@ -2884,6 +2884,13 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         />
                       )}
                     </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
       case "generate": {
         return (
           <div className="mt-[clamp(1rem,2vw,2rem)] grid gap-[clamp(1.2rem,2vw,2rem)] lg:grid-cols-[minmax(0,1fr)_clamp(260px,28vw,340px)]">
