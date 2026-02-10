@@ -2884,7 +2884,331 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         />
                       )}
                     </div>
-                  ))}
+      case "generate": {
+        return (
+          <div className="mt-[clamp(1rem,2vw,2rem)] grid gap-[clamp(1.2rem,2vw,2rem)] lg:grid-cols-[minmax(0,1fr)_clamp(260px,28vw,340px)]">
+            <div className="rounded-[clamp(1rem,2vw,1.4rem)] border border-white/20 bg-black/40 p-[clamp(1rem,2vw,1.4rem)]">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-white/60">영상 생성</p>
+                  <h3 className="text-2xl font-bold text-white">씬을 구성해 볼까요</h3>
                 </div>
-              ))}
+                <span className="text-sm font-semibold text-red-300">{imagePreviews.length}컷 선택</span>
+              </div>
+              <div className="mt-4 space-y-3">
+                {timelineScenes.map((scene) => (
+                  <div
+                    key={scene.id}
+                    className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/80"
+                  >
+                    <div>
+                      <p className="font-semibold text-white">{scene.label}</p>
+                      <p className="text-sm text-white/50 truncate">{scene.desc}</p>
+                    </div>
+                    <span className="text-sm text-white/50">{scene.duration}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="mb-8 border-b border-white/10 pb-8">
+                <h3 className="text-[clamp(1rem,1.6vw,1.2rem)] font-semibold text-white">
+                  AI 영상 생성 (Seedance)
+                </h3>
+                <p className="mt-2 text-[clamp(0.8rem,1.4vw,0.95rem)] text-white/60">
+                  프롬프트나 이미지를 입력하여 Seedance AI로 영상을 생성하세요.
+                </p>
+                <div className="mt-4 space-y-3">
+                  <textarea
+                    value={videoPrompt}
+                    onChange={(e) => setVideoPrompt(e.target.value)}
+                    placeholder="영상에 대한 설명을 입력하세요 (예: 춤추는 고양이)"
+                    className="w-full rounded-xl border border-white/20 bg-white px-4 py-3 text-sm text-black focus:outline-none focus:ring-2 focus:ring-red-500"
+                    rows={3}
+                  />
+                  <button
+                    onClick={handleGenerateVideo}
+                    disabled={isGeneratingVideo}
+                    className="rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-500 disabled:opacity-50"
+                  >
+                    {isGeneratingVideo ? "생성 중..." : "영상 생성하기"}
+                  </button>
+                </div>
+                {generatedVideoUrl && (
+                  <div className="mt-4">
+                    <video src={generatedVideoUrl} controls className="w-full rounded-lg" />
+                    <a href={generatedVideoUrl} download className="mt-2 inline-block text-sm text-red-400 hover:text-red-300">다운로드</a>
+                  </div>
+                )}
+              </div>
+
+              <h3 className="text-[clamp(1rem,1.6vw,1.2rem)] font-semibold text-white">
+                영상 패키지 재료 업로드
+              </h3>
+              <label className="mt-2 inline-flex cursor-pointer items-center gap-2 rounded-2xl border border-dashed border-white/40 px-4 py-3 text-sm text-white/60">
+                <FiUpload />
+                파일 선택
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*,video/*,audio/*"
+                  onChange={handleFilesAdded}
+                  className="hidden"
+                />
+              </label>
+              <div className="mt-3 space-y-2">
+                {assetFiles.length === 0 ? (
+                  <p className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/50">
+                    업로드한 자산이 없으면 프롬프트 기반으로 생성합니다.
+                  </p>
+                ) : (
+                  assetFiles.map((file, index) => (
+                    <div
+                      key={`${file.name}-${index}`}
+                      className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/70"
+                    >
+                      <div>
+                        <p className="font-semibold text-white truncate">{file.name}</p>
+                        <p className="text-sm text-white/50">{formatFileSize(file.size)}</p>
+                      </div>
+                      <button
+                        onClick={() => handleRemoveFile(index)}
+                        className="text-white/50 underline-offset-2 hover:text-red-300"
+                      >
+                        제거
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+              <button
+                onClick={handlePackageDownload}
+                disabled={!assetFiles.length || isPackaging}
+                className="mt-6 w-full rounded-2xl bg-gradient-to-r from-red-600 to-red-500 px-5 py-3 text-sm font-bold text-white shadow-[0_10px_30px_rgba(220,38,38,0.4)] disabled:opacity-60"
+              >
+                <FiDownload /> {isPackaging ? "패키지를 준비 중입니다" : "출력 패키지 다운로드"}
+              </button>
             </div>
+            <div className="rounded-[clamp(1rem,2vw,1.4rem)] border border-white/20 bg-black/40 p-4">
+              <p className="text-sm font-semibold text-white/60">영상 스타일</p>
+              <div className="mt-4 space-y-2 text-sm text-white/70">
+                <p>?? 전체 시간: {renderDuration}초</p>
+                <p>?? 화면 비율: {renderRatio}</p>
+                <p>?? FPS: {renderFps}</p>
+                <p>?? 이미지 컷: {imagePreviews.length || imageCount}개</p>
+              </div>
+              <p className="mt-4 text-sm text-white/40">
+                템포나 분위기를 바꾸고 싶다면 상단 스텝으로 돌아가 수정하면 됩니다.
+              </p>
+              <button
+                onClick={handleVideoGenerate}
+                disabled={videoGenerating}
+                className="mt-5 w-full rounded-2xl bg-gradient-to-r from-red-600 to-red-500 px-4 py-2 text-sm font-bold text-white shadow-[0_8px_20px_rgba(220,38,38,0.4)] disabled:opacity-60"
+              >
+                {videoGenerating ? "영상 생성 요청 중..." : "영상 생성 요청하기"}
+              </button>
+              <ErrorNotice error={videoError} context="영상 생성" />
+              {videoUrl && (
+                <div className="mt-4 overflow-hidden rounded-2xl border border-white/10 bg-black/40">
+                  <video src={videoUrl} controls className="w-full" />
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      }
+      case "render": {
+        return (
+          <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
+            <div className="rounded-[clamp(1rem,2vw,1.6rem)] border border-white/10 bg-white/95 p-[clamp(1.25rem,2vw,1.8rem)] text-slate-900 shadow-[0_20px_40px_rgba(15,23,42,0.15)]">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-sm font-semibold text-slate-400">영상 출력</p>
+                  <h3 className="text-2xl font-bold text-slate-900 mt-1">모든 요소를 조합해 최종 영상을 생성합니다.</h3>
+                </div>
+                <span className="text-sm text-slate-500">진행도 {renderingProgress}%</span>
+              </div>
+              <div className="mt-4 flex gap-3 overflow-x-auto pb-2">
+                {timelineScenes.map((scene) => (
+                  <div
+                    key={scene.id}
+                    className="min-w-[120px] rounded-xl border border-slate-200 bg-slate-50 p-2"
+                  >
+                    <div className="h-14 rounded-lg bg-gradient-to-br from-slate-200 to-slate-100" />
+                    <p className="mt-2 text-sm font-semibold text-slate-700">{scene.label}</p>
+                    <p className="text-sm text-slate-400">{scene.duration}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                <div className="rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700">
+                  <p className="text-sm font-semibold text-slate-400">출력 요약</p>
+                  <div className="mt-2 space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span>예상 길이</span>
+                      <span>{renderDuration}초</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>구간 수</span>
+                      <span>{timelineScenes.length}개</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>출력 형식</span>
+                      <span>MP4 (1080p)</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700">
+                  <p className="text-sm font-semibold text-slate-400">출력 메모</p>
+                  <textarea
+                    value={editNotes}
+                    onChange={(event) => setEditNotes(event.target.value)}
+                    rows={4}
+                    className="mt-2 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500"
+                    placeholder="편집 키워드, 자막 스타일 등을 기록하세요."
+                  />
+                </div>
+              </div>
+              <div className="mt-4 flex flex-wrap items-center gap-3">
+                <label className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600">
+                  <input type="checkbox" className="h-4 w-4 rounded border-slate-300" defaultChecked />
+                  자막 포함
+                </label>
+                <button
+                  type="button"
+                  onClick={handleDownloadEditNotes}
+                  className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600"
+                >
+                  편집 노트 다운로드
+                </button>
+              </div>
+              <div className="mt-6 h-2 w-full rounded-full bg-slate-200">
+                <div
+                  style={{ width: `${renderingProgress}%` }}
+                  className="h-full rounded-full bg-gradient-to-r from-red-500 to-orange-400"
+                />
+              </div>
+              <p className="mt-3 text-sm text-slate-500">
+                {renderingStatus || "출력을 시작하면 자동으로 모든 컷을 조합해 영상을 완성합니다."}
+              </p>
+              <button
+                onClick={startRendering}
+                disabled={rendering}
+                className="mt-6 w-full rounded-2xl bg-gradient-to-r from-red-600 to-red-500 px-5 py-3 text-sm font-bold text-white shadow-[0_10px_30px_rgba(220,38,38,0.4)] disabled:opacity-60"
+              >
+                {rendering ? "영상 출력 시작" : "영상 출력 시작"}
+              </button>
+            </div>
+          </div>
+        );
+      }
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div
+      className="min-h-screen bg-[#0a0505] text-white relative overflow-hidden"
+      style={{
+        fontFamily: '"Pretendard", "SUIT", "Apple SD Gothic Neo", sans-serif',
+      }}
+    >
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,76,76,0.18),_transparent_48%),radial-gradient(circle_at_80%_10%,_rgba(251,146,60,0.18),_transparent_40%),radial-gradient(circle_at_bottom,_rgba(120,55,255,0.12),_transparent_50%)]" />
+      <div className="absolute -top-40 -left-28 h-[clamp(260px,40vw,460px)] w-[clamp(260px,40vw,460px)] rounded-full bg-gradient-to-br from-red-600/40 via-orange-500/20 to-transparent blur-3xl" />
+      <div className="absolute -bottom-32 -right-28 h-[clamp(240px,36vw,420px)] w-[clamp(240px,36vw,420px)] rounded-full bg-gradient-to-tr from-rose-400/30 via-purple-500/10 to-transparent blur-3xl" />
+
+      <div className="absolute top-0 right-0 p-4 sm:p-6 flex gap-3 z-50 items-center">
+        <UserCreditToolbar user={user} onLogout={handleLogout} tone="red" />
+      </div>
+      <div className="absolute top-0 left-0 p-4 sm:p-6 z-50">
+        <HomeBackButton tone="red" />
+      </div>
+
+      <div className="relative mx-auto max-w-[min(1280px,94vw)] px-[clamp(1rem,3vw,2.5rem)] py-[clamp(2rem,4vw,3.8rem)]">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+        </div>
+
+        <header className="mt-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-2xl">
+            <p className="text-[clamp(0.7rem,1.2vw,0.85rem)] font-semibold uppercase tracking-[0.35em] text-white/40">
+              All-in-one studio
+            </p>
+            <h1 className="mt-3 text-[clamp(2.1rem,3.2vw,3.4rem)] font-black text-white">
+              올인원 영상 제작 스튜디오
+            </h1>
+            <p className="mt-3 text-[clamp(0.95rem,1.6vw,1.1rem)] text-white/70 text-balance">
+              필요한 단계를 쉽게 확인하고, 빠르게 영상 제작 기능을 이어서 사용할 수 있어요.
+            </p>
+          </div>
+          <div className="grid w-full gap-2 text-xs text-white/70 sm:max-w-[520px] sm:grid-cols-3">
+            {steps.map((step, index) => (
+              <div
+                key={step.id}
+                className={`rounded-full border px-3 py-1 text-center transition-all ${index === currentStep
+                  ? "border-red-400/50 bg-red-500/10 text-red-200"
+                  : index < currentStep
+                    ? "border-green-400/30 bg-green-500/5 text-green-200/70"
+                    : "border-white/10 bg-white/5 text-white/40"
+                  }`}
+              >
+                {index + 1}. {step.label}
+              </div>
+            ))}
+          </div>
+        </header>
+
+        {/* API 키 입력 섹션 제거됨 (마이페이지로 이동) */}
+
+        <div className="mt-[clamp(2rem,4vw,3rem)]">
+          <main className="rounded-[clamp(1.2rem,2.5vw,2rem)] border border-white/10 bg-white/5 shadow-[0_18px_40px_rgba(0,0,0,0.6)] backdrop-blur-2xl">
+            <div className="border-b border-white/10 px-[clamp(1.5rem,3vw,2.5rem)] py-[clamp(1.1rem,2.4vw,1.8rem)]">
+              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <p className="text-[clamp(0.6rem,1vw,0.75rem)] font-semibold uppercase tracking-[0.3em] text-white/40">
+                    STEP {currentStep + 1}
+                  </p>
+                  <h2 className="mt-2 text-[clamp(1.6rem,2.6vw,2.2rem)] font-bold text-white">
+                    {activeStep.label}
+                  </h2>
+                  <p className="mt-2 text-[clamp(0.9rem,1.5vw,1.05rem)] text-white/70">
+                    {activeStep.description}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-sm text-white/70">
+                  <p className="text-xs uppercase tracking-[0.2em] text-white/40">Progress</p>
+                  <p className="mt-2 text-lg font-semibold text-white">{progressLabel}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-[clamp(1.5rem,3vw,2.5rem)]">{renderStepContent()}</div>
+
+            <div className="border-t border-white/10 p-[clamp(1.2rem,2.5vw,2rem)]">
+              <AdSense adSlot="3672059148" className="mb-2 rounded-2xl border border-white/10 bg-black/30 px-4 py-3" />
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <button
+                  type="button"
+                  onClick={handlePrev}
+                  disabled={!canGoPrev}
+                  className="inline-flex items-center justify-center gap-2 rounded-full border border-white/20 px-6 py-3 text-base font-semibold text-white/70 transition hover:border-white/40 disabled:opacity-40 hover:scale-105 active:scale-95"
+                >
+                  <FiChevronLeft size={20} /> 이전 단계
+                </button>
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  disabled={!canGoNext}
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-red-600 to-red-500 px-8 py-3 text-base font-semibold text-white shadow-[0_10px_20px_rgba(220,38,38,0.4)] transition hover:translate-x-0.5 disabled:opacity-40 hover:scale-105 active:scale-95"
+                >
+                  다음 단계 <FiChevronRight size={20} />
+                </button>
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default VideoPage;
+

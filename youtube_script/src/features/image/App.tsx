@@ -1484,8 +1484,8 @@ const App: React.FC<ImageAppProps> = ({
 
             {/* 데이터 복원 안내 (복원된 데이터가 있을 때만 표시) */}
             {(characters.length > 0 || videoSource.length > 0 || cameraAngles.length > 0) && (
-              <div className="mt-4 bg-green-900/20 border border-green-500/50 rounded-lg p-3 max-w-2xl mx-auto">
-                <p className="text-green-300 text-sm flex items-center justify-center">
+              <div className="mt-4 bg-blue-900/20 border border-blue-500/50 rounded-lg p-3 max-w-2xl mx-auto">
+                <p className="text-blue-300 text-sm flex items-center justify-center">
                   <span className="mr-2">✅</span>
                   이전 작업이 복원되었습니다:
                   {characters.length > 0 && ` 페르소나 ${characters.length}개`}
@@ -1833,7 +1833,7 @@ const App: React.FC<ImageAppProps> = ({
                     >
                       ? 삭제
                     </button>
-                    <p className="text-green-400 text-sm mt-2 flex items-center">
+                    <p className="text-blue-400 text-sm mt-2 flex items-center">
                       <span className="mr-2">✅</span>
                       참조 이미지가 업로드되었습니다
                     </p>
@@ -1873,7 +1873,7 @@ const App: React.FC<ImageAppProps> = ({
 
               {/* 콘텐츠 정책 위반 경고 */}
               {contentWarning && !isContentWarningAcknowledged && (
-                <div className="mt-4 bg-orange-900/50 border border-orange-500 text-orange-300 p-4 rounded-lg">
+                <div className="mt-4 bg-blue-900/50 border border-blue-500 text-blue-300 p-4 rounded-lg">
                   <div className="flex items-start">
                     <span className="text-orange-400 text-xl mr-3">⚠️</span>
                     <div className="flex-1">
@@ -1940,7 +1940,7 @@ const App: React.FC<ImageAppProps> = ({
               <div
                 className={
                   personaError.startsWith("?")
-                    ? "bg-green-900/50 border border-green-500 text-green-300 p-4 rounded-lg"
+                    ? "bg-blue-900/50 border border-blue-500 text-blue-300 p-4 rounded-lg"
                     : "bg-red-900/50 border border-red-500 text-red-300 p-4 rounded-lg"
                 }
               >
@@ -1948,7 +1948,7 @@ const App: React.FC<ImageAppProps> = ({
                   <span
                     className={
                       personaError.startsWith("?")
-                        ? "text-green-400 text-xl mr-3"
+                        ? "text-blue-400 text-xl mr-3"
                         : "text-red-400 text-xl mr-3"
                     }
                   >
@@ -1960,7 +1960,7 @@ const App: React.FC<ImageAppProps> = ({
                       onClick={() => setPersonaError(null)}
                       className={
                         personaError.startsWith("?")
-                          ? "mt-3 text-green-400 hover:text-green-300 text-sm underline"
+                          ? "mt-3 text-blue-400 hover:text-blue-300 text-sm underline"
                           : "mt-3 text-red-400 hover:text-red-300 text-sm underline"
                       }
                     >
@@ -1997,4 +1997,13 @@ const App: React.FC<ImageAppProps> = ({
               <section>
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-2xl font-bold text-blue-300">
-                    생성된 페르소나 ({characters.length}개)
+                    생성된 페르소나 ({characters.length}개)</h2>
+                  </div>
+                </section>
+              )}
+            </main>
+          </div>
+        </div>
+      </>
+    );
+  };
