@@ -1,3 +1,9 @@
+dist/
+build/
+__pycache__/
+*.pyc
+*.exe
+
 # Dependencies
 node_modules/
 .pnp
@@ -7,9 +13,7 @@ node_modules/
 coverage/
 
 # Production
-dist/
 dist-ssr/
-build/
 
 # Environment variables
 .env

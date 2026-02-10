@@ -1,0 +1,25 @@
+{
+  "counters": {
+    "naver": 6
+  },
+  "profiles": {
+    "naver1": {
+      "last_login": "2026-01-31T22:41:27"
+    },
+    "naver2": {
+      "last_login": "2026-01-31T23:05:50"
+    },
+    "naver3": {
+      "last_login": "2026-01-31T23:15:17"
+    },
+    "naver4": {
+      "last_login": "2026-01-31T23:27:09"
+    },
+    "naver5": {
+      "last_login": "2026-02-03T04:53:19"
+    },
+    "naver6": {
+      "last_login": "2026-02-03T04:55:57"
+    }
+  }
+}
