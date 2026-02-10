@@ -232,19 +232,19 @@ const App: React.FC<ImageAppProps> = ({
           setCharacters(parsed.characters);
           restoredCount++;
           restoredItems.push(`페르소나: ${parsed.characters.length}개`);
-          console.log("? 페르소나 복원:", parsed.characters.length, "개");
+          console.log("✅ 페르소나 복원:", parsed.characters.length, "개");
         }
         if (parsed.videoSource && parsed.videoSource.length > 0) {
           setVideoSource(parsed.videoSource);
           restoredCount++;
           restoredItems.push(`영상소스: ${parsed.videoSource.length}개`);
-          console.log("? 영상 소스 복원:", parsed.videoSource.length, "개");
+          console.log("✅ 영상 소스 복원:", parsed.videoSource.length, "개");
         }
         if (parsed.cameraAngles && parsed.cameraAngles.length > 0) {
           setCameraAngles(parsed.cameraAngles);
           restoredCount++;
           restoredItems.push(`카메라앵글: ${parsed.cameraAngles.length}개`);
-          console.log("? 카메라 앵글 복원:", parsed.cameraAngles.length, "개");
+          console.log("✅ 카메라 앵글 복원:", parsed.cameraAngles.length, "개");
         }
 
         // 설정 복원
@@ -254,12 +254,12 @@ const App: React.FC<ImageAppProps> = ({
         if (parsed.personaReferenceImage) {
           setPersonaReferenceImage(parsed.personaReferenceImage);
           restoredItems.push("페르소나 참조 이미지 ?");
-          console.log("? 페르소나 참조 이미지 복원");
+          console.log("✅ 페르소나 참조 이미지 복원");
         }
         if (parsed.referenceImage) {
           setReferenceImage(parsed.referenceImage);
           restoredItems.push("영상소스 참조 이미지 ?");
-          console.log("? 영상소스 참조 이미지 복원");
+          console.log("✅ 영상소스 참조 이미지 복원");
         }
         if (parsed.imageStyle) setImageStyle(parsed.imageStyle);
         if (parsed.personaStyle) setPersonaStyle(parsed.personaStyle);
@@ -280,7 +280,7 @@ const App: React.FC<ImageAppProps> = ({
         if (parsed.cameraAngleSourceImage) {
           setCameraAngleSourceImage(parsed.cameraAngleSourceImage);
           restoredItems.push("카메라앵글 원본 이미지 ?");
-          console.log("? 카메라 앵글 원본 이미지 복원");
+          console.log("✅ 카메라 앵글 원본 이미지 복원");
         }
 
         console.log(`✅ 작업 데이터 복원 완료 (from ${source}):`, {
@@ -512,7 +512,7 @@ const App: React.FC<ImageAppProps> = ({
             savedAt: new Date().toISOString(),
           };
           localStorage.setItem("youtube_image_work_data", JSON.stringify(minimalData));
-          console.log("? 설정 데이터만 저장됨");
+          console.log("✅ 설정 데이터만 저장됨");
         } catch (retryError) {
           console.error("? 재시도도 실패:", retryError);
         }
