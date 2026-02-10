@@ -2851,42 +2851,74 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 />
               </div>
 
-              {generatedPlan?.chapters?.map((chapter, chapterIndex) => (
-                <div key={chapterIndex} className="mt-8">
-                  <h4 className="text-xl font-bold text-white mb-4">
-                    챕터 {chapterIndex + 1}: {chapter.title}
-                  </h4>
-                  {chapter.script?.map((line, lineIndex) => (
-                    <div key={lineIndex} className="bg-black/30 p-4 rounded-lg border border-white/10 mb-4">
-                      <p className="text-sm text-white/70 mb-2">
-                        <span className={`font-bold ${characterColorMap.get(line.character) || "text-red-400"}`}>
-                          {line.character}:
-                        </span>{" "}
-                        {line.line}
-                      </p>
-                      {line.imagePrompt && (
-                        <div className="mb-2 p-2 bg-white/5 rounded-md text-xs text-white/60 font-mono">
-                          Image Prompt: {line.imagePrompt}
+              {/* 챕터 기반 이미지 생성 */}
+              <div className="mt-8">
+                {generatedPlan?.chapters && generatedPlan.chapters.length > 0 ? (
+                  generatedPlan.chapters.map((chapter, chapterIndex) => (
+                    <div key={chapterIndex} className="mt-8">
+                      <h4 className="text-xl font-bold text-white mb-4">
+                        챕터 {chapterIndex + 1}: {chapter.title}
+                      </h4>
+                      {chapter.script?.map((line, lineIndex) => (
+                        <div key={lineIndex} className="bg-black/30 p-4 rounded-lg border border-white/10 mb-4">
+                          <p className="text-sm text-white/70 mb-2">
+                            <span className={`font-bold ${characterColorMap.get(line.character) || "text-red-400"}`}>
+                              {line.character}:
+                            </span>{" "}
+                            {line.line}
+                          </p>
+                          {line.imagePrompt && (
+                            <div className="mb-2 p-2 bg-white/5 rounded-md text-xs text-white/60 font-mono">
+                              Image Prompt: {line.imagePrompt}
+                            </div>
+                          )}
+                          <button
+                            onClick={() => handleGenerateImage(chapterIndex, chapter.title || '', line.imagePrompt || line.line)}
+                            disabled={generatingImageChapter === chapterIndex}
+                            className="mt-2 w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg disabled:opacity-50"
+                          >
+                            {generatingImageChapter === chapterIndex ? "생성 중..." : "이미지 생성"}
+                          </button>
+                          {chapterImages[chapterIndex] && (
+                            <img
+                              src={chapterImages[chapterIndex]}
+                              alt={`Chapter ${chapterIndex + 1} Image`}
+                              className="mt-4 max-w-full h-auto rounded-lg"
+                            />
+                          )}
                         </div>
-                      )}
-                      <button
-                        onClick={() => handleGenerateImage(chapterIndex, chapter.title || '', line.imagePrompt || line.line)}
-                        disabled={generatingImageChapter === chapterIndex}
-                        className="mt-2 w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg disabled:opacity-50"
-                      >
-                        {generatingImageChapter === chapterIndex ? "생성 중..." : "이미지 생성"}
-                      </button>
-                      {chapterImages[chapterIndex] && (
-                        <img
-                          src={chapterImages[chapterIndex]}
-                          alt={`Chapter ${chapterIndex + 1} Image`}
-                          className="mt-4 max-w-full h-auto rounded-lg"
-                        />
-                      )}
+                      ))}
                     </div>
-                  ))}
-                </div>
-              ))}
+                  ))
+                ) : chapterScripts && chapterScripts.length > 0 ? (
+                  chapterScripts.map((chapter, chapterIndex) => (
+                    <div key={chapterIndex} className="mt-8">
+                      <h4 className="text-xl font-bold text-white mb-4">
+                        챕터 {chapterIndex + 1}: {chapter.title}
+                      </h4>
+                      <div className="bg-black/30 p-4 rounded-lg border border-white/10 mb-4">
+                        <p className="text-sm text-white/70 mb-2 whitespace-pre-wrap">
+                          {chapter.content}
+                        </p>
+                        <button
+                          onClick={() => handleGenerateImage(chapterIndex, chapter.title, chapter.content.substring(0, 300))}
+                          disabled={generatingImageChapter === chapterIndex}
+                          className="mt-2 w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg disabled:opacity-50"
+                        >
+                          {generatingImageChapter === chapterIndex ? "생성 중..." : "이미지 생성"}
+                        </button>
+                        {chapterImages[chapterIndex] && (
+                          <img
+                            src={chapterImages[chapterIndex]}
+                            alt={`Chapter ${chapterIndex + 1} Image`}
+                            className="mt-4 max-w-full h-auto rounded-lg"
+                          />
+                        )}
+                      </div>
+                    </div>
+                  ))
+                ) : null}
+              </div>
             </div>
           </div>
         );
