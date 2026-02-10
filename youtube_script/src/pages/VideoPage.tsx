@@ -20,7 +20,6 @@ import { supabase } from "../services/supabase";
 import type { User } from "@supabase/supabase-js";
 import HomeBackButton from "../components/HomeBackButton";
 import ErrorNotice from "../components/ErrorNotice";
-import ApiKeyInput from "../components/ApiKeyInput";
 import type { AnalysisResult, NewPlan } from "../types";
 import { analyzeTranscript, generateIdeas, generateNewPlan } from "../services/geminiService";
 import { regenerateStoryboardImage } from "../features/image/services/geminiService";
@@ -217,6 +216,17 @@ const formatFileSize = (size: number) => {
   return `${(size / (1024 * 1024 * 1024)).toFixed(1)} GB`;
 };
 
+const stripSpeakerLabels = (text: string): string => {
+  if (!text) return text;
+  const lines = text.split("\n");
+  const labelPattern = /^\s*[^:\n]{1,20}:\s+/;
+  const labeledLines = lines.filter((line) => labelPattern.test(line)).length;
+  if (lines.length === 0 || labeledLines / lines.length < 0.6) {
+    return text;
+  }
+  return lines.map((line) => line.replace(labelPattern, "")).join("\n");
+};
+
 const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -366,6 +376,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
   const progressTimerRef = useRef<number | null>(null);
   const [characterColorMap, setCharacterColorMap] = useState<Map<string, string>>(new Map());
+  const normalizedScriptsRef = useRef(false);
 
   // Audio playback state
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -396,6 +407,35 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
+
+    const loadUserApiKeys = async () => {
+      if (!user) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      try {
+        const response = await fetch("/api/user/settings", {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+        if (!response.ok) return;
+        const data = await response.json();
+        if (!cancelled && data?.gemini_api_key) {
+          setGeminiApiKey(data.gemini_api_key);
+        }
+      } catch (error) {
+        console.error("Failed to load user API keys:", error);
+      }
+    };
+
+    loadUserApiKeys();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
+  useEffect(() => {
     if (generatedPlan?.characters) {
       const newMap = new Map<string, string>();
       generatedPlan.characters.forEach((char, index) => {
@@ -424,7 +464,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     if (generatedPlan.chapters && generatedPlan.chapters.length > 0) {
       generatedPlan.chapters.forEach((chapter) => {
         const lines = (chapter.script || [])
-          .map((line) => `${line.character}: ${line.line}`)
+          .map((line) => line.line)
           .join("\n");
         if (lines.trim()) {
           chapters.push({
@@ -435,7 +475,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       });
     } else if (generatedPlan.scriptWithCharacters && generatedPlan.scriptWithCharacters.length > 0) {
       const scriptText = generatedPlan.scriptWithCharacters
-        .map((line) => `${line.character}: ${line.line}`)
+        .map((line) => line.line)
         .join("\n");
       chapters.push({
         title: "전체 대본",
@@ -495,6 +535,27 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       setCurrentChapterForVoice(0);
     }
   }, [chapterScripts, currentChapterForVoice]);
+
+  useEffect(() => {
+    if (normalizedScriptsRef.current || chapterScripts.length === 0) return;
+
+    let changed = false;
+    const normalized = chapterScripts.map((chapter) => {
+      const cleaned = stripSpeakerLabels(chapter.content);
+      if (cleaned !== chapter.content) {
+        changed = true;
+        return { ...chapter, content: cleaned };
+      }
+      return chapter;
+    });
+
+    normalizedScriptsRef.current = true;
+
+    if (changed) {
+      setChapterScripts(normalized);
+      setTtsScript(normalized.map((chapter) => chapter.content).join("\n\n"));
+    }
+  }, [chapterScripts]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -565,7 +626,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
   const handleGenerateImage = async (chapterIndex: number, chapterTitle: string, chapterContent: string) => {
     if (!geminiApiKey) {
-      alert("API 키가 설정되지 않았습니다. 설정 메뉴에서 API 키를 입력해주세요.");
+      alert("API 키가 설정되지 않았습니다. 회원정보에서 API 키를 입력해주세요.");
       return;
     }
 
@@ -944,7 +1005,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         // chapters 형식 - 챕터별로 분리
         generatedPlan.chapters.forEach((chapter) => {
           const lines = (chapter.script || [])
-            .map((line) => `${line.character}: ${line.line}`)
+            .map((line) => line.line)
             .join("\n");
           if (lines.trim()) {
             chapters.push({
@@ -956,7 +1017,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       } else if (generatedPlan.scriptWithCharacters && generatedPlan.scriptWithCharacters.length > 0) {
         // scriptWithCharacters 형식 - 하나의 챕터로
         const scriptText = generatedPlan.scriptWithCharacters
-          .map((line) => `${line.character}: ${line.line}`)
+          .map((line) => line.line)
           .join("\n");
         chapters.push({
           title: "전체 대본",
@@ -1246,9 +1307,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     let text = `${chapter.title}\n${"=".repeat(50)}\n\n`;
     chapter.script.forEach((item) => {
       if (item.timestamp) {
-        text += `[${item.timestamp}] ${item.character}: ${item.line}\n\n`;
+        text += `[${item.timestamp}] ${item.line}\n\n`;
       } else {
-        text += `${item.character}: ${item.line}\n\n`;
+        text += `${item.line}\n\n`;
       }
     });
     return text;
@@ -1262,9 +1323,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         let text = `챕터 ${index + 1}: ${chapter.title}\n${"=".repeat(50)}\n\n`;
         chapter.script.forEach((item: any) => {
           if (item.timestamp) {
-            text += `[${item.timestamp}] ${item.character}: ${item.line}\n\n`;
+            text += `[${item.timestamp}] ${item.line}\n\n`;
           } else {
-            text += `${item.character}: ${item.line}\n\n`;
+            text += `${item.line}\n\n`;
           }
         });
         return text;
@@ -1278,7 +1339,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       return plan.chapters
         .map((chapter, index) => {
           const lines = (chapter.script || [])
-            .map((line) => `${line.character}: ${line.line}`)
+            .map((line) => line.line)
             .join("\n");
           return `# 챕터 ${index + 1}. ${chapter.title}\n${lines || chapter.purpose}`;
         })
@@ -1286,7 +1347,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     }
     if (plan.scriptWithCharacters && plan.scriptWithCharacters.length > 0) {
       return plan.scriptWithCharacters
-        .map((line) => `${line.character}: ${line.line}`)
+        .map((line) => line.line)
         .join("\n");
     }
     if (plan.scriptOutline && plan.scriptOutline.length > 0) {
@@ -2089,7 +2150,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
                                   const text = generatedPlan.scriptWithCharacters
                                     .map((line) => {
-                                      let result = `${line.character}: ${line.line}`;
+                                      let result = `${line.line}`;
                                       if (line.imagePrompt) {
                                         result += `\n[이미지 프롬프트] ${line.imagePrompt}`;
                                       }
@@ -2718,44 +2779,30 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     </button>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                    {characterStylesOptions.map((style) => {
-                      const imgUrl = `/${encodeURIComponent(style)}.png`;
-                      return (
-                        <div key={style} className="relative group/preview">
-                          <button
-                            onClick={() => setCharacterStyle(style)}
-                            className={`relative w-full aspect-square rounded-xl font-medium text-sm transition-all duration-200 overflow-hidden group ${characterStyle === style
-                              ? "ring-2 ring-red-500 shadow-lg scale-105"
-                              : "hover:ring-1 hover:ring-red-400"
-                              }`}
-                            style={{
-                              backgroundImage: `url('${imgUrl}')`,
-                              backgroundSize: 'cover',
-                              backgroundPosition: 'center'
-                            }}
-                          >
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent"></div>
-                            <div className="relative h-full flex flex-col justify-end p-3 text-left">
-                              <div className="text-white font-bold text-sm mb-0.5 drop-shadow-lg">{style}</div>
-                              <div className="text-gray-200 text-xs leading-tight drop-shadow-md">
-                                {characterStyleDescriptions[style]}
-                              </div>
+                    {characterStylesOptions.map((style) => (
+                      <div key={style} className="relative">
+                        <button
+                          onClick={() => setCharacterStyle(style)}
+                          className={`relative w-full h-24 rounded-lg font-medium text-sm transition-all duration-200 overflow-hidden group ${characterStyle === style
+                            ? "ring-2 ring-red-500 shadow-lg scale-105"
+                            : "hover:scale-105 hover:ring-1 hover:ring-red-400"
+                            }`}
+                          style={{
+                            backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('/${style}.png')`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center'
+                          }}
+                        >
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+                          <div className="relative h-full flex flex-col justify-end p-3 text-left">
+                            <div className="text-white font-bold text-sm mb-0.5">{style}</div>
+                            <div className="text-gray-200 text-xs leading-tight">
+                              {characterStyleDescriptions[style]}
                             </div>
-                          </button>
-                          {/* 호버 시 큰 이미지 프리뷰 */}
-                          <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-3 z-50 opacity-0 scale-90 group-hover/preview:opacity-100 group-hover/preview:scale-100 transition-all duration-300 ease-out">
-                            <div className="rounded-2xl overflow-hidden shadow-2xl shadow-black/60 border border-white/20 bg-black/80 backdrop-blur-sm">
-                              <img src={imgUrl} alt={style} className="w-[280px] h-[280px] object-cover" />
-                              <div className="px-4 py-3">
-                                <div className="text-white font-bold text-sm">{style}</div>
-                                <div className="text-white/60 text-xs mt-0.5">{characterStyleDescriptions[style]}</div>
-                              </div>
-                            </div>
-                            <div className="absolute left-1/2 -translate-x-1/2 -bottom-2 w-4 h-4 bg-black/80 border-r border-b border-white/20 rotate-45"></div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        </button>
+                      </div>
+                    ))}
                   </div>
                   {characterStyle === "custom" && (
                     <input
@@ -2786,44 +2833,29 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     </button>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-3">
-                    {backgroundStylesOptions.map((style) => {
-                      const imgUrl = `/${encodeURIComponent(style === "AI" ? "ai" : style)}.png`;
-                      return (
-                        <div key={style} className="relative group/preview">
-                          <button
-                            onClick={() => setBackgroundStyle(style)}
-                            className={`relative w-full aspect-square rounded-xl font-medium text-sm transition-all duration-200 overflow-hidden group ${backgroundStyle === style
-                              ? "ring-2 ring-blue-500 shadow-lg scale-105"
-                              : "hover:ring-1 hover:ring-blue-400"
-                              }`}
-                            style={{
-                              backgroundImage: `url('${imgUrl}')`,
-                              backgroundSize: 'cover',
-                              backgroundPosition: 'center'
-                            }}
-                          >
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent"></div>
-                            <div className="relative h-full flex flex-col justify-end p-3 text-left">
-                              <div className="text-white font-bold text-sm mb-0.5 drop-shadow-lg">{style}</div>
-                              <div className="text-white/70 text-[10px] leading-tight line-clamp-2 drop-shadow-md">
-                                {backgroundStyleDescriptions[style]}
-                              </div>
-                            </div>
-                          </button>
-                          {/* 호버 시 큰 이미지 프리뷰 */}
-                          <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-3 z-50 opacity-0 scale-90 group-hover/preview:opacity-100 group-hover/preview:scale-100 transition-all duration-300 ease-out">
-                            <div className="rounded-2xl overflow-hidden shadow-2xl shadow-black/60 border border-white/20 bg-black/80 backdrop-blur-sm">
-                              <img src={imgUrl} alt={style} className="w-[280px] h-[280px] object-cover" />
-                              <div className="px-4 py-3">
-                                <div className="text-white font-bold text-sm">{style}</div>
-                                <div className="text-white/60 text-xs mt-0.5">{backgroundStyleDescriptions[style]}</div>
-                              </div>
-                            </div>
-                            <div className="absolute left-1/2 -translate-x-1/2 -bottom-2 w-4 h-4 bg-black/80 border-r border-b border-white/20 rotate-45"></div>
+                    {backgroundStylesOptions.map((style) => (
+                      <button
+                        key={style}
+                        onClick={() => setBackgroundStyle(style)}
+                        className={`px-3 py-2 rounded-lg text-xs font-semibold transition-all ${backgroundStyle === style
+                          ? "bg-blue-600 text-white shadow-lg scale-105"
+                          : "bg-white/10 text-white/70 hover:bg-white/20"
+                          }`}
+                        style={{
+                          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('/${style === "AI" ? "ai" : style}.png')`,
+                          backgroundSize: 'cover',
+                          backgroundPosition: 'center'
+                        }}
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+                        <div className="relative h-full flex flex-col justify-end p-3 text-left">
+                          <div className="text-white font-bold text-sm mb-0.5">{style}</div>
+                          <div className="text-white/70 text-[10px] leading-tight line-clamp-2">
+                            {backgroundStyleDescriptions[style]}
                           </div>
                         </div>
-                      );
-                    })}
+                      </button>
+                    ))}
                   </div>
                   {backgroundStyle === "custom" && (
                     <input
@@ -2869,15 +2901,16 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 )}
               </div>
 
-              {/* API 키 입력 섹션 */}
-              <div className="mt-6">
-                <ApiKeyInput
-                  apiKey={geminiApiKey}
-                  setApiKey={setGeminiApiKey}
-                  label="Gemini API Key"
-                  placeholder="Gemini API Key를 입력해주세요."
-                  description="이미지 생성에 사용되는 Gemini API Key입니다."
-                />
+              <div className="mt-6 rounded-xl border border-white/10 bg-black/30 p-4">
+                <p className="text-sm text-white/70">
+                  Gemini API 키는 회원정보에서 관리합니다.
+                </p>
+                <a
+                  href="/mypage?no_ads=true"
+                  className="mt-2 inline-flex items-center gap-2 text-sm font-semibold text-red-300 hover:text-red-200"
+                >
+                  회원정보에서 API 키 설정하기
+                </a>
               </div>
 
               {/* 챕터 기반 이미지 생성 */}
