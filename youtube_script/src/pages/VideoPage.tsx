@@ -2727,7 +2727,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                             : "hover:scale-105 hover:ring-1 hover:ring-red-400"
                             }`}
                           style={{
-                            backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('/${style}.png')`,
+                            backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('/${encodeURIComponent(style)}.png')`,
                             backgroundSize: 'cover',
                             backgroundPosition: 'center'
                           }}
@@ -2776,12 +2776,12 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       <button
                         key={style}
                         onClick={() => setBackgroundStyle(style)}
-                        className={`px-3 py-2 rounded-lg text-xs font-semibold transition-all ${backgroundStyle === style
-                          ? "bg-blue-600 text-white shadow-lg scale-105"
-                          : "bg-white/10 text-white/70 hover:bg-white/20"
+                        className={`relative w-full h-24 rounded-lg font-medium text-sm transition-all duration-200 overflow-hidden group ${backgroundStyle === style
+                          ? "ring-2 ring-blue-500 shadow-lg scale-105"
+                          : "hover:scale-105 hover:ring-1 hover:ring-blue-400"
                           }`}
                         style={{
-                          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('/${style === "AI" ? "ai" : style}.png')`,
+                          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('/${encodeURIComponent(style === "AI" ? "ai" : style)}.png')`,
                           backgroundSize: 'cover',
                           backgroundPosition: 'center'
                         }}

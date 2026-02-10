@@ -1593,7 +1593,7 @@ const App: React.FC<ImageAppProps> = ({
                               : "hover:scale-105 hover:ring-2 hover:ring-blue-400"
                               }`}
                             style={{
-                              backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/${style}.png')`,
+                              backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/${encodeURIComponent(style)}.png')`,
                               backgroundSize: 'cover',
                               backgroundPosition: 'center'
                             }}
@@ -1689,7 +1689,7 @@ const App: React.FC<ImageAppProps> = ({
                               : "hover:scale-105 hover:ring-2 hover:ring-blue-400"
                               }`}
                             style={{
-                              backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/${style === "AI" ? "ai" : style}.png')`,
+                              backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/${encodeURIComponent(style === "AI" ? "ai" : style)}.png')`,
                               backgroundSize: 'cover',
                               backgroundPosition: 'center'
                             }}
@@ -1998,14 +1998,14 @@ const App: React.FC<ImageAppProps> = ({
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-2xl font-bold text-blue-300">
                     생성된 페르소나 ({characters.length}개)</h2>
-                  </div>
-                </section>
-              )}
-            </main>
-          </div>
+                </div>
+              </section>
+            )}
+          </main>
         </div>
-      </>
-    );
-  };
+      </div>
+    </>
+  );
+};
 
 export default App;
