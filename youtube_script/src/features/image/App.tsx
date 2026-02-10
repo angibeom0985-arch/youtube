@@ -1583,29 +1583,41 @@ const App: React.FC<ImageAppProps> = ({
                         웹툰: "🖊️ 깨끗한 선과 표현력 풍부한 한국 웹툰 스타일",
                         custom: "",
                       };
+                      const imgUrl = `/${encodeURIComponent(style)}.png`;
 
                       return (
-                        <div key={style} className="relative">
+                        <div key={style} className="relative group/preview">
                           <button
                             onClick={() => setCharacterStyle(style)}
-                            className={`relative w-full h-32 rounded-lg font-medium text-sm transition-all duration-200 overflow-hidden group ${characterStyle === style
+                            className={`relative w-full aspect-square rounded-xl font-medium text-sm transition-all duration-200 overflow-hidden group ${characterStyle === style
                               ? "ring-4 ring-blue-500 shadow-2xl scale-105"
-                              : "hover:scale-105 hover:ring-2 hover:ring-blue-400"
+                              : "hover:ring-2 hover:ring-blue-400"
                               }`}
                             style={{
-                              backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/${encodeURIComponent(style)}.png')`,
+                              backgroundImage: `url('${imgUrl}')`,
                               backgroundSize: 'cover',
                               backgroundPosition: 'center'
                             }}
                           >
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent"></div>
                             <div className="relative h-full flex flex-col justify-end p-3">
-                              <div className="text-white font-bold text-base mb-1">{style}</div>
-                              <div className="text-gray-200 text-xs leading-tight">
+                              <div className="text-white font-bold text-base mb-1 drop-shadow-lg">{style}</div>
+                              <div className="text-gray-200 text-xs leading-tight drop-shadow-md">
                                 {styleDescriptions[style]}
                               </div>
                             </div>
                           </button>
+                          {/* 호버 시 큰 이미지 프리뷰 */}
+                          <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-3 z-50 opacity-0 scale-90 group-hover/preview:opacity-100 group-hover/preview:scale-100 transition-all duration-300 ease-out">
+                            <div className="rounded-2xl overflow-hidden shadow-2xl shadow-black/60 border border-white/20 bg-black/80 backdrop-blur-sm">
+                              <img src={imgUrl} alt={style} className="w-[280px] h-[280px] object-cover" />
+                              <div className="px-4 py-3">
+                                <div className="text-white font-bold text-sm">{style}</div>
+                                <div className="text-white/60 text-xs mt-0.5">{styleDescriptions[style]}</div>
+                              </div>
+                            </div>
+                            <div className="absolute left-1/2 -translate-x-1/2 -bottom-2 w-4 h-4 bg-black/80 border-r border-b border-white/20 rotate-45"></div>
+                          </div>
                         </div>
                       );
                     })}
@@ -1679,29 +1691,41 @@ const App: React.FC<ImageAppProps> = ({
                         조선시대: "🏯 한옥과 전통 가옥, 따뜻하고 감성적인 조선 분위기",
                         custom: "",
                       };
+                      const imgUrl = `/${encodeURIComponent(style === "AI" ? "ai" : style)}.png`;
 
                       return (
-                        <div key={style} className="relative">
+                        <div key={style} className="relative group/preview">
                           <button
                             onClick={() => setBackgroundStyle(style)}
-                            className={`relative w-full h-32 rounded-lg font-medium text-sm transition-all duration-200 overflow-hidden group ${backgroundStyle === style
+                            className={`relative w-full aspect-square rounded-xl font-medium text-sm transition-all duration-200 overflow-hidden group ${backgroundStyle === style
                               ? "ring-4 ring-blue-500 shadow-2xl scale-105"
-                              : "hover:scale-105 hover:ring-2 hover:ring-blue-400"
+                              : "hover:ring-2 hover:ring-blue-400"
                               }`}
                             style={{
-                              backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/${encodeURIComponent(style === "AI" ? "ai" : style)}.png')`,
+                              backgroundImage: `url('${imgUrl}')`,
                               backgroundSize: 'cover',
                               backgroundPosition: 'center'
                             }}
                           >
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent"></div>
                             <div className="relative h-full flex flex-col justify-end p-3">
-                              <div className="text-white font-bold text-base mb-1">{style}</div>
-                              <div className="text-gray-200 text-xs leading-tight">
+                              <div className="text-white font-bold text-base mb-1 drop-shadow-lg">{style}</div>
+                              <div className="text-gray-200 text-xs leading-tight drop-shadow-md">
                                 {styleDescriptions[style]}
                               </div>
                             </div>
                           </button>
+                          {/* 호버 시 큰 이미지 프리뷰 */}
+                          <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-3 z-50 opacity-0 scale-90 group-hover/preview:opacity-100 group-hover/preview:scale-100 transition-all duration-300 ease-out">
+                            <div className="rounded-2xl overflow-hidden shadow-2xl shadow-black/60 border border-white/20 bg-black/80 backdrop-blur-sm">
+                              <img src={imgUrl} alt={style} className="w-[280px] h-[280px] object-cover" />
+                              <div className="px-4 py-3">
+                                <div className="text-white font-bold text-sm">{style}</div>
+                                <div className="text-white/60 text-xs mt-0.5">{styleDescriptions[style]}</div>
+                              </div>
+                            </div>
+                            <div className="absolute left-1/2 -translate-x-1/2 -bottom-2 w-4 h-4 bg-black/80 border-r border-b border-white/20 rotate-45"></div>
+                          </div>
                         </div>
                       );
                     })}
