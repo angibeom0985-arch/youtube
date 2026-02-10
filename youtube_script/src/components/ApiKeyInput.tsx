@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { FiKey, FiEye, FiEyeOff, FiCheckCircle } from "react-icons/fi";
 import { Link } from "react-router-dom";
 import { supabase } from "../services/supabase";
