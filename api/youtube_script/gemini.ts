@@ -224,6 +224,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const length = payload.length as string;
       const category = payload.category as string;
       const vlogType = payload.vlogType as string | undefined;
+      const scriptStyle = payload.scriptStyle as string | undefined;
       if (!analysis || !newKeyword || !length || !category) {
         res.status(400).send("missing_fields");
         return;
@@ -234,7 +235,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         length,
         category,
         effectiveApiKey,
-        vlogType
+        vlogType,
+        scriptStyle
       );
       res.status(200).json(result);
       return;

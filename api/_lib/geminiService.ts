@@ -645,7 +645,8 @@ export const generateNewPlan = async (
   length: string,
   category: string,
   apiKey: string,
-  vlogType?: string
+  vlogType?: string,
+  scriptStyle?: string
 ): Promise<NewPlan> => {
   const maxRetries = 2;
   let lastError: any = null;
@@ -684,6 +685,41 @@ ${analysis.openingStyle.exampleLines.map((line, i) => `  ${i + 1}. ${line}`).joi
         2
       );
 
+      const getLengthMinutes = (lengthValue: string): number => {
+        const hourMatch = lengthValue.match(/(\d+)\s*시간/);
+        if (hourMatch) {
+          const hours = Number(hourMatch[1]);
+          return Number.isFinite(hours) ? hours * 60 : 60;
+        }
+        const minuteMatch = lengthValue.match(/(\d+)\s*분/);
+        if (minuteMatch) {
+          const minutes = Number(minuteMatch[1]);
+          return Number.isFinite(minutes) ? minutes : 8;
+        }
+        const fallback = Number(lengthValue);
+        return Number.isFinite(fallback) && fallback > 0 ? fallback : 8;
+      };
+
+      const getTargetChapters = (minutes: number): number => {
+        if (minutes >= 60) return 12;
+        if (minutes >= 45) return 9;
+        if (minutes >= 30) return 6;
+        if (minutes >= 20) return 5;
+        if (minutes >= 15) return 4;
+        if (minutes >= 10) return 3;
+        if (minutes >= 5) return 2;
+        return 1;
+      };
+
+      const lengthMinutes = getLengthMinutes(length);
+      const targetChapters = getTargetChapters(lengthMinutes);
+      const minutesPerChapter = Math.max(1, Math.round(lengthMinutes / targetChapters));
+      const chapterGuide = `\n\n**챕터 구성 가이드 (${length})**\n- 최소 ${targetChapters}개 이상의 챕터로 구성\n- 챕터당 약 ${minutesPerChapter}분 분량으로 균등하게 배분\n- 각 챕터는 제목/목적/예상 분량/대본을 포함`;
+      const scriptStyleGuide =
+        scriptStyle === "dialogue"
+          ? "\n\n**대본 스타일: 대화 버전**\n- 여러 인물의 대화 위주로 진행\n- 내레이션은 최소화하고 대화로 흐름을 전개"
+          : "\n\n**대본 스타일: 나레이션 버전**\n- 나레이션 중심으로 서술\n- 등장인물 대사는 최소화";
+
       const isStoryChannel = category === "썰 채널";
       const isVlogChannel = category === "브이로그";
       const is49Channel = category === "49금";
@@ -711,8 +747,10 @@ ${analysis.openingStyle.exampleLines.map((line, i) => `  ${i + 1}. ${line}`).joi
         ? `\n\n**⚠️ 중요: 영상 길이 가이드 (${length})**\n- 최소 ${minimumLines}개 이상의 대사 라인을 생성해야 합니다\n- 1시간 = 약 18,000-21,000자 분량 (한국어 낭독 속도 기준)\n- 각 대사는 자연스러운 대화 길이로 작성하되, 전체 스토리가 ${length} 분량에 맞도록 충분히 상세하게 작성하세요\n- 장면 전환, 복선, 클라이맥스 등 스토리 요소를 풍부하게 포함하세요\n- 대사 사이의 자연스러운 간격과 감정 표현도 충분히 담아주세요`
         : `\n\n**영상 길이 가이드 (${length})**: 최소 ${minimumLines}개 이상의 대사 라인을 생성하세요.`;
 
+      const lengthGuidelineWithChapters = `${lengthGuideline}${chapterGuide}${scriptStyleGuide}`;
+
       if (isStoryChannel) {
-        contents = `"${newKeyword}"를 주제로 한 완전히 새로운 스토리 영상 기획안을 만들어 주세요. 목표 영상 길이는 약 ${length}입니다.${lengthGuideline}
+        contents = `"${newKeyword}"를 주제로 한 완전히 새로운 스토리 영상 기획안을 만들어 주세요. 목표 영상 길이는 약 ${length}입니다.${lengthGuidelineWithChapters}
 
 **절대 규칙:**
 - 아래 제공된 분석 자료의 **대본 구조(단계별 흐름)**만 참고하세요
@@ -762,7 +800,7 @@ ${analysisString}
           vlogTypePrompts[vlogType || "일상"] || vlogTypePrompts["일상"];
 
         contents = `"${newKeyword}"를 주제로 한 "${vlogType || "일상"
-          }" 타입의 완전히 새로운 브이로그를 기획해주세요. 목표 영상 길이는 약 ${length}입니다.${lengthGuideline}
+          }" 타입의 완전히 새로운 브이로그를 기획해주세요. 목표 영상 길이는 약 ${length}입니다.${lengthGuidelineWithChapters}
 
 **절대 규칙:**
 - 아래 제공된 분석 자료의 **대본 구조(단계별 흐름)**만 참고하세요
@@ -811,7 +849,7 @@ ${analysisString}
 
 위 구조의 흐름만 참고하여, "${newKeyword}"를 주제로 완전히 새로운 브이로그 장면과 대사를 창작해주세요. 모든 결과 항목을 지정된 구조에 맞춰 JSON 형식으로 제공해주세요.`;
       } else if (isMukbangChannel) {
-        contents = `"${newKeyword}" 음식으로 완전히 새로운 먹방 영상 기획안을 만들어 주세요. 목표 영상 길이는 약 ${length}입니다.${lengthGuideline}
+        contents = `"${newKeyword}" 음식으로 완전히 새로운 먹방 영상 기획안을 만들어 주세요. 목표 영상 길이는 약 ${length}입니다.${lengthGuidelineWithChapters}
 
 **절대 규칙:**
 - 아래 제공된 분석 자료의 **대본 구조(단계별 흐름)**만 참고하세요
@@ -846,7 +884,7 @@ ${analysisString}
 
 위 구조의 흐름만 참고하여, "${newKeyword}"를 주제로 완전히 새로운 먹방 장면과 리액션을 창작해주세요. 모든 결과 항목을 지정된 구조에 맞춰 JSON 형식으로 제공해주세요.`;
       } else if (category === "쇼핑 리뷰") {
-        contents = `"${newKeyword}" 제품에 대한 완전히 새로운 리뷰 영상 기획안을 만들어 주세요. 목표 영상 길이는 약 ${length}입니다.${lengthGuideline}
+        contents = `"${newKeyword}" 제품에 대한 완전히 새로운 리뷰 영상 기획안을 만들어 주세요. 목표 영상 길이는 약 ${length}입니다.${lengthGuidelineWithChapters}
 
 **절대 규칙:**
 - 아래 제공된 분석 자료의 **대본 구조(단계별 흐름)**만 참고하세요
@@ -867,7 +905,7 @@ ${analysisString}
 
 위 구조의 흐름만 참고하여, "${newKeyword}"를 주제로 완전히 새로운 리뷰 내용을 창작해주세요. 모든 결과 항목을 지정된 구조에 맞춰 JSON 형식으로 제공해주세요.`;
       } else if (category === "49금") {
-        contents = `성인 대상의 성숙한 연애/관계 이야기("${newKeyword}")를 다루는 영상 기획안을 만들어 주세요. 목표 영상 길이는 약 ${length}입니다.${lengthGuideline}
+        contents = `성인 대상의 성숙한 연애/관계 이야기("${newKeyword}")를 다루는 영상 기획안을 만들어 주세요. 목표 영상 길이는 약 ${length}입니다.${lengthGuidelineWithChapters}
 
 **중요: 콘텐츠 가이드라인**
 - 선정적이거나 노골적인 표현은 절대 사용하지 마세요
@@ -949,7 +987,7 @@ ${analysisString}
 
 성공적인 동영상 분석 내용:\n\n${analysisString}\n\n이제 위 분석된 성공 구조를 따르되 새로운 키워드 "${newKeyword}"에 초점을 맞춘 완전히 새로운 조선시대 야담 이야기를 창작해주세요. 원본 대본의 내용이나 스토리를 사용하지 말고, 새로운 인물과 사건으로 구성된 독창적인 야담을 만들어주세요. 모든 결과 항목을 지정된 구조에 맞춰 JSON 형식으로 제공해주세요.`;
       } else if (isGukppongChannel) {
-        contents = `한국의 우수성과 세계 속에서의 위상을 주제로 한 국뽕 콘텐츠("${newKeyword}")를 기획해 주세요. 목표 영상 길이는 약 ${length}입니다.${lengthGuideline}
+        contents = `한국의 우수성과 세계 속에서의 위상을 주제로 한 국뽕 콘텐츠("${newKeyword}")를 기획해 주세요. 목표 영상 길이는 약 ${length}입니다.${lengthGuidelineWithChapters}
 
 **중요: 국뽕 콘텐츠 가이드라인**
 
@@ -1049,7 +1087,7 @@ ${analysisString}
 
 위 구조의 흐름만 참고하여, "${newKeyword}"를 주제로 완전히 새로운 국뽕 스토리와 대사를 창작해주세요. 원본 대본의 사례나 내용은 사용하지 마세요. 모든 결과 항목을 지정된 구조에 맞춰 JSON 형식으로 제공해주세요.`;
       } else if (isNorthKoreaChannel) {
-        contents = `북한 관련 이슈와 탈북민 이야기("${newKeyword}")를 다루는 영상 기획안을 만들어 주세요. 목표 영상 길이는 약 ${length}입니다.${lengthGuideline}
+        contents = `북한 관련 이슈와 탈북민 이야기("${newKeyword}")를 다루는 영상 기획안을 만들어 주세요. 목표 영상 길이는 약 ${length}입니다.${lengthGuidelineWithChapters}
 
 **절대 규칙:**
 - 아래 제공된 분석 자료의 **대본 구조(단계별 흐름)**만 참고하세요
@@ -1113,7 +1151,7 @@ ${analysisString}
 
 위 구조의 단계별 흐름(예: 도입→전개→절정→결말)만 참고하여, "${newKeyword}"를 주제로 완전히 새로운 북한 이슈 스토리를 창작해주세요. 모든 결과 항목을 지정된 구조에 맞춰 JSON 형식으로 제공해주세요.`;
       } else {
-        contents = `"${newKeyword}" 주제에 대한 완전히 새로운 정보성 영상 기획안을 만들어 주세요. 목표 영상 길이는 약 ${length}입니다.${lengthGuideline}
+        contents = `"${newKeyword}" 주제에 대한 완전히 새로운 정보성 영상 기획안을 만들어 주세요. 목표 영상 길이는 약 ${length}입니다.${lengthGuidelineWithChapters}
 
 **절대 규칙:**
 - 아래 제공된 분석 자료의 **대본 구조(단계별 흐름)**만 참고하세요

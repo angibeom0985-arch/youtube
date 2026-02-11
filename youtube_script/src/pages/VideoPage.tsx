@@ -42,6 +42,7 @@ const STORAGE_KEYS = {
   youtubeUrl: "video_project_youtube_url",
   scriptCategory: "video_project_script_category",
   imagePrompt: "video_project_image_prompt",
+  scriptStyle: "video_project_script_style",
   renderDuration: "video_project_render_duration",
   renderRatio: "video_project_render_ratio",
   renderFps: "video_project_render_fps",
@@ -274,6 +275,10 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   );
   const [scriptLengthMinutes, setScriptLengthMinutes] = useState("8");
   const [customScriptLength, setCustomScriptLength] = useState("5");
+  const [scriptStyle, setScriptStyle] = useState<"narration" | "dialogue">(() => {
+    const stored = getStoredString(STORAGE_KEYS.scriptStyle, "narration");
+    return stored === "dialogue" ? "dialogue" : "narration";
+  });
   const [scriptAnalysis, setScriptAnalysis] = useState<AnalysisResult | null>(() =>
     getStoredJson("videopage_scriptAnalysis", null)
   );
@@ -465,6 +470,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   useEffect(() => setStoredValue(STORAGE_KEYS.tts, ttsScript), [ttsScript]);
   useEffect(() => setStoredJson(STORAGE_KEYS.ttsChapters, chapterScripts), [chapterScripts]);
   useEffect(() => setStoredJson(STORAGE_KEYS.ttsChapterVoices, chapterVoices), [chapterVoices]);
+  useEffect(() => setStoredValue(STORAGE_KEYS.scriptStyle, scriptStyle), [scriptStyle]);
   useEffect(() => setStoredValue(STORAGE_KEYS.imagePrompt, imagePrompt), [
     imagePrompt,
   ]);
@@ -1027,6 +1033,21 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     }
     return `${scriptLengthMinutes}분`;
   };
+  const resolveScriptLengthValue = () => {
+    const value = resolveScriptLengthMinutes();
+    const minutes = Number(value);
+    return Number.isFinite(minutes) && minutes > 0 ? minutes : 8;
+  };
+  const getTargetChapters = (minutes: number) => {
+    if (minutes >= 60) return 12;
+    if (minutes >= 45) return 9;
+    if (minutes >= 30) return 6;
+    if (minutes >= 20) return 5;
+    if (minutes >= 15) return 4;
+    if (minutes >= 10) return 3;
+    if (minutes >= 5) return 2;
+    return 1;
+  };
   const handleSelectScriptLength = (minutes: string) => {
     setScriptLengthMinutes(minutes);
     const resolved = minutes === "custom" ? customScriptLength : minutes;
@@ -1132,6 +1153,37 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       setAnalyzeProgress({ ...analyzeProgress, currentStep: 0 });
     }
   };
+  const ensureChaptersByLength = (plan: NewPlan): NewPlan => {
+    const minutes = resolveScriptLengthValue();
+    const targetChapters = getTargetChapters(minutes);
+    const scriptLines = plan.scriptWithCharacters ?? [];
+    const hasChapters = plan.chapters && plan.chapters.length > 0;
+    if (hasChapters && plan.chapters!.length >= targetChapters) {
+      return plan;
+    }
+    if (scriptLines.length === 0) {
+      return plan;
+    }
+    const chunkSize = Math.max(1, Math.ceil(scriptLines.length / targetChapters));
+    const estimatedPerChapter = Math.max(1, Math.round(minutes / targetChapters));
+    const chapters = Array.from({ length: targetChapters }, (_, index) => {
+      const start = index * chunkSize;
+      const end = start + chunkSize;
+      const script = scriptLines.slice(start, end);
+      return {
+        id: `chapter-${index + 1}`,
+        title: `챕터 ${index + 1}`,
+        purpose: "영상 길이에 맞춰 자동 분할된 챕터",
+        estimatedDuration: `${estimatedPerChapter}분`,
+        script,
+      };
+    }).filter((chapter) => chapter.script && chapter.script.length > 0);
+    if (chapters.length === 0) return plan;
+    return {
+      ...plan,
+      chapters,
+    };
+  };
   const handleGenerateScript = async () => {
     if (!scriptAnalysis) {
       setScriptError("대본 구조 분석을 먼저 진행해 주세요.");
@@ -1156,7 +1208,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         scriptAnalysis,
         selectedTopic,
         formatScriptLengthLabel(),
-        selectedCategory
+        selectedCategory,
+        undefined,
+        scriptStyle
       );
 
       // Step 3: AI 응답 정제 (마크다운 기호 제거)
@@ -1166,7 +1220,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       // 대본 내용에서 마크다운 기호 제거
       const cleanPlan = cleanAIResponse(plan);
 
-      setGeneratedPlan(cleanPlan);
+      const normalizedPlan = ensureChaptersByLength(cleanPlan);
+      setGeneratedPlan(normalizedPlan);
 
       // 대본 생성 완료 후 결과 단계로 자동 이동
       setScriptSubStep(3);
@@ -1675,6 +1730,46 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         </p>
                       </div>
 
+                      <div className="rounded-2xl border border-white/10 bg-black/30 p-5">
+                        <div className="mb-4 pb-3 border-b border-white/10">
+                          <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
+                            <span className="text-amber-400">🎙️</span>
+                            대본 스타일 선택
+                          </h3>
+                          <p className="text-xs text-white/50">
+                            대본 생성 전에 스타일을 먼저 선택해 주세요.
+                          </p>
+                        </div>
+                        <div className="grid gap-3 md:grid-cols-2">
+                          <button
+                            type="button"
+                            onClick={() => setScriptStyle("narration")}
+                            className={`rounded-xl border px-4 py-4 text-left transition ${scriptStyle === "narration"
+                              ? "border-amber-400 bg-amber-500/15 text-white shadow-lg"
+                              : "border-white/15 bg-black/30 text-white/70 hover:border-white/30"
+                              }`}
+                          >
+                            <div className="text-sm font-semibold mb-1">나레이션 버전</div>
+                            <div className="text-xs text-white/50">
+                              해설 중심으로 흐름을 이어가는 내레이션 스타일
+                            </div>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setScriptStyle("dialogue")}
+                            className={`rounded-xl border px-4 py-4 text-left transition ${scriptStyle === "dialogue"
+                              ? "border-amber-400 bg-amber-500/15 text-white shadow-lg"
+                              : "border-white/15 bg-black/30 text-white/70 hover:border-white/30"
+                              }`}
+                          >
+                            <div className="text-sm font-semibold mb-1">대화 버전</div>
+                            <div className="text-xs text-white/50">
+                              여러 인물의 대화로 전개되는 스크립트 스타일
+                            </div>
+                          </button>
+                        </div>
+                      </div>
+
                       {/* 주제 선택 섹션 */}
                       {scriptAnalysis && (
                         <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
@@ -1944,16 +2039,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                                 {line.line}
                                               </div>
                                             </div>
-                                            {line.imagePrompt && (
-                                              <div className="mt-3 ml-[108px] p-3 rounded-md border bg-zinc-950 border-zinc-700/50">
-                                                <p className="text-xs font-semibold text-neutral-400 mb-1">
-                                                  🎨 이미지 생성 프롬프트
-                                                </p>
-                                                <p className="text-sm text-neutral-300 font-mono">
-                                                  {line.imagePrompt}
-                                                </p>
-                                              </div>
-                                            )}
                                           </div>
                                         ))}
                                       </div>
@@ -2063,16 +2148,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                         {line.line}
                                       </div>
                                     </div>
-                                    {line.imagePrompt && (
-                                      <div className="mt-3 ml-[108px] p-3 rounded-md border bg-zinc-950 border-zinc-700/50">
-                                        <p className="text-xs font-semibold text-neutral-400 mb-1">
-                                          🎨 이미지 생성 프롬프트
-                                        </p>
-                                        <p className="text-sm text-neutral-300 font-mono">
-                                          {line.imagePrompt}
-                                        </p>
-                                      </div>
-                                    )}
                                   </div>
                                 ))}
                               </div>
@@ -2090,9 +2165,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                   const text = generatedPlan.scriptWithCharacters
                                     .map((line) => {
                                       let result = `${line.character}: ${line.line}`;
-                                      if (line.imagePrompt) {
-                                        result += `\n[이미지 프롬프트] ${line.imagePrompt}`;
-                                      }
                                       return result;
                                     })
                                     .join("\n\n");
@@ -2867,11 +2939,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                             </span>{" "}
                             {line.line}
                           </p>
-                          {line.imagePrompt && (
-                            <div className="mb-2 p-2 bg-white/5 rounded-md text-xs text-white/60 font-mono">
-                              Image Prompt: {line.imagePrompt}
-                            </div>
-                          )}
                           <button
                             onClick={() => handleGenerateImage(chapterIndex, chapter.title || '', line.imagePrompt || line.line)}
                             disabled={generatingImageChapter === chapterIndex}

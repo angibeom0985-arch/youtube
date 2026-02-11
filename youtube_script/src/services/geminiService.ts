@@ -110,7 +110,8 @@ export const generateNewPlan = async (
   newKeyword: string,
   length: string,
   category: string,
-  vlogType?: string
+  vlogType?: string,
+  scriptStyle?: string
 ): Promise<NewPlan> => {
   return callGemini<NewPlan>("generateNewPlan", {
     analysis,
@@ -118,6 +119,7 @@ export const generateNewPlan = async (
     length,
     category,
     vlogType,
+    scriptStyle,
   });
 };
 

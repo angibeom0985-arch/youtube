@@ -877,7 +877,8 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
           customLength,
           selectedCategory,
           apiKey,
-          selectedCategory === "브이로그" ? selectedVlogType : undefined
+          selectedCategory === "브이로그" ? selectedVlogType : undefined,
+          scriptStyle
         );
         setNewPlan(result);
 
