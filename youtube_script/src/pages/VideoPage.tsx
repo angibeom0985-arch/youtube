@@ -27,7 +27,6 @@ import { regenerateStoryboardImage } from "../features/image/services/geminiServ
 import type { CharacterStyle, BackgroundStyle, AspectRatio } from "../features/image/types";
 
 
-import AdSense from "../components/AdSense";
 import { ProgressTracker } from "../components/ProgressIndicator";
 import UserCreditToolbar from "../components/UserCreditToolbar";
 
@@ -917,7 +916,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     }
   }, [location.pathname, navigate, stepPaths, normalizedBasePath, currentStep]);
 
-  const canGoPrev = currentStep > 0;
+  const canGoPrev =
+    currentStep > 0 || (steps[currentStep].id === "script" && scriptSubStep > 0);
 
   // 각 단계별로 다음 단계 진행 가능 여부 체크
   const canGoNext = (() => {
@@ -925,9 +925,13 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
     const currentStepId = steps[currentStep].id;
 
-    // script 단계: 대본이 입력되어 있으면 다음으로 진행 가능
+    // script 단계: 하위 단계별 진행 조건
     if (currentStepId === 'script') {
-      return scriptDraft.trim().length > 0;
+      if (scriptSubStep === 0) return scriptDraft.trim().length > 0;
+      if (scriptSubStep === 1) return Boolean(scriptAnalysis);
+      if (scriptSubStep === 2) return Boolean(generatedPlan);
+      if (scriptSubStep === 3) return true;
+      return false;
     }
 
     // 나머지 단계는 항상 진행 가능
@@ -936,11 +940,21 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
   const handlePrev = () => {
     if (!canGoPrev) return;
+    if (steps[currentStep].id === "script" && scriptSubStep > 0) {
+      setScriptSubStep((prev) => Math.max(prev - 1, 0));
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
     goToStep(currentStep - 1);
   };
 
   const handleNext = () => {
     if (!canGoNext) return;
+    if (steps[currentStep].id === "script" && scriptSubStep < 3) {
+      setScriptSubStep((prev) => Math.min(prev + 1, 3));
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
 
     // Step 2 (대본 작성)에서 Step 3 (음성 생성)으로 이동할 때 대본 자동 입력
     if (currentStep === 1 && generatedPlan) {
@@ -988,6 +1002,16 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
     goToStep(currentStep + 1);
   };
+
+  useEffect(() => {
+    try {
+      if (typeof window === "undefined") return;
+      (window as any).adsbygoogle = (window as any).adsbygoogle || [];
+      (window as any).adsbygoogle.push({});
+    } catch (error) {
+      console.error("Footer AdSense error:", error);
+    }
+  }, [currentStep, scriptSubStep]);
 
   const activeStep = steps[currentStep];
   const formatOptions = [
@@ -1582,25 +1606,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       </div>
                     )}
 
-                    {/* 하위 단계 이동 버튼 */}
-                    <div className="flex justify-between items-center pt-4 border-t border-white/10">
-                      <button
-                        type="button"
-                        onClick={handlePrev}
-                        disabled={!canGoPrev}
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/20 text-white/70 hover:bg-white/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <FiChevronLeft /> 이전 단계 (영상 설정)
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setScriptSubStep(1)}
-                        disabled={!scriptDraft.trim()}
-                        className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-orange-600 to-red-600 text-white font-semibold shadow-lg hover:from-orange-500 hover:to-red-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        다음 단계 (대본 분석) <FiChevronRight />
-                      </button>
-                    </div>
                   </>
                 )}
 
@@ -1666,25 +1671,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         </div>
                       )}
 
-                      {/* 하위 단계 이동 버튼 */}
-                      {scriptAnalysis && (
-                        <div className="flex justify-between items-center pt-4 border-t border-white/10">
-                          <button
-                            type="button"
-                            onClick={() => setScriptSubStep(0)}
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/20 text-white/70 hover:bg-white/10 transition-all"
-                          >
-                            <FiChevronLeft /> 이전 (대본 입력)
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setScriptSubStep(2)}
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-orange-600 to-red-600 text-white font-semibold shadow-lg hover:from-orange-500 hover:to-red-500 transition-all"
-                          >
-                            다음 단계 (주제 선택) <FiChevronRight />
-                          </button>
-                        </div>
-                      )}
                     </div>
                   </>
                 )}
@@ -1934,39 +1920,29 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       )}
                     </div>
 
-                    {/* 하위 단계 이동 버튼 */}
-                    <div className="space-y-3">
-                      {isGeneratingScript && (
-                        <ProgressTracker
-                          currentStepIndex={generateProgress.currentStep}
-                          stepLabels={generateProgress.steps}
-                          stepDescriptions={[
-                            "선택한 주제에 맞는 대본 구조를 설계하고 있습니다",
-                            "각 챕터의 내용을 상세하게 작성하고 있습니다",
-                            "생성된 대본의 품질을 확인하고 있습니다"
-                          ]}
-                          estimatedTimeSeconds={25}
-                        />
-                      )}
-
-                      <div className="flex justify-between items-center pt-4 border-t border-white/10">
-                        <button
-                          type="button"
-                          onClick={() => setScriptSubStep(1)}
-                          className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/20 text-white/70 hover:bg-white/10 transition-all"
-                        >
-                          <FiChevronLeft /> 이전 (대본 분석)
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handleGenerateScript}
-                          disabled={isGeneratingScript || !isScriptStepReady(2)}
-                          className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-red-600 to-red-500 text-white font-semibold shadow-lg hover:from-red-500 hover:to-red-400 transition-all disabled:opacity-50"
-                        >
-                          {isGeneratingScript ? "대본 작성 중..." : "대본 생성하기"} <FiChevronRight />
-                        </button>
-                      </div>
+                    <div className="pt-4 border-t border-white/10 flex justify-end">
+                      <button
+                        type="button"
+                        onClick={handleGenerateScript}
+                        disabled={isGeneratingScript || !isScriptStepReady(2)}
+                        className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-red-600 to-red-500 text-white font-semibold shadow-lg hover:from-red-500 hover:to-red-400 transition-all disabled:opacity-50"
+                      >
+                        {isGeneratingScript ? "대본 작성 중..." : "대본 생성하기"} <FiChevronRight />
+                      </button>
                     </div>
+
+                    {isGeneratingScript && (
+                      <ProgressTracker
+                        currentStepIndex={generateProgress.currentStep}
+                        stepLabels={generateProgress.steps}
+                        stepDescriptions={[
+                          "선택한 주제에 맞는 대본 구조를 설계하고 있습니다",
+                          "각 챕터의 내용을 상세하게 작성하고 있습니다",
+                          "생성된 대본의 품질을 확인하고 있습니다"
+                        ]}
+                        estimatedTimeSeconds={25}
+                      />
+                    )}
                   </>
                 )}
 
@@ -2221,24 +2197,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       </div>
                     </div>
 
-                    {/* 하위 단계 이동 버튼 */}
-                    <div className="flex justify-between items-center pt-4 border-t border-white/10">
-                      <button
-                        type="button"
-                        onClick={() => setScriptSubStep(2)}
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/20 text-white/70 hover:bg-white/10 transition-all"
-                      >
-                        <FiChevronLeft /> 이전 (주제 선택)
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleNext}
-                        disabled={!canGoNext}
-                        className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-red-600 to-red-500 px-6 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(220,38,38,0.4)] disabled:opacity-60"
-                      >
-                        다음 단계 (음성 생성) <FiChevronRight />
-                      </button>
-                    </div>
                   </>
                 )}
 
@@ -3298,7 +3256,18 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
             <div className="p-[clamp(1.5rem,3vw,2.5rem)]">{renderStepContent()}</div>
 
             <div className="border-t border-white/10 p-[clamp(1.2rem,2.5vw,2rem)]">
-              <AdSense adSlot="3672059148" className="mb-2 rounded-2xl border border-white/10 bg-black/30 px-4 py-3" />
+              <div className="mb-2 rounded-2xl border border-white/10 bg-black/30 px-4 py-3">
+                <center>
+                  <ins
+                    className="adsbygoogle"
+                    style={{ display: "block" }}
+                    data-ad-client="ca-pub-2686975437928535"
+                    data-ad-slot="3672059148"
+                    data-ad-format="auto"
+                    data-full-width-responsive="true"
+                  />
+                </center>
+              </div>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <button
                   type="button"
