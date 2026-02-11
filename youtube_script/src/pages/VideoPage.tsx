@@ -20,6 +20,7 @@ import { supabase } from "../services/supabase";
 import type { User } from "@supabase/supabase-js";
 import HomeBackButton from "../components/HomeBackButton";
 import ErrorNotice from "../components/ErrorNotice";
+import ApiKeyInput from "../components/ApiKeyInput";
 import type { AnalysisResult, NewPlan } from "../types";
 import { analyzeTranscript, generateIdeas, generateNewPlan } from "../services/geminiService";
 import { regenerateStoryboardImage } from "../features/image/services/geminiService";
@@ -216,17 +217,6 @@ const formatFileSize = (size: number) => {
   return `${(size / (1024 * 1024 * 1024)).toFixed(1)} GB`;
 };
 
-const stripSpeakerLabels = (text: string): string => {
-  if (!text) return text;
-  const lines = text.split("\n");
-  const labelPattern = /^\s*[^:\n]{1,20}:\s+/;
-  const labeledLines = lines.filter((line) => labelPattern.test(line)).length;
-  if (lines.length === 0 || labeledLines / lines.length < 0.6) {
-    return text;
-  }
-  return lines.map((line) => line.replace(labelPattern, "")).join("\n");
-};
-
 const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -376,7 +366,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
   const progressTimerRef = useRef<number | null>(null);
   const [characterColorMap, setCharacterColorMap] = useState<Map<string, string>>(new Map());
-  const normalizedScriptsRef = useRef(false);
 
   // Audio playback state
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -407,35 +396,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   }, []);
 
   useEffect(() => {
-    let cancelled = false;
-
-    const loadUserApiKeys = async () => {
-      if (!user) return;
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-
-      try {
-        const response = await fetch("/api/user/settings", {
-          headers: { Authorization: `Bearer ${session.access_token}` },
-        });
-        if (!response.ok) return;
-        const data = await response.json();
-        if (!cancelled && data?.gemini_api_key) {
-          setGeminiApiKey(data.gemini_api_key);
-        }
-      } catch (error) {
-        console.error("Failed to load user API keys:", error);
-      }
-    };
-
-    loadUserApiKeys();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [user]);
-
-  useEffect(() => {
     if (generatedPlan?.characters) {
       const newMap = new Map<string, string>();
       generatedPlan.characters.forEach((char, index) => {
@@ -464,7 +424,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     if (generatedPlan.chapters && generatedPlan.chapters.length > 0) {
       generatedPlan.chapters.forEach((chapter) => {
         const lines = (chapter.script || [])
-          .map((line) => line.line)
+          .map((line) => `${line.character}: ${line.line}`)
           .join("\n");
         if (lines.trim()) {
           chapters.push({
@@ -475,7 +435,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       });
     } else if (generatedPlan.scriptWithCharacters && generatedPlan.scriptWithCharacters.length > 0) {
       const scriptText = generatedPlan.scriptWithCharacters
-        .map((line) => line.line)
+        .map((line) => `${line.character}: ${line.line}`)
         .join("\n");
       chapters.push({
         title: "전체 대본",
@@ -535,27 +495,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       setCurrentChapterForVoice(0);
     }
   }, [chapterScripts, currentChapterForVoice]);
-
-  useEffect(() => {
-    if (normalizedScriptsRef.current || chapterScripts.length === 0) return;
-
-    let changed = false;
-    const normalized = chapterScripts.map((chapter) => {
-      const cleaned = stripSpeakerLabels(chapter.content);
-      if (cleaned !== chapter.content) {
-        changed = true;
-        return { ...chapter, content: cleaned };
-      }
-      return chapter;
-    });
-
-    normalizedScriptsRef.current = true;
-
-    if (changed) {
-      setChapterScripts(normalized);
-      setTtsScript(normalized.map((chapter) => chapter.content).join("\n\n"));
-    }
-  }, [chapterScripts]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -626,7 +565,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
   const handleGenerateImage = async (chapterIndex: number, chapterTitle: string, chapterContent: string) => {
     if (!geminiApiKey) {
-      alert("API 키가 설정되지 않았습니다. 회원정보에서 API 키를 입력해주세요.");
+      alert("API 키가 설정되지 않았습니다. 설정 메뉴에서 API 키를 입력해주세요.");
       return;
     }
 
@@ -1005,7 +944,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         // chapters 형식 - 챕터별로 분리
         generatedPlan.chapters.forEach((chapter) => {
           const lines = (chapter.script || [])
-            .map((line) => line.line)
+            .map((line) => `${line.character}: ${line.line}`)
             .join("\n");
           if (lines.trim()) {
             chapters.push({
@@ -1017,7 +956,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       } else if (generatedPlan.scriptWithCharacters && generatedPlan.scriptWithCharacters.length > 0) {
         // scriptWithCharacters 형식 - 하나의 챕터로
         const scriptText = generatedPlan.scriptWithCharacters
-          .map((line) => line.line)
+          .map((line) => `${line.character}: ${line.line}`)
           .join("\n");
         chapters.push({
           title: "전체 대본",
@@ -1307,9 +1246,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     let text = `${chapter.title}\n${"=".repeat(50)}\n\n`;
     chapter.script.forEach((item) => {
       if (item.timestamp) {
-        text += `[${item.timestamp}] ${item.line}\n\n`;
+        text += `[${item.timestamp}] ${item.character}: ${item.line}\n\n`;
       } else {
-        text += `${item.line}\n\n`;
+        text += `${item.character}: ${item.line}\n\n`;
       }
     });
     return text;
@@ -1323,9 +1262,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         let text = `챕터 ${index + 1}: ${chapter.title}\n${"=".repeat(50)}\n\n`;
         chapter.script.forEach((item: any) => {
           if (item.timestamp) {
-            text += `[${item.timestamp}] ${item.line}\n\n`;
+            text += `[${item.timestamp}] ${item.character}: ${item.line}\n\n`;
           } else {
-            text += `${item.line}\n\n`;
+            text += `${item.character}: ${item.line}\n\n`;
           }
         });
         return text;
@@ -1339,7 +1278,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       return plan.chapters
         .map((chapter, index) => {
           const lines = (chapter.script || [])
-            .map((line) => line.line)
+            .map((line) => `${line.character}: ${line.line}`)
             .join("\n");
           return `# 챕터 ${index + 1}. ${chapter.title}\n${lines || chapter.purpose}`;
         })
@@ -1347,7 +1286,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     }
     if (plan.scriptWithCharacters && plan.scriptWithCharacters.length > 0) {
       return plan.scriptWithCharacters
-        .map((line) => line.line)
+        .map((line) => `${line.character}: ${line.line}`)
         .join("\n");
     }
     if (plan.scriptOutline && plan.scriptOutline.length > 0) {
@@ -2150,7 +2089,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
                                   const text = generatedPlan.scriptWithCharacters
                                     .map((line) => {
-                                      let result = `${line.line}`;
+                                      let result = `${line.character}: ${line.line}`;
                                       if (line.imagePrompt) {
                                         result += `\n[이미지 프롬프트] ${line.imagePrompt}`;
                                       }
@@ -2901,16 +2840,15 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 )}
               </div>
 
-              <div className="mt-6 rounded-xl border border-white/10 bg-black/30 p-4">
-                <p className="text-sm text-white/70">
-                  Gemini API 키는 회원정보에서 관리합니다.
-                </p>
-                <a
-                  href="/mypage?no_ads=true"
-                  className="mt-2 inline-flex items-center gap-2 text-sm font-semibold text-red-300 hover:text-red-200"
-                >
-                  회원정보에서 API 키 설정하기
-                </a>
+              {/* API 키 입력 섹션 */}
+              <div className="mt-6">
+                <ApiKeyInput
+                  apiKey={geminiApiKey}
+                  setApiKey={setGeminiApiKey}
+                  label="Gemini API Key"
+                  placeholder="Gemini API Key를 입력해주세요."
+                  description="이미지 생성에 사용되는 Gemini API Key입니다."
+                />
               </div>
 
               {/* 챕터 기반 이미지 생성 */}
@@ -3285,24 +3223,26 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
             <div className="border-t border-white/10 p-[clamp(1.2rem,2.5vw,2rem)]">
               <AdSense adSlot="3672059148" className="mb-2 rounded-2xl border border-white/10 bg-black/30 px-4 py-3" />
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <button
-                  type="button"
-                  onClick={handlePrev}
-                  disabled={!canGoPrev}
-                  className="inline-flex items-center justify-center gap-2 rounded-full border border-white/20 px-6 py-3 text-base font-semibold text-white/70 transition hover:border-white/40 disabled:opacity-40 hover:scale-105 active:scale-95"
-                >
-                  <FiChevronLeft size={20} /> 이전 단계
-                </button>
-                <button
-                  type="button"
-                  onClick={handleNext}
-                  disabled={!canGoNext}
-                  className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-red-600 to-red-500 px-8 py-3 text-base font-semibold text-white shadow-[0_10px_20px_rgba(220,38,38,0.4)] transition hover:translate-x-0.5 disabled:opacity-40 hover:scale-105 active:scale-95"
-                >
-                  다음 단계 <FiChevronRight size={20} />
-                </button>
-              </div>
+              {activeStep.id !== "script" && (
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <button
+                    type="button"
+                    onClick={handlePrev}
+                    disabled={!canGoPrev}
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-white/20 px-6 py-3 text-base font-semibold text-white/70 transition hover:border-white/40 disabled:opacity-40 hover:scale-105 active:scale-95"
+                  >
+                    <FiChevronLeft size={20} /> 이전 단계
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleNext}
+                    disabled={!canGoNext}
+                    className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-red-600 to-red-500 px-8 py-3 text-base font-semibold text-white shadow-[0_10px_20px_rgba(220,38,38,0.4)] transition hover:translate-x-0.5 disabled:opacity-40 hover:scale-105 active:scale-95"
+                  >
+                    다음 단계 <FiChevronRight size={20} />
+                  </button>
+                </div>
+              )}
             </div>
           </main>
         </div>

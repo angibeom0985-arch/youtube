@@ -145,17 +145,6 @@ const App: React.FC<ImageAppProps> = ({
     return { headers, token };
   }, []);
 
-  const IMAGE_CREDIT_COST = 0;
-
-  const deductCredits = useCallback(async (cost: number) => {
-    // 크레딧 시스템 비활성화
-    return;
-  }, []);
-
-  const refundCredits = useCallback(async (cost: number) => {
-    // 크레딧 시스템 비활성화
-    return;
-  }, []);
 
   // URL 기반 현재 뷰 결정
   useEffect(() => {
@@ -974,16 +963,7 @@ const App: React.FC<ImageAppProps> = ({
     setCharacters([]);
     setLoadingProgress("페르소나 분석 중...");
 
-    // 최대 예상 비용 (보통 1-3개 생성됨, 최대 5개로 가정)
-    const estimatedCost = 5 * IMAGE_CREDIT_COST;
-    let creditDeducted = false;
-
     try {
-      // 1. 크레딧 먼저 차감
-      await deductCredits(estimatedCost);
-      creditDeducted = true;
-
-      // 2. 이미지 생성
       const generatedCharacters = await generateCharacters(
         personaInput,
         apiKey,
@@ -1002,30 +982,16 @@ const App: React.FC<ImageAppProps> = ({
       );
 
       if (generatedCharacters.length === 0) {
-        // 생성 실패 시 크레딧 환불
-        if (creditDeducted) {
-          await refundCredits(estimatedCost);
-        }
         setPersonaError(
           "페르소나 생성에 실패했습니다. 입력을 바꿔 다시 시도해주세요."
         );
       } else {
-        // 3. 사용하지 않은 크레딧 환불
-        const actualCost = generatedCharacters.length * IMAGE_CREDIT_COST;
-        const refundAmount = estimatedCost - actualCost;
-        if (refundAmount > 0) {
-          await refundCredits(refundAmount);
-        }
 
         setCharacters(generatedCharacters);
         setPersonaError(`✅ 페르소나 ${generatedCharacters.length}개 생성 완료`);
         setTimeout(() => saveDataToStorage(true), 100);
       }
     } catch (e) {
-      // 오류 발생 시 크레딧 환불
-      if (creditDeducted) {
-        await refundCredits(estimatedCost);
-      }
       console.error("[개발자용] 페르소나 생성 오류:", e);
       const message =
         e instanceof Error
@@ -1068,7 +1034,6 @@ const App: React.FC<ImageAppProps> = ({
         return;
       }
       try {
-        await deductCredits(IMAGE_CREDIT_COST);
         const mergedDescription = customPrompt
           ? `${description}\n추가 요청: ${customPrompt}`
           : description;
@@ -1123,7 +1088,6 @@ const App: React.FC<ImageAppProps> = ({
     setLoadingProgress("대본 분석 중...");
 
     try {
-      await deductCredits(imageCount * IMAGE_CREDIT_COST);
       const generatedVideoSource = await generateStoryboard(
         videoSourceScript,
         characters,
@@ -1173,7 +1137,6 @@ const App: React.FC<ImageAppProps> = ({
       if (!target) return;
 
       try {
-        await deductCredits(IMAGE_CREDIT_COST);
         const mergedScene = customPrompt
           ? `${target.sceneDescription}\n추가 요청: ${customPrompt}`
           : target.sceneDescription;
@@ -1234,7 +1197,6 @@ const App: React.FC<ImageAppProps> = ({
     setCameraAngleProgress("원본 이미지 분석 중...");
 
     try {
-      await deductCredits(selectedCameraAngles.length * IMAGE_CREDIT_COST);
       const generatedAngles = await generateCameraAngles(
         cameraAngleSourceImage,
         selectedCameraAngles,
@@ -1954,7 +1916,7 @@ const App: React.FC<ImageAppProps> = ({
                     <span className="ml-2">페르소나 생성 중...</span>
                   </>
                 ) : (
-                  "페르소나 생성 (5 ⚡)"
+                  "페르소나 생성"
                 )}
               </button>
             </section>
@@ -2025,6 +1987,671 @@ const App: React.FC<ImageAppProps> = ({
                 </div>
               </section>
             )}
+<section className="bg-gray-800 p-6 rounded-xl shadow-2xl border-2 border-green-500">
+              <h2 className="text-2xl font-bold mb-4 text-green-400 flex items-center">
+                영상 소스 생성
+              </h2>
+              <div className="mb-4">
+                <p className="text-gray-400 text-sm mb-3">
+                  {referenceImage
+                    ? "참조 이미지를 기반으로 영상 소스를 생성합니다. 페르소나 생성 없이 바로 진행 가능합니다."
+                    : "위에서 생성한 페르소나를 활용하여 영상 소스를 만듭니다."}{" "}
+                  대본 또는 시퀀스별 장면을 입력해주세요.
+                </p>
+                <div className="bg-green-900/20 border border-green-500/50 rounded-lg p-4 mb-4">
+                  <p className="text-green-200 text-sm mb-2">
+                    <strong>입력 방법:</strong>
+                  </p>
+                  <ul className="text-green-300 text-sm space-y-1 ml-4">
+                    <li>
+                      ? <strong>전체 대본:</strong> 완전한 스크립트나 스토리를
+                      입력
+                    </li>
+                    <li>
+                      ? <strong>시퀀스별 장면:</strong> 각 줄에 하나씩 장면
+                      설명을 입력
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* 일관성 유지 (선택사항) - 영상 소스 생성으로 이동 */}
+              <div className="mb-6 bg-green-900/20 border border-green-500/50 rounded-lg p-6">
+                <h3 className="text-green-300 font-medium mb-3 flex items-center">
+                  <span className="mr-2">🔁</span>
+                  일관성 유지 (선택사항)
+                </h3>
+                <p className="text-green-200 text-sm mb-3">
+                  참조 이미지를 업로드하면 해당 이미지의 스타일과 일관성을
+                  유지하며 영상 소스를 생성합니다.
+                  {!referenceImage &&
+                    " 참조 이미지가 있으면 페르소나 생성 없이도 바로 영상 소스를 만들 수 있습니다!"}
+                </p>
+
+                {!referenceImage ? (
+                  <div className="border-2 border-dashed border-green-400 rounded-lg p-6 text-center">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleReferenceImageUpload}
+                      className="hidden"
+                      id="referenceImageInput"
+                    />
+                    <label
+                      htmlFor="referenceImageInput"
+                      className="cursor-pointer flex flex-col items-center space-y-2 hover:text-green-300 transition-colors"
+                    >
+                      <div className="text-3xl">🖼️?</div>
+                      <div className="text-green-300 font-medium">
+                        참조 이미지 업로드
+                      </div>
+                      <div className="text-green-400 text-sm">
+                        클릭하여 이미지를 선택하세요
+                      </div>
+                    </label>
+                  </div>
+                ) : (
+                  <div className="relative bg-gray-900 rounded-lg p-4">
+                    <div className="flex items-center space-x-4">
+                      <img
+                        src={`data:image/jpeg;base64,${referenceImage}`}
+                        alt="참조 이미지"
+                        className="w-20 h-20 object-cover rounded-lg"
+                      />
+                      <div className="flex-1">
+                        <div className="text-green-300 font-medium">
+                          참조 이미지 업로드됨
+                        </div>
+                        <div className="text-green-400 text-sm">
+                          이 이미지의 스타일을 참고하여 영상 소스를 생성합니다
+                        </div>
+                      </div>
+                      <button
+                        onClick={handleRemoveReferenceImage}
+                        className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors text-sm"
+                      >
+                        삭제
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <textarea
+                value={videoSourceScript}
+                onChange={(e) => setVideoSourceScript(e.target.value)}
+                placeholder="대본 전체를 넣으세요. 또는 시퀀스별 원하는 장면을 넣으세요.
+
+예시:
+1. 미래 도시 옥상에서 로봇이 새벽을 바라보며 서 있는 장면
+2. 공중정원에서 홀로그램 나비들이 춤추는 모습  
+3. 네온사인이 반사된 빗속 거리를 걸어가는 사이보그
+4. 우주 정거장 창문 너머로 지구를 내려다보는 장면"
+                className="w-full h-48 p-4 bg-gray-900 border-2 border-gray-700 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors duration-200 resize-y mb-4"
+              />
+
+              {/* 생성 옵션 설정 */}
+              <div className="mb-4 bg-green-900/20 border border-green-500/50 rounded-lg p-4">
+                <h3 className="text-green-300 font-medium mb-3 flex items-center">
+                  <span className="mr-2">⚙️</span>
+                  생성 옵션 설정
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* 자막 설정 */}
+                  <div>
+                    <label className="block text-sm font-medium text-green-200 mb-2">
+                      💬 자막 설정
+                    </label>
+                    <select
+                      value={subtitleEnabled ? "on" : "off"}
+                      onChange={(e) =>
+                        setSubtitleEnabled(e.target.value === "on")
+                      }
+                      className="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-green-200 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    >
+                      <option value="off">🚫 자막 OFF (기본값)</option>
+                      <option value="on">✅ 자막 ON</option>
+                    </select>
+                    <p className="text-xs text-gray-400 mt-1">
+                      자막 포함 여부를 선택하세요
+                    </p>
+                  </div>
+
+                  {/* 이미지 수 설정 */}
+                  <div>
+                    <Slider
+                      label="생성할 이미지 수"
+                      min={5}
+                      max={20}
+                      value={Math.min(imageCount, 20)}
+                      onChange={(e) => setImageCount(parseInt(e.target.value))}
+                    />
+                    <p className="text-xs text-gray-400 mt-1">
+                      안정적인 생성을 위해 최대 20개로 제한
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <button
+                  onClick={handleGenerateVideoSource}
+                  disabled={
+                    isLoadingVideoSource ||
+                    !videoSourceScript.trim() ||
+                    !apiKey.trim() ||
+                    (characters.length === 0 && !referenceImage) ||
+                    (hasContentWarning && !isContentWarningAcknowledged)
+                  }
+                  className="w-full sm:w-auto px-6 py-3 bg-green-600 font-semibold rounded-lg hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105 flex items-center justify-center"
+                >
+                  {isLoadingVideoSource ? (
+                    <>
+                      <Spinner size="sm" />{" "}
+                      <span className="ml-2">영상 소스 생성 중...</span>
+                    </>
+                  ) : (
+                    "영상 소스 생성"
+                  )}
+                </button>
+                {characters.length === 0 && !referenceImage && (
+                  <p className="text-yellow-400 text-sm mt-2">
+                    💡 영상 소스를 생성하려면 위에서 페르소나를 먼저 생성하거나, 참조 이미지를 업로드해주세요.
+                  </p>
+                )}
+              </div>
+            </section>
+
+            {/* 영상 소스 생성 관련 오류 표시 */}
+            {error && (
+              <div className="bg-red-900/50 border border-red-500 text-red-300 p-4 rounded-lg">
+                <div className="flex items-start">
+                  <span className="text-red-400 text-xl mr-3">
+                    {error.startsWith("?") ? "?" : "?"}
+                  </span>
+                  <div className="flex-1">
+                    <pre className="font-medium mb-2 whitespace-pre-wrap text-sm leading-relaxed">{error}</pre>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {isLoadingVideoSource && (
+              <div className="text-center p-8">
+                <Spinner size="lg" />
+                <p className="mt-4 text-green-300 text-lg font-semibold">
+                  장면을 만들고 있습니다...
+                </p>
+                {loadingProgress && (
+                  <div className="mt-4 bg-green-900/30 border border-green-500/50 rounded-lg p-4 max-w-md mx-auto">
+                    <p className="text-green-300 font-bold text-lg animate-pulse">
+                      ? {loadingProgress}
+                    </p>
+                  </div>
+                )}
+                <p className="mt-4 text-gray-400 text-sm">
+                  ? API 과부하 방지를 위해 이미지 간 3-4초 대기 시간이 있습니다.
+                </p>
+                <p className="mt-2 text-gray-500 text-xs">
+                  이 작업은 시간이 걸릴 수 있습니다. 잠시만 기다려 주세요.
+                </p>
+              </div>
+            )}
+
+            {videoSource.length > 0 && (
+              <section>
+                <div className="flex flex-wrap justify-between items-center gap-4 mb-4">
+                  <h2 className="text-2xl font-bold text-blue-300">
+                    생성된 영상 소스
+                  </h2>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleGenerateVideoSource}
+                      disabled={
+                        isLoadingVideoSource ||
+                        !videoSourceScript.trim() ||
+                        !apiKey.trim() ||
+                        (hasContentWarning && !isContentWarningAcknowledged)
+                      }
+                      className="px-4 py-2 bg-blue-600 font-semibold rounded-lg hover:bg-blue-700 disabled:bg-gray-500 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center"
+                    >
+                      {isLoadingVideoSource ? (
+                        <>
+                          <Spinner size="sm" />
+                          <span className="ml-2">생성 중...</span>
+                        </>
+                      ) : (
+                        "한 번 더 생성"
+                      )}
+                    </button>
+                    <button
+                      onClick={handleDownloadAllImages}
+                      disabled={isDownloading}
+                      className="px-4 py-2 bg-green-600 font-semibold rounded-lg hover:bg-green-700 disabled:bg-gray-500 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center"
+                    >
+                      {isDownloading ? (
+                        <>
+                          <Spinner size="sm" />
+                          <span className="ml-2">압축 중...</span>
+                        </>
+                      ) : (
+                        "모든 이미지 저장"
+                      )}
+                    </button>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {videoSource.map((item) => (
+                    <StoryboardImage
+                      key={item.id}
+                      item={item}
+                      onRegenerate={handleRegenerateVideoSourceImage}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* 광고 3: 영상 소스 생성과 카메라 앵글 생성 사이 */}
+            {!noAds && <AdBanner />}
+
+            {/* 4단계: 카메라 앵글 확장 */}
+            <section className="bg-gray-800 p-6 rounded-xl shadow-2xl border-2 border-orange-500">
+              <h2 className="text-2xl font-bold mb-4 text-orange-400 flex items-center">
+                사진 구도 확장 (최대 6가지 앵글)
+              </h2>
+              <p className="text-orange-200 text-sm mb-4">
+                원하는 앵글을 선택하여 다양한 구도의 이미지를 생성합니다.
+              </p>
+
+              {/* 중요 안내 */}
+              <div className="mb-4 bg-blue-900/20 border border-blue-500/50 rounded-lg p-4">
+                <p className="text-blue-300 text-sm font-semibold mb-2">
+                  🧭 작동 방식
+                </p>
+                <ul className="text-blue-200 text-xs space-y-1 list-disc list-inside">
+                  <li><strong>1단계:</strong> Gemini Vision AI가 업로드한 이미지를 상세히 분석 (피사체, 조명, 스타일 등)</li>
+                  <li><strong>2단계:</strong> 분석 결과를 바탕으로 선택한 앵글별로 이미지 재생성</li>
+                  <li><strong>목표:</strong> 동일한 피사체를 다양한 카메라 각도에서 표현</li>
+                  <li><strong>유의사항:</strong> AI 재생성이므로 100% 동일하지 않을 수 있음</li>
+                  <li><strong>처리 시간:</strong> API 제한으로 앵글당 5-6초 소요 (6개 선택 시 약 30-40초)</li>
+                </ul>
+              </div>
+
+              {/* 이미지 업로드 섹션 */}
+              <div className="mb-6 bg-orange-900/20 border border-orange-500/50 rounded-lg p-6">
+                <h3 className="text-orange-300 font-medium mb-3 flex items-center">
+                  <span className="mr-2">📷</span>
+                  분석할 원본 이미지 업로드
+                </h3>
+                <p className="text-orange-200 text-sm mb-3">
+                  이미지를 업로드하면 AI가 상세히 분석한 후, 선택한 카메라 앵글로 재생성합니다.
+                </p>
+
+                {!cameraAngleSourceImage ? (
+                  <div className="border-2 border-dashed border-orange-400 rounded-lg p-6 text-center">
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png,image/webp"
+                      onChange={handleCameraAngleImageUpload}
+                      className="hidden"
+                      id="cameraAngleImageInput"
+                    />
+                    <label
+                      htmlFor="cameraAngleImageInput"
+                      className="cursor-pointer flex flex-col items-center space-y-2 hover:text-orange-300 transition-colors"
+                    >
+                      <div className="text-3xl">🖼️?</div>
+                      <div className="text-orange-300 font-medium">
+                        원본 이미지 업로드
+                      </div>
+                      <div className="text-orange-400 text-sm">
+                        클릭하여 이미지를 선택하세요
+                      </div>
+                      <div className="text-orange-300 text-xs mt-2">
+                        JPG, PNG, WEBP 형식 지원 (최대 10MB)
+                      </div>
+                    </label>
+                  </div>
+                ) : (
+                  <div className="relative bg-gray-900 rounded-lg p-4">
+                    <div className="flex items-center space-x-4">
+                      <img
+                        src={cameraAngleSourceImage}
+                        alt="카메라 앵글 원본 이미지"
+                        className="w-20 h-20 object-cover rounded-lg border-2 border-orange-400"
+                      />
+                      <div className="flex-1">
+                        <p className="text-orange-300 font-medium">원본 이미지 업로드 완료</p>
+                        <p className="text-orange-400 text-sm">10가지 앵글로 변환할 준비가 되었습니다</p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setCameraAngleSourceImage(null);
+                          setCameraAngles([]);
+                          setCameraAngleError(null);
+                        }}
+                        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-semibold"
+                      >
+                        삭제
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* 앵글 선택 섹션 */}
+              <div className="mb-6 bg-orange-900/20 border border-orange-500/50 rounded-lg p-6">
+                <h3 className="text-orange-300 font-medium mb-3 flex items-center">
+                  <span className="mr-2">?</span>
+                  생성할 앵글 선택 ({selectedCameraAngles.length}/6)
+                </h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { value: 'Front View' as CameraAngle, label: '정면', emoji: '🙂', direction: '' },
+                    { value: 'Right Side View' as CameraAngle, label: '오른쪽 측면', emoji: '🙂', direction: '(왼쪽을 바라봄)' },
+                    { value: 'Left Side View' as CameraAngle, label: '왼쪽 측면', emoji: '🙂', direction: '(오른쪽을 바라봄)' },
+                    { value: 'Back View' as CameraAngle, label: '뒷모습', emoji: '🙂', direction: '' },
+                    { value: 'Full Body' as CameraAngle, label: '전신', emoji: '🙂', direction: '' },
+                    { value: 'Close-up Face' as CameraAngle, label: '얼굴 근접', emoji: '🙂', direction: '' },
+                  ].map((angle) => (
+                    <label
+                      key={angle.value}
+                      className={`flex items-center p-3 rounded-lg cursor-pointer transition-all ${selectedCameraAngles.includes(angle.value)
+                        ? 'bg-orange-600/40 border-2 border-orange-400'
+                        : 'bg-gray-700/50 border-2 border-gray-600 hover:bg-gray-600/50'
+                        }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedCameraAngles.includes(angle.value)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedCameraAngles([...selectedCameraAngles, angle.value]);
+                          } else {
+                            setSelectedCameraAngles(selectedCameraAngles.filter(a => a !== angle.value));
+                          }
+                        }}
+                        className="w-5 h-5 mr-3"
+                      />
+                      <span className="text-xl mr-2">{angle.emoji}</span>
+                      <div className="flex flex-col">
+                        <span className="text-orange-200 font-medium text-sm">{angle.label}</span>
+                        {angle.direction && (
+                          <span className="text-orange-300/60 text-xs">{angle.direction}</span>
+                        )}
+                      </div>
+                    </label>
+                  ))}
+                </div>
+                <div className="mt-3 flex space-x-2">
+                  <button
+                    onClick={() => setSelectedCameraAngles([
+                      'Front View', 'Right Side View', 'Left Side View', 'Back View', 'Full Body', 'Close-up Face'
+                    ])}
+                    className="px-3 py-1 bg-orange-600 text-white rounded text-xs hover:bg-orange-700"
+                  >
+                    전체 선택
+                  </button>
+                  <button
+                    onClick={() => setSelectedCameraAngles([])}
+                    className="px-3 py-1 bg-gray-600 text-white rounded text-xs hover:bg-gray-700"
+                  >
+                    전체 해제
+                  </button>
+                </div>
+              </div>
+
+              {/* 비율 선택 */}
+              <div className="mb-4">
+                <label className="block text-orange-300 text-sm mb-2 font-semibold">
+                  📐 생성할 이미지 비율
+                </label>
+                <AspectRatioSelector
+                  selectedRatio={aspectRatio}
+                  onRatioChange={setAspectRatio}
+                />
+              </div>
+
+              {/* 생성 버튼 - 로딩 중이 아닐 때만 표시 */}
+              {!isLoadingCameraAngles && (
+                <>
+                  <button
+                    onClick={handleGenerateCameraAngles}
+                    disabled={!cameraAngleSourceImage || !apiKey || selectedCameraAngles.length === 0}
+                    className={`w-full py-4 rounded-lg font-bold text-lg transition-all ${!cameraAngleSourceImage || !apiKey || selectedCameraAngles.length === 0
+                      ? "bg-gray-600 text-gray-400 cursor-not-allowed"
+                      : "bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 shadow-lg hover:shadow-xl transform hover:scale-105"
+                      }`}
+                  >
+                    🚀 선택한 {selectedCameraAngles.length}가지 앵글 생성하기
+                  </button>
+
+                  {!apiKey && (
+                    <p className="text-yellow-400 text-sm mt-2">
+                      ⚠️ 서버 API 키가 설정되지 않았습니다. 관리자에게 문의해주세요.
+                    </p>
+                  )}
+                </>
+              )}
+
+              {/* 로딩 중 진행 상황 표시 - 주황색 박스만 표시 */}
+              {isLoadingCameraAngles && cameraAngleProgress && (
+                <div className="mt-6">
+                  <div className="bg-gradient-to-br from-orange-900/40 to-orange-800/30 border-2 border-orange-500 rounded-xl p-8 shadow-2xl">
+                    <div className="flex flex-col items-center space-y-4">
+                      <Spinner size="lg" />
+                      <div className="text-center">
+                        <p className="text-orange-300 font-bold text-2xl animate-pulse">
+                          ? {cameraAngleProgress}
+                        </p>
+                        <p className="mt-3 text-orange-400 text-base">
+                          ? 앵글 간 5-6초 대기 (API 할당량 보호)
+                        </p>
+                        <p className="mt-2 text-orange-500 text-sm">
+                          선택한 {selectedCameraAngles.length}가지 앵글 생성에는 약 {Math.ceil(selectedCameraAngles.length * 6 / 60)}분 소요
+                        </p>
+                        <div className="mt-4 bg-orange-950/50 rounded-lg p-3">
+                          <p className="text-orange-300 text-xs">
+                            ⏱️ 생성 중에는 브라우저를 닫지 마세요
+                          </p>
+                          <p className="text-orange-400 text-xs mt-1">
+                            ⚠️ 할당량 초과 시 생성된 이미지만 저장됩니다
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 에러 메시지 */}
+              {cameraAngleError && !isLoadingCameraAngles && (
+                <div className="mt-4 p-4 bg-red-900/30 border border-red-600 rounded-lg">
+                  <pre className="text-red-400 text-sm whitespace-pre-wrap font-mono">
+                    {cameraAngleError}
+                  </pre>
+                </div>
+              )}
+
+              {/* 생성된 카메라 앵글 결과 그리드 */}
+              {cameraAngles.length > 0 && !isLoadingCameraAngles && (
+                <div className="mt-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-xl font-bold text-orange-300">
+                      📸 생성된 카메라 앵글 ({cameraAngles.length}개)
+                    </h3>
+                    <button
+                      onClick={async () => {
+                        try {
+                          let successCount = 0;
+                          let cancelCount = 0;
+
+                          for (let index = 0; index < cameraAngles.length; index++) {
+                            const angleImg = cameraAngles[index];
+                            const fileName = `${index + 1}_${angleImg.angleName}.png`;
+
+                            try {
+                              const base64Data = angleImg.image.includes(',')
+                                ? angleImg.image.split(',')[1]
+                                : angleImg.image;
+                              const base64Response = await fetch(`data:image/png;base64,${base64Data}`);
+                              const blob = await base64Response.blob();
+
+                              if ('showSaveFilePicker' in window) {
+                                try {
+                                  const handle = await (window as any).showSaveFilePicker({
+                                    suggestedName: fileName,
+                                    types: [
+                                      {
+                                        description: '이미지 파일',
+                                        accept: {
+                                          'image/png': ['.png'],
+                                        },
+                                      },
+                                    ],
+                                  });
+
+                                  const writable = await handle.createWritable();
+                                  await writable.write(blob);
+                                  await writable.close();
+                                  successCount++;
+                                } catch (err: any) {
+                                  if (err.name === 'AbortError') {
+                                    cancelCount++;
+                                    console.log(`[${index + 1}/${cameraAngles.length}] 사용자가 저장을 취소했습니다.`);
+                                  } else {
+                                    throw err;
+                                  }
+                                }
+                              } else {
+                                const link = document.createElement('a');
+                                link.href = URL.createObjectURL(blob);
+                                link.download = fileName;
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                                URL.revokeObjectURL(link.href);
+                                successCount++;
+                                await new Promise(resolve => setTimeout(resolve, 300));
+                              }
+                            } catch (err) {
+                              console.error(`[개발자용] 카메라 앵글 ${index + 1} 다운로드 오류:`, err);
+                              throw err;
+                            }
+                          }
+
+                          if (successCount > 0) {
+                            setCameraAngleError(`? ${successCount}개의 카메라 앵글이 저장되었습니다!` +
+                              (cancelCount > 0 ? ` (${cancelCount}개 취소됨)` : ''));
+                          } else if (cancelCount > 0) {
+                            setCameraAngleError(`모든 다운로드가 취소되었습니다.`);
+                          }
+                        } catch (error) {
+                          console.error("[개발자용] 카메라 앵글 다운로드 오류:", error);
+
+                          let userMessage = "카메라 앵글 다운로드에 실패했습니다. 다시 시도해 주세요.";
+
+                          if (error instanceof Error) {
+                            console.error(`[개발자용] 오류 상세: ${error.name} - ${error.message}`);
+
+                            if (error.name === 'NotAllowedError') {
+                              userMessage = "파일 저장 권한이 거부되었습니다. 브라우저 설정을 확인해 주세요.";
+                            } else if (error.name === 'SecurityError') {
+                              userMessage = "보안 문제로 파일을 저장할 수 없습니다. 브라우저를 업데이트하거나 다른 브라우저를 사용해 주세요.";
+                            }
+                          }
+
+                          setCameraAngleError(userMessage);
+                        }
+                      }}
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-semibold"
+                    >
+                      ⬇️ 전체 다운로드 ({cameraAngles.length}개)
+                    </button>
+                  </div>
+
+                  {/* 4열 x 5행 그리드 */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {cameraAngles.map((angleImg) => (
+                      <div
+                        key={angleImg.id}
+                        className="bg-gray-700 rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-all transform hover:scale-105"
+                      >
+                        <div className="relative aspect-square">
+                          <img
+                            src={angleImg.image}
+                            alt={angleImg.angleName}
+                            className="w-full h-full object-cover cursor-pointer"
+                            onClick={() => {
+                              // 새창으로 이미지 열기
+                              openImageInNewWindow(angleImg.image, `카메라 앵글 - ${angleImg.angleName}`);
+                            }}
+                          />
+                        </div>
+                        <div className="p-3">
+                          <h4 className="font-bold text-white text-sm mb-1">
+                            {angleImg.angleName}
+                          </h4>
+                          <p className="text-gray-400 text-xs mb-2 line-clamp-2">
+                            {angleImg.description}
+                          </p>
+                          <button
+                            onClick={async () => {
+                              try {
+                                // Base64를 Blob으로 변환
+                                const response = await fetch(angleImg.image);
+                                const blob = await response.blob();
+
+                                // File System Access API 지원 확인
+                                if ('showSaveFilePicker' in window) {
+                                  try {
+                                    const handle = await (window as any).showSaveFilePicker({
+                                      suggestedName: `카메라-앵글-${angleImg.angleName}.jpg`,
+                                      types: [
+                                        {
+                                          description: '이미지 파일',
+                                          accept: {
+                                            'image/jpeg': ['.jpg', '.jpeg'],
+                                          },
+                                        },
+                                      ],
+                                    });
+
+                                    const writable = await handle.createWritable();
+                                    await writable.write(blob);
+                                    await writable.close();
+                                  } catch (err: any) {
+                                    if (err.name !== 'AbortError') {
+                                      throw err;
+                                    }
+                                  }
+                                } else {
+                                  // 폴백: 기존 다운로드 방식
+                                  const link = document.createElement('a');
+                                  link.href = URL.createObjectURL(blob);
+                                  link.download = `카메라-앵글-${angleImg.angleName}.jpg`;
+                                  document.body.appendChild(link);
+                                  link.click();
+                                  document.body.removeChild(link);
+                                  URL.revokeObjectURL(link.href);
+                                }
+                              } catch (error) {
+                                console.error("[개발자용] 이미지 다운로드 오류:", error);
+                              }
+                            }}
+                            className="w-full py-2 bg-orange-600 text-white rounded text-xs font-semibold hover:bg-orange-700 transition-colors"
+                          >
+                            ⬇️ 다운로드
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </section>
+
+            
           </main>
         </div>
       </div>
