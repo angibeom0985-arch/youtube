@@ -5,10 +5,10 @@
   "type": "module",
   "description": "Unified YouTube script analysis and image generation tool for youtube.money-hotissue.com",
   "scripts": {
-    "dev": "vite youtube/youtube_script",
-    "build": "vite build youtube/youtube_script",
-    "preview": "vite preview youtube/youtube_script",
-    "generate-og": "node youtube/scripts/generate_og_image.js",
+    "dev": "node scripts/vite-run.mjs dev",
+    "build": "node scripts/vite-run.mjs build",
+    "preview": "node scripts/vite-run.mjs preview",
+    "generate-og": "node YOUTUBE/scripts/generate_og_image.js",
     "finish": "node scripts/finish.mjs"
   },
   "dependencies": {

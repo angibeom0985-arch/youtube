@@ -75,15 +75,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   }
 
-  // Google Service Account JSON ???�일 경로 ?�정
+  // Google Service Account JSON ???뚯씪 寃쎈줈 ?ㅼ젙
   let keyFilename = process.env.GOOGLE_APPLICATION_CREDENTIALS;
   const jsonFileName = "google-credentials.json";
 
   if (!keyFilename || !fs.existsSync(keyFilename)) {
-    // ?�보 경로???�인
+    // ?꾨낫 寃쎈줈???뺤씤
         const candidates = [
       path.join(process.cwd(), "api", "youtube_TTS", jsonFileName),
       path.join(__dirname, jsonFileName),
+      path.join(process.cwd(), "YOUTUBE", "config", jsonFileName),
       path.join(process.cwd(), "youtube", "config", jsonFileName),
       path.join(process.cwd(), "misc", jsonFileName),
       path.resolve(process.cwd(), "youtube_TTS", "api", jsonFileName),
@@ -98,7 +99,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   }
 
-  // ?�경변?�로 JSON ?�용??직접 ?�달??경우 처리 (Vercel 권장 방식)
+  // ?섍꼍蹂?섎줈 JSON ?댁슜??吏곸젒 ?꾨떖??寃쎌슦 泥섎━ (Vercel 沅뚯옣 諛⑹떇)
   let clientOptions: any = { keyFilename };
 
   if (userCredentials) {
@@ -153,7 +154,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return;
     }
 
-    // Buffer�?Base64 문자?�로 변?�하???�송
+    // Buffer瑜?Base64 臾몄옄?대줈 蹂?섑븯???꾩넚
     const audioContent = Buffer.from(response.audioContent).toString("base64");
 
     res.status(200).json({ audioContent });
