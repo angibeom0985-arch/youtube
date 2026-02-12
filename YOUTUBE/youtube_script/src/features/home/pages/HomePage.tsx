@@ -253,7 +253,7 @@ const HomePage: React.FC<HomePageProps> = ({
                 <span className="rounded-full bg-black/40 px-4 py-2 font-semibold text-slate-200">
                   대본 → 이미지 → 영상 → 편집
                 </span>
-                <span className="inline-flex items-center rounded-full px-5 py-2 text-sm font-black text-white shadow-sm bg-gradient-to-r from-red-500 to-orange-500">
+                <span className="inline-flex items-center rounded-full px-5 py-2 text-sm font-black text-white shadow-sm bg-red-500">
                   올인원 시작하기 -&gt;
                 </span>
               </div>
