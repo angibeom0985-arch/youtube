@@ -1,5 +1,5 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getSupabaseUser } from "../../shared/supabase.js";
+﻿import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { getSupabaseUser } from "../../../server/shared/supabase.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     // 1. Auth Check
@@ -64,3 +64,4 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     return res.status(405).json({ message: "Method not allowed" });
 }
+

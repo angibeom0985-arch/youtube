@@ -1,6 +1,6 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node";
+﻿import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { TextToSpeechClient } from "@google-cloud/text-to-speech";
-import { enforceUsageLimit, recordUsageEvent } from "../../shared/usageLimit.js";
+import { enforceUsageLimit, recordUsageEvent } from "../../../server/shared/usageLimit.js";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
@@ -45,12 +45,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  // Google Service Account JSON ?????�� 寃쎈�???�젙
+  // Google Service Account JSON ?????뵬 野껋럥以???쇱젟
   let keyFilename = process.env.GOOGLE_APPLICATION_CREDENTIALS;
   const jsonFileName = "google-credentials.json";
 
   if (!keyFilename || !fs.existsSync(keyFilename)) {
-    // ?꾨낫 寃쎈�???뺤씤
+    // ?袁⑤궖 野껋럥以???類ㅼ뵥
         const candidates = [
       path.join(process.cwd(), "api", "youtube_TTS", jsonFileName),
       path.join(__dirname, jsonFileName),
@@ -69,7 +69,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   }
 
-  // ??�꼍蹂??�줈 JSON ??�슜??吏곸???꾨떖??寃쎌??泥섎??(Vercel 沅뚯??諛⑹??
+  // ??띻펾癰궰??롮쨮 JSON ??곸뒠??筌욊낯???袁⑤뼎??野껋럩??筌ｌ꼶??(Vercel 亦낅슣??獄쎻뫗??
   let clientOptions: any = { keyFilename };
 
   if (process.env.GOOGLE_CREDENTIALS_JSON) {
@@ -122,7 +122,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return;
     }
 
-    // Buffer??Base64 ?�몄???��?蹂??�븯???꾩넚
+    // Buffer??Base64 ?얜챷???以?癰궰??묐릭???袁⑸꽊
     const audioContent = Buffer.from(response.audioContent).toString("base64");
 
     res.status(200).json({ audioContent });
@@ -131,5 +131,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.status(500).json({ message: error?.message || "server_error" });
   }
 }
+
 
 

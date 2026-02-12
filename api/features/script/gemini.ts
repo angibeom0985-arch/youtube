@@ -1,4 +1,4 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node";
+﻿import type { VercelRequest, VercelResponse } from "@vercel/node";
 import {
   analyzeTranscript,
   generateIdeas,
@@ -6,15 +6,15 @@ import {
   generateSsml,
   generateActingPrompt,
   reformatTopic,
-} from "../../shared/geminiService.js";
+} from "../../../server/shared/geminiService.js";
 import {
   generateChapterOutline,
   generateChapterScript
-} from "../../shared/chapterService.js";
-import { enforceAbusePolicy } from "../../shared/abuseGuard.js";
-import { enforceUsageLimit, recordUsageEvent } from "../../shared/usageLimit.js";
-import { checkAndDeductCredits, CREDIT_COSTS } from "../../shared/creditService.js";
-import { supabaseAdmin } from "../../shared/supabase.js";
+} from "../../../server/shared/chapterService.js";
+import { enforceAbusePolicy } from "../../../server/shared/abuseGuard.js";
+import { enforceUsageLimit, recordUsageEvent } from "../../../server/shared/usageLimit.js";
+import { checkAndDeductCredits, CREDIT_COSTS } from "../../../server/shared/creditService.js";
+import { supabaseAdmin } from "../../../server/shared/supabase.js";
 
 type RateEntry = {
   count: number;
@@ -330,3 +330,4 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 }
 }
+

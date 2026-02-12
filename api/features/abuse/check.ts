@@ -1,7 +1,7 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node";
+﻿import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { createHash } from "crypto";
-import { supabaseAdmin } from "../../shared/supabase.js";
-import { classifyWithGroq } from "../../shared/groq.js";
+import { supabaseAdmin } from "../../../server/shared/supabase.js";
+import { classifyWithGroq } from "../../../server/shared/groq.js";
 
 const HASH_SALT = process.env.ABUSE_HASH_SALT || "local_dev_salt";
 const LOOKBACK_MS = Number(process.env.ABUSE_LOOKBACK_MS || 24 * 60 * 60 * 1000);
@@ -183,3 +183,4 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.status(500).send("analysis_error");
   }
 }
+

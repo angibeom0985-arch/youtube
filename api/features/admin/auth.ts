@@ -1,10 +1,10 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node";
+﻿import type { VercelRequest, VercelResponse } from "@vercel/node";
 import {
   createSessionToken,
   setSessionCookie,
   clearSessionCookie,
   validateAdminCredentials,
-} from "../../shared/adminAuth.js";
+} from "../../../server/shared/adminAuth.js";
 
 const parseBody = (req: VercelRequest) => {
   if (!req.body) return null;
@@ -34,7 +34,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     if (action === "login") {
-      // 로그인 처리
+      // 濡쒓렇??泥섎━
       const username = body?.username || "";
       const password = body?.password || "";
 
@@ -48,7 +48,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       setSessionCookie(res, token);
       res.status(200).json({ ok: true });
     } else if (action === "logout") {
-      // 로그아웃 처리
+      // 濡쒓렇?꾩썐 泥섎━
       clearSessionCookie(res);
       res.status(200).json({ ok: true });
     } else {
@@ -59,3 +59,4 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.status(500).json({ error: "auth_error" });
   }
 }
+

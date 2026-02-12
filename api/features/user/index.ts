@@ -1,6 +1,6 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getSupabaseUser, supabaseAdmin } from "../../shared/supabase.js";
-import { checkAndDeductCredits } from "../../shared/creditService.js";
+﻿import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { getSupabaseUser, supabaseAdmin } from "../../../server/shared/supabase.js";
+import { checkAndDeductCredits } from "../../../server/shared/creditService.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -26,7 +26,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(401).json({ error: "Invalid token" });
   }
 
-  // POST: 크레딧 차감 또는 환불
+  // POST: ?щ젅??李④컧 ?먮뒗 ?섎텋
   if (req.method === "POST") {
     res.setHeader("Cache-Control", "no-store");
 
@@ -46,7 +46,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ message: "invalid_cost" });
     }
 
-    // 환불 처리
+    // ?섎텋 泥섎━
     if (action === "refund") {
       try {
         const { data: profile, error: fetchError } = await supabaseClient
@@ -84,7 +84,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     }
 
-    // 차감 처리
+    // 李④컧 泥섎━
     const creditResult = await checkAndDeductCredits(req, res, cost);
     if (!creditResult.allowed) {
       return res.status(creditResult.status || 402).json({
@@ -97,7 +97,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({ credits: creditResult.currentCredits });
   }
 
-  // DELETE: 계정 삭제
+  // DELETE: 怨꾩젙 ??젣
   if (req.method === "DELETE") {
     if (!supabaseAdmin) {
       return res.status(500).json({ error: "Admin client unavailable" });
@@ -200,3 +200,4 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   }
 }
+

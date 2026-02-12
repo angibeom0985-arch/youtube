@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { AnalysisResult, NewPlan } from "../types.js";
+import type { AnalysisResult, NewPlan } from "./types.js";
 
 const createAI = (apiKey: string) => {
   return new GoogleGenAI({ apiKey });
@@ -725,16 +725,16 @@ ${analysis.openingStyle.exampleLines.map((line, i) => `  ${i + 1}. ${line}`).joi
       const chapterGuide = `\n\n**챕터 구성 가이드 (${length})**\n- 최소 ${targetChapters}개 이상의 챕터로 구성\n- 챕터당 약 ${minutesPerChapter}분 분량으로 균등하게 배분\n- 각 챕터는 제목/목적/예상 분량/대본을 포함`;
       const scriptStyleGuide =
         scriptStyle === "dialogue"
-          ? "
+          ? `
 
 **Script Style: Dialogue**
 - Multiple characters speak in turns.
-- Keep narration minimal and let dialogue carry the story."
-          : "
+- Keep narration minimal and let dialogue carry the story.`
+          : `
 
 **Script Style: Narration**
 - Single narrator only (e.g., 'Narrator').
-- Do NOT introduce additional characters or character names.";
+- Do NOT introduce additional characters or character names.`;
 
       const isStoryChannel = category === "? ??";
       const isVlogChannel = category === "브이로그";
