@@ -3286,7 +3286,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       <div className="absolute -bottom-32 -right-28 h-[clamp(240px,36vw,420px)] w-[clamp(240px,36vw,420px)] rounded-full bg-gradient-to-tr from-rose-400/30 via-purple-500/10 to-transparent blur-3xl" />
 
       <div className="absolute top-0 right-0 p-4 sm:p-6 flex gap-3 z-50 items-center">
-        <UserCreditToolbar user={user} onLogout={handleLogout} tone="red" />
+        <UserCreditToolbar user={user} onLogout={handleLogout} tone="red" showCredits={false} />
       </div>
       <div className="absolute top-0 left-0 p-4 sm:p-6 z-50">
         <HomeBackButton tone="red" />

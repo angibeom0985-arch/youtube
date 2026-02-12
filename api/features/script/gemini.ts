@@ -13,8 +13,7 @@ import {
 } from "../../../server/shared/chapterService.js";
 import { enforceAbusePolicy } from "../../../server/shared/abuseGuard.js";
 import { enforceUsageLimit, recordUsageEvent } from "../../../server/shared/usageLimit.js";
-import { checkAndDeductCredits, CREDIT_COSTS } from "../../../server/shared/creditService.js";
-import { supabaseAdmin } from "../../../server/shared/supabase.js";
+import { getSupabaseUser, supabaseAdmin } from "../../../server/shared/supabase.js";
 
 type RateEntry = {
   count: number;
@@ -111,54 +110,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return;
     }
 
-    // 1. Determine Cost based on Action
-    let cost = 0;
-    switch (action) {
-      case "analyzeTranscript":
-        cost = CREDIT_COSTS.ANALYSIS;
-        break;
-      case "generateIdeas":
-        cost = CREDIT_COSTS.IDEATION;
-        break;
-      case "generateNewPlan":
-        cost = CREDIT_COSTS.SCRIPT_PLAN;
-        break;
-      case "generateChapterOutline":
-        cost = CREDIT_COSTS.SCRIPT_OUTLINE;
-        break;
-      case "generateChapterScript":
-        cost = CREDIT_COSTS.SCRIPT_CHUNK;
-        break;
-      case "generateSsml":
-        cost = CREDIT_COSTS.ANALYSIS; // Low cost
-        break;
-      case "generateActingPrompt":
-        cost = CREDIT_COSTS.ANALYSIS; // Low cost
-        break;
-      case "reformatTopic":
-        cost = CREDIT_COSTS.ANALYSIS; // Low cost
-        break;
-      default:
-        cost = 1; // Default low cost
-    }
+    let userId: string | null = null;
+    const authHeader = req.headers.authorization;
+    const token =
+      typeof authHeader === "string" && authHeader.startsWith("Bearer ")
+        ? authHeader.slice(7)
+        : null;
 
-    // 2. Check and Deduct Credits (Enforces Login)
-    const creditResult = await checkAndDeductCredits(req, res, cost);
-    if (!creditResult.allowed) {
-      res.status(creditResult.status || 402).json({
-        message: creditResult.message || "Credits required",
-        error: "credit_limit"
-      });
-      return;
+    if (token) {
+      const authResult = await getSupabaseUser(token);
+      userId = authResult.user?.id ?? null;
     }
 
     // [NEW] Check for User API Key override
     let effectiveApiKey = apiKey;
-    if (creditResult.userId && supabaseAdmin) {
+    if (userId && supabaseAdmin) {
       const { data } = await supabaseAdmin
         .from("profiles")
         .select("gemini_api_key")
-        .eq("id", creditResult.userId)
+        .eq("id", userId)
         .single();
       if (data?.gemini_api_key) {
         effectiveApiKey = data.gemini_api_key;

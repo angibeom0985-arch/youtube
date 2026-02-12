@@ -320,7 +320,6 @@ const BenchmarkingPage: React.FC = () => {
               ) : (
                 <>
                   <span>벤치마킹 영상 검색</span>
-                  <span className="bg-white/20 text-white text-sm px-2 py-1 rounded-full font-bold">5 ⚡</span>
                 </>
               )}
             </button>

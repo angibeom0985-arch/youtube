@@ -68,7 +68,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   return (
     <div className="flex flex-col items-center gap-3">
       <span className="text-sm font-black text-blue-600 animate-bounce bg-blue-50 px-3 py-1 rounded-full border border-blue-200 shadow-sm">
-        ✨ 지금 가입하고 무료 크레딧 받기
+        ✨ 지금 가입하고 바로 시작하기
       </span>
 
 
@@ -86,7 +86,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       <button
         onClick={handleGoogleLogin}
         className="flex items-center gap-2 px-4 py-2 bg-white text-gray-700 rounded-lg hover:bg-gray-100 transition-colors shadow-md font-medium text-sm border border-gray-200"
-        title="Google 계정으로 로그인하고 크레딧 받기"
+        title="Google 계정으로 로그인"
       >
         <FcGoogle size={20} />
         <span>Google로 시작하기</span>

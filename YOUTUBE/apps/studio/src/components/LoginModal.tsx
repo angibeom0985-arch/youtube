@@ -48,7 +48,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLoginGoogle,
           
           <div className="text-lg md:text-xl text-slate-300 mb-10 leading-relaxed">
             <p className="whitespace-nowrap">원활한 서비스 이용을 위해 로그인이 필요합니다.</p>
-            <p className="text-yellow-400 font-black mt-1 whitespace-nowrap">지금 가입하면 12 크레딧을 즉시 드려요! 🎁</p>
+            <p className="text-yellow-400 font-black mt-1 whitespace-nowrap">지금 로그인하고 기능을 바로 사용해보세요.</p>
           </div>
 
           {/* Login Button */}
