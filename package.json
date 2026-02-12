@@ -8,7 +8,8 @@
     "dev": "vite youtube_script",
     "build": "vite build youtube_script",
     "preview": "vite preview youtube_script",
-    "generate-og": "node YOUTUBE/scripts/generate_og_image.js"
+    "generate-og": "node YOUTUBE/scripts/generate_og_image.js",
+    "finish": "node scripts/finish.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

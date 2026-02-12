@@ -426,7 +426,15 @@ export const generateIdeas = async (
         ? `\n\n**제목 형식 기준:** 아래 예시 제목의 말투/리듬/문장 구조/기호 사용(… , ㄷㄷ, ?, ! 등)을 따라 작성하세요.\n- 예시 제목을 그대로 복붙하거나 1:1 치환하지 마세요.\n- 예시 제목에서 6자 이상 연속으로 그대로 가져오지 마세요.\n- 의미는 새롭게, 형식만 비슷하게 유지하세요.\n\n예시 제목:\n${titleFormat}\n`
         : "";
 
-      const noveltyInstruction = `\n\n**소재 분리 규칙:**\n- 벤치마킹한 원본 영상의 소재/사례/장소/제품과 동일한 내용을 피하세요.\n- 같은 카테고리 안에서 소재를 바꾼 새로운 아이디어를 제시하세요.\n- 고유명사(브랜드/장소/인물)는 원본과 겹치지 않게 하세요.\n- 각 아이디어는 서로도 겹치지 않게 다양하게 작성하세요.\n`;
+      const noveltyInstruction = `
+
+**Novelty rules (required):**
+- Do NOT reuse the same material (people/places/events/products/cases) from the original.
+- Keep the same category or problem, but switch to completely different material.
+- No simple word swaps: if core keywords overlap >70%, it's a failure.
+- Proper nouns must not overlap with the original.
+- Ideas must be distinct from each other.
+`;
 
       const prompt = isShoppingReview
         ? `다음은 성공적인 "쇼핑 리뷰" 영상 분석 결과입니다. 이 분석을 바탕으로 쿠팡에서 현재 판매량이 높거나 후기 반응이 좋은 제품 중 리뷰 콘텐츠로 적합한 6가지 아이디어를 제안해주세요.\n아이디어는 한국어로 작성하고 JSON 배열로만 출력하세요.${keywordInstruction}${titleFormatInstruction}${noveltyInstruction}\n\n분석 내용:\n${analysisString}`
@@ -706,7 +714,7 @@ ${analysis.openingStyle.exampleLines.map((line, i) => `  ${i + 1}. ${line}`).joi
         if (minutes >= 30) return 6;
         if (minutes >= 20) return 5;
         if (minutes >= 15) return 4;
-        if (minutes >= 10) return 3;
+        if (minutes >= 8) return 3;
         if (minutes >= 5) return 2;
         return 1;
       };
@@ -717,20 +725,28 @@ ${analysis.openingStyle.exampleLines.map((line, i) => `  ${i + 1}. ${line}`).joi
       const chapterGuide = `\n\n**챕터 구성 가이드 (${length})**\n- 최소 ${targetChapters}개 이상의 챕터로 구성\n- 챕터당 약 ${minutesPerChapter}분 분량으로 균등하게 배분\n- 각 챕터는 제목/목적/예상 분량/대본을 포함`;
       const scriptStyleGuide =
         scriptStyle === "dialogue"
-          ? "\n\n**대본 스타일: 대화 버전**\n- 여러 인물의 대화 위주로 진행\n- 내레이션은 최소화하고 대화로 흐름을 전개"
-          : "\n\n**대본 스타일: 나레이션 버전**\n- 나레이션 중심으로 서술\n- 등장인물 대사는 최소화";
+          ? "
 
-      const isStoryChannel = category === "썰 채널";
-      const isVlogChannel = category === "브이로그";
-      const is49Channel = category === "49금";
-      const isYadamChannel = category === "야담";
-      const isMukbangChannel = category === "먹방";
-      const isGukppongChannel = category === "국뽕";
-      const isNorthKoreaChannel = category === "북한 이슈";
-      const schema =
-        isStoryChannel || is49Channel || isYadamChannel || isGukppongChannel || isNorthKoreaChannel
-          ? storyChannelNewPlanSchema
-          : structuredOutlinePlanSchema;
+**Script Style: Dialogue**
+- Multiple characters speak in turns.
+- Keep narration minimal and let dialogue carry the story."
+          : "
+
+**Script Style: Narration**
+- Single narrator only (e.g., 'Narrator').
+- Do NOT introduce additional characters or character names.";
+
+      const isStoryChannel = category === "? ??";
+      const isVlogChannel = category === "????";
+      const is49Channel = category === "49?";
+      const isYadamChannel = category === "??";
+      const isMukbangChannel = category === "??";
+      const isGukppongChannel = category === "??";
+      const isNorthKoreaChannel = category === "?? ??";
+      const isDialogueMode = scriptStyle === "dialogue";
+      const useStoryPrompt = (isStoryChannel || is49Channel || isYadamChannel || isGukppongChannel || isNorthKoreaChannel) && isDialogueMode;
+      const useStorySchema = useStoryPrompt;
+      const schema = useStorySchema ? storyChannelNewPlanSchema : structuredOutlinePlanSchema;
 
       let contents;
 
@@ -749,7 +765,7 @@ ${analysis.openingStyle.exampleLines.map((line, i) => `  ${i + 1}. ${line}`).joi
 
       const lengthGuidelineWithChapters = `${lengthGuideline}${chapterGuide}${scriptStyleGuide}`;
 
-      if (isStoryChannel) {
+      if (useStoryPrompt) {
         contents = `"${newKeyword}"를 주제로 한 완전히 새로운 스토리 영상 기획안을 만들어 주세요. 목표 영상 길이는 약 ${length}입니다.${lengthGuidelineWithChapters}
 
 **절대 규칙:**

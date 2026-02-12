@@ -2,6 +2,23 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
+  DndContext,
+  PointerSensor,
+  KeyboardSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  useSortable,
+  arrayMove,
+  rectSortingStrategy,
+  sortableKeyboardCoordinates,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import {
   FiChevronLeft,
   FiChevronRight,
   FiDownload,
@@ -40,6 +57,7 @@ const STORAGE_KEYS = {
   ttsChapterVoices: "video_project_tts_chapter_voices",
   youtubeUrl: "video_project_youtube_url",
   scriptCategory: "video_project_script_category",
+  scriptCategoryOrder: "video_project_script_category_order",
   imagePrompt: "video_project_image_prompt",
   scriptStyle: "video_project_script_style",
   renderDuration: "video_project_render_duration",
@@ -115,6 +133,65 @@ const scriptCategories = [
   "먹방",
   "브이로그",
 ];
+
+const normalizeCategoryOrder = (input: unknown): string[] => {
+  if (!Array.isArray(input)) return [...scriptCategories];
+  const valid = input.filter(
+    (item): item is string =>
+      typeof item === "string" &&
+      scriptCategories.includes(item)
+  );
+  const unique = Array.from(new Set(valid));
+  const missing = scriptCategories.filter((category) => !unique.includes(category));
+  return [...unique, ...missing];
+};
+
+type SortableCategoryChipProps = {
+  category: string;
+  isSelected: boolean;
+  onSelect: (category: string) => void;
+};
+
+const SortableCategoryChip: React.FC<SortableCategoryChipProps> = ({
+  category,
+  isSelected,
+  onSelect,
+}) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: category,
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.7 : 1,
+  };
+
+  return (
+    <button
+      ref={setNodeRef}
+      type="button"
+      style={style}
+      onClick={() => onSelect(category)}
+      className={`rounded-full border px-3 py-2 text-xs font-semibold transition ${isSelected
+          ? "border-red-400 bg-red-500/15 text-red-200"
+          : "border-white/15 bg-black/30 text-white/70 hover:border-white/30"
+        }`}
+    >
+      <span className="inline-flex items-center gap-2">
+        <span
+          {...attributes}
+          {...listeners}
+          className="cursor-grab text-white/40 hover:text-white/70 active:cursor-grabbing"
+          title="드래그해서 순서 변경"
+        >
+          ::
+        </span>
+        <span>{category}</span>
+      </span>
+    </button>
+  );
+};
 
 // const imageStyles removed
 
@@ -255,6 +332,11 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   );
   const [selectedCategory, setSelectedCategory] = useState(() =>
     getStoredString(STORAGE_KEYS.scriptCategory, scriptCategories[0])
+  );
+  const [categoryOrder, setCategoryOrder] = useState<string[]>(() =>
+    normalizeCategoryOrder(
+      getStoredJson(STORAGE_KEYS.scriptCategoryOrder, scriptCategories)
+    )
   );
   const [ttsScript, setTtsScript] = useState(() =>
     getStoredString(
@@ -465,6 +547,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   useEffect(() => setStoredValue(STORAGE_KEYS.scriptTitle, scriptTitle), [scriptTitle]);
   useEffect(() => setStoredValue(STORAGE_KEYS.youtubeUrl, youtubeUrl), [youtubeUrl]);
   useEffect(() => setStoredValue(STORAGE_KEYS.scriptCategory, selectedCategory), [selectedCategory]);
+  useEffect(() => setStoredJson(STORAGE_KEYS.scriptCategoryOrder, categoryOrder), [categoryOrder]);
   useEffect(() => setStoredValue(STORAGE_KEYS.script, scriptDraft), [scriptDraft]);
   useEffect(() => setStoredValue(STORAGE_KEYS.tts, ttsScript), [ttsScript]);
   useEffect(() => setStoredJson(STORAGE_KEYS.ttsChapters, chapterScripts), [chapterScripts]);
@@ -1396,11 +1479,32 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     }));
   }, [scriptDraft]);
 
+  const categorySensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 8 },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleCategoryDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    setCategoryOrder((current) => {
+      const oldIndex = current.indexOf(String(active.id));
+      const newIndex = current.indexOf(String(over.id));
+      if (oldIndex === -1 || newIndex === -1) return current;
+      return arrayMove(current, oldIndex, newIndex);
+    });
+  }, []);
+
   const renderStepContent = () => {
     switch (activeStep.id) {
       case "setup":
         return (
-          <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
+          <div className="mt-[clamp(0.5rem,0.83vw,0.85rem)]">
             <div className="rounded-[clamp(1rem,2vw,1.4rem)] border border-white/20 bg-black/40 p-[clamp(1rem,2vw,1.4rem)]">
               <h3 className="text-2xl font-bold text-white">영상 기본 설정</h3>
               <p className="mt-3 text-sm text-white/70">
@@ -1523,7 +1627,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         placeholder="예: 경제 위기 속 재테크 주식 투자 전략"
                       />
                       <p className="text-xs text-white/50">
-                        제목을 입력하면 AI 추천 주제가 비슷한 형식으로 생성됩니다
+                        ??? ???? AI ?? ??? ??? ????, ??? ??? ?????
                       </p>
                     </div>
 
@@ -1539,9 +1643,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         className="w-full rounded-xl border border-white/20 bg-black/30 px-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-red-500"
                         placeholder="https://www.youtube.com/watch?v=..."
                       />
-                      <p className="text-xs text-white/50">
-                        대본을 직접 입력해 주세요. (대본 추출 기능은 제거되었습니다)
-                      </p>
                     </div>
 
                     {/* 카테고리 선택 */}
@@ -1549,21 +1650,25 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       <label className="text-sm font-semibold text-white/80">
                         🗂️ 카테고리 선택
                       </label>
-                      <div className="flex flex-wrap gap-2">
-                        {scriptCategories.map((category) => (
-                          <button
-                            key={category}
-                            type="button"
-                            onClick={() => setSelectedCategory(category)}
-                            className={`rounded-full border px-3 py-2 text-xs font-semibold transition ${selectedCategory === category
-                              ? "border-red-400 bg-red-500/15 text-red-200"
-                              : "border-white/15 bg-black/30 text-white/70 hover:border-white/30"
-                              }`}
-                          >
-                            {category}
-                          </button>
-                        ))}
-                      </div>
+                      <DndContext
+                        sensors={categorySensors}
+                        collisionDetection={closestCenter}
+                        onDragEnd={handleCategoryDragEnd}
+                      >
+                        <SortableContext items={categoryOrder} strategy={rectSortingStrategy}>
+                          <div className="flex flex-wrap gap-2">
+                            {categoryOrder.map((category) => (
+                              <SortableCategoryChip
+                                key={category}
+                                category={category}
+                                isSelected={selectedCategory === category}
+                                onSelect={setSelectedCategory}
+                              />
+                            ))}
+                          </div>
+                        </SortableContext>
+                      </DndContext>
+                      <p className="text-xs text-white/40">카테고리를 드래그해서 순서를 바꿀 수 있습니다.</p>
                     </div>
 
                     {/* 대본 내용 입력 */}
@@ -1951,14 +2056,42 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   <>
                     <div className="space-y-3">
                       <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-                        <div className="mb-4 pb-3 border-b border-white/10">
-                          <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
-                            <span className="text-green-400">✨</span>
-                            생성된 대본
-                          </h3>
-                          <p className="text-xs text-white/50">
-                            AI가 선택한 주제로 작성한 완성된 대본입니다 ({generatedPlan.chapters?.length || 0}개 챕터)
-                          </p>
+                        <div className="mb-4 pb-3 border-b border-white/10 flex items-start justify-between gap-3">
+                          <div>
+                            <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
+                              <span className="text-green-400">✨</span>
+                              생성된 대본
+                            </h3>
+                            <p className="text-xs text-white/50">
+                              AI가 선택한 주제로 작성한 완성된 대본입니다 ({generatedPlan.chapters?.length || 0}개 챕터)
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {generatedPlan.chapters && generatedPlan.chapters.length > 0 && (
+                              <button
+                                onClick={() => {
+                                  const text = formatAllChaptersToText(generatedPlan.chapters || []);
+                                  if (!text || text.trim() === "") {
+                                    alert("다운로드할 대본이 없습니다.");
+                                    return;
+                                  }
+                                  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+                                  const url = URL.createObjectURL(blob);
+                                  const a = document.createElement("a");
+                                  a.href = url;
+                                  a.download = "all-chapters-script.txt";
+                                  a.click();
+                                  URL.revokeObjectURL(url);
+                                }}
+                                className="px-3 py-1.5 rounded-full text-xs font-semibold bg-white/10 hover:bg-white/20 text-white/80 transition-all flex items-center gap-1"
+                              >
+                                <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                </svg>
+                                전체 대본
+                              </button>
+                            )}
+                          </div>
                         </div>
                         {generatedPlan.chapters && generatedPlan.chapters.length > 0 ? (
                           <>
@@ -1968,36 +2101,60 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                   key={chapter.id}
                                   className="rounded-xl border border-white/10 bg-black/30 p-4"
                                 >
-                                  <div className="flex items-center justify-between mb-3">
+                                  <div className="flex items-center justify-between mb-3 gap-2">
                                     <h4 className="text-base font-bold text-white flex items-center gap-2">
                                       <span className="text-red-400">📖</span>
                                       챕터 {index + 1}. {chapter.title}
                                     </h4>
-                                    <button
-                                      onClick={() => {
-                                        setExpandedChapters(prev => ({
-                                          ...prev,
-                                          [index]: !prev[index]
-                                        }));
-                                      }}
-                                      className="px-3 py-1 rounded-full text-xs font-semibold bg-white/10 hover:bg-white/20 text-white transition-all flex items-center gap-1"
-                                    >
-                                      {expandedChapters[index] ? (
-                                        <>
-                                          <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                                          </svg>
-                                          접기
-                                        </>
-                                      ) : (
-                                        <>
-                                          <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                          </svg>
-                                          펼치기
-                                        </>
-                                      )}
-                                    </button>
+                                    <div className="flex items-center gap-2">
+                                      <button
+                                        onClick={() => {
+                                          const text = formatChapterScriptToText(chapter);
+                                          if (!text || text.trim() === "") {
+                                            alert("다운로드할 대본이 없습니다.");
+                                            return;
+                                          }
+                                          const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+                                          const url = URL.createObjectURL(blob);
+                                          const a = document.createElement("a");
+                                          a.href = url;
+                                          a.download = `chapter-${index + 1}-script.txt`;
+                                          a.click();
+                                          URL.revokeObjectURL(url);
+                                        }}
+                                        className="px-2.5 py-1 rounded-full text-xs font-semibold bg-white/10 hover:bg-white/20 text-white/80 transition-all flex items-center gap-1"
+                                      >
+                                        <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                        </svg>
+                                        다운로드
+                                      </button>
+                                      <button
+                                        onClick={() => {
+                                          setExpandedChapters(prev => ({
+                                            ...prev,
+                                            [index]: !prev[index]
+                                          }));
+                                        }}
+                                        className="px-3 py-1 rounded-full text-xs font-semibold bg-white/10 hover:bg-white/20 text-white transition-all flex items-center gap-1"
+                                      >
+                                        {expandedChapters[index] ? (
+                                          <>
+                                            <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                                            </svg>
+                                            접기
+                                          </>
+                                        ) : (
+                                          <>
+                                            <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                            펼치기
+                                          </>
+                                        )}
+                                      </button>
+                                    </div>
                                   </div>
                                   <p className="text-sm text-white/60 mb-4 pb-3 border-b border-white/10">
                                     {chapter.purpose}
@@ -2026,66 +2183,42 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                         ))}
                                       </div>
 
-                                      {/* 챕터별 다운로드 버튼 */}
-                                      <div className="mt-4 pt-4 border-t border-white/10 flex gap-3">
-                                        <button
-                                          onClick={() => {
-                                            const text = formatChapterScriptToText(chapter);
-                                            if (!text || text.trim() === "") {
-                                              alert("다운로드할 대본이 없습니다.");
-                                              return;
-                                            }
-                                            const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-                                            const url = URL.createObjectURL(blob);
-                                            const a = document.createElement("a");
-                                            a.href = url;
-                                            a.download = `chapter-${index + 1}-script.txt`;
-                                            a.click();
-                                            URL.revokeObjectURL(url);
-                                          }}
-                                          className="flex-1 px-4 py-2.5 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-400 hover:to-red-500 text-white font-semibold rounded-lg transition-all duration-200 shadow-lg flex items-center justify-center gap-2"
-                                        >
-                                          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                          </svg>
-                                          📜 대본 다운로드
-                                        </button>
-                                      </div>
+                                      {/* 다운로드 버튼 이동됨 */}
                                     </>
                                   )}
                                 </div>
                               ))}
                             </div>
-
-                            {/* 전체 대본 다운로드 버튼 */}
-                            <div className="mt-4 pt-4 border-t border-white/10">
+                          </>
+                        ) : generatedPlan.scriptWithCharacters && generatedPlan.scriptWithCharacters.length > 0 ? (
+                          <>
+                            <div className="mb-3 flex items-center gap-2">
                               <button
                                 onClick={() => {
-                                  const text = formatAllChaptersToText(generatedPlan.chapters || []);
-                                  if (!text || text.trim() === "") {
+                                  if (!generatedPlan.scriptWithCharacters || generatedPlan.scriptWithCharacters.length === 0) {
                                     alert("다운로드할 대본이 없습니다.");
                                     return;
                                   }
+
+                                  const text = generatedPlan.scriptWithCharacters
+                                    .map((line) => `${line.character}: ${line.line}`)
+                                    .join("\n\n");
+
                                   const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
                                   const url = URL.createObjectURL(blob);
                                   const a = document.createElement("a");
                                   a.href = url;
-                                  a.download = "all-chapters-script.txt";
+                                  a.download = "script.txt";
                                   a.click();
                                   URL.revokeObjectURL(url);
                                 }}
-                                className="w-full px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-white font-bold rounded-lg transition-all duration-200 shadow-lg flex items-center justify-center gap-2"
+                                className="px-2.5 py-1 rounded-full text-xs font-semibold bg-white/10 hover:bg-white/20 text-white/80 transition-all flex items-center gap-1"
                               >
-                                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                 </svg>
-                                📚 전체 대본 다운로드
+                                다운로드
                               </button>
-                            </div>
-                          </>
-                        ) : generatedPlan.scriptWithCharacters && generatedPlan.scriptWithCharacters.length > 0 ? (
-                          <>
-                            <div className="mb-3">
                               <button
                                 onClick={() => {
                                   setExpandedChapters(prev => ({
@@ -2136,38 +2269,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                               </div>
                             )}
 
-                            {/* 전체 대본 다운로드 버튼 */}
-                            <div className="mt-4 pt-4 border-t border-white/10">
-                              <button
-                                onClick={() => {
-                                  if (!generatedPlan.scriptWithCharacters || generatedPlan.scriptWithCharacters.length === 0) {
-                                    alert("다운로드할 대본이 없습니다.");
-                                    return;
-                                  }
-
-                                  const text = generatedPlan.scriptWithCharacters
-                                    .map((line) => {
-                                      let result = `${line.character}: ${line.line}`;
-                                      return result;
-                                    })
-                                    .join("\n\n");
-
-                                  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-                                  const url = URL.createObjectURL(blob);
-                                  const a = document.createElement("a");
-                                  a.href = url;
-                                  a.download = "script.txt";
-                                  a.click();
-                                  URL.revokeObjectURL(url);
-                                }}
-                                className="w-full px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-white font-bold rounded-lg transition-all duration-200 shadow-lg flex items-center justify-center gap-2"
-                              >
-                                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                </svg>
-                                📚 대본 다운로드
-                              </button>
-                            </div>
+                            {/* 다운로드 버튼 이동됨 */}
                           </>
                         ) : generatedPlan.scriptOutline && generatedPlan.scriptOutline.length > 0 ? (
                           <div className="space-y-3">
@@ -3295,4 +3397,3 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 };
 
 export default VideoPage;
-
