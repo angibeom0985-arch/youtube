@@ -69,7 +69,6 @@ const STORAGE_KEYS = {
   editNotes: "video_project_edit_notes",
   format: "video_project_format",
   step: "video_project_step",
-  surveyPreset: "video_project_survey_preset",
 };
 
 const VIDEO_IMAGE_SEED_KEY = "video_project_image_seed_script";
@@ -133,73 +132,6 @@ const scriptCategories = [
   "게임",
   "먹방",
   "브이로그",
-];
-
-type SurveyPreset = {
-  id: string;
-  label: string;
-  description: string;
-  category: string;
-  scriptStyle: "narration" | "dialogue";
-  defaultLength: "1" | "8" | "60";
-  notes: string;
-};
-
-const surveyPresets: SurveyPreset[] = [
-  {
-    id: "knowledge",
-    label: "지식 정보",
-    description: "핵심 정보 전달형, 나레이션 중심",
-    category: "정보 전달",
-    scriptStyle: "narration",
-    defaultLength: "8",
-    notes: "핵심 개념을 3단계(문제-원인-해결)로 정리하고, 문장별 이미지 소스를 자동 매칭해 주세요.",
-  },
-  {
-    id: "senior-story",
-    label: "시니어 사연",
-    description: "공감 스토리형, 감정선 강조",
-    category: "썰 채널",
-    scriptStyle: "dialogue",
-    defaultLength: "8",
-    notes: "등장인물 관계를 명확히 하고, 장면 전환마다 배경/인물 일관성을 유지해 주세요.",
-  },
-  {
-    id: "incident",
-    label: "사건 사고",
-    description: "사실 기반 전개형, 긴장감 유지",
-    category: "미스터리",
-    scriptStyle: "narration",
-    defaultLength: "8",
-    notes: "타임라인 순서로 전개하고 장면별 핵심 증거 포인트를 한 줄 요약으로 표시해 주세요.",
-  },
-  {
-    id: "issue",
-    label: "이슈",
-    description: "이슈 해설형, 논점 정리",
-    category: "정보 전달",
-    scriptStyle: "narration",
-    defaultLength: "8",
-    notes: "논쟁 포인트를 찬반/영향/결론 구조로 정리하고 썸네일 문구 후보를 함께 제안해 주세요.",
-  },
-  {
-    id: "side-hustle",
-    label: "부업 정보",
-    description: "실행 가이드형, 액션 중심",
-    category: "정보 전달",
-    scriptStyle: "narration",
-    defaultLength: "8",
-    notes: "실행 단계, 준비물, 주의사항을 체크리스트로 구성하고 CTA를 마지막 챕터에 배치해 주세요.",
-  },
-  {
-    id: "quiz",
-    label: "퀴즈 채널",
-    description: "참여 유도형, 템포 빠름",
-    category: "게임",
-    scriptStyle: "dialogue",
-    defaultLength: "1",
-    notes: "문제-정답-해설 템포를 유지하고 자막 싱크 기준으로 컷 길이를 짧게 구성해 주세요.",
-  },
 ];
 
 const normalizeCategoryOrder = (input: unknown): string[] => {
@@ -424,9 +356,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     const stored = getStoredString(STORAGE_KEYS.scriptStyle, "narration");
     return stored === "dialogue" ? "dialogue" : "narration";
   });
-  const [selectedSurveyPreset, setSelectedSurveyPreset] = useState(() =>
-    getStoredString(STORAGE_KEYS.surveyPreset, "")
-  );
   const [scriptAnalysis, setScriptAnalysis] = useState<AnalysisResult | null>(() =>
     getStoredJson("videopage_scriptAnalysis", null)
   );
@@ -620,7 +549,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   useEffect(() => setStoredJson(STORAGE_KEYS.ttsChapters, chapterScripts), [chapterScripts]);
   useEffect(() => setStoredJson(STORAGE_KEYS.ttsChapterVoices, chapterVoices), [chapterVoices]);
   useEffect(() => setStoredValue(STORAGE_KEYS.scriptStyle, scriptStyle), [scriptStyle]);
-  useEffect(() => setStoredValue(STORAGE_KEYS.surveyPreset, selectedSurveyPreset), [selectedSurveyPreset]);
   useEffect(() => setStoredValue(STORAGE_KEYS.imagePrompt, imagePrompt), [
     imagePrompt,
   ]);
@@ -1577,20 +1505,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     });
   }, []);
 
-  const handleApplySurveyPreset = useCallback((preset: SurveyPreset) => {
-    setSelectedSurveyPreset(preset.id);
-    setSelectedCategory(preset.category);
-    setScriptStyle(preset.scriptStyle);
-    setScriptLengthMinutes(preset.defaultLength);
-    if (preset.defaultLength !== "custom") {
-      const seconds = Number(preset.defaultLength) * 60;
-      if (Number.isFinite(seconds) && seconds > 0) {
-        setRenderDuration(String(seconds));
-      }
-    }
-    setProjectNotes(preset.notes);
-  }, []);
-
   const renderStepContent = () => {
     switch (activeStep.id) {
       case "setup":
@@ -1760,37 +1674,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         </SortableContext>
                       </DndContext>
                       <p className="text-xs text-white/40">카테고리를 드래그해서 순서를 바꿀 수 있습니다.</p>
-                    </div>
-
-                    <div className="space-y-3 rounded-2xl border border-white/10 bg-black/25 p-4">
-                      <label className="text-sm font-semibold text-white/80">
-                        🎯 운영 유형 프리셋 (설문 반영)
-                      </label>
-                      <div className="grid gap-2 sm:grid-cols-2">
-                        {surveyPresets.map((preset) => {
-                          const active = selectedSurveyPreset === preset.id;
-                          return (
-                            <button
-                              key={preset.id}
-                              type="button"
-                              onClick={() => handleApplySurveyPreset(preset)}
-                              className={`rounded-xl border px-3 py-3 text-left transition ${active
-                                ? "border-red-400 bg-red-500/15"
-                                : "border-white/15 bg-black/35 hover:border-white/30"
-                                }`}
-                            >
-                              <p className="text-sm font-semibold text-white">{preset.label}</p>
-                              <p className="mt-1 text-xs text-white/60">{preset.description}</p>
-                              <p className="mt-2 text-[11px] text-white/40">
-                                카테고리: {preset.category} · {preset.scriptStyle === "narration" ? "나레이션" : "대화형"} · {preset.defaultLength === "60" ? "1시간" : `${preset.defaultLength}분`}
-                              </p>
-                            </button>
-                          );
-                        })}
-                      </div>
-                      <div className="rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-xs text-white/55">
-                        체크포인트: 문맥 기반 이미지 매칭, 캐릭터/배경 일관성, 자막 싱크, 썸네일 포인트를 기준으로 후속 단계 자동화를 진행합니다.
-                      </div>
                     </div>
 
                     {/* 대본 내용 입력 */}
