@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { TextToSpeechClient } from "@google-cloud/text-to-speech";
-import { enforceUsageLimit, recordUsageEvent } from "../_lib/usageLimit.js";
-import { checkAndDeductCredits, CREDIT_COSTS } from "../_lib/creditService.js";
-import { supabaseAdmin } from "../_lib/supabase.js";
+import { enforceUsageLimit, recordUsageEvent } from "../../shared/usageLimit.js";
+import { checkAndDeductCredits, CREDIT_COSTS } from "../../shared/creditService.js";
+import { supabaseAdmin } from "../../shared/supabase.js";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";

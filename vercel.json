@@ -30,39 +30,87 @@
   "rewrites": [
     {
       "source": "/api/fetch-transcript",
-      "destination": "/api/youtube_script/fetch-transcript.ts"
+      "destination": "/api/features/script/fetch-transcript.ts"
     },
     {
       "source": "/api/gemini",
-      "destination": "/api/youtube_script/gemini.ts"
+      "destination": "/api/features/script/gemini.ts"
     },
     {
       "source": "/api/upload-image",
-      "destination": "/api/youtube_image/upload-image.js"
+      "destination": "/api/features/image/upload-image.js"
     },
     {
       "source": "/api/tts",
-      "destination": "/api/youtube_TTS/tts.ts"
+      "destination": "/api/features/tts/tts.ts"
     },
     {
       "source": "/api/abuse/check",
-      "destination": "/api/YOUTUBE/abuse/check.ts"
+      "destination": "/api/features/abuse/check.ts"
     },
     {
       "source": "/api/admin/auth",
-      "destination": "/api/YOUTUBE/admin/auth.ts"
+      "destination": "/api/features/admin/auth.ts"
     },
     {
       "source": "/api/admin/abuse",
-      "destination": "/api/YOUTUBE/admin/abuse.ts"
+      "destination": "/api/features/admin/abuse.ts"
+    },
+    {
+      "source": "/api/admin/page-content",
+      "destination": "/api/features/admin/page-content.ts"
     },
     {
       "source": "/api/benchmarking/search",
-      "destination": "/api/youtube_script/benchmarking/search.ts"
+      "destination": "/api/features/script/benchmarking/search.ts"
     },
     {
       "source": "/api/YOUTUBE/user/credits-deduct",
-      "destination": "/api/YOUTUBE/user/index.ts"
+      "destination": "/api/features/user/index.ts"
+    },
+    {
+      "source": "/api/youtube_script/gemini",
+      "destination": "/api/features/script/gemini.ts"
+    },
+    {
+      "source": "/api/youtube_script/fetch-transcript",
+      "destination": "/api/features/script/fetch-transcript.ts"
+    },
+    {
+      "source": "/api/youtube_script/benchmarking/search",
+      "destination": "/api/features/script/benchmarking/search.ts"
+    },
+    {
+      "source": "/api/youtube_TTS/tts",
+      "destination": "/api/features/tts/tts.ts"
+    },
+    {
+      "source": "/api/youtube_image/upload-image",
+      "destination": "/api/features/image/upload-image.js"
+    },
+    {
+      "source": "/api/YOUTUBE/user",
+      "destination": "/api/features/user/index.ts"
+    },
+    {
+      "source": "/api/user/settings",
+      "destination": "/api/features/user/settings.ts"
+    },
+    {
+      "source": "/api/YOUTUBE/admin/auth",
+      "destination": "/api/features/admin/auth.ts"
+    },
+    {
+      "source": "/api/YOUTUBE/admin/abuse",
+      "destination": "/api/features/admin/abuse.ts"
+    },
+    {
+      "source": "/api/YOUTUBE/admin/page-content",
+      "destination": "/api/features/admin/page-content.ts"
+    },
+    {
+      "source": "/api/YOUTUBE/abuse/check",
+      "destination": "/api/features/abuse/check.ts"
     },
     {
       "source": "/admin",

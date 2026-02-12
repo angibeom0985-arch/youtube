@@ -6,15 +6,15 @@ import {
   generateSsml,
   generateActingPrompt,
   reformatTopic,
-} from "../_lib/geminiService.js";
+} from "../../shared/geminiService.js";
 import {
   generateChapterOutline,
   generateChapterScript
-} from "../_lib/chapterService.js";
-import { enforceAbusePolicy } from "../_lib/abuseGuard.js";
-import { enforceUsageLimit, recordUsageEvent } from "../_lib/usageLimit.js";
-import { checkAndDeductCredits, CREDIT_COSTS } from "../_lib/creditService.js";
-import { supabaseAdmin } from "../_lib/supabase.js";
+} from "../../shared/chapterService.js";
+import { enforceAbusePolicy } from "../../shared/abuseGuard.js";
+import { enforceUsageLimit, recordUsageEvent } from "../../shared/usageLimit.js";
+import { checkAndDeductCredits, CREDIT_COSTS } from "../../shared/creditService.js";
+import { supabaseAdmin } from "../../shared/supabase.js";
 
 type RateEntry = {
   count: number;

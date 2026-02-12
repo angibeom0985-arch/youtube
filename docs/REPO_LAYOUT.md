@@ -38,3 +38,17 @@ YOUTUBE/apps/studio/
     types.ts
   supabase/
 ```
+
+## API Internal Layout
+
+```
+api/
+  features/                # API handlers grouped by feature
+    script/
+    image/
+    tts/
+    admin/
+    abuse/
+    user/
+  shared/                  # Shared API libraries (auth, credits, supabase, guards)
+```

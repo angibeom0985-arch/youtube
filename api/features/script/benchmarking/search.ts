@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { checkAndDeductCredits, CREDIT_COSTS } from "../../_lib/creditService.js";
+import { checkAndDeductCredits, CREDIT_COSTS } from "../../../shared/creditService.js";
 
 const YT_BASE_URL = "https://www.googleapis.com/youtube/v3";
 const MAX_RESULTS_PER_PAGE = 50;

@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getSupabaseUser } from "../_lib/supabase.js";
+import { getSupabaseUser } from "../../shared/supabase.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     // 1. Auth Check

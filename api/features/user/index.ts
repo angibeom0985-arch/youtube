@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getSupabaseUser, supabaseAdmin } from "../../_lib/supabase.js";
-import { checkAndDeductCredits } from "../../_lib/creditService.js";
+import { getSupabaseUser, supabaseAdmin } from "../../shared/supabase.js";
+import { checkAndDeductCredits } from "../../shared/creditService.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader("Access-Control-Allow-Origin", "*");

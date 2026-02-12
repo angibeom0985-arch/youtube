@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { supabaseAdmin } from "../../_lib/supabase.js";
-import { requireAdmin } from "../../_lib/adminAuth.js";
+import { supabaseAdmin } from "../../shared/supabase.js";
+import { requireAdmin } from "../../shared/adminAuth.js";
 
 const normalizeLabel = (value: string | string[] | undefined) => {
   if (typeof value !== "string") return null;

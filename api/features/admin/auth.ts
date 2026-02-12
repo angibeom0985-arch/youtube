@@ -4,7 +4,7 @@ import {
   setSessionCookie,
   clearSessionCookie,
   validateAdminCredentials,
-} from "../../_lib/adminAuth.js";
+} from "../../shared/adminAuth.js";
 
 const parseBody = (req: VercelRequest) => {
   if (!req.body) return null;
