@@ -75,18 +75,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   }
 
-  // Google Service Account JSON 키 파일 경로 설정
+  // Google Service Account JSON ???�일 경로 ?�정
   let keyFilename = process.env.GOOGLE_APPLICATION_CREDENTIALS;
   const jsonFileName = "google-credentials.json";
 
   if (!keyFilename || !fs.existsSync(keyFilename)) {
-    // 후보 경로들 확인
-    const candidates = [
-      path.join(process.cwd(), "api", "youtube_TTS", jsonFileName), // Vercel root 기준
-      path.join(__dirname, jsonFileName), // 파일 상대 경로
-      path.join(process.cwd(), "misc", jsonFileName), // 로컬 misc 폴더
-      path.resolve(process.cwd(), "youtube_TTS", "api", jsonFileName), // 로컬 실행 환경 대응
-      path.join("C:\\KB\\Website\\Youtube\\api\\youtube_TTS", jsonFileName) // 로컬 절대 경로
+    // ?�보 경로???�인
+        const candidates = [
+      path.join(process.cwd(), "api", "youtube_TTS", jsonFileName),
+      path.join(__dirname, jsonFileName),
+      path.join(process.cwd(), "youtube", "config", jsonFileName),
+      path.join(process.cwd(), "misc", jsonFileName),
+      path.resolve(process.cwd(), "youtube_TTS", "api", jsonFileName),
+      path.join("C:\\KB\\Website\\Youtube\\api\\youtube_TTS", jsonFileName),
     ];
 
     for (const candidate of candidates) {
@@ -97,7 +98,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   }
 
-  // 환경변수로 JSON 내용이 직접 전달된 경우 처리 (Vercel 권장 방식)
+  // ?�경변?�로 JSON ?�용??직접 ?�달??경우 처리 (Vercel 권장 방식)
   let clientOptions: any = { keyFilename };
 
   if (userCredentials) {
@@ -152,7 +153,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return;
     }
 
-    // Buffer를 Base64 문자열로 변환하여 전송
+    // Buffer�?Base64 문자?�로 변?�하???�송
     const audioContent = Buffer.from(response.audioContent).toString("base64");
 
     res.status(200).json({ audioContent });
@@ -161,3 +162,4 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.status(500).json({ message: error?.message || "server_error" });
   }
 }
+

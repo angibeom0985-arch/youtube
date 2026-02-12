@@ -1,24 +1,24 @@
-# 관리자 페이지 내용 편집 API
+# 관리자 ?�이지 ?�용 ?�집 API
 
 ## 개요
-관리자 페이지에서 웹사이트의 가이드 페이지를 편집하고 저장할 수 있는 API입니다.
+관리자 ?�이지?�서 ?�사?�트??가?�드 ?�이지�??�집?�고 ?�?�할 ???�는 API?�니??
 
-## 엔드포인트
+## ?�드?�인??
 `/api/YOUTUBE/admin/page-content`
 
-## 요청 방법
+## ?�청 방법
 
-### 1. 페이지 내용 불러오기 (GET)
+### 1. ?�이지 ?�용 불러?�기 (GET)
 ```
 GET /api/YOUTUBE/admin/page-content?pageType={pageType}
 ```
 
 **Query Parameters:**
-- `pageType` (required): 페이지 타입
-  - `api-guide-aistudio`: AI 스튜디오 API 발급방법
-  - `api-guide-cloudconsole`: 클라우드 콘솔 API 발급방법
+- `pageType` (required): ?�이지 ?�??
+  - `api-guide-aistudio`: AI ?�튜?�오 API 발급방법
+  - `api-guide-cloudconsole`: ?�라?�드 콘솔 API 발급방법
 
-**성공 응답 (200):**
+**?�공 ?�답 (200):**
 ```json
 {
   "page_type": "api-guide-aistudio",
@@ -29,7 +29,7 @@ GET /api/YOUTUBE/admin/page-content?pageType={pageType}
 }
 ```
 
-**데이터 없음 (200):**
+**?�이???�음 (200):**
 ```json
 {
   "page_type": "api-guide-aistudio",
@@ -39,14 +39,14 @@ GET /api/YOUTUBE/admin/page-content?pageType={pageType}
 }
 ```
 
-### 2. 페이지 내용 저장하기 (POST)
+### 2. ?�이지 ?�용 ?�?�하�?(POST)
 ```
 POST /api/YOUTUBE/admin/page-content?pageType={pageType}
 Content-Type: application/json
 ```
 
 **Query Parameters:**
-- `pageType` (required): 페이지 타입
+- `pageType` (required): ?�이지 ?�??
 
 **Request Body:**
 ```json
@@ -57,7 +57,7 @@ Content-Type: application/json
 }
 ```
 
-**성공 응답 (200):**
+**?�공 ?�답 (200):**
 ```json
 {
   "success": true,
@@ -67,7 +67,7 @@ Content-Type: application/json
 }
 ```
 
-## 오류 응답
+## ?�류 ?�답
 
 **400 Bad Request:**
 ```json
@@ -77,7 +77,7 @@ Content-Type: application/json
 }
 ```
 
-**400 Bad Request (잘못된 페이지 타입):**
+**400 Bad Request (?�못???�이지 ?�??:**
 ```json
 {
   "error": "Invalid page type",
@@ -93,9 +93,9 @@ Content-Type: application/json
 }
 ```
 
-## 데이터베이스 구조
+## ?�이?�베?�스 구조
 
-### guides 테이블
+### guides ?�이�?
 ```sql
 create table guides (
   page_type text primary key,
@@ -105,58 +105,58 @@ create table guides (
 );
 ```
 
-**data 필드 구조:**
+**data ?�드 구조:**
 ```json
 {
-  "content": "HTML 내용",
+  "content": "HTML ?�용",
   "mode": "basic | html",
-  "updated_by": "사용자명"
+  "updated_by": "?�용?�명"
 }
 ```
 
-### 마이그레이션 실행
+### 마이그레?�션 ?�행
 
-**Supabase SQL Editor에서 실행:**
+**Supabase SQL Editor?�서 ?�행:**
 
-1. `youtube_script/supabase/migrations/20240204_create_guides_table.sql` 실행
-2. `youtube_script/supabase/migrations/20240208_add_guides_trigger.sql` 실행 (updated_at 자동 업데이트)
+1. `youtube/youtube_script/supabase/migrations/20240204_create_guides_table.sql` ?�행
+2. `youtube/youtube_script/supabase/migrations/20240208_add_guides_trigger.sql` ?�행 (updated_at ?�동 ?�데?�트)
 
-또는 Supabase CLI 사용:
+?�는 Supabase CLI ?�용:
 ```bash
 npx supabase db push
 ```
 
-## 보안 사항
+## 보안 ?�항
 
-### 현재 구현
-- ✅ CORS 설정됨
-- ✅ 페이지 타입 화이트리스트 검증
-- ✅ 요청 본문 유효성 검사
-- ⚠️ 프론트엔드 인증만 사용 중 (sessionStorage)
+### ?�재 구현
+- ??CORS ?�정??
+- ???�이지 ?�???�이?�리?�트 검�?
+- ???�청 본문 ?�효??검??
+- ?�️ ?�론?�엔???�증�??�용 �?(sessionStorage)
 
-### 향후 개선 사항
-- [ ] JWT 토큰 기반 인증 추가
-- [ ] Supabase RLS 정책 강화
-- [ ] 관리자 권한 테이블 추가
-- [ ] 요청 제한(Rate Limiting) 추가
+### ?�후 개선 ?�항
+- [ ] JWT ?�큰 기반 ?�증 추�?
+- [ ] Supabase RLS ?�책 강화
+- [ ] 관리자 권한 ?�이�?추�?
+- [ ] ?�청 ?�한(Rate Limiting) 추�?
 
-## 사용 예시
+## ?�용 ?�시
 
 ### JavaScript (Fetch API)
 ```javascript
-// 페이지 내용 불러오기
+// ?�이지 ?�용 불러?�기
 const response = await fetch('/api/YOUTUBE/admin/page-content?pageType=api-guide-aistudio');
 const data = await response.json();
 console.log(data.content);
 
-// 페이지 내용 저장하기
+// ?�이지 ?�용 ?�?�하�?
 const saveResponse = await fetch('/api/YOUTUBE/admin/page-content?pageType=api-guide-aistudio', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
   },
   body: JSON.stringify({
-    content: '<h1>새로운 내용</h1>',
+    content: '<h1>?�로???�용</h1>',
     mode: 'html',
     username: 'admin'
   })
@@ -165,25 +165,26 @@ const saveResult = await saveResponse.json();
 console.log(saveResult.message);
 ```
 
-## 관리자 페이지 사용법
+## 관리자 ?�이지 ?�용�?
 
-1. `/admin.html` 접속
-2. 로그인 (akb0811 / rlqja0985!)
-3. 페이지 선택 드롭다운에서 편집할 페이지 선택
-4. 내용이 자동으로 로드됨
-5. 기본모드 또는 HTML모드로 편집
-6. "저장" 버튼 클릭
-7. 데이터베이스에 저장됨
+1. `/admin.html` ?�속
+2. 로그??(akb0811 / rlqja0985!)
+3. ?�이지 ?�택 ?�롭?�운?�서 ?�집???�이지 ?�택
+4. ?�용???�동?�로 로드??
+5. 기본모드 ?�는 HTML모드�??�집
+6. "?�?? 버튼 ?�릭
+7. ?�이?�베?�스???�?�됨
 
-## 문제 해결
+## 문제 ?�결
 
-### 페이지 내용이 로드되지 않는 경우
-1. 브라우저 콘솔에서 API 요청 확인
-2. Supabase 연결 확인
-3. 환경 변수 확인 (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+### ?�이지 ?�용??로드?��? ?�는 경우
+1. 브라?��? 콘솔?�서 API ?�청 ?�인
+2. Supabase ?�결 ?�인
+3. ?�경 변???�인 (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
-### 저장이 실패하는 경우
-1. 콘솔에서 오류 메시지 확인
-2. content가 비어있지 않은지 확인
-3. pageType이 올바른지 확인
-4. Supabase 테이블 권한 확인
+### ?�?�이 ?�패?�는 경우
+1. 콘솔?�서 ?�류 메시지 ?�인
+2. content가 비어?��? ?��?지 ?�인
+3. pageType???�바른�? ?�인
+4. Supabase ?�이�?권한 ?�인
+

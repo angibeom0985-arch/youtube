@@ -1,7 +1,7 @@
-# 크레딧 UI 컴포넌트 완전 백업
+# ?�레??UI 컴포?�트 ?�전 백업
 
 ## UserCreditSidebar.tsx
-**파일 위치**: `youtube_script/src/components/UserCreditSidebar.tsx`
+**?�일 ?�치**: `youtube/youtube_script/src/components/UserCreditSidebar.tsx`
 
 ```tsx
 import React, { useEffect, useState } from 'react';
@@ -27,7 +27,7 @@ const UserCreditSidebar: React.FC<UserCreditSidebarProps> = ({ user }) => {
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
       if (sessionError || !session) {
-        console.error('세션 오류:', sessionError);
+        console.error('?�션 ?�류:', sessionError);
         setCredits(0);
         setLoading(false);
         return;
@@ -43,7 +43,7 @@ const UserCreditSidebar: React.FC<UserCreditSidebarProps> = ({ user }) => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('크레딧 조회 오류:', errorData);
+        console.error('?�레??조회 ?�류:', errorData);
         setCredits(0);
         setLoading(false);
         return;
@@ -54,7 +54,7 @@ const UserCreditSidebar: React.FC<UserCreditSidebarProps> = ({ user }) => {
       setIsInInitialPeriod(data.isInInitialPeriod ?? false);
       setDaysRemaining(data.daysRemaining ?? 0);
     } catch (error) {
-      console.error('크레딧 조회 실패:', error);
+      console.error('?�레??조회 ?�패:', error);
       setCredits(0);
     } finally {
       setLoading(false);
@@ -88,8 +88,8 @@ const UserCreditSidebar: React.FC<UserCreditSidebarProps> = ({ user }) => {
             </div>
           </div>
           <div className="mt-3 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-lg px-3 py-2 border border-green-500/30">
-            <p className="text-green-400 text-xs font-semibold">🎉 신규 가입 혜택</p>
-            <p className="text-neutral-300 text-[10px] mt-1">회원가입 시 <span className="text-green-400 font-bold">12 크레딧</span> 제공</p>
+            <p className="text-green-400 text-xs font-semibold">?�� ?�규 가???�택</p>
+            <p className="text-neutral-300 text-[10px] mt-1">?�원가????<span className="text-green-400 font-bold">12 ?�레??/span> ?�공</p>
           </div>
         </div>
 
@@ -97,7 +97,7 @@ const UserCreditSidebar: React.FC<UserCreditSidebarProps> = ({ user }) => {
           <div className="text-center">
             <div className="flex items-center justify-center gap-2 mb-2">
               <FiZap className="text-yellow-400 text-lg" />
-              <span className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">잔여 크레딧</span>
+              <span className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">?�여 ?�레??/span>
             </div>
             {loading ? (
               <div className="flex items-center justify-center py-2">
@@ -108,39 +108,39 @@ const UserCreditSidebar: React.FC<UserCreditSidebarProps> = ({ user }) => {
                 <div className="text-5xl font-black bg-gradient-to-br from-orange-400 to-amber-500 bg-clip-text text-transparent mb-2">
                   {credits !== null ? credits.toLocaleString() : '---'}
                 </div>
-                <p className="text-sm text-neutral-400 font-semibold">크레딧</p>
+                <p className="text-sm text-neutral-400 font-semibold">?�레??/p>
               </div>
             )}
             <button onClick={fetchCredits} disabled={loading} className="mt-3 w-full flex items-center justify-center gap-2 px-3 py-2 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 text-xs font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-orange-500/30">
               <FiRefreshCw className={loading ? 'animate-spin' : ''} />
-              새로고침
+              ?�로고침
             </button>
           </div>
 
           <div className="bg-zinc-800/50 rounded-lg p-4 text-xs text-neutral-300 space-y-2 border border-zinc-700">
-            <p className="font-semibold text-orange-400 mb-3 text-sm">💡 크레딧 사용량</p>
+            <p className="font-semibold text-orange-400 mb-3 text-sm">?�� ?�레???�용??/p>
             <div className="space-y-2 text-xs">
-              <div className="flex justify-between items-center"><span>영상 분석</span><span className="text-orange-400 font-bold">1 💎</span></div>
-              <div className="flex justify-between items-center"><span>아이디어 생성</span><span className="text-orange-400 font-bold">1 💎</span></div>
-              <div className="flex justify-between items-center"><span>기획안 작성</span><span className="text-orange-400 font-bold">10 💎</span></div>
-              <div className="flex justify-between items-center"><span>벤치마킹 검색</span><span className="text-orange-400 font-bold">5 💎</span></div>
-              <div className="flex justify-between items-center"><span>이미지 생성</span><span className="text-orange-400 font-bold">5 💎</span></div>
+              <div className="flex justify-between items-center"><span>?�상 분석</span><span className="text-orange-400 font-bold">1 ?��</span></div>
+              <div className="flex justify-between items-center"><span>?�이?�어 ?�성</span><span className="text-orange-400 font-bold">1 ?��</span></div>
+              <div className="flex justify-between items-center"><span>기획???�성</span><span className="text-orange-400 font-bold">10 ?��</span></div>
+              <div className="flex justify-between items-center"><span>벤치마킹 검??/span><span className="text-orange-400 font-bold">5 ?��</span></div>
+              <div className="flex justify-between items-center"><span>?��?지 ?�성</span><span className="text-orange-400 font-bold">5 ?��</span></div>
             </div>
           </div>
 
           {isInInitialPeriod ? (
             <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-lg p-4 text-xs border border-green-500/30">
-              <p className="text-green-400 font-semibold mb-2 text-sm">🎉 초기 크레딧 기간!</p>
-              <p className="text-neutral-300 text-xs leading-relaxed mb-2">회원가입 축하합니다! 12 크레딧을 사용하실 수 있습니다.</p>
+              <p className="text-green-400 font-semibold mb-2 text-sm">?�� 초기 ?�레??기간!</p>
+              <p className="text-neutral-300 text-xs leading-relaxed mb-2">?�원가??축하?�니?? 12 ?�레?�을 ?�용?�실 ???�습?�다.</p>
               <div className="flex items-center justify-between bg-green-500/10 rounded px-3 py-2 mt-2">
-                <span className="text-green-300 text-xs font-semibold">남은 기간</span>
-                <span className="text-green-400 text-sm font-bold">{daysRemaining}일</span>
+                <span className="text-green-300 text-xs font-semibold">?��? 기간</span>
+                <span className="text-green-400 text-sm font-bold">{daysRemaining}??/span>
               </div>
-              <p className="text-neutral-400 text-[10px] mt-2">기간 만료 후 매일 12 크레딧이 자동 충전됩니다.</p>
+              <p className="text-neutral-400 text-[10px] mt-2">기간 만료 ??매일 12 ?�레?�이 ?�동 충전?�니??</p>
             </div>
           ) : (
             <div className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 rounded-lg p-4 text-xs border border-amber-500/30">
-              <p className="text-amber-400 font-semibold text-sm">🎁 매일 12 크레딧 무료 충전!</p>
+              <p className="text-amber-400 font-semibold text-sm">?�� 매일 12 ?�레??무료 충전!</p>
             </div>
           )}
         </div>
@@ -153,14 +153,15 @@ export default UserCreditSidebar;
 ```
 
 ## UserCreditToolbar.tsx 
-**파일 위치**: `youtube_script/src/components/UserCreditToolbar.tsx`
+**?�일 ?�치**: `youtube/youtube_script/src/components/UserCreditToolbar.tsx`
 
-전체 코드는 원본 파일 참조 (다양한 tone 스타일 지원)
+?�체 코드???�본 ?�일 참조 (?�양??tone ?��???지??
 
 ## CreditPurchasePage.tsx
-**파일 위치**: `youtube_script/src/pages/CreditPurchasePage.tsx`
+**?�일 ?�치**: `youtube/youtube_script/src/pages/CreditPurchasePage.tsx`
 
-결제 플랜 정보:
-- 베이직 팩: $9.90 / 180 크레딧
-- 밸류 팩: $29.90 / 720 크레딧 (인기)
-- 프로 팩: $79.90 / 1800 크레딧
+결제 ?�랜 ?�보:
+- 베이�??? $9.90 / 180 ?�레??
+- 밸류 ?? $29.90 / 720 ?�레??(?�기)
+- ?�로 ?? $79.90 / 1800 ?�레??
+

@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react';
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
     return {
-      envDir: '..', // 루트 디렉토리의 .env 파일을 참조하도록 설정
+      envDir: '../..', // 루트 ?�렉?�리??.env ?�일??참조?�도�??�정
       server: {
         port: 3000,
         host: '0.0.0.0',
@@ -17,7 +17,7 @@ export default defineConfig(({ mode }) => {
         }
       },
       build: {
-        outDir: '../dist',
+        outDir: '../../dist',
         emptyOutDir: true,
         charset: 'utf8',
         rollupOptions: {
