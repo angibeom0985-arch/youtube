@@ -10,6 +10,8 @@ const MyPage: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [geminiApiKey, setGeminiApiKey] = useState("");
+  const [googleCloudApiKey, setGoogleCloudApiKey] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -160,6 +162,8 @@ const MyPage: React.FC = () => {
 
               <div className="space-y-4">
                 <ApiKeyInput
+                  apiKey={geminiApiKey}
+                  setApiKey={setGeminiApiKey}
                   storageKey="gemini_api_key"
                   label="Gemini API 키"
                   placeholder="AIzaSy..."
@@ -169,6 +173,8 @@ const MyPage: React.FC = () => {
                   apiType="gemini"
                 />
                 <ApiKeyInput
+                  apiKey={googleCloudApiKey}
+                  setApiKey={setGoogleCloudApiKey}
                   storageKey="google_cloud_api_key"
                   label="Google Cloud API 키"
                   placeholder="AIzaSy..."
