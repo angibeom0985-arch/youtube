@@ -7,7 +7,6 @@ import UserCreditToolbar from "@/components/UserCreditToolbar";
 import HomeBackButton from "@/components/HomeBackButton";
 import type { User } from "@supabase/supabase-js";
 import ErrorNotice from "@/components/ErrorNotice";
-import ApiKeyInput from "@/components/ApiKeyInput";
 import { ProgressTracker } from "@/components/ProgressIndicator";
 
 const STORAGE_KEYS = {
@@ -35,12 +34,50 @@ const getStoredNumber = (key: string, fallback: number): number => {
   return Number.isFinite(parsed) ? parsed : fallback;
 };
 
-const setStoredValue = (key: string, value: string): void => {
-  try {
-    localStorage.setItem(key, value);
-  } catch (error) {
-    console.error("TTS 로컬 저장값을 저장하지 못했습니다:", error);
+
+const hasGoogleCredential = (raw: unknown): boolean => {
+  if (!raw) return false;
+
+  if (typeof raw === "string") {
+    const trimmed = raw.trim();
+    if (!trimmed) return false;
+    if (!trimmed.startsWith("{")) return true;
+
+    try {
+      const parsed = JSON.parse(trimmed) as {
+        apiKey?: unknown;
+        client_email?: unknown;
+        private_key?: unknown;
+      };
+      if (typeof parsed.apiKey === "string" && parsed.apiKey.trim()) return true;
+      return typeof parsed.client_email === "string" && typeof parsed.private_key === "string";
+    } catch {
+      return false;
+    }
   }
+
+  if (typeof raw === "object") {
+    const obj = raw as {
+      apiKey?: unknown;
+      client_email?: unknown;
+      private_key?: unknown;
+    };
+    if (typeof obj.apiKey === "string" && obj.apiKey.trim()) return true;
+    return typeof obj.client_email === "string" && typeof obj.private_key === "string";
+  }
+
+  return false;
+};
+
+const toTtsErrorMessage = (raw: string): string => {
+  const code = (raw || "").trim().toLowerCase();
+  if (!code) return "TTS 요청에 실패했습니다.";
+  if (code.includes("auth_required")) return "로그인이 필요합니다.";
+  if (code.includes("missing_user_google_key")) {
+    return "마이페이지에서 Google Cloud API 키 또는 서비스 계정 JSON을 먼저 저장해 주세요.";
+  }
+  if (code.includes("usage_limit")) return "사용량 제한에 도달했습니다. 잠시 후 다시 시도해 주세요.";
+  return raw;
 };
 
 // 목소리 옵션 데이터 확장 (Google Cloud TTS 지원 음성들)
@@ -106,7 +143,8 @@ const TtsPage: React.FC = () => {
   const [previewAudio, setPreviewAudio] = useState<HTMLAudioElement | null>(null);
   const [playingPreview, setPlayingPreview] = useState<string | null>(null);
   const [useAIActing, setUseAIActing] = useState(false); // AI 연기 모드 토글
-  const [generatingPrompt, setGeneratingPrompt] = useState(false); // 프롬프트 생성 중
+  const [generatingPrompt, setGeneratingPrompt] = useState(false); // ?꾨＼?꾪듃 ?앹꽦 以?
+  const [hasUserGoogleKey, setHasUserGoogleKey] = useState(false); // 프롬프트 생성 중
 
   // Auth
   useEffect(() => {
@@ -122,6 +160,35 @@ const TtsPage: React.FC = () => {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    const loadUserKeyStatus = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) {
+        setHasUserGoogleKey(false);
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/user/settings", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!response.ok) {
+          setHasUserGoogleKey(false);
+          return;
+        }
+
+        const data = await response.json();
+        setHasUserGoogleKey(hasGoogleCredential(data?.google_credit_json));
+      } catch {
+        setHasUserGoogleKey(false);
+      }
+    };
+
+    loadUserKeyStatus();
+  }, [user?.id]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -163,6 +230,10 @@ const TtsPage: React.FC = () => {
   };
 
   const handlePreviewVoice = async (voiceId: string) => {
+    if (!hasUserGoogleKey) {
+      alert("마이페이지에서 Google Cloud API 키 또는 서비스 계정 JSON을 먼저 저장해 주세요.");
+      return;
+    }
     if (playingPreview === voiceId && previewAudio) {
       previewAudio.pause();
       setPlayingPreview(null);
@@ -191,7 +262,10 @@ const TtsPage: React.FC = () => {
         }),
       });
 
-      if (!response.ok) throw new Error("Preview failed");
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        throw new Error(toTtsErrorMessage(payload?.message || "Preview failed"));
+      }
       const data = await response.json();
       const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
 
@@ -223,6 +297,10 @@ const TtsPage: React.FC = () => {
   };
 
   const handleGenerate = async () => {
+    if (!hasUserGoogleKey) {
+      setError("마이페이지에서 Google Cloud API 키 또는 서비스 계정 JSON을 먼저 저장해 주세요.");
+      return;
+    }
     if (!user) {
       alert("로그인이 필요한 기능입니다.");
       return;
@@ -276,7 +354,7 @@ const TtsPage: React.FC = () => {
       const payload = await response.json().catch(() => null);
 
       if (!response.ok) {
-        throw new Error(payload?.message || "TTS 요청 실패");
+        throw new Error(toTtsErrorMessage(payload?.message || "TTS 요청 실패"));
       }
 
       if (!payload?.audioContent) {
