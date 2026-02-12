@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { compressImage, canStoreInLocalStorage } from "./utils/imageCompression";
+import { compressImage, canStoreInLocalStorage } from "@/utils/imageCompression";
 import {
   generateCharacters,
   generateStoryboard,
@@ -9,7 +9,7 @@ import {
   generateCameraAngles,
 } from "./services/geminiService";
 import { supabase } from "./services/supabase";
-import { detectUnsafeWords, replaceUnsafeWords } from "./utils/contentSafety";
+import { detectUnsafeWords, replaceUnsafeWords } from "@/utils/contentSafety";
 import {
   AspectRatio,
   BackgroundStyle,
@@ -24,19 +24,18 @@ import {
 import type { User } from "@supabase/supabase-js";
 
 import HomeBackButton from "../../components/HomeBackButton";
-import AspectRatioSelector from "./components/AspectRatioSelector";
-import Spinner from "./components/Spinner";
+import AspectRatioSelector from "@/components/AspectRatioSelector";
+import Spinner from "@/components/Spinner";
 import CharacterCard from "./components/CharacterCard";
 import StoryboardImage from "./components/StoryboardImage";
-import Slider from "./components/Slider";
+import Slider from "@/components/Slider";
 import MetaTags from "./components/MetaTags";
 import UserGuide from "./components/UserGuide";
-import AdBanner from "./components/AdBanner";
-import FloatingBottomAd from "./components/FloatingBottomAd";
-import SideFloatingAd from "./components/SideFloatingAd";
+import AdBanner from "@/components/AdBanner";
+import FloatingBottomAd from "@/components/FloatingBottomAd";
+import SideFloatingAd from "@/components/SideFloatingAd";
 import AdBlockDetector from "./components/AdBlockDetector";
-import ApiKeyRequiredModal from "./components/ApiKeyRequiredModal";
-import ApiKeyInput from "./components/ApiKeyInput";
+import ApiKeyRequiredModal from "@/components/ApiKeyRequiredModal";
 
 type ImageAppView = "main" | "user-guide" | "image-prompt";
 
@@ -61,6 +60,7 @@ const App: React.FC<ImageAppProps> = ({
   const searchParams = new URLSearchParams(location.search);
   const noAds = searchParams.get("no_ads") === "true";
   const [user, setUser] = useState<User | null>(null);
+  const [apiKey, setApiKey] = useState("");
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -81,7 +81,44 @@ const App: React.FC<ImageAppProps> = ({
     navigate("/login");
   };
 
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY || "";
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("gemini_api_key");
+      if (stored?.trim()) {
+        setApiKey(stored.trim());
+      }
+    } catch (error) {
+      console.error("Failed to read gemini_api_key from localStorage", error);
+    }
+
+    const loadKeyFromProfile = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) return;
+
+      try {
+        const response = await fetch("/api/user/settings", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) return;
+
+        const data = await response.json();
+        const profileKey = typeof data?.gemini_api_key === "string" ? data.gemini_api_key.trim() : "";
+        if (!profileKey) return;
+
+        setApiKey(profileKey);
+        localStorage.setItem("gemini_api_key", profileKey);
+      } catch (error) {
+        console.error("Failed to load Gemini API key from profile", error);
+      }
+    };
+
+    loadKeyFromProfile();
+  }, []);
+
   const [imageStyle, setImageStyle] = useState<"realistic" | "animation">(
     "realistic"
   ); // 기존 이미지 스타일 (실사/애니메이션)

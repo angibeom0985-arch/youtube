@@ -3,7 +3,6 @@ import { FiLayout, FiList, FiDownload, FiExternalLink, FiSearch } from "react-ic
 import { supabase } from "@/services/supabase";
 import type { User } from "@supabase/supabase-js";
 import HomeBackButton from "@/components/HomeBackButton";
-import ApiKeyInput from "@/components/ApiKeyInput";
 import { ProgressTracker } from "@/components/ProgressIndicator";
 import UserCreditToolbar from "@/components/UserCreditToolbar";
 
@@ -64,8 +63,33 @@ const momentumOptions = [
 
 const numberFormatter = new Intl.NumberFormat("ko-KR");
 
+const extractGoogleCloudApiKey = (raw: unknown): string => {
+  if (!raw) return "";
+
+  if (typeof raw === "string") {
+    const trimmed = raw.trim();
+    if (!trimmed) return "";
+    if (!trimmed.startsWith("{")) return trimmed;
+
+    try {
+      const parsed = JSON.parse(trimmed) as { apiKey?: string };
+      return typeof parsed.apiKey === "string" ? parsed.apiKey.trim() : "";
+    } catch {
+      return "";
+    }
+  }
+
+  if (typeof raw === "object") {
+    const obj = raw as { apiKey?: unknown };
+    return typeof obj.apiKey === "string" ? obj.apiKey.trim() : "";
+  }
+
+  return "";
+};
+
 const BenchmarkingPage: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
+  const [youtubeApiKey, setYoutubeApiKey] = useState("");
   const [query, setQuery] = useState("일상 건강");
   const [days, setDays] = useState(dateOptions[0].days);
   const [durationFilter, setDurationFilter] = useState(durationOptions[0].value);
@@ -94,6 +118,44 @@ const BenchmarkingPage: React.FC = () => {
     return () => subscription.unsubscribe();
   }, []);
 
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("google_cloud_api_key");
+      if (stored?.trim()) {
+        setYoutubeApiKey(stored.trim());
+      }
+    } catch (error) {
+      console.error("Failed to read google_cloud_api_key from localStorage", error);
+    }
+
+    const loadKeyFromProfile = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) return;
+
+      try {
+        const response = await fetch("/api/user/settings", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) return;
+
+        const data = await response.json();
+        const extracted = extractGoogleCloudApiKey(data?.google_credit_json);
+        if (!extracted) return;
+
+        setYoutubeApiKey(extracted);
+        localStorage.setItem("google_cloud_api_key", extracted);
+      } catch (error) {
+        console.error("Failed to load Google API key from profile", error);
+      }
+    };
+
+    loadKeyFromProfile();
+  }, []);
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
   };
@@ -108,6 +170,11 @@ const BenchmarkingPage: React.FC = () => {
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
+
+    if (!youtubeApiKey.trim()) {
+      setError("마이페이지에서 Google Cloud API 키를 먼저 저장해 주세요.");
+      return;
+    }
 
     setLoading(true);
     setSearchProgress({ ...searchProgress, currentStep: 0 });
@@ -129,6 +196,7 @@ const BenchmarkingPage: React.FC = () => {
         method: "POST",
         headers,
         body: JSON.stringify({
+          apiKey: youtubeApiKey.trim(),
           query,
           days,
           durationFilter,

@@ -689,9 +689,18 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
     setIsReformattingTopic(true);
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        alert("로그인이 필요합니다.");
+        return;
+      }
+
       const response = await fetch('/api/youtube_script/gemini', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
         body: JSON.stringify({
           action: 'reformatTopic',
           payload: {

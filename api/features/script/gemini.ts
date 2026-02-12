@@ -80,12 +80,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
-    if (!apiKey) {
-      res.status(500).send("missing_api_key");
-      return;
-    }
-
     if (!applyRateLimit(req, res)) {
       return;
     }
@@ -117,22 +111,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ? authHeader.slice(7)
         : null;
 
-    if (token) {
-      const authResult = await getSupabaseUser(token);
-      userId = authResult.user?.id ?? null;
+    if (!token) {
+      res.status(401).send("auth_required");
+      return;
     }
 
-    // [NEW] Check for User API Key override
-    let effectiveApiKey = apiKey;
-    if (userId && supabaseAdmin) {
-      const { data } = await supabaseAdmin
-        .from("profiles")
-        .select("gemini_api_key")
-        .eq("id", userId)
-        .single();
-      if (data?.gemini_api_key) {
-        effectiveApiKey = data.gemini_api_key;
-      }
+    const authResult = await getSupabaseUser(token);
+    userId = authResult.user?.id ?? null;
+    if (!userId || !supabaseAdmin) {
+      res.status(401).send("auth_required");
+      return;
+    }
+
+    const { data } = await supabaseAdmin
+      .from("profiles")
+      .select("gemini_api_key")
+      .eq("id", userId)
+      .single();
+
+    const effectiveApiKey = typeof data?.gemini_api_key === "string" ? data.gemini_api_key.trim() : "";
+    if (!effectiveApiKey) {
+      res.status(400).send("missing_user_api_key");
+      return;
     }
 
     const guard = await enforceAbusePolicy(req, action, clientFingerprint);

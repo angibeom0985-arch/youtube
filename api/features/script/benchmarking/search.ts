@@ -77,7 +77,7 @@ export default async function handler(
   const body = req.body;
 
   // ?쨈챘혶쩌?쨈챙?벬?쨍챙?붋????왗モ뮤??API ???째챙?왖??짭챙큄짤, ??졗?벬셌ヂ???챗짼쩍챘쨀????짭챙큄짤
-  const apiKey = (body.apiKey || "").trim() || process.env.YOUTUBE_API_KEY;
+  const apiKey = (body.apiKey || "").trim();
 
   if (!apiKey) {
     return res.status(400).json({ error: "YouTube API 키가 설정되지 않았습니다. 설정에서 입력해 주세요." });

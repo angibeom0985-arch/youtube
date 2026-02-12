@@ -26,6 +26,12 @@ const toUserMessage = (raw: string): string => {
   if (lower.includes("rate_limit")) {
     return "요청이 너무 많습니다. 잠시 후 다시 시도해주세요.";
   }
+  if (lower.includes("auth_required")) {
+    return "로그인이 필요합니다. 다시 로그인한 뒤 시도해 주세요.";
+  }
+  if (lower.includes("missing_user_api_key")) {
+    return "마이페이지에서 Gemini API 키를 먼저 저장해 주세요.";
+  }
   if (lower.includes("missing_api_key")) {
     return "서버 설정 오류가 발생했습니다. 관리자에게 문의해주세요.";
   }
