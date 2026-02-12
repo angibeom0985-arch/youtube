@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { supabase } from "../services/supabase";
+import { supabase } from "@/services/supabase";
 import type { User } from "@supabase/supabase-js";
-import LoginModal from "../components/LoginModal";
+import LoginModal from "@/components/LoginModal";
 
 interface HomePageProps {
   basePath?: string;

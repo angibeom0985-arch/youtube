@@ -33,19 +33,19 @@ import {
 
 } from "react-icons/fi";
 
-import { supabase } from "../services/supabase";
+import { supabase } from "@/services/supabase";
 import type { User } from "@supabase/supabase-js";
-import HomeBackButton from "../components/HomeBackButton";
-import ErrorNotice from "../components/ErrorNotice";
-import ApiKeyInput from "../components/ApiKeyInput";
-import type { AnalysisResult, NewPlan } from "../types";
-import { analyzeTranscript, generateIdeas, generateNewPlan } from "../services/geminiService";
-import { regenerateStoryboardImage } from "../features/image/services/geminiService";
-import type { CharacterStyle, BackgroundStyle, AspectRatio } from "../features/image/types";
+import HomeBackButton from "@/components/HomeBackButton";
+import ErrorNotice from "@/components/ErrorNotice";
+import ApiKeyInput from "@/components/ApiKeyInput";
+import type { AnalysisResult, NewPlan } from "@/types";
+import { analyzeTranscript, generateIdeas, generateNewPlan } from "@/services/geminiService";
+import { regenerateStoryboardImage } from "@/features/image/services/geminiService";
+import type { CharacterStyle, BackgroundStyle, AspectRatio } from "@/features/image/types";
 
 
-import { ProgressTracker } from "../components/ProgressIndicator";
-import UserCreditToolbar from "../components/UserCreditToolbar";
+import { ProgressTracker } from "@/components/ProgressIndicator";
+import UserCreditToolbar from "@/components/UserCreditToolbar";
 
 const STORAGE_KEYS = {
   title: "video_project_title",

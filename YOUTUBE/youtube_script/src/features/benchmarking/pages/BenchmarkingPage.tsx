@@ -1,11 +1,11 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { FiLayout, FiList, FiDownload, FiExternalLink, FiSearch } from "react-icons/fi";
-import { supabase } from "../services/supabase";
+import { supabase } from "@/services/supabase";
 import type { User } from "@supabase/supabase-js";
-import HomeBackButton from "../components/HomeBackButton";
-import ApiKeyInput from "../components/ApiKeyInput";
-import { ProgressTracker } from "../components/ProgressIndicator";
-import UserCreditToolbar from "../components/UserCreditToolbar";
+import HomeBackButton from "@/components/HomeBackButton";
+import ApiKeyInput from "@/components/ApiKeyInput";
+import { ProgressTracker } from "@/components/ProgressIndicator";
+import UserCreditToolbar from "@/components/UserCreditToolbar";
 
 interface DateOption {
   label: string;

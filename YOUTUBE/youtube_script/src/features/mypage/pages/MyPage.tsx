@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { supabase } from "../services/supabase";
+import { supabase } from "@/services/supabase";
 import type { User } from "@supabase/supabase-js";
 import { FiUser, FiClock, FiSettings, FiKey } from "react-icons/fi";
-import ApiKeyInput from "../components/ApiKeyInput";
-import HomeBackButton from "../components/HomeBackButton";
+import ApiKeyInput from "@/components/ApiKeyInput";
+import HomeBackButton from "@/components/HomeBackButton";
 
 const MyPage: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);

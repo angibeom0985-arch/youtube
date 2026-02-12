@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { FiExternalLink, FiHome } from 'react-icons/fi';
-import AdSense from '../components/AdSense';
-import { supabase } from '../services/supabase';
+import AdSense from '@/components/AdSense';
+import { supabase } from '@/services/supabase';
 import type { User } from '@supabase/supabase-js';
-import HomeBackButton from "../components/HomeBackButton";
+import HomeBackButton from "@/components/HomeBackButton";
 
 const ApiGuidePage: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);

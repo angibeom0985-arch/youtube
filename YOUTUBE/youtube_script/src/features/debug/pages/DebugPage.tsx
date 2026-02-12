@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import App from "../App";
-import ImageApp from "../features/image/App";
-import ImageErrorBoundary from "../features/image/components/ErrorBoundary";
-import VideoPage from "./VideoPage";
-import HomePage from "./HomePage";
+import App from "@/App";
+import ImageApp from "@/features/image/App";
+import ImageErrorBoundary from "@/features/image/components/ErrorBoundary";
+import VideoPage from "@/features/script/pages/VideoPage";
+import HomePage from "@/features/home/pages/HomePage";
 import { FiEye, FiEyeOff, FiHome } from "react-icons/fi";
 
 type LoginState = "checking" | "loggedOut" | "loggedIn";

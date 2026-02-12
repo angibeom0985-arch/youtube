@@ -1,5 +1,5 @@
 import React from "react";
-import DownloadProgressWindow from "../components/DownloadProgressWindow";
+import DownloadProgressWindow from "@/components/DownloadProgressWindow";
 
 const DownloadProgressPage: React.FC = () => {
   const handleComplete = () => {

@@ -7,6 +7,10 @@ This file defines which paths are runtime code vs archive assets.
 - `youtube/`
   - Main workspace for YouTube-related code.
   - `youtube/youtube_script/`: Vite + React frontend.
+    - `youtube/youtube_script/src/features/`: feature-based page modules.
+      - `admin`, `api-guide`, `benchmarking`, `debug`, `download`, `guide`, `home`, `mypage`, `script`, `tts`, `image`.
+      - Each feature keeps route-level screens under `pages/`.
+    - `youtube/youtube_script/src/components/`, `services/`, `utils/`, `types.ts`: shared cross-feature modules.
   - `youtube/admin-server.js`: local admin helper server.
   - `youtube/api_guide/`: API guide assets/docs.
   - `youtube/youtube_benchmarking/`: legacy benchmarking app kept under YouTube scope.
@@ -36,4 +40,3 @@ These files are excluded from structural cleanup unless explicitly approved:
 - `register_license.py`
 - `Auto_Naver_Blog_V5.1.py`
 - `setting/`
-

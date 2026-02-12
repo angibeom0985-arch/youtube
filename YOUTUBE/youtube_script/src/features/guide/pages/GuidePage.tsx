@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { FiHome } from "react-icons/fi";
-import { supabase } from "../services/supabase";
+import { supabase } from "@/services/supabase";
 import type { User } from "@supabase/supabase-js";
 
 const GuidePage: React.FC = () => {

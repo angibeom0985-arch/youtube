@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import GuideEditor from '../components/GuideEditor';
+import GuideEditor from '@/components/GuideEditor';
 
 const AdminEditorPage: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);

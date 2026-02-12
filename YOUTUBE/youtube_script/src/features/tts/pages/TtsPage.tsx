@@ -1,14 +1,14 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
-import { generateSsml, generateActingPrompt } from "../services/geminiService";
+import { generateSsml, generateActingPrompt } from "@/services/geminiService";
 import { FiPlay, FiPause, FiMic, FiSliders, FiCpu, FiInfo, FiUser, FiFileText, FiDownload } from "react-icons/fi";
-import { supabase } from "../services/supabase";
-import UserCreditToolbar from "../components/UserCreditToolbar";
-import HomeBackButton from "../components/HomeBackButton";
+import { supabase } from "@/services/supabase";
+import UserCreditToolbar from "@/components/UserCreditToolbar";
+import HomeBackButton from "@/components/HomeBackButton";
 import type { User } from "@supabase/supabase-js";
-import ErrorNotice from "../components/ErrorNotice";
-import ApiKeyInput from "../components/ApiKeyInput";
-import { ProgressTracker } from "../components/ProgressIndicator";
+import ErrorNotice from "@/components/ErrorNotice";
+import ApiKeyInput from "@/components/ApiKeyInput";
+import { ProgressTracker } from "@/components/ProgressIndicator";
 
 const STORAGE_KEYS = {
   text: "tts_text",
