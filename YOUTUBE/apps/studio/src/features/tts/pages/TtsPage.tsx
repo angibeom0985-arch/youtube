@@ -315,7 +315,7 @@ const TtsPage: React.FC = () => {
 
       {/* Auth Status - Top Right */}
       <div className="absolute top-0 right-0 p-4 sm:p-6 flex gap-3 z-50 items-center">
-        <UserCreditToolbar user={user} onLogout={handleLogout} tone="emerald" />
+        <UserCreditToolbar user={user} onLogout={handleLogout} tone="emerald" showCredits={false} />
       </div>
       <div className="absolute top-0 left-0 p-4 sm:p-6 z-50">
         <HomeBackButton tone="emerald" />
@@ -534,11 +534,6 @@ const TtsPage: React.FC = () => {
                 <>
                   <FiMic size={22} />
                   <span>TTS 음성 생성하기</span>
-                  {text.trim() && (
-                    <span className="bg-white/20 px-2.5 py-0.5 rounded-full text-xs font-bold ml-2">
-                      {Math.ceil(text.trim().length / 10)} ⚡
-                    </span>
-                  )}
                 </>
               )}
             </button>

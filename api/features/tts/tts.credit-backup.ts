@@ -1,6 +1,8 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { TextToSpeechClient } from "@google-cloud/text-to-speech";
 import { enforceUsageLimit, recordUsageEvent } from "../../shared/usageLimit.js";
+import { checkAndDeductCredits, CREDIT_COSTS } from "../../shared/creditService.js";
+import { supabaseAdmin } from "../../shared/supabase.js";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
@@ -45,12 +47,40 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  // Google Service Account JSON ?????�� 寃쎈�???�젙
+  // Calculate Cost
+  const charCount = text ? text.length : ssml.length;
+  const cost = Math.ceil(charCount * CREDIT_COSTS.TTS_CHAR);
+
+  // Check and Deduct Credits (Enforces Login)
+  const creditResult = await checkAndDeductCredits(req, res, cost);
+  if (!creditResult.allowed) {
+    res.status(creditResult.status || 402).json({
+      message: creditResult.message || "Credits required",
+      error: "credit_limit"
+    });
+    return;
+  }
+
+
+  // 3. User Custom Credentials (DB)
+  let userCredentials: any = null;
+  if (creditResult.userId && supabaseAdmin) {
+    const { data } = await supabaseAdmin
+      .from("profiles")
+      .select("google_credit_json")
+      .eq("id", creditResult.userId)
+      .single();
+    if (data?.google_credit_json) {
+      userCredentials = data.google_credit_json;
+    }
+  }
+
+  // Google Service Account JSON ???뚯씪 寃쎈줈 ?ㅼ젙
   let keyFilename = process.env.GOOGLE_APPLICATION_CREDENTIALS;
   const jsonFileName = "google-credentials.json";
 
   if (!keyFilename || !fs.existsSync(keyFilename)) {
-    // ?꾨낫 寃쎈�???뺤씤
+    // ?꾨낫 寃쎈줈???뺤씤
         const candidates = [
       path.join(process.cwd(), "api", "youtube_TTS", jsonFileName),
       path.join(__dirname, jsonFileName),
@@ -69,10 +99,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   }
 
-  // ??�꼍蹂??�줈 JSON ??�슜??吏곸???꾨떖??寃쎌??泥섎??(Vercel 沅뚯??諛⑹??
+  // ?섍꼍蹂?섎줈 JSON ?댁슜??吏곸젒 ?꾨떖??寃쎌슦 泥섎━ (Vercel 沅뚯옣 諛⑹떇)
   let clientOptions: any = { keyFilename };
 
-  if (process.env.GOOGLE_CREDENTIALS_JSON) {
+  if (userCredentials) {
+    clientOptions = { credentials: userCredentials };
+  } else if (process.env.GOOGLE_CREDENTIALS_JSON) {
     try {
       clientOptions = { credentials: JSON.parse(process.env.GOOGLE_CREDENTIALS_JSON) };
     } catch (e) {
@@ -122,7 +154,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return;
     }
 
-    // Buffer??Base64 ?�몄???��?蹂??�븯???꾩넚
+    // Buffer瑜?Base64 臾몄옄?대줈 蹂?섑븯???꾩넚
     const audioContent = Buffer.from(response.audioContent).toString("base64");
 
     res.status(200).json({ audioContent });
@@ -131,5 +163,4 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.status(500).json({ message: error?.message || "server_error" });
   }
 }
-
 
