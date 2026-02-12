@@ -172,21 +172,17 @@ const SortableCategoryChip: React.FC<SortableCategoryChipProps> = ({
       ref={setNodeRef}
       type="button"
       style={style}
+      {...attributes}
+      {...listeners}
       onClick={() => onSelect(category)}
-      className={`rounded-full border px-3 py-2 text-xs font-semibold transition ${isSelected
+      className={`rounded-full border px-3 py-2 text-xs font-semibold transition cursor-grab active:cursor-grabbing touch-none ${isSelected
           ? "border-red-400 bg-red-500/15 text-red-200"
           : "border-white/15 bg-black/30 text-white/70 hover:border-white/30"
         }`}
+      title="드래그해서 순서 변경"
     >
       <span className="inline-flex items-center gap-2">
-        <span
-          {...attributes}
-          {...listeners}
-          className="cursor-grab text-white/40 hover:text-white/70 active:cursor-grabbing"
-          title="드래그해서 순서 변경"
-        >
-          ::
-        </span>
+        <span className="text-white/40">::</span>
         <span>{category}</span>
       </span>
     </button>
@@ -1481,7 +1477,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
   const categorySensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: { distance: 8 },
+      activationConstraint: { distance: 2 },
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
@@ -1504,7 +1500,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     switch (activeStep.id) {
       case "setup":
         return (
-          <div className="mt-[clamp(0.5rem,0.83vw,0.85rem)]">
+          <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
             <div className="rounded-[clamp(1rem,2vw,1.4rem)] border border-white/20 bg-black/40 p-[clamp(1rem,2vw,1.4rem)]">
               <h3 className="text-2xl font-bold text-white">영상 기본 설정</h3>
               <p className="mt-3 text-sm text-white/70">
@@ -1571,12 +1567,12 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         const currentSubStep = scriptSubSteps[scriptSubStep];
 
         return (
-          <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
+          <div className="mt-0">
             <div className="rounded-[clamp(1rem,2vw,1.6rem)] border border-white/10 bg-black/40 p-[clamp(1.25rem,2vw,1.8rem)] shadow-[0_18px_40px_rgba(0,0,0,0.45)]">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h3 className="text-2xl font-bold text-white">{currentSubStep.title}</h3>
-                  <p className="mt-2 text-sm text-white/60">
+                  <p className="mt-2 text-sm text-white/60 text-right">
                     {currentSubStep.description}
                   </p>
                 </div>
@@ -1627,7 +1623,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         placeholder="예: 경제 위기 속 재테크 주식 투자 전략"
                       />
                       <p className="text-xs text-white/50">
-                        ??? ???? AI ?? ??? ??? ????, ??? ??? ?????
+                        제목을 입력하면 AI 추천 주제가 비슷한 형식으로, 새로운 소재로 생성됩니다
                       </p>
                     </div>
 
@@ -3344,7 +3340,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   <h2 className="mt-2 text-[clamp(1.6rem,2.6vw,2.2rem)] font-bold text-white">
                     {activeStep.label}
                   </h2>
-                  <p className="mt-2 text-[clamp(0.9rem,1.5vw,1.05rem)] text-white/70">
+                  <p className="mt-2 text-[clamp(0.9rem,1.5vw,1.05rem)] text-white/70 text-right">
                     {activeStep.description}
                   </p>
                 </div>

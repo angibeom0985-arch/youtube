@@ -737,12 +737,12 @@ ${analysis.openingStyle.exampleLines.map((line, i) => `  ${i + 1}. ${line}`).joi
 - Do NOT introduce additional characters or character names.";
 
       const isStoryChannel = category === "? ??";
-      const isVlogChannel = category === "????";
+      const isVlogChannel = category === "브이로그";
       const is49Channel = category === "49?";
       const isYadamChannel = category === "??";
       const isMukbangChannel = category === "??";
       const isGukppongChannel = category === "??";
-      const isNorthKoreaChannel = category === "?? ??";
+      const isNorthKoreaChannel = category === "북한 이슈";
       const isDialogueMode = scriptStyle === "dialogue";
       const useStoryPrompt = (isStoryChannel || is49Channel || isYadamChannel || isGukppongChannel || isNorthKoreaChannel) && isDialogueMode;
       const useStorySchema = useStoryPrompt;
