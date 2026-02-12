@@ -19,10 +19,10 @@ function resolveCaseAwareDir(parts) {
 
 const mode = process.argv[2] || "build";
 const extraArgs = process.argv.slice(3);
-const appRoot = resolveCaseAwareDir(["youtube", "youtube_script"]);
+const appRoot = resolveCaseAwareDir(["youtube", "apps", "studio"]);
 
 if (!appRoot || !statSync(appRoot).isDirectory()) {
-  console.error("[vite-run] Could not find app root: youtube/youtube_script");
+  console.error("[vite-run] Could not find app root: youtube/apps/studio");
   process.exit(1);
 }
 

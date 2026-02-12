@@ -6,14 +6,14 @@ This file defines which paths are runtime code vs archive assets.
 
 - `youtube/`
   - Main workspace for YouTube-related code.
-  - `youtube/youtube_script/`: Vite + React frontend.
-    - `youtube/youtube_script/src/features/`: feature-based page modules.
+  - `youtube/apps/studio/`: Vite + React frontend.
+    - `youtube/apps/studio/src/features/`: feature-based page modules.
       - `admin`, `api-guide`, `benchmarking`, `debug`, `download`, `guide`, `home`, `mypage`, `script`, `tts`, `image`.
       - Each feature keeps route-level screens under `pages/`.
-    - `youtube/youtube_script/src/components/`, `services/`, `utils/`, `types.ts`: shared cross-feature modules.
+    - `youtube/apps/studio/src/components/`, `services/`, `utils/`, `types.ts`: shared cross-feature modules.
+  - `youtube/apps/benchmarking/`: standalone Next.js benchmarking app.
   - `youtube/admin-server.js`: local admin helper server.
-  - `youtube/api_guide/`: API guide assets/docs.
-  - `youtube/youtube_benchmarking/`: legacy benchmarking app kept under YouTube scope.
+  - `youtube/docs/api-guide/`: API guide assets/docs.
   - `youtube/tests/`: local test assets.
   - `youtube/config/`: local config files.
 - `api/`

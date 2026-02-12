@@ -1,10 +1,10 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
-    "./youtube/youtube_script/index.html",
-    "./youtube/youtube_script/src/**/*.{js,ts,jsx,tsx}",
-    "./YOUTUBE/youtube_script/index.html",
-    "./YOUTUBE/youtube_script/src/**/*.{js,ts,jsx,tsx}",
+    "./youtube/apps/studio/index.html",
+    "./youtube/apps/studio/src/**/*.{js,ts,jsx,tsx}",
+    "./YOUTUBE/apps/studio/index.html",
+    "./YOUTUBE/apps/studio/src/**/*.{js,ts,jsx,tsx}",
     "./youtube_image/ui/**/*.{js,ts,jsx,tsx}"
   ],
   theme: {
