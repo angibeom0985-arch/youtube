@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+﻿import React, { useCallback, useEffect, useState } from "react";
 import { FiKey, FiEye, FiEyeOff, FiCheckCircle } from "react-icons/fi";
 import { Link } from "react-router-dom";
 import { supabase } from "../services/supabase";
@@ -74,8 +74,8 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
   setApiKey: setPropApiKey, // Rename prop setter
   storageKey,
   label = "Gemini API 키",
-  placeholder = "API 키를 입력하세요",
-  helpText = "브라우저 및 계정에 저장됩니다.",
+  placeholder = "API 키를 입력해주세요.",
+  helpText = "브라우저 및 계정에 안전하게 저장됩니다.",
   apiKeyLink = "https://aistudio.google.com/app/apikey",
   guideRoute,
   theme = "orange",
@@ -86,6 +86,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
   const [testLoading, setTestLoading] = useState(false);
   const [testResult, setTestResult] = useState<"success" | "error" | null>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isServerSaved, setIsServerSaved] = useState(false);
 
   const styles = themeStyles[theme];
 
@@ -115,9 +116,10 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
           try {
             localStorage.setItem(storageKey, backendKey);
           } catch (error) {
-            console.error("API 키를 저장하는데 실패했습니다:", error);
+            console.error("API ?ㅻ? ??ν븯?붾뜲 ?ㅽ뙣?덉뒿?덈떎:", error);
           }
           setIsCollapsed(true);
+          setIsServerSaved(true);
         }
       }
     } catch (e) {
@@ -137,7 +139,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
         setIsCollapsed(true);
       }
     } catch (error) {
-      console.error("API 키를 불러오거나 저장하는데 실패했습니다:", error);
+      console.error("API ?ㅻ? 遺덈윭?ㅺ굅????ν븯?붾뜲 ?ㅽ뙣?덉뒿?덈떎:", error);
     }
     fetchBackendKeys();
   }, [storageKey, apiType, fetchBackendKeys, propApiKey, setPropApiKey]); // Add propApiKey and setPropApiKey
@@ -145,10 +147,11 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
   const handleApiKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setPropApiKey(value); // Use prop setter
+    setIsServerSaved(false);
     try {
       localStorage.setItem(storageKey, value);
     } catch (error) {
-      console.error("API 키를 저장하는데 실패했습니다:", error);
+      console.error("API ?ㅻ? ??ν븯?붾뜲 ?ㅽ뙣?덉뒿?덈떎:", error);
     }
   };
 
@@ -158,48 +161,56 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
 
   const saveAndTestApiKey = async () => {
     if (!propApiKey) { // Use propApiKey
-      alert('⚠️ API 키를 먼저 입력해주세요.');
+      alert('?좑툘 API ?ㅻ? 癒쇱? ?낅젰?댁＜?몄슂.');
       return;
     }
 
     try {
       localStorage.setItem(storageKey, propApiKey); // Use propApiKey
     } catch (error) {
-      alert('❌ API 키 저장에 실패했습니다.');
+      alert('??API ????μ뿉 ?ㅽ뙣?덉뒿?덈떎.');
       return;
     }
 
     // Backend Save
     const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-      try {
-        const payload: any = {};
-        if (apiType === "gemini") {
-          payload.gemini_api_key = propApiKey; // Use propApiKey
-        } else if (apiType === "googleCloud" || apiType === "google-cloud") {
-          // Try to parse as JSON first (service account), otherwise treat as API Key string
-          try {
-            const json = JSON.parse(propApiKey); // Use propApiKey
-            payload.google_credit_json = json;
-          } catch {
-            // Assume it's a simple API Key string
-            payload.google_credit_json = { apiKey: propApiKey }; // Use propApiKey
-          }
+    if (!session) {
+      setIsServerSaved(false);
+      alert("濡쒓렇?몄씠 ?꾩슂?⑸땲?? ?ㅼ떆 濡쒓렇??????ν빐 二쇱꽭??");
+      return;
+    }
+    try {
+      const payload: any = {};
+      if (apiType === "gemini") {
+        payload.gemini_api_key = propApiKey;
+      } else if (apiType === "googleCloud" || apiType === "google-cloud") {
+        try {
+          const json = JSON.parse(propApiKey);
+          payload.google_credit_json = json;
+        } catch {
+          payload.google_credit_json = { apiKey: propApiKey };
         }
-
-        if (Object.keys(payload).length > 0) {
-          await fetch("/api/user/settings", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${session.access_token}`
-            },
-            body: JSON.stringify(payload)
-          });
-        }
-      } catch (e) {
-        console.error("Backend save failed", e);
       }
+
+      if (Object.keys(payload).length > 0) {
+        const saveResponse = await fetch("/api/user/settings", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session.access_token}`
+          },
+          body: JSON.stringify(payload)
+        });
+        if (!saveResponse.ok) {
+          throw new Error("backend_save_failed");
+        }
+        setIsServerSaved(true);
+      }
+    } catch (e) {
+      console.error("Backend save failed", e);
+      setIsServerSaved(false);
+      alert("?쒕쾭??API ????μ씠 ?ㅽ뙣?덉뒿?덈떎. ?ㅼ떆 ?쒕룄??二쇱꽭??");
+      return;
     }
 
     // Test logic
@@ -217,13 +228,12 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
         if (propApiKey.trim().startsWith("{")) { // Use propApiKey
           // Service Account JSON
           setTestResult("success");
-          alert('✅ Google Cloud Key(JSON)가 저장되었습니다. (서버에서 검증됩니다)');
+          alert('??Google Cloud Key(JSON)媛 ??λ릺?덉뒿?덈떎. (?쒕쾭?먯꽌 寃利앸맗?덈떎)');
           setTestLoading(false);
           return;
         } else {
-          // API Key String - Test with TTS or YouTube
-          // We test with YouTube as it's a common use case for the API Key
-          testUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=test&type=video&maxResults=1&key=${propApiKey}`; // Use propApiKey
+          // API Key String - test against Google Cloud TTS API directly
+          testUrl = `https://texttospeech.googleapis.com/v1/voices?key=${propApiKey}`;
         }
       }
 
@@ -231,15 +241,15 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
 
       if (response.ok) {
         setTestResult("success");
-        alert('✅ API 키가 저장되고 정상 작동합니다!');
+        alert('??API ?ㅺ? ??λ릺怨??뺤긽 ?묐룞?⑸땲??');
       } else {
         setTestResult("error");
         const error = await response.json();
-        alert(`❌ API 키 오류: ${error.error?.message || '키가 유효하지 않습니다'}`);
+        alert(`??API ???ㅻ쪟: ${error.error?.message || '?ㅺ? ?좏슚?섏? ?딆뒿?덈떎'}`);
       }
     } catch (err) {
       setTestResult("error");
-      alert('❌ 테스트 실패: 네트워크를 확인해주세요.');
+      alert('???뚯뒪???ㅽ뙣: ?ㅽ듃?뚰겕瑜??뺤씤?댁＜?몄슂.');
     } finally {
       setTestLoading(false);
       setTimeout(() => setTestResult(null), 3000);
@@ -253,8 +263,11 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
         <label className={`text-sm font-semibold ${styles.label}`}>
           {label}
         </label>
-        {propApiKey && ( // Use propApiKey
-          <span className="text-xs text-green-400 ml-2">✓ 저장됨</span>
+        {propApiKey && isServerSaved && (
+          <span className="text-xs text-green-400 ml-2">저장됨</span>
+        )}
+        {propApiKey && !isServerSaved && (
+          <span className="text-xs text-yellow-400 ml-2">로컬 입력됨</span>
         )}
         <div className="ml-auto flex gap-2">
           {propApiKey && ( // Use propApiKey
@@ -263,7 +276,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
               className="text-xs px-2 py-1 rounded hover:bg-white/10 transition-colors"
               style={{ color: styles.label.split(' ')[0].replace('text-', '') }}
             >
-              {isCollapsed ? '펼치기' : '접기'}
+              {isCollapsed ? "펼치기" : "접기"}
             </button>
           )}
           {guideRoute && (
@@ -309,7 +322,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
                   ) : testResult === "success" ? (
                     <FiCheckCircle size={12} />
                   ) : (
-                    "저장·테스트"
+                    "저장/테스트"
                   )}
                 </button>
               )}
@@ -318,7 +331,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
 
           {!propApiKey && ( // Use propApiKey
             <p className={`mt-2 text-xs ${styles.warning} flex items-center gap-1`}>
-              <span>⚠️</span>
+              <span>주의</span>
               <span>API 키를 입력해주세요.</span>
             </p>
           )}
