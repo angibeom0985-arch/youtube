@@ -43,11 +43,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // 3. POST: Update settings
     if (req.method === "POST") {
-        const { gemini_api_key, google_credit_json } = req.body;
+        let body: any = req.body;
+        if (typeof body === "string") {
+            try {
+                body = JSON.parse(body);
+            } catch {
+                return res.status(400).json({ message: "invalid_json" });
+            }
+        }
+
+        const { gemini_api_key, google_credit_json } = body ?? {};
 
         const updates: any = {};
-        if (gemini_api_key !== undefined) updates.gemini_api_key = gemini_api_key;
+        if (gemini_api_key !== undefined) {
+            updates.gemini_api_key =
+                typeof gemini_api_key === "string" ? gemini_api_key.trim() : gemini_api_key;
+        }
         if (google_credit_json !== undefined) updates.google_credit_json = google_credit_json;
+
+        if (Object.keys(updates).length === 0) {
+            return res.status(400).json({ message: "no_updates" });
+        }
 
         const { error } = await client
             .from("profiles")
