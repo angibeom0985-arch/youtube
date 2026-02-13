@@ -116,7 +116,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
           try {
             localStorage.setItem(storageKey, backendKey);
           } catch (error) {
-            console.error("API ?ㅻ? ??ν븯?붾뜲 ?ㅽ뙣?덉뒿?덈떎:", error);
+            console.error("API 키 저장에 실패했습니다:", error);
           }
           setIsCollapsed(true);
           setIsServerSaved(true);
@@ -139,7 +139,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
         setIsCollapsed(true);
       }
     } catch (error) {
-      console.error("API ?ㅻ? 遺덈윭?ㅺ굅????ν븯?붾뜲 ?ㅽ뙣?덉뒿?덈떎:", error);
+      console.error("API 키를 불러오거나 저장하는 중 오류가 발생했습니다:", error);
     }
     fetchBackendKeys();
   }, [storageKey, apiType, fetchBackendKeys, propApiKey, setPropApiKey]); // Add propApiKey and setPropApiKey
@@ -151,7 +151,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
     try {
       localStorage.setItem(storageKey, value);
     } catch (error) {
-      console.error("API ?ㅻ? ??ν븯?붾뜲 ?ㅽ뙣?덉뒿?덈떎:", error);
+      console.error("API 키 저장에 실패했습니다:", error);
     }
   };
 
@@ -161,14 +161,14 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
 
   const saveAndTestApiKey = async () => {
     if (!propApiKey) { // Use propApiKey
-      alert('?좑툘 API ?ㅻ? 癒쇱? ?낅젰?댁＜?몄슂.');
+      alert("먼저 API 키를 입력해주세요.");
       return;
     }
 
     try {
       localStorage.setItem(storageKey, propApiKey); // Use propApiKey
     } catch (error) {
-      alert('??API ????μ뿉 ?ㅽ뙣?덉뒿?덈떎.');
+      alert("API 키 로컬 저장에 실패했습니다.");
       return;
     }
 
@@ -176,7 +176,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
       setIsServerSaved(false);
-      alert("濡쒓렇?몄씠 ?꾩슂?⑸땲?? ?ㅼ떆 濡쒓렇??????ν빐 二쇱꽭??");
+      alert("로그인이 필요합니다. 다시 로그인한 후 시도해주세요.");
       return;
     }
     try {
@@ -209,7 +209,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
     } catch (e) {
       console.error("Backend save failed", e);
       setIsServerSaved(false);
-      alert("?쒕쾭??API ????μ씠 ?ㅽ뙣?덉뒿?덈떎. ?ㅼ떆 ?쒕룄??二쇱꽭??");
+      alert("서버에 API 키 저장이 실패했습니다. 다시 시도해주세요.");
       return;
     }
 
@@ -228,7 +228,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
         if (propApiKey.trim().startsWith("{")) { // Use propApiKey
           // Service Account JSON
           setTestResult("success");
-          alert('??Google Cloud Key(JSON)媛 ??λ릺?덉뒿?덈떎. (?쒕쾭?먯꽌 寃利앸맗?덈떎)');
+          alert("Google Cloud JSON 키가 저장되었습니다. (서버에서 검증됩니다)");
           setTestLoading(false);
           return;
         } else {
@@ -241,15 +241,15 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
 
       if (response.ok) {
         setTestResult("success");
-        alert('??API ?ㅺ? ??λ릺怨??뺤긽 ?묐룞?⑸땲??');
+        alert("API 키가 저장되었고 정상 동작합니다.");
       } else {
         setTestResult("error");
         const error = await response.json();
-        alert(`??API ???ㅻ쪟: ${error.error?.message || '?ㅺ? ?좏슚?섏? ?딆뒿?덈떎'}`);
+        alert(`API 키 오류: ${error.error?.message || "키가 유효하지 않습니다."}`);
       }
     } catch (err) {
       setTestResult("error");
-      alert('???뚯뒪???ㅽ뙣: ?ㅽ듃?뚰겕瑜??뺤씤?댁＜?몄슂.');
+      alert("테스트에 실패했습니다. 네트워크 상태를 확인해주세요.");
     } finally {
       setTestLoading(false);
       setTimeout(() => setTestResult(null), 3000);
