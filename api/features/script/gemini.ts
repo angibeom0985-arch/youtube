@@ -123,13 +123,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return;
     }
 
-    const { data } = await supabaseAdmin
+    let effectiveApiKey = "";
+    const profileResult = await supabaseAdmin
       .from("profiles")
       .select("gemini_api_key")
       .eq("id", userId)
       .single();
 
-    const effectiveApiKey = typeof data?.gemini_api_key === "string" ? data.gemini_api_key.trim() : "";
+    if (!profileResult.error && typeof profileResult.data?.gemini_api_key === "string") {
+      effectiveApiKey = profileResult.data.gemini_api_key.trim();
+    }
+
+    if (!effectiveApiKey) {
+      const metadataKey = (authResult.user as any)?.user_metadata?.gemini_api_key;
+      if (typeof metadataKey === "string") {
+        effectiveApiKey = metadataKey.trim();
+      }
+    }
+
     if (!effectiveApiKey) {
       res.status(400).send("missing_user_api_key");
       return;
