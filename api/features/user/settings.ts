@@ -119,7 +119,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         nextMeta.google_credit_json = google_credit_json;
       }
 
-      const metadataUpdate = await client.auth.updateUser({ data: nextMeta });
+      const metadataUpdate = authResult.usingAdmin
+        ? await client.auth.admin.updateUserById(user.id, { user_metadata: nextMeta })
+        : await client.auth.updateUser({ data: nextMeta });
       if (metadataUpdate.error) {
         console.error("Error updating user metadata settings:", metadataUpdate.error);
         return res.status(500).json({
