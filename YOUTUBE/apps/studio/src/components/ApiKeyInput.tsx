@@ -202,14 +202,26 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
           body: JSON.stringify(payload)
         });
         if (!saveResponse.ok) {
-          throw new Error("backend_save_failed");
+          let reason = "backend_save_failed";
+          try {
+            const data = await saveResponse.json();
+            reason = data?.details || data?.message || reason;
+          } catch {
+            try {
+              reason = await saveResponse.text();
+            } catch {
+              // noop
+            }
+          }
+          throw new Error(reason);
         }
         setIsServerSaved(true);
       }
     } catch (e) {
       console.error("Backend save failed", e);
       setIsServerSaved(false);
-      alert("서버에 API 키 저장이 실패했습니다. 다시 시도해주세요.");
+      const reason = e instanceof Error && e.message ? `\n사유: ${e.message}` : "";
+      alert(`서버에 API 키 저장이 실패했습니다. 다시 시도해주세요.${reason}`);
       return;
     }
 
