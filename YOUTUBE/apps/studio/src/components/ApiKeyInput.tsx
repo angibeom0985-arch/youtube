@@ -88,6 +88,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isServerSaved, setIsServerSaved] = useState(false);
   const [collapseTouched, setCollapseTouched] = useState(false);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   const styles = themeStyles[theme];
 
@@ -128,19 +129,24 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
     } catch (e) {
       console.error("Failed to fetch backend settings", e);
     }
-  }, [storageKey, apiType, setPropApiKey, collapseTouched]); // Add setPropApiKey to dependency array
+  }, [storageKey, apiType, setPropApiKey, collapseTouched]);
 
   useEffect(() => {
+    if (hasInitialized) return;
+
     // Initialize from localStorage first, then try fetching from backend
+    let hasLocalKey = false;
     try {
       const stored = localStorage.getItem(storageKey);
       if (stored && stored !== propApiKey) { // Only update if stored is different from prop to avoid infinite loop
         setPropApiKey(stored);
+        hasLocalKey = true;
         if (!collapseTouched) {
           setIsCollapsed(true);
         }
       } else if (!stored && propApiKey) { // If propApiKey exists but not in localStorage, save it
         localStorage.setItem(storageKey, propApiKey);
+        hasLocalKey = true;
         if (!collapseTouched) {
           setIsCollapsed(true);
         }
@@ -148,8 +154,14 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
     } catch (error) {
       console.error("API 키를 불러오거나 저장하는 중 오류가 발생했습니다:", error);
     }
-    fetchBackendKeys();
-  }, [storageKey, apiType, fetchBackendKeys, propApiKey, setPropApiKey, collapseTouched]); // Add propApiKey and setPropApiKey
+
+    // Local key가 없을 때만 백엔드 값을 가져와 덮어씀.
+    if (!hasLocalKey) {
+      fetchBackendKeys();
+    }
+
+    setHasInitialized(true);
+  }, [storageKey, apiType, fetchBackendKeys, propApiKey, setPropApiKey, collapseTouched, hasInitialized]);
 
   const handleApiKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -159,6 +171,18 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
       localStorage.setItem(storageKey, value);
     } catch (error) {
       console.error("API 키 저장에 실패했습니다:", error);
+    }
+  };
+
+  const clearLocalApiKey = () => {
+    setPropApiKey("");
+    setIsServerSaved(false);
+    setCollapseTouched(true);
+    setIsCollapsed(false);
+    try {
+      localStorage.removeItem(storageKey);
+    } catch (error) {
+      console.error("API 키 삭제에 실패했습니다:", error);
     }
   };
 
@@ -341,6 +365,15 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
           <span className="text-xs text-yellow-400 ml-2">로컬 입력됨</span>
         )}
         <div className="ml-auto flex gap-2">
+          {propApiKey && (
+            <button
+              onClick={clearLocalApiKey}
+              className="text-xs px-2 py-1 rounded border border-white/20 hover:bg-white/10 transition-colors text-slate-200"
+              title="입력칸에서 키를 지우고 다시 입력"
+            >
+              지우기
+            </button>
+          )}
           {propApiKey && ( // Use propApiKey
             <button
               onClick={() => {
