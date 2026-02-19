@@ -67,6 +67,20 @@ const extractGoogleCloudApiKey = (raw: unknown): string => {
   return "";
 };
 
+const getMomentumScore = (contribution: number): number => {
+  if (!Number.isFinite(contribution) || contribution <= 0) return 0;
+  // contribution 스케일(대략 0~7+)을 0~100으로 압축
+  return Math.min(100, Math.round((1 - Math.exp(-contribution / 2.8)) * 100));
+};
+
+const getMomentumTier = (score: number): string => {
+  if (score >= 85) return "초고속 상승";
+  if (score >= 70) return "강한 상승";
+  if (score >= 55) return "상승";
+  if (score >= 40) return "관찰 필요";
+  return "보통";
+};
+
 const BenchmarkingPage: React.FC = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
@@ -307,7 +321,7 @@ const BenchmarkingPage: React.FC = () => {
               className="w-full px-6 py-4 rounded-2xl bg-gradient-to-r from-purple-600 via-fuchsia-600 to-violet-600 hover:from-purple-500 hover:via-fuchsia-500 hover:to-violet-500 disabled:opacity-50 flex items-center justify-center gap-3 text-lg font-black shadow-[0_14px_32px_rgba(139,92,246,0.42)]"
             >
               <FiSearch />
-              {loading ? "검색 중..." : `검색 시작 (${formatCreditButtonLabel(CREDIT_COSTS.SEARCH)})`}
+              {loading ? "검색 중..." : `검색 시작 (${formatCreditButtonLabel(CREDIT_COSTS.SEARCH).replace("크레딯", "크레딧")})`}
             </button>
           </div>
 
@@ -323,11 +337,37 @@ const BenchmarkingPage: React.FC = () => {
         <div className="mt-6 grid gap-3">
           {filteredResults.map((item, idx) => (
             <div key={item.id} className="bg-gradient-to-br from-purple-950/45 to-black/80 border border-purple-300/25 rounded-xl p-4">
-              <div className="text-xs text-purple-200/65 mb-1">#{idx + 1} · 기여도 {item.contribution}</div>
-              <a href={item.link} target="_blank" rel="noreferrer" className="font-semibold text-slate-100 hover:text-purple-300">
-                {item.title}
-              </a>
-              <div className="text-sm text-purple-100/70 mt-1">{item.channelTitle} · 조회수 {item.views.toLocaleString()} · 구독자 {item.subscribers.toLocaleString()}</div>
+              <div className="grid gap-4 md:grid-cols-[220px_minmax(0,1fr)] md:items-start">
+                <a href={item.link} target="_blank" rel="noreferrer" className="block">
+                  <img
+                    src={item.thumbnail || `https://i.ytimg.com/vi/${item.id}/hqdefault.jpg`}
+                    alt={item.title}
+                    className="w-full h-[124px] object-cover rounded-lg border border-purple-300/25"
+                    loading="lazy"
+                  />
+                </a>
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2 text-xs mb-1">
+                    <span className="text-purple-200/70">#{idx + 1}</span>
+                    <span className="px-2 py-0.5 rounded-full bg-rose-500/20 border border-rose-300/40 text-rose-100">
+                      떡상 점수 {getMomentumScore(item.contribution)}점
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full bg-purple-500/20 border border-purple-300/35 text-purple-100">
+                      {getMomentumTier(getMomentumScore(item.contribution))}
+                    </span>
+                  </div>
+                  <div className="h-2 rounded-full bg-white/10 border border-white/10 overflow-hidden mb-3">
+                    <div
+                      className="h-full bg-gradient-to-r from-fuchsia-500 via-purple-500 to-rose-500"
+                      style={{ width: `${getMomentumScore(item.contribution)}%` }}
+                    />
+                  </div>
+                  <a href={item.link} target="_blank" rel="noreferrer" className="font-semibold text-slate-100 hover:text-purple-300">
+                    {item.title}
+                  </a>
+                  <div className="text-sm text-purple-100/70 mt-1">{item.channelTitle} · 조회수 {item.views.toLocaleString()} · 구독자 {item.subscribers.toLocaleString()}</div>
+                </div>
+              </div>
             </div>
           ))}
         </div>
