@@ -29,6 +29,12 @@ type SearchSummary = {
   matched: number;
 };
 
+type SearchCacheEntry = {
+  timestamp: number;
+  results: VideoResult[];
+  summary: SearchSummary | null;
+};
+
 const dateOptions = [
   { label: "1개월", days: 30 },
   { label: "2개월", days: 60 },
@@ -59,6 +65,9 @@ const sortOptions = [
 ] as const;
 
 type SortOption = (typeof sortOptions)[number]["value"];
+
+const SEARCH_CACHE_NAMESPACE = "benchmarking_search_cache_v1";
+const SEARCH_CACHE_TTL_MS = 1000 * 60 * 60 * 12; // 12시간
 
 const extractGoogleCloudApiKey = (raw: unknown): string => {
   if (!raw) return "";
@@ -98,6 +107,42 @@ const getMomentumTier = (score: number): string => {
   return "보통";
 };
 
+const buildSearchCacheKey = (query: string, days: number, durationFilter: string): string =>
+  `${query.trim().toLowerCase()}::${days}::${durationFilter}`;
+
+const readSearchCache = (cacheKey: string): SearchCacheEntry | null => {
+  try {
+    const raw = localStorage.getItem(SEARCH_CACHE_NAMESPACE);
+    if (!raw) return null;
+    const map = JSON.parse(raw) as Record<string, SearchCacheEntry>;
+    const entry = map?.[cacheKey];
+    if (!entry) return null;
+    if (Date.now() - entry.timestamp > SEARCH_CACHE_TTL_MS) return null;
+    return entry;
+  } catch {
+    return null;
+  }
+};
+
+const writeSearchCache = (cacheKey: string, entry: SearchCacheEntry) => {
+  try {
+    const raw = localStorage.getItem(SEARCH_CACHE_NAMESPACE);
+    const map = raw ? (JSON.parse(raw) as Record<string, SearchCacheEntry>) : {};
+    map[cacheKey] = entry;
+
+    // 만료 데이터 정리
+    for (const key of Object.keys(map)) {
+      if (Date.now() - map[key].timestamp > SEARCH_CACHE_TTL_MS) {
+        delete map[key];
+      }
+    }
+
+    localStorage.setItem(SEARCH_CACHE_NAMESPACE, JSON.stringify(map));
+  } catch {
+    // 캐시 저장 실패는 무시
+  }
+};
+
 const BenchmarkingPage: React.FC = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
@@ -111,6 +156,7 @@ const BenchmarkingPage: React.FC = () => {
   const [sortBy, setSortBy] = useState<SortOption>("momentum");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [cacheMessage, setCacheMessage] = useState("");
   const [summary, setSummary] = useState<SearchSummary | null>(null);
   const [results, setResults] = useState<VideoResult[]>([]);
 
@@ -187,6 +233,9 @@ const BenchmarkingPage: React.FC = () => {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    setError("");
+    setCacheMessage("");
+
     if (couponBypassCredits && !youtubeApiKey.trim()) {
       setError("할인 쿠폰 계정은 마이페이지에서 Google Cloud API 키를 등록해야 합니다.");
       navigate("/mypage", {
@@ -196,8 +245,16 @@ const BenchmarkingPage: React.FC = () => {
       return;
     }
 
+    const cacheKey = buildSearchCacheKey(query, days, durationFilter);
+    const cached = readSearchCache(cacheKey);
+    if (cached) {
+      setResults(cached.results || []);
+      setSummary(cached.summary || null);
+      setCacheMessage("저장된 분석 결과를 불러왔습니다. (동일 키워드/기간/길이)");
+      return;
+    }
+
     setLoading(true);
-    setError("");
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -240,6 +297,12 @@ const BenchmarkingPage: React.FC = () => {
 
       setResults(data.results || []);
       setSummary(data.summary || null);
+      writeSearchCache(cacheKey, {
+        timestamp: Date.now(),
+        results: data.results || [],
+        summary: data.summary || null,
+      });
+      setCacheMessage("새 분석 결과를 저장했습니다. 다음 동일 검색은 캐시를 사용합니다.");
 
       if (data?.billing?.mode === "server_credit") {
         window.dispatchEvent(new Event("creditRefresh"));
@@ -398,6 +461,7 @@ const BenchmarkingPage: React.FC = () => {
           </div>
 
           {error && <p className="text-red-300 text-sm">{error}</p>}
+          {!error && cacheMessage && <p className="text-emerald-300 text-sm">{cacheMessage}</p>}
         </form>
 
         {summary && (
