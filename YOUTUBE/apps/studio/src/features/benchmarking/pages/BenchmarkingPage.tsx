@@ -43,6 +43,23 @@ const durationOptions = [
   { label: "롱폼(60초 이상)", value: "long" },
 ];
 
+const subscriberOptions = [
+  { label: "전체", min: 0 },
+  { label: "1천+", min: 1_000 },
+  { label: "1만+", min: 10_000 },
+  { label: "10만+", min: 100_000 },
+  { label: "100만+", min: 1_000_000 },
+];
+
+const sortOptions = [
+  { label: "떡상 점수순", value: "momentum" },
+  { label: "조회수순", value: "views" },
+  { label: "구독자순", value: "subscribers" },
+  { label: "최신순", value: "recent" },
+] as const;
+
+type SortOption = (typeof sortOptions)[number]["value"];
+
 const extractGoogleCloudApiKey = (raw: unknown): string => {
   if (!raw) return "";
 
@@ -90,6 +107,8 @@ const BenchmarkingPage: React.FC = () => {
   const [queryTouched, setQueryTouched] = useState(false);
   const [days, setDays] = useState(30);
   const [durationFilter, setDurationFilter] = useState("any");
+  const [subscriberMin, setSubscriberMin] = useState(0);
+  const [sortBy, setSortBy] = useState<SortOption>("momentum");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [summary, setSummary] = useState<SearchSummary | null>(null);
@@ -152,7 +171,19 @@ const BenchmarkingPage: React.FC = () => {
     await supabase.auth.signOut();
   };
 
-  const filteredResults = useMemo(() => results, [results]);
+  const filteredResults = useMemo(() => {
+    const filtered = results.filter((item) => item.subscribers >= subscriberMin);
+    const sorted = [...filtered].sort((a, b) => {
+      if (sortBy === "views") return b.views - a.views;
+      if (sortBy === "subscribers") return b.subscribers - a.subscribers;
+      if (sortBy === "recent") {
+        return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
+      }
+      // momentum
+      return getMomentumScore(b.contribution) - getMomentumScore(a.contribution);
+    });
+    return sorted;
+  }, [results, subscriberMin, sortBy]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -283,35 +314,76 @@ const BenchmarkingPage: React.FC = () => {
             />
           </div>
 
-          <div className="flex flex-wrap lg:flex-nowrap items-center gap-2">
-            {dateOptions.map((item) => (
+          <div className="space-y-4">
+            <div>
+              <p className="text-xs font-bold text-purple-200/80 mb-2">기간</p>
+              <div className="flex flex-wrap gap-2">
+                {dateOptions.map((item) => (
+                  <button
+                    key={item.days}
+                    type="button"
+                    onClick={() => setDays(item.days)}
+                    className={`px-3 py-2 rounded-full border text-sm whitespace-nowrap transition-all ${days === item.days ? "bg-gradient-to-r from-purple-600 to-fuchsia-600 border-purple-300 text-white shadow-[0_6px_20px_rgba(139,92,246,0.4)]" : "border-purple-300/25 bg-purple-900/20 text-purple-100/80 hover:border-purple-300/40"}`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <p className="text-xs font-bold text-purple-200/80 mb-2">영상 길이</p>
+              <div className="flex flex-wrap gap-2">
+                {durationOptions.map((item) => (
+                  <button
+                    key={item.value}
+                    type="button"
+                    onClick={() => setDurationFilter(item.value)}
+                    className={`px-3 py-2 rounded-full border text-sm whitespace-nowrap transition-all ${durationFilter === item.value ? "bg-gradient-to-r from-purple-600 to-fuchsia-600 border-purple-300 text-white shadow-[0_6px_20px_rgba(139,92,246,0.4)]" : "border-purple-300/25 bg-purple-900/20 text-purple-100/80 hover:border-purple-300/40"}`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <p className="text-xs font-bold text-purple-200/80 mb-2">구독자수</p>
+              <div className="flex flex-wrap gap-2">
+                {subscriberOptions.map((item) => (
+                  <button
+                    key={item.min}
+                    type="button"
+                    onClick={() => setSubscriberMin(item.min)}
+                    className={`px-3 py-2 rounded-full border text-sm whitespace-nowrap transition-all ${subscriberMin === item.min ? "bg-gradient-to-r from-purple-600 to-fuchsia-600 border-purple-300 text-white shadow-[0_6px_20px_rgba(139,92,246,0.4)]" : "border-purple-300/25 bg-purple-900/20 text-purple-100/80 hover:border-purple-300/40"}`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-xs font-bold text-purple-200/80 mr-1">정렬</p>
+              {sortOptions.map((item) => (
+                <button
+                  key={item.value}
+                  type="button"
+                  onClick={() => setSortBy(item.value)}
+                  className={`px-3 py-2 rounded-full border text-sm whitespace-nowrap transition-all ${sortBy === item.value ? "bg-gradient-to-r from-purple-600 to-fuchsia-600 border-purple-300 text-white shadow-[0_6px_20px_rgba(139,92,246,0.4)]" : "border-purple-300/25 bg-purple-900/20 text-purple-100/80 hover:border-purple-300/40"}`}
+                >
+                  {item.label}
+                </button>
+              ))}
               <button
-                key={item.days}
                 type="button"
-                onClick={() => setDays(item.days)}
-                className={`px-3 py-2 rounded-full border text-sm whitespace-nowrap transition-all ${days === item.days ? "bg-gradient-to-r from-purple-600 to-fuchsia-600 border-purple-300 text-white shadow-[0_6px_20px_rgba(139,92,246,0.4)]" : "border-purple-300/25 bg-purple-900/20 text-purple-100/80 hover:border-purple-300/40"}`}
+                onClick={exportToCsv}
+                disabled={!filteredResults.length}
+                className="lg:ml-auto px-4 py-2 rounded-full border border-purple-300/35 bg-purple-900/20 disabled:opacity-50 flex items-center gap-2 text-purple-100/90 whitespace-nowrap"
               >
-                {item.label}
+                <FiDownload /> CSV
               </button>
-            ))}
-            {durationOptions.map((item) => (
-              <button
-                key={item.value}
-                type="button"
-                onClick={() => setDurationFilter(item.value)}
-                className={`px-3 py-2 rounded-full border text-sm whitespace-nowrap transition-all ${durationFilter === item.value ? "bg-gradient-to-r from-purple-600 to-fuchsia-600 border-purple-300 text-white shadow-[0_6px_20px_rgba(139,92,246,0.4)]" : "border-purple-300/25 bg-purple-900/20 text-purple-100/80 hover:border-purple-300/40"}`}
-              >
-                {item.label}
-              </button>
-            ))}
-            <button
-              type="button"
-              onClick={exportToCsv}
-              disabled={!filteredResults.length}
-              className="lg:ml-auto px-4 py-2 rounded-full border border-purple-300/35 bg-purple-900/20 disabled:opacity-50 flex items-center gap-2 text-purple-100/90 whitespace-nowrap"
-            >
-              <FiDownload /> CSV
-            </button>
+            </div>
           </div>
 
           <div className="pt-2">
