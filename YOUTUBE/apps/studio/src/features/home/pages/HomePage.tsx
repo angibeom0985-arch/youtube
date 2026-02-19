@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/services/supabase";
 import type { User } from "@supabase/supabase-js";
@@ -25,7 +25,7 @@ const HomePage: React.FC<HomePageProps> = ({
   const ttsPath = `${normalizedBasePath}/tts` || "/tts";
   const videoPath = `${normalizedBasePath}/video` || "/video";
   
-  // URL 쿼리에서 from 파라미터 확인
+  // URL 荑쇰━?먯꽌 from ?뚮씪誘명꽣 ?뺤씤
   const [redirectMessage, setRedirectMessage] = useState<string>("");
 
   useEffect(() => {
@@ -34,15 +34,15 @@ const HomePage: React.FC<HomePageProps> = ({
     
     if (from && !user) {
       const pageNames: Record<string, string> = {
-        '/tts': 'TTS (음성 변환)',
-        '/script': '대본 생성',
-        '/image': '이미지 생성',
-        '/benchmarking': '벤치마킹',
-        '/video': '영상 제작',
+        '/tts': 'TTS (?뚯꽦 蹂??',
+        '/script': '?蹂??앹꽦',
+        '/image': '?대?吏 ?앹꽦',
+        '/benchmarking': '踰ㅼ튂留덊궧',
+        '/video': '?곸긽 ?쒖옉',
       };
       
-      const pageName = pageNames[from] || '해당 페이지';
-      setRedirectMessage(`${pageName} 기능을 사용하려면 로그인이 필요합니다.`);
+      const pageName = pageNames[from] || '?대떦 ?섏씠吏';
+      setRedirectMessage(`${pageName} 湲곕뒫???ъ슜?섎젮硫?濡쒓렇?몄씠 ?꾩슂?⑸땲??`);
     }
   }, [user]);
 
@@ -54,7 +54,7 @@ const HomePage: React.FC<HomePageProps> = ({
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       
-      // 로그인 성공 후, 원래 가려던 페이지로 리다이렉트
+      // 濡쒓렇???깃났 ?? ?먮옒 媛?ㅻ뜕 ?섏씠吏濡?由щ떎?대젆??
       if (session) {
         const urlParams = new URLSearchParams(window.location.search);
         const from = urlParams.get('from');
@@ -75,7 +75,7 @@ const HomePage: React.FC<HomePageProps> = ({
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       
-      // 로그인 성공 후, 원래 가려던 페이지로 리다이렉트
+      // 濡쒓렇???깃났 ?? ?먮옒 媛?ㅻ뜕 ?섏씠吏濡?由щ떎?대젆??
       if (session) {
         const urlParams = new URLSearchParams(window.location.search);
         const from = urlParams.get('from');
@@ -95,7 +95,7 @@ const HomePage: React.FC<HomePageProps> = ({
   }, [navigate]);
 
   const handleGoogleAuth = async () => {
-    // 현재 접속한 도메인을 기준으로 리다이렉트 URL 설정
+    // ?꾩옱 ?묒냽???꾨찓?몄쓣 湲곗??쇰줈 由щ떎?대젆??URL ?ㅼ젙
     const redirectTo = window.location.origin;
 
     await supabase.auth.signInWithOAuth({
@@ -179,7 +179,7 @@ const HomePage: React.FC<HomePageProps> = ({
               to="/mypage"
               className="px-4 py-2 text-sm font-bold text-red-100 border border-red-500/40 rounded-full bg-red-500/10 hover:bg-red-500/20 transition-all flex items-center gap-2"
             >
-              <span>👤 마이페이지</span>
+              <span>?뫀 留덉씠?섏씠吏</span>
             </Link>
             
           </div>
@@ -198,13 +198,13 @@ const HomePage: React.FC<HomePageProps> = ({
                 onClick={handleGoogleAuth}
                 className="px-8 py-4 text-lg font-black text-red-100 border-2 border-red-500/40 rounded-2xl bg-red-500/10 hover:bg-red-500/20 hover:border-red-400 transition-all active:scale-95"
               >
-                로그인
+                濡쒓렇??
               </button>
               <button
                 onClick={handleGoogleAuth}
                 className="px-8 py-4 text-lg font-black bg-gradient-to-r from-red-600 via-red-500 to-orange-500 text-white rounded-2xl hover:from-red-500 hover:via-red-400 hover:to-orange-400 transition-all shadow-[0_0_30px_rgba(239,68,68,0.4)] hover:shadow-[0_0_40px_rgba(239,68,68,0.6)] transform hover:-translate-y-1 active:scale-95 border border-red-400/40"
               >
-                지금 무료 회원가입
+                吏湲?臾대즺 ?뚯썝媛??
               </button>
             </div>
           </div>
@@ -213,20 +213,25 @@ const HomePage: React.FC<HomePageProps> = ({
 
       <div className="mx-auto flex min-h-screen max-w-6xl flex-col items-center justify-center px-6 py-16">
 
-        {/* 로그인 필요 메시지 표시 */}
+        {/* 濡쒓렇???꾩슂 硫붿떆吏 ?쒖떆 */}
         {redirectMessage && !user && (
           <div className="mb-8 w-full max-w-3xl bg-gradient-to-r from-red-500/20 to-orange-500/20 border-2 border-red-500/50 rounded-2xl p-6 text-center animate-pulse">
-            <p className="text-xl font-bold text-white mb-2">🔒 {redirectMessage}</p>
-            <p className="text-red-200">아래 버튼을 클릭하여 로그인해주세요.</p>
+            <p className="text-xl font-bold text-white mb-2">?뵏 {redirectMessage}</p>
+            <p className="text-red-200">?꾨옒 踰꾪듉???대┃?섏뿬 濡쒓렇?명빐二쇱꽭??</p>
           </div>
         )}
 
-        <div className="text-center">
-          <h1 className="text-5xl font-black tracking-[0.04em] sm:text-6xl lg:text-7xl bg-gradient-to-r from-red-500 via-orange-500 to-amber-400 bg-clip-text text-transparent drop-shadow-[0_0_18px_rgba(249,115,22,0.35)]">
+        <div className="mx-auto w-full max-w-4xl text-center">
+          <div className="inline-flex items-center rounded-full border border-red-400/30 bg-red-500/10 px-4 py-1 text-xs font-bold tracking-[0.16em] text-red-100/90">
+            CREATOR SUITE
+          </div>
+          <h1 className="mt-4 text-4xl font-black leading-tight tracking-[0.01em] sm:text-5xl lg:text-6xl bg-gradient-to-r from-red-400 via-orange-400 to-amber-300 bg-clip-text text-transparent">
             DOT 데이비 옴니튜브
           </h1>
-          <p className="mt-6 text-xl font-bold sm:text-2xl text-slate-100/95">
-            점(DOT)들을 이어 하나의 선(영상)으로, 기획부터 수익까지 연결합니다.
+          <p className="mx-auto mt-5 max-w-3xl text-base font-medium leading-relaxed text-slate-300 sm:text-lg">
+            아이디어부터 대본, 이미지, 편집 흐름까지.
+            <br className="hidden sm:block" />
+            제작의 점들을 하나의 수익 라인으로 연결하는 YouTube 제작 워크스페이스.
           </p>
         </div>
 
@@ -240,21 +245,21 @@ const HomePage: React.FC<HomePageProps> = ({
             <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
               <div className="max-w-3xl">
                 <span className="inline-flex items-center gap-2 rounded-full bg-red-600/25 px-4 py-1.5 text-xs font-black text-red-100 animate-pulse ring-1 ring-red-300/60 shadow-[0_0_18px_rgba(248,113,113,0.55)]">
-                  ✨ 인기
+                  ???멸린
                 </span>
                 <h2 className="mt-4 text-3xl font-black">
-                  영상 제작 스튜디오
+                  ?곸긽 ?쒖옉 ?ㅽ뒠?붿삤
                 </h2>
                 <p className="mt-3 text-sm text-slate-100/80">
-                  대본 생성부터 이미지, 영상 패키징, 편집 체크리스트까지 한 화면에서 흐름대로 진행합니다.
+                  ?蹂??앹꽦遺???대?吏, ?곸긽 ?⑦궎吏? ?몄쭛 泥댄겕由ъ뒪?멸퉴吏 ???붾㈃?먯꽌 ?먮쫫?濡?吏꾪뻾?⑸땲??
                 </p>
               </div>
               <div className="flex flex-col items-start gap-3 text-sm lg:items-end lg:text-right">
                 <span className="rounded-full bg-black/40 px-4 py-2 font-semibold text-slate-200">
-                  대본 → 이미지 → 영상 → 편집
+                  ?蹂????대?吏 ???곸긽 ???몄쭛
                 </span>
                 <span className="inline-flex items-center rounded-full px-5 py-2 text-sm font-black text-white shadow-[0_0_18px_rgba(185,28,28,0.55)] bg-red-700 group-hover:bg-red-600 transition-colors">
-                  영상 제작 시작하기 -&gt;
+                  ?곸긽 ?쒖옉 ?쒖옉?섍린 -&gt;
                 </span>
               </div>
             </div>
@@ -271,13 +276,13 @@ const HomePage: React.FC<HomePageProps> = ({
             <div className="flex items-start justify-between">
               <div>
                 <h2 className="mt-2 text-2xl font-bold">
-                  벤치마킹 영상 발굴
+                  踰ㅼ튂留덊궧 ?곸긽 諛쒓뎬
                 </h2>
                 <p
                   className="mt-3 text-sm text-slate-100/80 overflow-hidden"
                   style={{ display: "-webkit-box", WebkitLineClamp: 2 as any, WebkitBoxOrient: "vertical" }}
                 >
-                  벤치마킹할 만한 잠재력 높은 유튜브 영상을 빠르게 찾아드립니다. 채널 규모 대비 조회 효율을 분석합니다.
+                  踰ㅼ튂留덊궧??留뚰븳 ?좎옱???믪? ?좏뒠釉??곸긽??鍮좊Ⅴ寃?李얠븘?쒕┰?덈떎. 梨꾨꼸 洹쒕え ?鍮?議고쉶 ?⑥쑉??遺꾩꽍?⑸땲??
                 </p>
               </div>
             </div>
@@ -286,7 +291,7 @@ const HomePage: React.FC<HomePageProps> = ({
                 className="inline-flex items-center rounded-full px-4 py-1.5 text-sm font-black text-white shadow-sm"
                 style={{ backgroundColor: "var(--tone-image-purple, #a855f7)" }}
               >
-                영상 발굴 시작하기 -&gt;
+                ?곸긽 諛쒓뎬 ?쒖옉?섍린 -&gt;
               </span>
             </div>
           </a>
@@ -300,10 +305,10 @@ const HomePage: React.FC<HomePageProps> = ({
             <div className="flex items-start justify-between">
               <div>
                 <h2 className="mt-2 text-2xl font-bold">
-                  대본 생성
+                  ?蹂??앹꽦
                 </h2>
                 <p className="mt-3 text-sm text-slate-100/80 truncate whitespace-nowrap overflow-hidden">
-                  떡상한 영상의 대본을 분석한 다음, 그걸 토대로 내 영상의 대본으로 만들어드립니다.
+                  ?≪긽???곸긽???蹂몄쓣 遺꾩꽍???ㅼ쓬, 洹멸구 ?좊?濡????곸긽???蹂몄쑝濡?留뚮뱾?대뱶由쎈땲??
                 </p>
               </div>
             </div>
@@ -312,7 +317,7 @@ const HomePage: React.FC<HomePageProps> = ({
                 className="inline-flex items-center rounded-full px-4 py-1.5 text-sm font-black text-white shadow-sm"
                 style={{ backgroundColor: "var(--tone-image-orange, #ea580c)" }}
               >
-                대본 생성 시작하기 -&gt;
+                ?蹂??앹꽦 ?쒖옉?섍린 -&gt;
               </span>
             </div>
           </a>
@@ -326,10 +331,10 @@ const HomePage: React.FC<HomePageProps> = ({
             <div className="flex items-start justify-between">
               <div>
                 <h2 className="mt-2 text-2xl font-bold">
-                  이미지 생성
+                  ?대?吏 ?앹꽦
                 </h2>
                 <p className="mt-3 text-sm text-slate-100/80">
-                  대본에 맞는 이미지와 스토리보드를 제작합니다.
+                  ?蹂몄뿉 留욌뒗 ?대?吏? ?ㅽ넗由щ낫?쒕? ?쒖옉?⑸땲??
                 </p>
               </div>
             </div>
@@ -338,7 +343,7 @@ const HomePage: React.FC<HomePageProps> = ({
                 className="inline-flex items-center rounded-full px-4 py-1.5 text-sm font-black text-white shadow-sm"
                 style={{ backgroundColor: "var(--tone-image-blue, #2563eb)" }}
               >
-                이미지 생성 시작하기 -&gt;
+                ?대?吏 ?앹꽦 ?쒖옉?섍린 -&gt;
               </span>
             </div>
           </a>
@@ -352,10 +357,10 @@ const HomePage: React.FC<HomePageProps> = ({
             <div className="flex items-start justify-between">
               <div>
                 <h2 className="mt-2 text-2xl font-bold">
-                  TTS 생성
+                  TTS ?앹꽦
                 </h2>
                 <p className="mt-3 text-sm text-slate-100/80">
-                  대본을 음성으로 변환해 나레이션을 빠르게 제작합니다.
+                  ?蹂몄쓣 ?뚯꽦?쇰줈 蹂?섑빐 ?섎젅?댁뀡??鍮좊Ⅴ寃??쒖옉?⑸땲??
                 </p>
               </div>
             </div>
@@ -364,16 +369,16 @@ const HomePage: React.FC<HomePageProps> = ({
                 className="inline-flex items-center rounded-full px-4 py-1.5 text-sm font-black text-white shadow-sm"
                 style={{ backgroundColor: "var(--tone-image-green, #16a34a)" }}
               >
-                TTS 생성 시작하기 -&gt;
+                TTS ?앹꽦 ?쒖옉?섍린 -&gt;
               </span>
             </div>
           </a>
         </div>
 
         <div className="mt-12 text-xs text-slate-400/80">
-          <span>제작자 : 데이비</span>
+          <span>제작자: 데이비</span>
           <span className="block">
-            문의 :{" "}
+            臾몄쓽 :{" "}
             <a
               href="mailto:david153.official@gmail.com"
               className="underline underline-offset-2 hover:text-slate-200"
@@ -391,7 +396,7 @@ const HomePage: React.FC<HomePageProps> = ({
         onLoginKakao={enableKakaoLogin ? handleKakaoAuth : undefined}
       />
 
-      {/* 사용자 크레딧 사이드바 */}
+      {/* ?ъ슜???щ젅???ъ씠?쒕컮 */}
     </div>
   );
 };
