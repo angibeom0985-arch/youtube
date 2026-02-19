@@ -1,7 +1,8 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node";
+﻿import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { requireAdmin } from "../../../server/shared/adminAuth.js";
 import { supabaseAdmin } from "../../../server/shared/supabase.js";
 import { normalizeCouponCode } from "../../../server/shared/couponService.js";
+import { syncCouponWhitelistFromCsvUrl } from "../../../server/shared/couponWhitelistSync.js";
 
 type CouponWhitelistRow = {
   id: string;
@@ -49,13 +50,53 @@ const normalizeExpiresAt = (value: unknown): string | null => {
   return date.toISOString();
 };
 
-const isAuthorized = (req: VercelRequest): boolean => {
+const isWhitelistAuthorized = (req: VercelRequest): boolean => {
   if (requireAdmin(req)) return true;
   const expectedSecret = String(process.env.COUPON_ADMIN_SECRET || "").trim();
   if (!expectedSecret) return false;
   const providedSecret = String(req.headers["x-admin-secret"] || "").trim();
   return Boolean(providedSecret) && providedSecret === expectedSecret;
 };
+
+const isSyncAuthorized = (req: VercelRequest): boolean => {
+  if (requireAdmin(req)) return true;
+  const expected = String(process.env.COUPON_SYNC_SECRET || "").trim();
+  if (!expected) return false;
+  const received = String(req.headers["x-sync-secret"] || "").trim();
+  return Boolean(received) && received === expected;
+};
+
+const isSyncPath = (req: VercelRequest): boolean => String(req.url || "").split("?")[0].includes("coupon-whitelist-sync");
+
+async function handleSync(req: VercelRequest, res: VercelResponse) {
+  if (req.method !== "POST") {
+    res.status(405).json({ error: "method_not_allowed" });
+    return;
+  }
+
+  if (!isSyncAuthorized(req)) {
+    res.status(401).json({ error: "unauthorized" });
+    return;
+  }
+
+  const csvUrl = String(process.env.COUPON_WHITELIST_CSV_URL || "").trim();
+  if (!csvUrl) {
+    res.status(400).json({ error: "missing_coupon_whitelist_csv_url" });
+    return;
+  }
+
+  try {
+    const result = await syncCouponWhitelistFromCsvUrl(csvUrl);
+    res.status(200).json({ ok: true, ...result });
+  } catch (error: any) {
+    console.error("[coupon-whitelist-sync] failed:", error);
+    res.status(500).json({
+      ok: false,
+      error: "sync_failed",
+      details: error?.message || "unknown_error",
+    });
+  }
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader("Cache-Control", "no-store");
@@ -65,7 +106,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  if (!isAuthorized(req)) {
+  if (isSyncPath(req)) {
+    await handleSync(req, res);
+    return;
+  }
+
+  if (!isWhitelistAuthorized(req)) {
     res.status(401).json({ error: "unauthorized" });
     return;
   }

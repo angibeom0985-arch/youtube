@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getSupabaseUser, supabaseAdmin } from "../../../server/shared/supabase.js";
-import { normalizeCouponCode, validateCoupon } from "../../../server/shared/couponService.js";
+import { getSupabaseUser, supabaseAdmin } from "../shared/supabase.js";
+import { normalizeCouponCode, validateCoupon } from "../shared/couponService.js";
 
 const parseJsonBody = async (req: VercelRequest): Promise<any> => {
   if (req.body && typeof req.body === "object") return req.body;
@@ -15,7 +15,7 @@ const parseJsonBody = async (req: VercelRequest): Promise<any> => {
   return JSON.parse(raw);
 };
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function userCouponHandler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Method not allowed" });
   }

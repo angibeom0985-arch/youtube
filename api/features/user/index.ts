@@ -1,8 +1,18 @@
 ﻿import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { getSupabaseUser, supabaseAdmin } from "../../../server/shared/supabase.js";
 import { checkAndDeductCredits } from "../../../server/shared/creditService.js";
+import userSettingsHandler from "../../../server/handlers/userSettingsHandler.js";
+import userCouponHandler from "../../../server/handlers/userCouponHandler.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  const pathname = String(req.url || "").split("?")[0];
+  if (pathname.includes("/user/settings")) {
+    return userSettingsHandler(req, res);
+  }
+  if (pathname.includes("/user/coupon")) {
+    return userCouponHandler(req, res);
+  }
+
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
@@ -26,7 +36,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(401).json({ error: "Invalid token" });
   }
 
-  // POST: ?щ젅??李④컧 ?먮뒗 ?섎텋
   if (req.method === "POST") {
     res.setHeader("Cache-Control", "no-store");
 
@@ -41,12 +50,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const action = body?.action || "deduct";
     const cost = Number(body?.cost);
-    
+
     if (!Number.isFinite(cost) || cost <= 0) {
       return res.status(400).json({ message: "invalid_cost" });
     }
 
-    // ?섎텋 泥섎━
     if (action === "refund") {
       try {
         const { data: profile, error: fetchError } = await supabaseClient
@@ -73,10 +81,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           return res.status(500).json({ message: "failed_to_refund_credits" });
         }
 
-        return res.status(200).json({ 
+        return res.status(200).json({
           credits: newCredits,
           refunded: cost,
-          message: "credits_refunded_successfully"
+          message: "credits_refunded_successfully",
         });
       } catch (error) {
         console.error("Unexpected error during refund:", error);
@@ -84,7 +92,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     }
 
-    // 李④컧 泥섎━
     const creditResult = await checkAndDeductCredits(req, res, cost);
     if (!creditResult.allowed) {
       return res.status(creditResult.status || 402).json({
@@ -97,16 +104,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({ credits: creditResult.currentCredits });
   }
 
-  // DELETE: 怨꾩젙 ??젣
   if (req.method === "DELETE") {
     if (!supabaseAdmin) {
       return res.status(500).json({ error: "Admin client unavailable" });
     }
 
-    const { error: profileError } = await supabaseAdmin
-      .from("profiles")
-      .delete()
-      .eq("id", user.id);
+    const { error: profileError } = await supabaseAdmin.from("profiles").delete().eq("id", user.id);
 
     if (profileError) {
       console.error("Profile delete error:", profileError);
@@ -141,7 +144,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .insert({
           id: user.id,
           email: user.email,
-          credits: 12,
+          credits: 0,
           last_reset_date: new Date().toISOString(),
           initial_credits_expiry: null,
         })
@@ -165,7 +168,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       return res.status(200).json({
-        credits: 12,
+        credits: 0,
         userId: user.id,
         isInInitialPeriod: false,
         daysRemaining: 0,
@@ -181,9 +184,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    const credits = profile && typeof profile === "object" && "credits" in profile
-      ? profile.credits ?? 0
-      : 0;
+    const credits = profile && typeof profile === "object" && "credits" in profile ? profile.credits ?? 0 : 0;
 
     return res.status(200).json({
       credits,
@@ -200,4 +201,3 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   }
 }
-

@@ -62,7 +62,7 @@
     },
     {
       "source": "/api/admin/coupon-whitelist-sync",
-      "destination": "/api/features/admin/coupon-whitelist-sync.ts"
+      "destination": "/api/features/admin/coupon-whitelist.ts"
     },
     {
       "source": "/api/admin/coupon-whitelist",
@@ -102,11 +102,11 @@
     },
     {
       "source": "/api/user/settings",
-      "destination": "/api/features/user/settings.ts"
+      "destination": "/api/features/user/index.ts"
     },
     {
       "source": "/api/user/coupon",
-      "destination": "/api/features/user/coupon.ts"
+      "destination": "/api/features/user/index.ts"
     },
     {
       "source": "/api/YOUTUBE/admin/auth",
@@ -122,7 +122,7 @@
     },
     {
       "source": "/api/YOUTUBE/admin/coupon-whitelist-sync",
-      "destination": "/api/features/admin/coupon-whitelist-sync.ts"
+      "destination": "/api/features/admin/coupon-whitelist.ts"
     },
     {
       "source": "/api/YOUTUBE/admin/coupon-whitelist",

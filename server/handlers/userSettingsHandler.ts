@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getSupabaseUser } from "../../../server/shared/supabase.js";
+import { getSupabaseUser } from "../shared/supabase.js";
 
 const parseJsonBody = async (req: VercelRequest): Promise<any> => {
   if (req.body && typeof req.body === "object") return req.body;
@@ -38,7 +38,7 @@ const isPermissionError = (error: any) => {
   );
 };
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function userSettingsHandler(req: VercelRequest, res: VercelResponse) {
   const authHeader = req.headers.authorization;
   if (!authHeader) return res.status(401).json({ message: "Unauthorized" });
 
@@ -81,12 +81,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!googleCreditJson && metadata.google_credit_json !== undefined) {
       googleCreditJson = metadata.google_credit_json;
     }
-    const couponBypassCredits = metadata.coupon_bypass_credits === true;
+    const bypassEnabledAtRaw =
+      typeof metadata.coupon_bypass_enabled_at === "string"
+        ? metadata.coupon_bypass_enabled_at
+        : null;
+    const bypassExpiresAtRaw =
+      typeof metadata.coupon_bypass_expires_at === "string"
+        ? metadata.coupon_bypass_expires_at
+        : null;
+    const bypassExpiryTime = bypassExpiresAtRaw ? new Date(bypassExpiresAtRaw).getTime() : Number.NaN;
+    const couponBypassCredits =
+      metadata.coupon_bypass_credits === true &&
+      Number.isFinite(bypassExpiryTime) &&
+      Date.now() <= bypassExpiryTime;
 
     return res.status(200).json({
       gemini_api_key: geminiApiKey,
       google_credit_json: googleCreditJson,
       coupon_bypass_credits: couponBypassCredits,
+      coupon_bypass_enabled_at: bypassEnabledAtRaw,
+      coupon_bypass_expires_at: bypassExpiresAtRaw,
     });
   }
 
