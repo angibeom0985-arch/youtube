@@ -97,6 +97,10 @@
       "destination": "/api/features/user/settings.ts"
     },
     {
+      "source": "/api/user/coupon",
+      "destination": "/api/features/user/coupon.ts"
+    },
+    {
       "source": "/api/YOUTUBE/admin/auth",
       "destination": "/api/features/admin/auth.ts"
     },
