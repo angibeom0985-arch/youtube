@@ -61,6 +61,10 @@
       "destination": "/api/features/admin/page-content.ts"
     },
     {
+      "source": "/api/admin/coupon-whitelist-sync",
+      "destination": "/api/features/admin/coupon-whitelist-sync.ts"
+    },
+    {
       "source": "/api/benchmarking/search",
       "destination": "/api/features/script/benchmarking/search.ts"
     },
@@ -111,6 +115,10 @@
     {
       "source": "/api/YOUTUBE/admin/page-content",
       "destination": "/api/features/admin/page-content.ts"
+    },
+    {
+      "source": "/api/YOUTUBE/admin/coupon-whitelist-sync",
+      "destination": "/api/features/admin/coupon-whitelist-sync.ts"
     },
     {
       "source": "/api/YOUTUBE/abuse/check",

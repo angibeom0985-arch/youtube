@@ -4,6 +4,14 @@ type CouponConfig = {
   expiresAt?: string;
 };
 
+const DEFAULT_BYPASS_COUPON_CODE = "\uB370\uC774\uBE44 \uC720\uD29C\uBE0C \uC2A4\uD29C\uB514\uC624 2026";
+
+export const normalizeCouponCode = (raw: string): string =>
+  String(raw || "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toUpperCase();
+
 const parseCsvCoupons = (raw: string): CouponConfig[] => {
   return raw
     .split(",")
@@ -16,7 +24,7 @@ const parseCsvCoupons = (raw: string): CouponConfig[] => {
         return null;
       }
       return {
-        code: codeRaw.toUpperCase(),
+        code: normalizeCouponCode(codeRaw),
         credits,
         expiresAt: expiresAtRaw || undefined,
       } as CouponConfig;
@@ -30,7 +38,7 @@ const parseJsonCoupons = (raw: string): CouponConfig[] => {
     if (!Array.isArray(parsed)) return [];
     return parsed
       .map((item) => {
-        const code = typeof item?.code === "string" ? item.code.trim().toUpperCase() : "";
+        const code = typeof item?.code === "string" ? normalizeCouponCode(item.code) : "";
         const credits = Number(item?.credits);
         const expiresAt = typeof item?.expiresAt === "string" ? item.expiresAt.trim() : undefined;
         if (!code || !Number.isFinite(credits) || credits <= 0) return null;
@@ -46,14 +54,20 @@ export const getCouponCatalog = (): Record<string, CouponConfig> => {
   const jsonRaw = process.env.CREDIT_COUPONS_JSON || "";
   const csvRaw = process.env.CREDIT_COUPONS || "";
   const list = jsonRaw ? parseJsonCoupons(jsonRaw) : parseCsvCoupons(csvRaw);
-  return list.reduce<Record<string, CouponConfig>>((acc, item) => {
+  const catalog = list.reduce<Record<string, CouponConfig>>((acc, item) => {
     acc[item.code] = item;
     return acc;
   }, {});
+  const defaultCode = normalizeCouponCode(DEFAULT_BYPASS_COUPON_CODE);
+  if (!catalog[defaultCode]) {
+    // Default campaign coupon for BYOK + credit bypass mode.
+    catalog[defaultCode] = { code: defaultCode, credits: 1 };
+  }
+  return catalog;
 };
 
 export const validateCoupon = (codeRaw: string) => {
-  const code = String(codeRaw || "").trim().toUpperCase();
+  const code = normalizeCouponCode(codeRaw);
   if (!code) return { ok: false as const, reason: "invalid_code" };
 
   const catalog = getCouponCatalog();
@@ -69,3 +83,4 @@ export const validateCoupon = (codeRaw: string) => {
 
   return { ok: true as const, coupon };
 };
+

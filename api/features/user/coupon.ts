@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getSupabaseUser } from "../../../server/shared/supabase.js";
-import { validateCoupon } from "../../../server/shared/couponService.js";
+import { getSupabaseUser, supabaseAdmin } from "../../../server/shared/supabase.js";
+import { normalizeCouponCode, validateCoupon } from "../../../server/shared/couponService.js";
 
 const parseJsonBody = async (req: VercelRequest): Promise<any> => {
   if (req.body && typeof req.body === "object") return req.body;
@@ -48,6 +48,68 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const coupon = couponCheck.coupon;
+  const whitelistRequired = process.env.COUPON_EMAIL_WHITELIST_REQUIRED !== "false";
+  const normalizedEmail = String(user?.email || "").trim().toLowerCase();
+  const normalizedCode = normalizeCouponCode(coupon.code);
+
+  let lockedWhitelistId: string | null = null;
+
+  if (whitelistRequired) {
+    if (!normalizedEmail) {
+      return res.status(400).json({ message: "missing_user_email" });
+    }
+    if (!supabaseAdmin) {
+      return res.status(503).json({ message: "coupon_whitelist_unavailable" });
+    }
+
+    const whitelistLookup = await supabaseAdmin
+      .from("coupon_whitelist")
+      .select("id, is_active, expires_at, used_by_user_id")
+      .eq("email_normalized", normalizedEmail)
+      .eq("coupon_code", normalizedCode)
+      .maybeSingle();
+
+    if (whitelistLookup.error) {
+      console.error("[coupon] whitelist lookup failed:", whitelistLookup.error);
+      return res.status(500).json({ message: "coupon_whitelist_lookup_failed" });
+    }
+
+    const row = whitelistLookup.data as any;
+    if (!row || row.is_active === false) {
+      return res.status(403).json({ message: "coupon_not_whitelisted" });
+    }
+
+    if (row.expires_at) {
+      const expireTime = new Date(row.expires_at).getTime();
+      if (Number.isFinite(expireTime) && Date.now() > expireTime) {
+        return res.status(400).json({ message: "coupon_expired" });
+      }
+    }
+
+    if (row.used_by_user_id && row.used_by_user_id !== user.id) {
+      return res.status(409).json({ message: "coupon_already_used" });
+    }
+
+    if (!row.used_by_user_id) {
+      const reserve = await supabaseAdmin
+        .from("coupon_whitelist")
+        .update({ used_by_user_id: user.id, used_at: new Date().toISOString() })
+        .eq("id", row.id)
+        .is("used_by_user_id", null)
+        .select("id")
+        .maybeSingle();
+
+      if (reserve.error) {
+        console.error("[coupon] whitelist reserve failed:", reserve.error);
+        return res.status(500).json({ message: "coupon_reserve_failed" });
+      }
+      if (!reserve.data) {
+        return res.status(409).json({ message: "coupon_already_used" });
+      }
+      lockedWhitelistId = String(reserve.data.id);
+    }
+  }
+
   const metadata = user.user_metadata || {};
   const redeemedCoupons = Array.isArray(metadata.redeemed_coupons)
     ? metadata.redeemed_coupons.filter((item: unknown) => typeof item === "string")
@@ -55,12 +117,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (redeemedCoupons.includes(coupon.code)) {
     return res.status(409).json({ message: "coupon_already_used" });
   }
+  const now = new Date();
+  const expiresAt = new Date(now);
+  expiresAt.setMonth(expiresAt.getMonth() + 2);
 
   const nextMeta = {
     ...metadata,
     redeemed_coupons: [...redeemedCoupons, coupon.code],
     coupon_bypass_credits: true,
-    coupon_bypass_enabled_at: new Date().toISOString(),
+    coupon_bypass_enabled_at: now.toISOString(),
+    coupon_bypass_expires_at: expiresAt.toISOString(),
   };
 
   const metadataUpdate = authResult.usingAdmin
@@ -68,6 +134,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     : await client.auth.updateUser({ data: nextMeta });
 
   if (metadataUpdate.error) {
+    if (lockedWhitelistId && supabaseAdmin) {
+      await supabaseAdmin
+        .from("coupon_whitelist")
+        .update({ used_by_user_id: null, used_at: null })
+        .eq("id", lockedWhitelistId)
+        .eq("used_by_user_id", user.id);
+    }
     return res.status(500).json({ message: "metadata_update_failed", details: metadataUpdate.error.message });
   }
 
@@ -75,5 +148,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     message: "coupon_applied",
     couponBypassCredits: true,
     code: coupon.code,
+    bypassExpiresAt: expiresAt.toISOString(),
   });
 }
