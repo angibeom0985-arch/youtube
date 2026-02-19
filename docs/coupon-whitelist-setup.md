@@ -1,66 +1,89 @@
-# Coupon Whitelist Setup (Spreadsheet -> Supabase)
+﻿# Coupon Whitelist Setup (Supabase Only)
 
-This project now supports coupon application only for approved emails.
+This project can run coupon allowlist without any spreadsheet.
+Only users whose email exists in `public.coupon_whitelist` can redeem the coupon.
 
-## 1) Run SQL migration in Supabase
+## 1) Run the SQL migration
 
-Run:
+Run this file in Supabase SQL Editor:
 
 `youtube/apps/studio/supabase/migrations/20260219_create_coupon_whitelist_table.sql`
 
-This creates `public.coupon_whitelist`.
+It creates the `public.coupon_whitelist` table and indexes.
 
-## 2) Prepare spreadsheet columns
+## 2) Set required environment variables
 
-Use these headers in the first row:
+Set these in Vercel (or your runtime):
 
-- `email`
-- `coupon_code`
-- `is_active` (optional, default true)
-- `expires_at` (optional, ISO date)
+- `SUPABASE_URL`
+- `SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `COUPON_EMAIL_WHITELIST_REQUIRED=true`
 
-Example:
+Optional:
 
-```csv
-email,coupon_code,is_active,expires_at
-user1@gmail.com,데이비 유튜브 스튜디오 2026,true,2026-12-31T23:59:59Z
-user2@gmail.com,데이비 유튜브 스튜디오 2026,true,
+- `COUPON_ADMIN_SECRET=<long random secret>` (for admin API calls without admin cookie)
+- `CREDIT_COUPONS` or `CREDIT_COUPONS_JSON` (coupon catalog)
+
+Default coupon code already exists in server code:
+
+- `데이비 유튜브 스튜디오 2026`
+
+## 3) Register allowlist rows directly in Supabase
+
+Use Table Editor on `public.coupon_whitelist` and add rows with:
+
+- `email_normalized` (lowercase email)
+- `coupon_code` (uppercase, spaces normalized)
+- `is_active` (`true` to allow)
+- `expires_at` (optional ISO datetime)
+
+Example SQL:
+
+```sql
+insert into public.coupon_whitelist (email_normalized, coupon_code, is_active, expires_at)
+values
+  ('user1@gmail.com', '데이비 유튜브 스튜디오 2026', true, '2026-12-31T23:59:59Z'),
+  ('user2@gmail.com', '데이비 유튜브 스튜디오 2026', true, null);
 ```
 
-## 3) Publish the sheet as CSV URL
+## 4) Optional: manage allowlist via admin API
 
-- Google Sheet -> File -> Share -> Publish to web
-- Publish selected sheet as CSV
-- Copy the CSV URL
+New endpoint:
 
-## 4) Set environment variables
+- `GET/POST/PATCH/DELETE /api/admin/coupon-whitelist`
 
-- `COUPON_EMAIL_WHITELIST_REQUIRED=true`
-- `COUPON_WHITELIST_CSV_URL=<your published csv url>`
-- `COUPON_SYNC_SECRET=<random-long-secret>`
+Auth:
 
-## 5) Sync from sheet to Supabase
+- Admin cookie session, or
+- Header `x-admin-secret: <COUPON_ADMIN_SECRET>`
 
-Call:
+Examples:
 
-`POST /api/admin/coupon-whitelist-sync`
+```bash
+# Create or upsert one row
+curl -X POST "https://your-domain.com/api/admin/coupon-whitelist" \
+  -H "content-type: application/json" \
+  -H "x-admin-secret: YOUR_SECRET" \
+  -d "{\"email\":\"user3@gmail.com\",\"couponCode\":\"데이비 유튜브 스튜디오 2026\",\"isActive\":true}"
 
-Authentication methods:
+# List rows
+curl "https://your-domain.com/api/admin/coupon-whitelist?limit=50" \
+  -H "x-admin-secret: YOUR_SECRET"
 
-- Admin session cookie (logged-in admin), or
-- Header: `x-sync-secret: <COUPON_SYNC_SECRET>`
+# Disable one row
+curl -X PATCH "https://your-domain.com/api/admin/coupon-whitelist" \
+  -H "content-type: application/json" \
+  -H "x-admin-secret: YOUR_SECRET" \
+  -d "{\"id\":\"ROW_ID\",\"isActive\":false}"
+```
 
-## 6) Coupon apply behavior
+## 5) Runtime behavior
 
 When user calls `POST /api/user/coupon`:
 
-- coupon code must be valid
-- user email + coupon code must exist in `coupon_whitelist`
+- coupon code must be valid in coupon catalog
+- `(user email, coupon code)` must exist in `coupon_whitelist`
 - row must be active and not expired
-- row can be claimed once (`used_by_user_id`)
-- then coupon bypass is enabled for 2 months
-
-## Notes
-
-- This is not fully “real-person” verification. It is “approved-email” verification.
-- For stronger anti-abuse, add phone verification and track `phone_hash`.
+- row is one-time claim (`used_by_user_id`)
+- on success, BYOK mode is enabled for 2 months
