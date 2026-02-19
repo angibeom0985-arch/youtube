@@ -58,7 +58,7 @@ const subscriberOptions = [
 ];
 
 const sortOptions = [
-  { label: "떡상 점수순", value: "momentum" },
+  { label: "성장 잠재력순", value: "momentum" },
   { label: "조회수순", value: "views" },
   { label: "구독자순", value: "subscribers" },
   { label: "최신순", value: "recent" },
@@ -377,76 +377,67 @@ const BenchmarkingPage: React.FC = () => {
             />
           </div>
 
-          <div className="space-y-4">
-            <div>
-              <p className="text-xs font-bold text-purple-200/80 mb-2">기간</p>
-              <div className="flex flex-wrap gap-2">
-                {dateOptions.map((item) => (
-                  <button
-                    key={item.days}
-                    type="button"
-                    onClick={() => setDays(item.days)}
-                    className={`px-3 py-2 rounded-full border text-sm whitespace-nowrap transition-all ${days === item.days ? "bg-gradient-to-r from-purple-600 to-fuchsia-600 border-purple-300 text-white shadow-[0_6px_20px_rgba(139,92,246,0.4)]" : "border-purple-300/25 bg-purple-900/20 text-purple-100/80 hover:border-purple-300/40"}`}
-                  >
-                    {item.label}
-                  </button>
-                ))}
+          <div className="rounded-xl border border-purple-300/20 bg-purple-950/20 p-3">
+            <div className="grid gap-4 lg:grid-cols-3 lg:divide-x lg:divide-purple-400/20">
+              <div className="lg:pr-4">
+                <p className="text-xs font-bold text-purple-200/80 mb-2">기간</p>
+                <div className="flex flex-wrap gap-2">
+                  {dateOptions.map((item) => (
+                    <button
+                      key={item.days}
+                      type="button"
+                      onClick={() => setDays(item.days)}
+                      className={`px-3 py-2 rounded-full border text-sm whitespace-nowrap transition-all ${days === item.days ? "bg-gradient-to-r from-purple-600 to-fuchsia-600 border-purple-300 text-white shadow-[0_6px_20px_rgba(139,92,246,0.4)]" : "border-purple-300/25 bg-purple-900/20 text-purple-100/80 hover:border-purple-300/40"}`}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="lg:px-4">
+                <p className="text-xs font-bold text-purple-200/80 mb-2">영상 길이</p>
+                <div className="flex flex-wrap gap-2">
+                  {durationOptions.map((item) => (
+                    <button
+                      key={item.value}
+                      type="button"
+                      onClick={() => setDurationFilter(item.value)}
+                      className={`px-3 py-2 rounded-full border text-sm whitespace-nowrap transition-all ${durationFilter === item.value ? "bg-gradient-to-r from-purple-600 to-fuchsia-600 border-purple-300 text-white shadow-[0_6px_20px_rgba(139,92,246,0.4)]" : "border-purple-300/25 bg-purple-900/20 text-purple-100/80 hover:border-purple-300/40"}`}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="lg:pl-4">
+                <p className="text-xs font-bold text-purple-200/80 mb-2">구독자수</p>
+                <div className="flex flex-wrap gap-2">
+                  {subscriberOptions.map((item) => (
+                    <button
+                      key={item.min}
+                      type="button"
+                      onClick={() => setSubscriberMin(item.min)}
+                      className={`px-3 py-2 rounded-full border text-sm whitespace-nowrap transition-all ${subscriberMin === item.min ? "bg-gradient-to-r from-purple-600 to-fuchsia-600 border-purple-300 text-white shadow-[0_6px_20px_rgba(139,92,246,0.4)]" : "border-purple-300/25 bg-purple-900/20 text-purple-100/80 hover:border-purple-300/40"}`}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
+          </div>
 
-            <div>
-              <p className="text-xs font-bold text-purple-200/80 mb-2">영상 길이</p>
-              <div className="flex flex-wrap gap-2">
-                {durationOptions.map((item) => (
-                  <button
-                    key={item.value}
-                    type="button"
-                    onClick={() => setDurationFilter(item.value)}
-                    className={`px-3 py-2 rounded-full border text-sm whitespace-nowrap transition-all ${durationFilter === item.value ? "bg-gradient-to-r from-purple-600 to-fuchsia-600 border-purple-300 text-white shadow-[0_6px_20px_rgba(139,92,246,0.4)]" : "border-purple-300/25 bg-purple-900/20 text-purple-100/80 hover:border-purple-300/40"}`}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <p className="text-xs font-bold text-purple-200/80 mb-2">구독자수</p>
-              <div className="flex flex-wrap gap-2">
-                {subscriberOptions.map((item) => (
-                  <button
-                    key={item.min}
-                    type="button"
-                    onClick={() => setSubscriberMin(item.min)}
-                    className={`px-3 py-2 rounded-full border text-sm whitespace-nowrap transition-all ${subscriberMin === item.min ? "bg-gradient-to-r from-purple-600 to-fuchsia-600 border-purple-300 text-white shadow-[0_6px_20px_rgba(139,92,246,0.4)]" : "border-purple-300/25 bg-purple-900/20 text-purple-100/80 hover:border-purple-300/40"}`}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <p className="text-xs font-bold text-purple-200/80 mr-1">정렬</p>
-              {sortOptions.map((item) => (
-                <button
-                  key={item.value}
-                  type="button"
-                  onClick={() => setSortBy(item.value)}
-                  className={`px-3 py-2 rounded-full border text-sm whitespace-nowrap transition-all ${sortBy === item.value ? "bg-gradient-to-r from-purple-600 to-fuchsia-600 border-purple-300 text-white shadow-[0_6px_20px_rgba(139,92,246,0.4)]" : "border-purple-300/25 bg-purple-900/20 text-purple-100/80 hover:border-purple-300/40"}`}
-                >
-                  {item.label}
-                </button>
-              ))}
-              <button
-                type="button"
-                onClick={exportToCsv}
-                disabled={!filteredResults.length}
-                className="lg:ml-auto px-4 py-2 rounded-full border border-purple-300/35 bg-purple-900/20 disabled:opacity-50 flex items-center gap-2 text-purple-100/90 whitespace-nowrap"
-              >
-                <FiDownload /> CSV
-              </button>
-            </div>
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={exportToCsv}
+              disabled={!filteredResults.length}
+              className="px-4 py-2 rounded-full border border-purple-300/35 bg-purple-900/20 disabled:opacity-50 flex items-center gap-2 text-purple-100/90 whitespace-nowrap"
+            >
+              <FiDownload /> CSV
+            </button>
           </div>
 
           <div className="pt-2">
@@ -466,7 +457,24 @@ const BenchmarkingPage: React.FC = () => {
 
         {summary && (
           <div className="mt-6 text-sm text-purple-100/85 bg-purple-950/40 border border-purple-400/25 rounded-xl px-4 py-3">
-            스캔: {summary.scanned.toLocaleString()} / 제목필터: {summary.titleFiltered.toLocaleString()} / 매칭: {summary.matched.toLocaleString()}
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                스캔: {summary.scanned.toLocaleString()} / 제목필터: {summary.titleFiltered.toLocaleString()} / 매칭: {summary.matched.toLocaleString()}
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-xs font-bold text-purple-200/80 mr-1">결과 정렬</p>
+                {sortOptions.map((item) => (
+                  <button
+                    key={item.value}
+                    type="button"
+                    onClick={() => setSortBy(item.value)}
+                    className={`px-3 py-1.5 rounded-full border text-xs whitespace-nowrap transition-all ${sortBy === item.value ? "bg-gradient-to-r from-purple-600 to-fuchsia-600 border-purple-300 text-white shadow-[0_6px_20px_rgba(139,92,246,0.35)]" : "border-purple-300/25 bg-purple-900/20 text-purple-100/80 hover:border-purple-300/40"}`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         )}
 
