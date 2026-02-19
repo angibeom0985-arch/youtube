@@ -128,8 +128,26 @@ export default async function userSettingsHandler(req: VercelRequest, res: Verce
 
     let profileUpdateError: any = null;
     if (Object.keys(updates).length > 0) {
-      const profileUpdate = await client.from("profiles").update(updates).eq("id", user.id);
+      // First try update; if the profile row is missing, upsert it.
+      const profileUpdate = await client
+        .from("profiles")
+        .update(updates)
+        .eq("id", user.id)
+        .select("id")
+        .maybeSingle();
       profileUpdateError = profileUpdate.error;
+
+      if (!profileUpdateError && !profileUpdate.data) {
+        const profileUpsert = await client.from("profiles").upsert(
+          {
+            id: user.id,
+            email: user.email || null,
+            ...updates,
+          },
+          { onConflict: "id" }
+        );
+        profileUpdateError = profileUpsert.error;
+      }
     }
 
     const shouldUseMetadataFallback =
