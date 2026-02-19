@@ -1,4 +1,4 @@
-export const CREDIT_COSTS = {
+锘縠xport const CREDIT_COSTS = {
   SEARCH: 5,
   ANALYZE_TRANSCRIPT: 1,
   GENERATE_IDEAS: 1,
@@ -8,9 +8,14 @@ export const CREDIT_COSTS = {
   TTS_PER_10_CHARS: 1,
 } as const;
 
-export const formatCreditLabel = (cost: number): string => `${cost} 农饭调`;
+const KR_CREDIT = "\uD06C\uB808\uB52F";
+const BOLT = "\u26A1";
+const TEN_CHARS = "10\uC790";
 
-export const formatCreditButtonLabel = (cost: number): string => `? ${formatCreditLabel(cost)}`;
+export const formatCreditLabel = (cost: number): string => `${cost} ${KR_CREDIT}`;
+
+export const formatCreditButtonLabel = (cost: number): string =>
+  `${BOLT} ${formatCreditLabel(cost)}`;
 
 export const formatCreditPer10CharsButtonLabel = (costPer10Chars: number): string =>
-  `? ${costPer10Chars} 农饭调/10磊`;
+  `${BOLT} ${costPer10Chars} ${KR_CREDIT}/${TEN_CHARS}`;
