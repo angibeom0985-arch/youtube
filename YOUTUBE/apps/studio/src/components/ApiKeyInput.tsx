@@ -159,6 +159,25 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
     setShowApiKey(!showApiKey);
   };
 
+  const buildApiTestErrorMessage = (rawMessage: string) => {
+    const message = String(rawMessage || "");
+    const lowered = message.toLowerCase();
+
+    if (lowered.includes("expired")) {
+      return `서버 저장은 완료되었습니다.\n\n테스트 실패: API 키가 만료되었습니다.\nGoogle AI Studio에서 새 키를 발급받아 다시 저장/테스트 해주세요.\n\n원본 오류: ${message}`;
+    }
+    if (lowered.includes("invalid") || lowered.includes("api key not valid")) {
+      return `서버 저장은 완료되었습니다.\n\n테스트 실패: API 키가 유효하지 않습니다.\n키 복사값을 확인하고 다시 시도해주세요.\n\n원본 오류: ${message}`;
+    }
+    if (lowered.includes("permission")) {
+      return `서버 저장은 완료되었습니다.\n\n테스트 실패: API 키 권한 문제가 있습니다.\nGoogle AI Studio 프로젝트/권한 설정을 확인해주세요.\n\n원본 오류: ${message}`;
+    }
+    if (lowered.includes("quota") || lowered.includes("rate")) {
+      return `서버 저장은 완료되었습니다.\n\n테스트 실패: 쿼터 또는 요청 제한에 걸렸습니다.\n잠시 후 다시 시도해주세요.\n\n원본 오류: ${message}`;
+    }
+    return `서버 저장은 완료되었습니다.\n\n테스트 실패: ${message || "키가 유효하지 않습니다."}`;
+  };
+
   const saveAndTestApiKey = async () => {
     if (!propApiKey) { // Use propApiKey
       alert("먼저 API 키를 입력해주세요.");
@@ -256,12 +275,18 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
         alert("API 키가 저장되었고 정상 동작합니다.");
       } else {
         setTestResult("error");
-        const error = await response.json();
-        alert(`API 키 오류: ${error.error?.message || "키가 유효하지 않습니다."}`);
+        let errorMessage = "키가 유효하지 않습니다.";
+        try {
+          const error = await response.json();
+          errorMessage = error?.error?.message || errorMessage;
+        } catch {
+          // keep default
+        }
+        alert(buildApiTestErrorMessage(errorMessage));
       }
     } catch (err) {
       setTestResult("error");
-      alert("테스트에 실패했습니다. 네트워크 상태를 확인해주세요.");
+      alert("서버 저장은 완료되었습니다.\n\n테스트 요청에 실패했습니다. 네트워크 상태를 확인한 뒤 다시 테스트해주세요.");
     } finally {
       setTestLoading(false);
       setTimeout(() => setTestResult(null), 3000);
