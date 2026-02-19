@@ -87,6 +87,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
   const [testResult, setTestResult] = useState<"success" | "error" | null>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isServerSaved, setIsServerSaved] = useState(false);
+  const [collapseTouched, setCollapseTouched] = useState(false);
 
   const styles = themeStyles[theme];
 
@@ -118,14 +119,16 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
           } catch (error) {
             console.error("API 키 저장에 실패했습니다:", error);
           }
-          setIsCollapsed(true);
+          if (!collapseTouched) {
+            setIsCollapsed(true);
+          }
           setIsServerSaved(true);
         }
       }
     } catch (e) {
       console.error("Failed to fetch backend settings", e);
     }
-  }, [storageKey, apiType, setPropApiKey]); // Add setPropApiKey to dependency array
+  }, [storageKey, apiType, setPropApiKey, collapseTouched]); // Add setPropApiKey to dependency array
 
   useEffect(() => {
     // Initialize from localStorage first, then try fetching from backend
@@ -133,16 +136,20 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
       const stored = localStorage.getItem(storageKey);
       if (stored && stored !== propApiKey) { // Only update if stored is different from prop to avoid infinite loop
         setPropApiKey(stored);
-        setIsCollapsed(true);
+        if (!collapseTouched) {
+          setIsCollapsed(true);
+        }
       } else if (!stored && propApiKey) { // If propApiKey exists but not in localStorage, save it
         localStorage.setItem(storageKey, propApiKey);
-        setIsCollapsed(true);
+        if (!collapseTouched) {
+          setIsCollapsed(true);
+        }
       }
     } catch (error) {
       console.error("API 키를 불러오거나 저장하는 중 오류가 발생했습니다:", error);
     }
     fetchBackendKeys();
-  }, [storageKey, apiType, fetchBackendKeys, propApiKey, setPropApiKey]); // Add propApiKey and setPropApiKey
+  }, [storageKey, apiType, fetchBackendKeys, propApiKey, setPropApiKey, collapseTouched]); // Add propApiKey and setPropApiKey
 
   const handleApiKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -336,7 +343,10 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
         <div className="ml-auto flex gap-2">
           {propApiKey && ( // Use propApiKey
             <button
-              onClick={() => setIsCollapsed(!isCollapsed)}
+              onClick={() => {
+                setCollapseTouched(true);
+                setIsCollapsed(!isCollapsed);
+              }}
               className="text-xs px-2 py-1 rounded hover:bg-white/10 transition-colors"
               style={{ color: styles.label.split(' ')[0].replace('text-', '') }}
             >
