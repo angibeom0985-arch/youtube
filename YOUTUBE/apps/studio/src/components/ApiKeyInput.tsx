@@ -159,6 +159,33 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
     setShowApiKey(!showApiKey);
   };
 
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const pasted = e.clipboardData.getData("text");
+    if (pasted) {
+      setPropApiKey(pasted);
+      setIsServerSaved(false);
+      try {
+        localStorage.setItem(storageKey, pasted);
+      } catch (error) {
+        console.error("API 키 저장에 실패했습니다:", error);
+      }
+      e.preventDefault();
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const dropped = e.dataTransfer.getData("text");
+    if (!dropped) return;
+    setPropApiKey(dropped);
+    setIsServerSaved(false);
+    try {
+      localStorage.setItem(storageKey, dropped);
+    } catch (error) {
+      console.error("API 키 저장에 실패했습니다:", error);
+    }
+  };
+
   const buildApiTestErrorMessage = (rawMessage: string) => {
     const message = String(rawMessage || "");
     const lowered = message.toLowerCase();
@@ -334,9 +361,18 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
               type={showApiKey ? "text" : "password"}
               value={propApiKey} // Use propApiKey
               onChange={handleApiKeyChange}
+              onPaste={handlePaste}
+              onDrop={handleDrop}
+              onDragOver={(e) => e.preventDefault()}
+              onCopy={() => {}}
+              onCut={() => {}}
               placeholder={placeholder}
               autoComplete="off"
+              spellCheck={false}
+              autoCapitalize="off"
+              autoCorrect="off"
               className={`w-full px-4 py-2.5 ${apiType ? 'pr-24' : 'pr-12'} border rounded-md focus:ring-2 transition-all text-sm ${styles.input}`}
+              style={{ userSelect: "text", WebkitUserSelect: "text" }}
             />
             <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
               <button
