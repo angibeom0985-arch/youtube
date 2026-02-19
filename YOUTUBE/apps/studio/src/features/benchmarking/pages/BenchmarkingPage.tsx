@@ -72,7 +72,8 @@ const BenchmarkingPage: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [youtubeApiKey, setYoutubeApiKey] = useState("");
   const [couponBypassCredits, setCouponBypassCredits] = useState(false);
-  const [query, setQuery] = useState("일상 건강");
+  const [query, setQuery] = useState("경제학");
+  const [queryTouched, setQueryTouched] = useState(false);
   const [days, setDays] = useState(30);
   const [durationFilter, setDurationFilter] = useState("any");
   const [loading, setLoading] = useState(false);
@@ -253,54 +254,60 @@ const BenchmarkingPage: React.FC = () => {
             <label className="block text-sm text-purple-100/90 mb-2">검색어</label>
             <input
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onFocus={() => {
+                if (!queryTouched && query === "경제학") {
+                  setQuery("");
+                }
+                setQueryTouched(true);
+              }}
+              onChange={(e) => {
+                setQueryTouched(true);
+                setQuery(e.target.value);
+              }}
               required
-              className="w-full px-4 py-3 rounded-xl bg-black/60 border border-purple-300/30 focus:border-purple-300 focus:ring-2 focus:ring-purple-500/40 outline-none"
+              className={`w-full px-4 py-3 rounded-xl bg-black/60 border border-purple-300/30 focus:border-purple-300 focus:ring-2 focus:ring-purple-500/40 outline-none ${!queryTouched && query === "경제학" ? "text-slate-400" : "text-white"}`}
             />
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap lg:flex-nowrap items-center gap-2">
             {dateOptions.map((item) => (
               <button
                 key={item.days}
                 type="button"
                 onClick={() => setDays(item.days)}
-                className={`px-3 py-2 rounded-lg border text-sm ${days === item.days ? "bg-gradient-to-r from-purple-600 to-fuchsia-600 border-purple-300 text-white shadow-[0_6px_20px_rgba(139,92,246,0.4)]" : "border-purple-300/25 bg-purple-900/20 text-purple-100/80 hover:border-purple-300/40"}`}
+                className={`px-3 py-2 rounded-full border text-sm whitespace-nowrap transition-all ${days === item.days ? "bg-gradient-to-r from-purple-600 to-fuchsia-600 border-purple-300 text-white shadow-[0_6px_20px_rgba(139,92,246,0.4)]" : "border-purple-300/25 bg-purple-900/20 text-purple-100/80 hover:border-purple-300/40"}`}
               >
                 {item.label}
               </button>
             ))}
-          </div>
-
-          <div className="flex flex-wrap gap-2">
             {durationOptions.map((item) => (
               <button
                 key={item.value}
                 type="button"
                 onClick={() => setDurationFilter(item.value)}
-                className={`px-3 py-2 rounded-lg border text-sm ${durationFilter === item.value ? "bg-gradient-to-r from-purple-600 to-fuchsia-600 border-purple-300 text-white shadow-[0_6px_20px_rgba(139,92,246,0.4)]" : "border-purple-300/25 bg-purple-900/20 text-purple-100/80 hover:border-purple-300/40"}`}
+                className={`px-3 py-2 rounded-full border text-sm whitespace-nowrap transition-all ${durationFilter === item.value ? "bg-gradient-to-r from-purple-600 to-fuchsia-600 border-purple-300 text-white shadow-[0_6px_20px_rgba(139,92,246,0.4)]" : "border-purple-300/25 bg-purple-900/20 text-purple-100/80 hover:border-purple-300/40"}`}
               >
                 {item.label}
               </button>
             ))}
-          </div>
-
-          <div className="flex gap-2">
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-500 hover:to-fuchsia-500 disabled:opacity-50 flex items-center gap-2 shadow-[0_10px_25px_rgba(139,92,246,0.35)]"
-            >
-              <FiSearch />
-              {loading ? "검색 중..." : `검색 (${formatCreditLabel(CREDIT_COSTS.SEARCH)})`}
-            </button>
             <button
               type="button"
               onClick={exportToCsv}
               disabled={!filteredResults.length}
-              className="px-4 py-2 rounded-lg border border-purple-300/35 bg-purple-900/20 disabled:opacity-50 flex items-center gap-2 text-purple-100/90"
+              className="lg:ml-auto px-4 py-2 rounded-full border border-purple-300/35 bg-purple-900/20 disabled:opacity-50 flex items-center gap-2 text-purple-100/90 whitespace-nowrap"
             >
               <FiDownload /> CSV
+            </button>
+          </div>
+
+          <div className="pt-2">
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full px-6 py-4 rounded-2xl bg-gradient-to-r from-purple-600 via-fuchsia-600 to-violet-600 hover:from-purple-500 hover:via-fuchsia-500 hover:to-violet-500 disabled:opacity-50 flex items-center justify-center gap-3 text-lg font-black shadow-[0_14px_32px_rgba(139,92,246,0.42)]"
+            >
+              <FiSearch />
+              {loading ? "검색 중..." : `⚡ 검색 시작 (${formatCreditLabel(CREDIT_COSTS.SEARCH)})`}
             </button>
           </div>
 
