@@ -424,12 +424,12 @@ const TtsPage: React.FC = () => {
         <div className="mb-10 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
           <div>
             <h1 className="text-4xl font-black bg-gradient-to-r from-emerald-400 to-teal-300 bg-clip-text text-transparent">
-              AI ?깆슦 ?ㅽ뒠?붿삤
+              AI 음성 스튜디오
             </h1>
-            <p className="text-slate-400 mt-2">?蹂몄뿉 媛먯젙???낇? ?앹깮??紐⑹냼由щ? 留뚮뱾?대낫?몄슂.</p>
+            <p className="text-slate-400 mt-2">대본을 자연스러운 음성으로 빠르게 변환합니다.</p>
           </div>
           <button onClick={handleReset} className="px-5 py-2.5 text-sm font-bold text-slate-300 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors">
-            珥덇린??
+            초기화
           </button>
         </div>
 
@@ -594,19 +594,30 @@ const TtsPage: React.FC = () => {
 
             {/* Text Input */}
             <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-md">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-4 gap-3">
                 <label className="text-lg font-bold text-slate-200 flex items-center gap-2">
-                  <FiFileText className="text-emerald-400" /> ?蹂??낅젰
+                  <FiFileText className="text-emerald-400" /> 대본 입력
                 </label>
-                <div className="text-xs text-slate-500 font-mono">
-                  {text.length.toLocaleString()} ??
+                <div className="flex items-center gap-3">
+                  <div className="text-xs text-slate-500 font-mono">
+                    {text.length.toLocaleString()} 자
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleGenerate}
+                    disabled={isGenerating || !text.trim()}
+                    className={`rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2 text-sm font-bold text-white shadow-[0_10px_24px_rgba(16,185,129,0.25)] transition-all hover:from-emerald-500 hover:to-teal-500 disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-2`}
+                  >
+                    <FiMic size={16} />
+                    {isGenerating ? "생성 중..." : `음성 생성 (${CREDIT_COSTS.TTS_PER_10_CHARS} 크레딧/10자)`}
+                  </button>
                 </div>
               </div>
               <textarea
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 className="w-full h-80 bg-black/30 border border-white/5 rounded-xl p-5 text-white placeholder:text-slate-700 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 leading-relaxed resize-none transition-all shadow-inner tts-text-input"
-                placeholder="?ш린??蹂?섑븷 ?띿뒪?몃? ?낅젰?섏꽭?? ??붿껜, ?섎젅?댁뀡 紐⑤몢 媛?ν빀?덈떎."
+                placeholder="여기에 변환할 대본을 입력하세요. 해설형, 내레이션형 모두 가능합니다."
                 style={
                   {
                     userSelect: "text",
@@ -614,27 +625,12 @@ const TtsPage: React.FC = () => {
                   } as React.CSSProperties
                 }
               />
-            </div>
-
-            {/* Action Button */}
-            <button
-              type="button"
-              onClick={handleGenerate}
-              disabled={isGenerating || !text.trim()}
-              className={`w-full rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-4 text-lg font-black text-white shadow-[0_10px_30px_rgba(16,185,129,0.3)] transition-all hover:from-emerald-500 hover:to-teal-500 hover:-translate-y-0.5 active:scale-[0.98] disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-3`}
-            >
-              {isGenerating ? (
-                <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  <span>{progressStep === 'analyzing' ? 'AI媛 媛먯젙 遺꾩꽍 以?..' : progressStep === 'requesting' ? '?뚯꽦 ?앹꽦 以?..' : '泥섎━ 以?..'}</span>
-                </>
-              ) : (
-                <>
-                  <FiMic size={22} />
-                  <span>TTS 음성 생성하기 (10자당 {CREDIT_COSTS.TTS_PER_10_CHARS} 크레딧)</span>
-                </>
+              {isGenerating && (
+                <p className="mt-3 text-sm text-emerald-300">
+                  {progressStep === "analyzing" ? "AI가 감정/톤을 분석하고 있습니다..." : progressStep === "requesting" ? "음성을 생성하고 있습니다..." : "요청을 처리 중입니다..."}
+                </p>
               )}
-            </button>
+            </div>
 
             {isGenerating && (
               <ProgressTracker

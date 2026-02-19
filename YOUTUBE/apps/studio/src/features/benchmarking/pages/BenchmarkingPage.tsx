@@ -39,8 +39,8 @@ const dateOptions = [
 
 const durationOptions = [
   { label: "전체", value: "any" },
-  { label: "쇼츠(<60s)", value: "short" },
-  { label: "롱폼(>=60s)", value: "long" },
+  { label: "쇼츠(60초 미만)", value: "short" },
+  { label: "롱폼(60초 이상)", value: "long" },
 ];
 
 const extractGoogleCloudApiKey = (raw: unknown): string => {
@@ -237,24 +237,25 @@ const BenchmarkingPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white relative">
+    <div className="min-h-screen bg-black text-white relative overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_20%_15%,rgba(168,85,247,0.18),transparent_38%),radial-gradient(circle_at_80%_0%,rgba(139,92,246,0.18),transparent_30%),linear-gradient(180deg,rgba(17,24,39,0.25),rgba(0,0,0,0.85))]" />
       <div className="absolute top-0 right-0 p-4 sm:p-6 flex gap-3 z-50 items-center">
         <UserCreditToolbar user={user} onLogout={handleLogout} tone="purple" showCredits={false} />
       </div>
 
-      <div className="mx-auto max-w-6xl px-6 pt-24 pb-10">
+      <div className="relative mx-auto max-w-6xl px-6 pt-24 pb-10">
         <HomeBackButton tone="purple" className="mb-4" />
-        <h1 className="text-3xl font-black mb-2">벤치마킹 영상 검색</h1>
-        <p className="text-slate-400 mb-8">검색 실행 시 크레딧이 차감됩니다. 쿠폰 계정의 API 키 등록은 마이페이지에서 진행하세요.</p>
+        <h1 className="text-3xl font-black mb-2 bg-gradient-to-r from-purple-200 via-fuchsia-300 to-purple-400 bg-clip-text text-transparent">벤치마킹 영상 검색</h1>
+        <p className="text-purple-100/80 mb-8">키워드 기준으로 유튜브 영상을 빠르게 탐색하고, 채널 규모·조회수·기여도를 비교해 벤치마킹 인사이트를 얻는 기능입니다.</p>
 
-        <form onSubmit={handleSubmit} className="bg-zinc-900 border border-white/10 rounded-2xl p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="bg-gradient-to-br from-purple-950/55 to-black/70 border border-purple-400/35 rounded-2xl p-6 space-y-4 shadow-[0_0_0_1px_rgba(139,92,246,0.25),0_20px_50px_rgba(88,28,135,0.3)]">
           <div>
-            <label className="block text-sm text-slate-300 mb-2">검색어</label>
+            <label className="block text-sm text-purple-100/90 mb-2">검색어</label>
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               required
-              className="w-full px-4 py-3 rounded-xl bg-black border border-white/15"
+              className="w-full px-4 py-3 rounded-xl bg-black/60 border border-purple-300/30 focus:border-purple-300 focus:ring-2 focus:ring-purple-500/40 outline-none"
             />
           </div>
 
@@ -264,7 +265,7 @@ const BenchmarkingPage: React.FC = () => {
                 key={item.days}
                 type="button"
                 onClick={() => setDays(item.days)}
-                className={`px-3 py-2 rounded-lg border text-sm ${days === item.days ? "bg-purple-600 border-purple-500" : "border-white/15"}`}
+                className={`px-3 py-2 rounded-lg border text-sm ${days === item.days ? "bg-gradient-to-r from-purple-600 to-fuchsia-600 border-purple-300 text-white shadow-[0_6px_20px_rgba(139,92,246,0.4)]" : "border-purple-300/25 bg-purple-900/20 text-purple-100/80 hover:border-purple-300/40"}`}
               >
                 {item.label}
               </button>
@@ -277,7 +278,7 @@ const BenchmarkingPage: React.FC = () => {
                 key={item.value}
                 type="button"
                 onClick={() => setDurationFilter(item.value)}
-                className={`px-3 py-2 rounded-lg border text-sm ${durationFilter === item.value ? "bg-purple-600 border-purple-500" : "border-white/15"}`}
+                className={`px-3 py-2 rounded-lg border text-sm ${durationFilter === item.value ? "bg-gradient-to-r from-purple-600 to-fuchsia-600 border-purple-300 text-white shadow-[0_6px_20px_rgba(139,92,246,0.4)]" : "border-purple-300/25 bg-purple-900/20 text-purple-100/80 hover:border-purple-300/40"}`}
               >
                 {item.label}
               </button>
@@ -288,7 +289,7 @@ const BenchmarkingPage: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 disabled:opacity-50 flex items-center gap-2"
+              className="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-500 hover:to-fuchsia-500 disabled:opacity-50 flex items-center gap-2 shadow-[0_10px_25px_rgba(139,92,246,0.35)]"
             >
               <FiSearch />
               {loading ? "검색 중..." : `검색 (${formatCreditLabel(CREDIT_COSTS.SEARCH)})`}
@@ -297,7 +298,7 @@ const BenchmarkingPage: React.FC = () => {
               type="button"
               onClick={exportToCsv}
               disabled={!filteredResults.length}
-              className="px-4 py-2 rounded-lg border border-white/20 disabled:opacity-50 flex items-center gap-2"
+              className="px-4 py-2 rounded-lg border border-purple-300/35 bg-purple-900/20 disabled:opacity-50 flex items-center gap-2 text-purple-100/90"
             >
               <FiDownload /> CSV
             </button>
@@ -307,19 +308,19 @@ const BenchmarkingPage: React.FC = () => {
         </form>
 
         {summary && (
-          <div className="mt-6 text-sm text-slate-300">
+          <div className="mt-6 text-sm text-purple-100/85 bg-purple-950/40 border border-purple-400/25 rounded-xl px-4 py-3">
             스캔: {summary.scanned.toLocaleString()} / 제목필터: {summary.titleFiltered.toLocaleString()} / 매칭: {summary.matched.toLocaleString()}
           </div>
         )}
 
         <div className="mt-6 grid gap-3">
           {filteredResults.map((item, idx) => (
-            <div key={item.id} className="bg-zinc-900 border border-white/10 rounded-xl p-4">
-              <div className="text-xs text-slate-400 mb-1">#{idx + 1} · 기여도 {item.contribution}</div>
+            <div key={item.id} className="bg-gradient-to-br from-purple-950/45 to-black/80 border border-purple-300/25 rounded-xl p-4">
+              <div className="text-xs text-purple-200/65 mb-1">#{idx + 1} · 기여도 {item.contribution}</div>
               <a href={item.link} target="_blank" rel="noreferrer" className="font-semibold text-slate-100 hover:text-purple-300">
                 {item.title}
               </a>
-              <div className="text-sm text-slate-400 mt-1">{item.channelTitle} · 조회수 {item.views.toLocaleString()} · 구독자 {item.subscribers.toLocaleString()}</div>
+              <div className="text-sm text-purple-100/70 mt-1">{item.channelTitle} · 조회수 {item.views.toLocaleString()} · 구독자 {item.subscribers.toLocaleString()}</div>
             </div>
           ))}
         </div>
