@@ -1,4 +1,4 @@
-import type { AnalysisResult, NewPlan } from "../types";
+﻿import type { AnalysisResult, NewPlan } from "../types";
 import { getClientFingerprint } from "./abuseService";
 import { supabase } from "./supabase";
 
@@ -15,35 +15,25 @@ const toUserMessage = (raw: string): string => {
   const text = (raw || "").trim();
   const lower = text.toLowerCase();
 
-  // JSON 에러 응답 처리
   try {
     const json = JSON.parse(text);
     if (json.message) return json.message;
-  } catch (e) {
-    // JSON이 아니면 아래 로직으로 진행
+  } catch {
+    // ignore
   }
 
-  if (lower.includes("rate_limit")) {
-    return "요청이 너무 많습니다. 잠시 후 다시 시도해주세요.";
+  if (lower.includes("rate_limit")) return "요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.";
+  if (lower.includes("auth_required")) return "로그인이 필요합니다.";
+  if (lower.includes("coupon_user_key_required")) {
+    return "쿠폰 적용 계정은 본인 Gemini API 키를 등록해야 사용할 수 있습니다.";
   }
-  if (lower.includes("auth_required")) {
-    return "로그인이 필요합니다. 다시 로그인한 뒤 시도해 주세요.";
-  }
-  if (lower.includes("missing_user_api_key")) {
-    return "마이페이지에서 Gemini API 키를 먼저 저장해 주세요.";
-  }
-  if (lower.includes("missing_api_key")) {
-    return "서버 설정 오류가 발생했습니다. 관리자에게 문의해주세요.";
-  }
+  if (lower.includes("missing_user_api_key")) return "마이페이지에서 Gemini API 키를 등록해 주세요.";
+  if (lower.includes("missing_api_key")) return "서버 API 설정 오류입니다. 관리자에게 문의해 주세요.";
   if (lower.includes("missing_fields") || lower.includes("invalid_request")) {
-    return "요청 데이터가 올바르지 않습니다. 입력값을 확인해주세요.";
+    return "요청 값이 올바르지 않습니다. 입력값을 확인해 주세요.";
   }
-  if (lower.includes("invalid_json")) {
-    return "요청 데이터 형식이 올바르지 않습니다. 다시 시도해주세요.";
-  }
-  if (!text || lower.includes("server_error")) {
-    return "요청 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
-  }
+  if (lower.includes("invalid_json")) return "요청 데이터 형식이 올바르지 않습니다.";
+  if (!text || lower.includes("server_error")) return "요청 처리 중 오류가 발생했습니다.";
 
   return text;
 };
@@ -148,3 +138,4 @@ export const generateActingPrompt = async (
   });
   return data.prompt;
 };
+

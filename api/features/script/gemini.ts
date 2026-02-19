@@ -14,6 +14,7 @@ import {
 import { enforceAbusePolicy } from "../../../server/shared/abuseGuard.js";
 import { enforceUsageLimit, recordUsageEvent } from "../../../server/shared/usageLimit.js";
 import { getSupabaseUser, supabaseAdmin } from "../../../server/shared/supabase.js";
+import { checkAndDeductCredits, CREDIT_COSTS } from "../../../server/shared/creditService.js";
 
 type RateEntry = {
   count: number;
@@ -123,7 +124,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return;
     }
 
-    let effectiveApiKey = "";
+    const metadata = (authResult.user as any)?.user_metadata || {};
+    const couponBypassCredits = metadata?.coupon_bypass_credits === true;
+
+    let userApiKey = "";
     const profileResult = await supabaseAdmin
       .from("profiles")
       .select("gemini_api_key")
@@ -131,20 +135,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .single();
 
     if (!profileResult.error && typeof profileResult.data?.gemini_api_key === "string") {
-      effectiveApiKey = profileResult.data.gemini_api_key.trim();
+      userApiKey = profileResult.data.gemini_api_key.trim();
     }
 
-    if (!effectiveApiKey) {
+    if (!userApiKey) {
       const metadataKey = (authResult.user as any)?.user_metadata?.gemini_api_key;
       if (typeof metadataKey === "string") {
-        effectiveApiKey = metadataKey.trim();
+        userApiKey = metadataKey.trim();
       }
     }
 
-    if (!effectiveApiKey) {
-      res.status(400).send("missing_user_api_key");
-      return;
-    }
+    let effectiveApiKey = "";
 
     const guard = await enforceAbusePolicy(req, action, clientFingerprint);
     if (!guard.allowed) {
@@ -165,6 +166,40 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     recordUsageEvent(req, action, clientFingerprint).catch(err => {
       console.error("Failed to record usage event:", err);
     });
+
+    // New policy:
+    // 1) Coupon-applied user: credits bypass, but own API key is required.
+    // 2) Non-coupon user: always server API + credits deduction.
+    if (couponBypassCredits) {
+      if (!userApiKey) {
+        res.status(400).send("coupon_user_key_required");
+        return;
+      }
+      effectiveApiKey = userApiKey;
+    } else {
+      effectiveApiKey = String(process.env.GEMINI_API_KEY || "").trim();
+      if (!effectiveApiKey) {
+        res.status(400).send("missing_api_key");
+        return;
+      }
+
+      const costByAction: Record<string, number> = {
+        analyzeTranscript: CREDIT_COSTS.ANALYSIS,
+        generateIdeas: CREDIT_COSTS.IDEATION,
+        generateNewPlan: CREDIT_COSTS.SCRIPT_PLAN,
+        generateChapterOutline: CREDIT_COSTS.SCRIPT_OUTLINE,
+        generateChapterScript: CREDIT_COSTS.SCRIPT_CHUNK,
+        generateSsml: CREDIT_COSTS.TTS_CHAR,
+        generateActingPrompt: CREDIT_COSTS.IDEATION,
+        reformatTopic: CREDIT_COSTS.IDEATION,
+      };
+      const cost = Number(costByAction[action] ?? CREDIT_COSTS.IDEATION);
+      const creditResult = await checkAndDeductCredits(req, res, cost);
+      if (!creditResult.allowed) {
+        res.status(creditResult.status || 402).send("credit_limit");
+        return;
+      }
+    }
 
     switch (action) {
       case "analyzeTranscript": {

@@ -2,11 +2,18 @@
 import { TextToSpeechClient } from "@google-cloud/text-to-speech";
 import { enforceUsageLimit, recordUsageEvent } from "../../../server/shared/usageLimit.js";
 import { getSupabaseUser, supabaseAdmin } from "../../../server/shared/supabase.js";
+import { checkAndDeductCredits, CREDIT_COSTS } from "../../../server/shared/creditService.js";
 
 type UserCredentialSource =
   | { kind: "serviceAccount"; credentials: Record<string, unknown> }
   | { kind: "apiKey"; apiKey: string }
   | { kind: "none" };
+
+type BillingInfo = {
+  mode: "coupon_user_key" | "server_credit";
+  cost: number;
+  remainingCredits: number | null;
+};
 
 const getBearerToken = (req: VercelRequest): string | null => {
   const authHeader = req.headers.authorization;
@@ -190,10 +197,48 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  const credential = parseGoogleCredential(profileResult.data?.google_credit_json);
-  if (credential.kind === "none") {
-    res.status(400).json({ message: "missing_user_google_key" });
-    return;
+  const userCredential = parseGoogleCredential(profileResult.data?.google_credit_json);
+  const serverApiKey = String(process.env.GOOGLE_CLOUD_API_KEY || process.env.GOOGLE_API_KEY || "").trim();
+  const metadata = (auth.user as any)?.user_metadata || {};
+  const couponBypassCredits = metadata?.coupon_bypass_credits === true;
+
+  let effectiveCredential: UserCredentialSource = { kind: "none" };
+  let billing: BillingInfo = {
+    mode: "coupon_user_key",
+    cost: 0,
+    remainingCredits: null,
+  };
+
+  if (couponBypassCredits) {
+    if (userCredential.kind === "none") {
+      res.status(400).json({ message: "coupon_user_key_required" });
+      return;
+    }
+    effectiveCredential = userCredential;
+  } else {
+    if (!serverApiKey) {
+      res.status(400).json({ message: "missing_api_key" });
+      return;
+    }
+
+    const charCount = Math.max(1, (text || ssml).length);
+    const cost = Math.max(1, Math.ceil(charCount * CREDIT_COSTS.TTS_CHAR));
+    const creditResult = await checkAndDeductCredits(req, res, cost);
+    if (!creditResult.allowed) {
+      res.status(creditResult.status || 402).json({
+        message: creditResult.message || "Credits required",
+        error: "credit_limit",
+        currentCredits: creditResult.currentCredits,
+      });
+      return;
+    }
+
+    effectiveCredential = { kind: "apiKey", apiKey: serverApiKey };
+    billing = {
+      mode: "server_credit",
+      cost,
+      remainingCredits: creditResult.currentCredits,
+    };
   }
 
   const usage = await enforceUsageLimit(req, clientFingerprint);
@@ -221,11 +266,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     };
 
     const audioContent =
-      credential.kind === "serviceAccount"
-        ? await synthesizeWithServiceAccount({ ...common, credentials: credential.credentials })
-        : await synthesizeWithApiKey({ ...common, apiKey: credential.apiKey });
+      effectiveCredential.kind === "serviceAccount"
+        ? await synthesizeWithServiceAccount({ ...common, credentials: effectiveCredential.credentials })
+        : await synthesizeWithApiKey({ ...common, apiKey: effectiveCredential.apiKey });
 
-    res.status(200).json({ audioContent });
+    res.status(200).json({ audioContent, billing });
   } catch (error: any) {
     console.error("[api/tts] error:", error);
     res.status(500).json({ message: error?.message || "server_error" });

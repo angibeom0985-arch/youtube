@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+﻿import React, { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { generateSsml, generateActingPrompt } from "@/services/geminiService";
 import { FiPlay, FiPause, FiMic, FiSliders, FiCpu, FiInfo, FiUser, FiFileText, FiDownload } from "react-icons/fi";
@@ -16,14 +16,14 @@ const STORAGE_KEYS = {
   pitch: "tts_pitch",
   audio: "tts_audio",
   error: "tts_error",
-  prompt: "tts_prompt", // 연기 프롬프트 저장
+  prompt: "tts_prompt", // ?곌린 ?꾨＼?꾪듃 ???
 };
 
 const getStoredString = (key: string, fallback = ""): string => {
   try {
     return localStorage.getItem(key) ?? fallback;
   } catch (error) {
-    console.error("TTS 로컬 저장값을 불러오지 못했습니다:", error);
+    console.error("TTS 濡쒖뺄 ??κ컪??遺덈윭?ㅼ? 紐삵뻽?듬땲??", error);
     return fallback;
   }
 };
@@ -74,41 +74,35 @@ const toTtsErrorMessage = (raw: string): string => {
   if (!code) return "TTS 요청에 실패했습니다.";
   if (code.includes("auth_required")) return "로그인이 필요합니다.";
   if (code.includes("missing_user_google_key")) {
-    return "마이페이지에서 Google Cloud API 키 또는 서비스 계정 JSON을 먼저 저장해 주세요.";
+    return "마이페이지에서 Google Cloud API 키 또는 서비스 계정 JSON을 등록해 주세요.";
+  }
+  if (code.includes("coupon_user_key_required")) {
+    return "쿠폰 적용 계정은 본인 Google Cloud API 키를 등록해야 사용할 수 있습니다.";
+  }
+  if (code.includes("missing_api_key")) {
+    return "서버 Google API 키가 설정되지 않았습니다. 마이페이지에서 Google Cloud API 키를 등록해 주세요.";
+  }
+  if (code.includes("credit_limit")) {
+    return "크레딧이 부족합니다. 쿠폰을 적용하거나 개인 Google API 키를 등록해 주세요.";
   }
   if (code.includes("usage_limit")) return "사용량 제한에 도달했습니다. 잠시 후 다시 시도해 주세요.";
   return raw;
 };
 
-// 목소리 옵션 데이터 확장 (Google Cloud TTS 지원 음성들)
+// Voice presets for Google Cloud TTS.
 const voiceOptions = [
-  // --- 한국어 (KO) ---
-  { value: "ko-KR-Standard-A", label: "소연", gender: "female", type: "차분함", lang: "ko" },
-  { value: "ko-KR-Standard-B", label: "지민", gender: "female", type: "또렷함", lang: "ko" },
-  { value: "ko-KR-Standard-D", label: "다영", gender: "female", type: "발랄함", lang: "ko" },
-  { value: "ko-KR-Wavenet-A", label: "애진", gender: "female", type: "섬세함", lang: "ko" },
-  { value: "ko-KR-Wavenet-B", label: "유나", gender: "female", type: "부드러움", lang: "ko" },
-  { value: "ko-KR-Neural2-A", label: "지수", gender: "female", type: "고품질", lang: "ko" },
-  { value: "ko-KR-Neural2-B", label: "소윤", gender: "female", type: "밝음", lang: "ko" },
-  { value: "ko-KR-Standard-C", label: "민우", gender: "male", type: "중후함", lang: "ko" },
-  { value: "ko-KR-Wavenet-C", label: "준혁", gender: "male", type: "저음", lang: "ko" },
-  { value: "ko-KR-Wavenet-D", label: "지훈", gender: "male", type: "차분함", lang: "ko" },
-  { value: "ko-KR-Neural2-C", label: "민현", gender: "male", type: "고품질", lang: "ko" },
-
-  // --- 영어 (EN-US) ---
-  { value: "en-US-Neural2-F", label: "Sarah", gender: "female", type: "Professional", lang: "en" },
-  { value: "en-US-Neural2-H", label: "Emma", gender: "female", type: "Soft", lang: "en" },
-  { value: "en-US-Neural2-D", label: "John", gender: "male", type: "Bold", lang: "en" },
-  { value: "en-US-Neural2-J", label: "Michael", gender: "male", type: "Clear", lang: "en" },
-
-  // --- 일본어 (JA-JP) ---
-  { value: "ja-JP-Neural2-B", label: "Mayu", gender: "female", type: "Natural", lang: "ja" },
-  { value: "ja-JP-Neural2-C", label: "Nanami", gender: "female", type: "Cute", lang: "ja" },
-  { value: "ja-JP-Neural2-D", label: "Keita", gender: "male", type: "Cool", lang: "ja" },
-
-  // --- 중국어 (ZH-CN) ---
-  { value: "zh-CN-Neural2-A", label: "Xiaoxiao", gender: "female", type: "Friendly", lang: "zh" },
-  { value: "zh-CN-Neural2-C", label: "Yunxi", gender: "male", type: "Deep", lang: "zh" },
+  { value: "ko-KR-Standard-A", label: "Jiyoon", gender: "female", type: "Standard", lang: "ko" },
+  { value: "ko-KR-Wavenet-A", label: "Yujin", gender: "female", type: "Wavenet", lang: "ko" },
+  { value: "ko-KR-Neural2-A", label: "Jisoo", gender: "female", type: "Neural2", lang: "ko" },
+  { value: "ko-KR-Standard-C", label: "Minwoo", gender: "male", type: "Standard", lang: "ko" },
+  { value: "ko-KR-Wavenet-C", label: "Junho", gender: "male", type: "Wavenet", lang: "ko" },
+  { value: "ko-KR-Neural2-C", label: "Minhyuk", gender: "male", type: "Neural2", lang: "ko" },
+  { value: "en-US-Neural2-F", label: "Sarah", gender: "female", type: "Neural2", lang: "en" },
+  { value: "en-US-Neural2-D", label: "John", gender: "male", type: "Neural2", lang: "en" },
+  { value: "ja-JP-Neural2-B", label: "Mayu", gender: "female", type: "Neural2", lang: "ja" },
+  { value: "ja-JP-Neural2-D", label: "Keita", gender: "male", type: "Neural2", lang: "ja" },
+  { value: "zh-CN-Neural2-A", label: "Xiaoxiao", gender: "female", type: "Neural2", lang: "zh" },
+  { value: "zh-CN-Neural2-C", label: "Yunxi", gender: "male", type: "Neural2", lang: "zh" },
 ];
 
 const TtsPage: React.FC = () => {
@@ -125,7 +119,7 @@ const TtsPage: React.FC = () => {
   const [actingPrompt, setActingPrompt] = useState(() => getStoredString(STORAGE_KEYS.prompt));
   const [audioSrc, setAudioSrc] = useState(() => {
     const stored = getStoredString(STORAGE_KEYS.audio);
-    // 로컬 스토리지 데이터가 너무 크면 성능 저하 및 크래시 우려가 있으므로 초기화 제안 또는 무시
+    // 濡쒖뺄 ?ㅽ넗由ъ? ?곗씠?곌? ?덈Т ?щ㈃ ?깅뒫 ???諛??щ옒???곕젮媛 ?덉쑝誘濡?珥덇린???쒖븞 ?먮뒗 臾댁떆
     if (stored.length > 5 * 1024 * 1024) {
       console.warn("TTS audio data too large, clearing storage.");
       return "";
@@ -137,14 +131,14 @@ const TtsPage: React.FC = () => {
   const [progressStep, setProgressStep] = useState("");
   const [ttsProgress, setTtsProgress] = useState({
     currentStep: 0,
-    steps: ["텍스트 준비", "AI 연기 분석", "음성 생성", "완료"],
+    steps: ["텍스트 준비", "AI 프롬프트 분석", "음성 생성", "완료"],
   });
   const [copyStatus, setCopyStatus] = useState("");
   const [previewAudio, setPreviewAudio] = useState<HTMLAudioElement | null>(null);
   const [playingPreview, setPlayingPreview] = useState<string | null>(null);
-  const [useAIActing, setUseAIActing] = useState(false); // AI 연기 모드 토글
-  const [generatingPrompt, setGeneratingPrompt] = useState(false); // ?꾨＼?꾪듃 ?앹꽦 以?
-  const [hasUserGoogleKey, setHasUserGoogleKey] = useState(false); // 프롬프트 생성 중
+  const [useAIActing, setUseAIActing] = useState(false); // AI ?곌린 紐⑤뱶 ?좉?
+  const [generatingPrompt, setGeneratingPrompt] = useState(false); // ?袁⑨세?袁る뱜 ??밴쉐 餓?
+  const [hasUserGoogleKey, setHasUserGoogleKey] = useState(false); // ?꾨＼?꾪듃 ?앹꽦 以?
 
   // Auth
   useEffect(() => {
@@ -203,7 +197,7 @@ const TtsPage: React.FC = () => {
   useEffect(() => setStoredValue(STORAGE_KEYS.pitch, String(pitch)), [pitch]);
 
   useEffect(() => {
-    // 오디오 소스가 너무 크면 저장하지 않음
+    // ?ㅻ뵒???뚯뒪媛 ?덈Т ?щ㈃ ??ν븯吏 ?딆쓬
     if (audioSrc && audioSrc.length < 2 * 1024 * 1024) {
       setStoredValue(STORAGE_KEYS.audio, audioSrc);
     } else if (!audioSrc) {
@@ -215,7 +209,7 @@ const TtsPage: React.FC = () => {
   useEffect(() => setStoredValue(STORAGE_KEYS.prompt, actingPrompt), [actingPrompt]);
 
   const handleReset = () => {
-    if (!window.confirm("모든 입력을 초기화하시겠습니까?")) return;
+    if (!window.confirm("紐⑤뱺 ?낅젰??珥덇린?뷀븯?쒓쿋?듬땲源?")) return;
     setText("");
     setVoice("ko-KR-Standard-A");
     setSpeakingRate(1);
@@ -230,10 +224,6 @@ const TtsPage: React.FC = () => {
   };
 
   const handlePreviewVoice = async (voiceId: string) => {
-    if (!hasUserGoogleKey) {
-      alert("마이페이지에서 Google Cloud API 키 또는 서비스 계정 JSON을 먼저 저장해 주세요.");
-      return;
-    }
     if (playingPreview === voiceId && previewAudio) {
       previewAudio.pause();
       setPlayingPreview(null);
@@ -255,7 +245,7 @@ const TtsPage: React.FC = () => {
         method: "POST",
         headers,
         body: JSON.stringify({
-          text: "안녕하세요, 미리듣기입니다.",
+          text: "?덈뀞?섏꽭?? 誘몃━?ｊ린?낅땲??",
           voice: voiceId,
           speakingRate: 1,
           pitch: 0,
@@ -267,6 +257,9 @@ const TtsPage: React.FC = () => {
         throw new Error(toTtsErrorMessage(payload?.message || "Preview failed"));
       }
       const data = await response.json();
+      if (data?.billing?.mode === "server_credit") {
+        window.dispatchEvent(new Event("creditRefresh"));
+      }
       const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
 
       audio.onended = () => setPlayingPreview(null);
@@ -275,13 +268,13 @@ const TtsPage: React.FC = () => {
       setPlayingPreview(voiceId);
     } catch (e) {
       console.error(e);
-      alert("미리보기를 재생할 수 없습니다.");
+      alert("誘몃━蹂닿린瑜??ъ깮?????놁뒿?덈떎.");
     }
   };
 
   const handleAutoGeneratePrompt = async () => {
     if (!text.trim()) {
-      alert("대본을 먼저 입력해주세요.");
+      alert("?蹂몄쓣 癒쇱? ?낅젰?댁＜?몄슂.");
       return;
     }
 
@@ -290,23 +283,19 @@ const TtsPage: React.FC = () => {
       const prompt = await generateActingPrompt(text);
       setActingPrompt(prompt);
     } catch (error: any) {
-      alert(error.message || "프롬프트 자동 생성에 실패했습니다.");
+      alert(error.message || "?꾨＼?꾪듃 ?먮룞 ?앹꽦???ㅽ뙣?덉뒿?덈떎.");
     } finally {
       setGeneratingPrompt(false);
     }
   };
 
   const handleGenerate = async () => {
-    if (!hasUserGoogleKey) {
-      setError("마이페이지에서 Google Cloud API 키 또는 서비스 계정 JSON을 먼저 저장해 주세요.");
-      return;
-    }
     if (!user) {
-      alert("로그인이 필요한 기능입니다.");
+      alert("濡쒓렇?몄씠 ?꾩슂??湲곕뒫?낅땲??");
       return;
     }
     if (!text.trim()) {
-      setError("변환할 텍스트를 입력해 주세요.");
+      setError("蹂?섑븷 ?띿뒪?몃? ?낅젰??二쇱꽭??");
       return;
     }
 
@@ -318,17 +307,17 @@ const TtsPage: React.FC = () => {
     try {
       let finalSsml = "";
 
-      // 1. AI 연기 모드이거나 프롬프트가 있으면 SSML 생성
+      // 1. AI ?곌린 紐⑤뱶?닿굅???꾨＼?꾪듃媛 ?덉쑝硫?SSML ?앹꽦
       if (useAIActing || actingPrompt.trim()) {
-        setProgressStep("analyzing"); // 연기 분석 중
+        setProgressStep("analyzing"); // ?곌린 遺꾩꽍 以?
         setTtsProgress(prev => ({ ...prev, currentStep: 1 }));
         finalSsml = await generateSsml(text, actingPrompt);
       } else {
-        // AI 연기를 사용하지 않으면 1단계 건너뛰기
+        // AI ?곌린瑜??ъ슜?섏? ?딆쑝硫?1?④퀎 嫄대꼫?곌린
         setTtsProgress(prev => ({ ...prev, currentStep: 1 }));
       }
 
-      // 2. TTS 요청
+      // 2. TTS ?붿껌
       setProgressStep("requesting");
       setTtsProgress(prev => ({ ...prev, currentStep: 2 }));
       const { data: { session } } = await supabase.auth.getSession();
@@ -354,20 +343,23 @@ const TtsPage: React.FC = () => {
       const payload = await response.json().catch(() => null);
 
       if (!response.ok) {
-        throw new Error(toTtsErrorMessage(payload?.message || "TTS 요청 실패"));
+        throw new Error(toTtsErrorMessage(payload?.message || "TTS ?붿껌 ?ㅽ뙣"));
       }
 
       if (!payload?.audioContent) {
-        throw new Error("오디오 데이터가 비어 있습니다.");
+        throw new Error("?ㅻ뵒???곗씠?곌? 鍮꾩뼱 ?덉뒿?덈떎.");
       }
 
       setAudioSrc(`data:audio/mp3;base64,${payload.audioContent}`);
+      if (payload?.billing?.mode === "server_credit") {
+        window.dispatchEvent(new Event("creditRefresh"));
+      }
       setProgressStep("completed");
       setTtsProgress(prev => ({ ...prev, currentStep: 3 }));
 
     } catch (err: any) {
-      console.error("TTS 요청 실패:", err);
-      setError(err.message || "알 수 없는 오류가 발생했습니다.");
+      console.error("TTS ?붿껌 ?ㅽ뙣:", err);
+      setError(err.message || "?????녿뒗 ?ㅻ쪟媛 諛쒖깮?덉뒿?덈떎.");
     } finally {
       setIsGenerating(false);
       setTtsProgress({ ...ttsProgress, currentStep: 0 });
@@ -381,7 +373,7 @@ const TtsPage: React.FC = () => {
       <div className="min-h-screen bg-black flex items-center justify-center text-white">
         <div className="flex flex-col items-center gap-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500"></div>
-          <p className="text-emerald-400 font-medium">스튜디오를 준비하는 중...</p>
+          <p className="text-emerald-400 font-medium">?ㅽ뒠?붿삤瑜?以鍮꾪븯??以?..</p>
         </div>
       </div>
     );
@@ -404,12 +396,12 @@ const TtsPage: React.FC = () => {
         <div className="mb-10 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
           <div>
             <h1 className="text-4xl font-black bg-gradient-to-r from-emerald-400 to-teal-300 bg-clip-text text-transparent">
-              AI 성우 스튜디오
+              AI ?깆슦 ?ㅽ뒠?붿삤
             </h1>
-            <p className="text-slate-400 mt-2">대본에 감정을 입혀 생생한 목소리를 만들어보세요.</p>
+            <p className="text-slate-400 mt-2">?蹂몄뿉 媛먯젙???낇? ?앹깮??紐⑹냼由щ? 留뚮뱾?대낫?몄슂.</p>
           </div>
           <button onClick={handleReset} className="px-5 py-2.5 text-sm font-bold text-slate-300 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors">
-            초기화
+            珥덇린??
           </button>
         </div>
 
@@ -422,12 +414,12 @@ const TtsPage: React.FC = () => {
             {/* Voice Selection */}
             <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-md shadow-2xl">
               <h2 className="text-lg font-bold text-emerald-300 mb-5 flex items-center gap-2">
-                <FiUser /> 목소리 선택
+                <FiUser /> 紐⑹냼由??좏깮
               </h2>
 
               <div className="space-y-6 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
                 <div>
-                  <label className="text-xs font-black text-slate-500 uppercase tracking-widest mb-3 block">여성 성우</label>
+                  <label className="text-xs font-black text-slate-500 uppercase tracking-widest mb-3 block">?ъ꽦 ?깆슦</label>
                   <div className="space-y-2">
                     {filterVoices("female").map(v => (
                       <div
@@ -444,7 +436,7 @@ const TtsPage: React.FC = () => {
                         <button
                           onClick={(e) => { e.stopPropagation(); handlePreviewVoice(v.value); }}
                           className="p-2 rounded-full bg-white/5 hover:bg-emerald-500 hover:text-white text-emerald-400 transition-all"
-                          title="미리듣기"
+                          title="誘몃━?ｊ린"
                         >
                           {playingPreview === v.value ? <FiPause size={14} /> : <FiPlay size={14} />}
                         </button>
@@ -454,7 +446,7 @@ const TtsPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="text-xs font-black text-slate-500 uppercase tracking-widest mb-3 block">남성 성우</label>
+                  <label className="text-xs font-black text-slate-500 uppercase tracking-widest mb-3 block">?⑥꽦 ?깆슦</label>
                   <div className="space-y-2">
                     {filterVoices("male").map(v => (
                       <div
@@ -471,7 +463,7 @@ const TtsPage: React.FC = () => {
                         <button
                           onClick={(e) => { e.stopPropagation(); handlePreviewVoice(v.value); }}
                           className="p-2 rounded-full bg-white/5 hover:bg-emerald-500 hover:text-white text-emerald-400 transition-all"
-                          title="미리듣기"
+                          title="誘몃━?ｊ린"
                         >
                           {playingPreview === v.value ? <FiPause size={14} /> : <FiPlay size={14} />}
                         </button>
@@ -485,12 +477,12 @@ const TtsPage: React.FC = () => {
             {/* Voice Settings */}
             <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-md">
               <h2 className="text-lg font-bold text-emerald-300 mb-5 flex items-center gap-2">
-                <FiSliders /> 음성 설정
+                <FiSliders /> ?뚯꽦 ?ㅼ젙
               </h2>
               <div className="space-y-6">
                 <div>
                   <div className="flex justify-between text-sm mb-2">
-                    <span className="text-slate-300 font-medium">속도</span>
+                    <span className="text-slate-300 font-medium">?띾룄</span>
                     <span className="text-emerald-400 font-bold">{speakingRate.toFixed(1)}x</span>
                   </div>
                   <input
@@ -505,7 +497,7 @@ const TtsPage: React.FC = () => {
                 </div>
                 <div>
                   <div className="flex justify-between text-sm mb-2">
-                    <span className="text-slate-300 font-medium">톤 (Pitch)</span>
+                    <span className="text-slate-300 font-medium">??(Pitch)</span>
                     <span className="text-emerald-400 font-bold">{pitch.toFixed(1)}</span>
                   </div>
                   <input
@@ -533,8 +525,8 @@ const TtsPage: React.FC = () => {
                     <FiCpu size={20} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-base font-bold text-slate-200">AI 연기 모드</h3>
-                    <p className="text-xs text-slate-500">텍스트에 감정과 연기를 더합니다</p>
+                    <h3 className="text-base font-bold text-slate-200">AI ?곌린 紐⑤뱶</h3>
+                    <p className="text-xs text-slate-500">?띿뒪?몄뿉 媛먯젙怨??곌린瑜??뷀빀?덈떎</p>
                   </div>
                 </div>
                 <button
@@ -551,7 +543,7 @@ const TtsPage: React.FC = () => {
                     <textarea
                       value={actingPrompt}
                       onChange={(e) => setActingPrompt(e.target.value)}
-                      placeholder="예: 뉴스 앵커처럼 신뢰감 있게, 슬픈 드라마 주인공처럼 애절하게 (비워두면 대본 분석하여 자동 완성)"
+                      placeholder="?? ?댁뒪 ?듭빱泥섎읆 ?좊ː媛??덇쾶, ?ы뵂 ?쒕씪留?二쇱씤怨듭쿂???좎젅?섍쾶 (鍮꾩썙?먮㈃ ?蹂?遺꾩꽍?섏뿬 ?먮룞 ?꾩꽦)"
                       className="flex-1 bg-black/40 border border-emerald-500/20 rounded-xl p-4 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 transition-all leading-relaxed"
                       rows={2}
                     />
@@ -559,14 +551,14 @@ const TtsPage: React.FC = () => {
                       onClick={handleAutoGeneratePrompt}
                       disabled={generatingPrompt || !text.trim()}
                       className="px-4 py-2 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-100 rounded-xl text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed self-start"
-                      title="대본을 분석하여 연기 톤 자동 완성"
+                      title="?蹂몄쓣 遺꾩꽍?섏뿬 ?곌린 ???먮룞 ?꾩꽦"
                     >
-                      {generatingPrompt ? "분석 중..." : "자동 완성"}
+                      {generatingPrompt ? "遺꾩꽍 以?.." : "?먮룞 ?꾩꽦"}
                     </button>
                   </div>
                   <div className="flex items-start gap-2 mt-3 text-xs text-emerald-400/70">
                     <FiInfo className="mt-0.5 flex-shrink-0" />
-                    <p>AI가 대본을 분석하여 최적의 연기 톤을 제안합니다. 프롬프트를 비워두면 대본 내용에 따라 자연스러운 톤으로 읽습니다.</p>
+                    <p>AI媛 ?蹂몄쓣 遺꾩꽍?섏뿬 理쒖쟻???곌린 ?ㅼ쓣 ?쒖븞?⑸땲?? ?꾨＼?꾪듃瑜?鍮꾩썙?먮㈃ ?蹂??댁슜???곕씪 ?먯뿰?ㅻ윭???ㅼ쑝濡??쎌뒿?덈떎.</p>
                   </div>
                 </div>
               )}
@@ -576,17 +568,17 @@ const TtsPage: React.FC = () => {
             <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-md">
               <div className="flex items-center justify-between mb-4">
                 <label className="text-lg font-bold text-slate-200 flex items-center gap-2">
-                  <FiFileText className="text-emerald-400" /> 대본 입력
+                  <FiFileText className="text-emerald-400" /> ?蹂??낅젰
                 </label>
                 <div className="text-xs text-slate-500 font-mono">
-                  {text.length.toLocaleString()} 자
+                  {text.length.toLocaleString()} ??
                 </div>
               </div>
               <textarea
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 className="w-full h-80 bg-black/30 border border-white/5 rounded-xl p-5 text-white placeholder:text-slate-700 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 leading-relaxed resize-none transition-all shadow-inner tts-text-input"
-                placeholder="여기에 변환할 텍스트를 입력하세요. 대화체, 나레이션 모두 가능합니다."
+                placeholder="?ш린??蹂?섑븷 ?띿뒪?몃? ?낅젰?섏꽭?? ??붿껜, ?섎젅?댁뀡 紐⑤몢 媛?ν빀?덈떎."
                 style={
                   {
                     userSelect: "text",
@@ -606,12 +598,12 @@ const TtsPage: React.FC = () => {
               {isGenerating ? (
                 <>
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  <span>{progressStep === 'analyzing' ? 'AI가 감정 분석 중...' : progressStep === 'requesting' ? '음성 생성 중...' : '처리 중...'}</span>
+                  <span>{progressStep === 'analyzing' ? 'AI媛 媛먯젙 遺꾩꽍 以?..' : progressStep === 'requesting' ? '?뚯꽦 ?앹꽦 以?..' : '泥섎━ 以?..'}</span>
                 </>
               ) : (
                 <>
                   <FiMic size={22} />
-                  <span>TTS 음성 생성하기</span>
+                  <span>TTS ?뚯꽦 ?앹꽦?섍린</span>
                 </>
               )}
             </button>
@@ -621,16 +613,16 @@ const TtsPage: React.FC = () => {
                 currentStepIndex={ttsProgress.currentStep}
                 stepLabels={ttsProgress.steps}
                 stepDescriptions={[
-                  "텍스트를 분석하고 음성 생성을 준비하고 있습니다",
-                  "AI가 감정과 억양을 분석하고 있습니다",
-                  "Google Cloud TTS로 음성을 생성하고 있습니다",
-                  "음성 파일 생성이 완료되었습니다"
+                  "?띿뒪?몃? 遺꾩꽍?섍퀬 ?뚯꽦 ?앹꽦??以鍮꾪븯怨??덉뒿?덈떎",
+                  "AI媛 媛먯젙怨??듭뼇??遺꾩꽍?섍퀬 ?덉뒿?덈떎",
+                  "Google Cloud TTS濡??뚯꽦???앹꽦?섍퀬 ?덉뒿?덈떎",
+                  "?뚯꽦 ?뚯씪 ?앹꽦???꾨즺?섏뿀?듬땲??",
                 ]}
                 estimatedTimeSeconds={15}
               />
             )}
 
-            <ErrorNotice error={error} context="TTS 음성 생성" />
+            <ErrorNotice error={error} context="TTS ?뚯꽦 ?앹꽦" />
 
             {/* Audio Result */}
             {audioSrc && (
@@ -639,20 +631,20 @@ const TtsPage: React.FC = () => {
                   <div className="bg-emerald-500 text-white p-1.5 rounded-lg shadow-lg shadow-emerald-500/20">
                     <FiPlay size={18} />
                   </div>
-                  생성된 AI 목소리
+                  ?앹꽦??AI 紐⑹냼由?
                 </h3>
                 <audio controls className="w-full mb-6 accent-emerald-500 filter invert h-12" key={audioSrc}>
                   <source src={audioSrc} type="audio/mpeg" />
                 </audio>
                 <div className="flex justify-between items-center">
-                  <p className="text-xs text-slate-500">주의: 브라우저 캐시를 지우면 생성된 오디오가 사라질 수 있습니다.</p>
+                  <p className="text-xs text-slate-500">二쇱쓽: 釉뚮씪?곗? 罹먯떆瑜?吏?곕㈃ ?앹꽦???ㅻ뵒?ㅺ? ?щ씪吏????덉뒿?덈떎.</p>
                   <a
                     href={audioSrc}
                     download={`voice_${new Date().getTime()}.mp3`}
                     className="flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-black transition-all shadow-lg shadow-emerald-600/20 active:scale-95"
                   >
                     <FiDownload />
-                    MP3 다운로드
+                    MP3 ?ㅼ슫濡쒕뱶
                   </a>
                 </div>
               </div>
@@ -688,4 +680,5 @@ const TtsPage: React.FC = () => {
 };
 
 export default TtsPage;
+
 

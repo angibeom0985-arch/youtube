@@ -20,6 +20,24 @@ const isMissingColumnError = (error: any, column: string) => {
   return msg.includes(column.toLowerCase()) || msg.includes(normalized);
 };
 
+const isNoRowsError = (error: any) => {
+  const code = String(error?.code || "");
+  const msg = String(error?.message || "").toLowerCase();
+  return code === "PGRST116" || msg.includes("no rows");
+};
+
+const isPermissionError = (error: any) => {
+  const code = String(error?.code || "");
+  const msg = String(error?.message || "").toLowerCase();
+  return (
+    code === "42501" ||
+    msg.includes("not allowed") ||
+    msg.includes("permission denied") ||
+    msg.includes("row-level security") ||
+    msg.includes("violates row-level security")
+  );
+};
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const authHeader = req.headers.authorization;
   if (!authHeader) return res.status(401).json({ message: "Unauthorized" });
@@ -41,7 +59,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .eq("id", user.id)
       .single();
 
-    if (profileSelect.error && !isMissingColumnError(profileSelect.error, "gemini_api_key")) {
+    if (
+      profileSelect.error &&
+      !isNoRowsError(profileSelect.error) &&
+      !isMissingColumnError(profileSelect.error, "gemini_api_key")
+    ) {
       console.error("Error fetching user settings:", profileSelect.error);
       return res.status(500).json({ message: "Failed to fetch settings", details: profileSelect.error.message });
     }
@@ -59,10 +81,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!googleCreditJson && metadata.google_credit_json !== undefined) {
       googleCreditJson = metadata.google_credit_json;
     }
+    const couponBypassCredits = metadata.coupon_bypass_credits === true;
 
     return res.status(200).json({
       gemini_api_key: geminiApiKey,
       google_credit_json: googleCreditJson,
+      coupon_bypass_credits: couponBypassCredits,
     });
   }
 
@@ -97,7 +121,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const shouldUseMetadataFallback =
       profileUpdateError &&
       (isMissingColumnError(profileUpdateError, "gemini_api_key") ||
-        isMissingColumnError(profileUpdateError, "google_credit_json"));
+        isMissingColumnError(profileUpdateError, "google_credit_json") ||
+        isPermissionError(profileUpdateError));
 
     if (profileUpdateError && !shouldUseMetadataFallback) {
       console.error("Error updating user settings:", profileUpdateError);

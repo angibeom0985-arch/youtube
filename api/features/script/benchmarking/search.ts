@@ -1,7 +1,17 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node";
+﻿import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { checkAndDeductCredits, CREDIT_COSTS } from "../../../../server/shared/creditService.js";
+import { getSupabaseUser } from "../../../../server/shared/supabase.js";
 
 const YT_BASE_URL = "https://www.googleapis.com/youtube/v3";
 const MAX_RESULTS_PER_PAGE = 50;
+
+type BillingMode = "coupon_user_key" | "server_credit";
+
+type BillingInfo = {
+  mode: BillingMode;
+  cost: number;
+  remainingCredits: number | null;
+};
 
 function parseDurationToSeconds(isoDuration: string): number {
   const match = /PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/.exec(isoDuration || "");
@@ -28,7 +38,7 @@ async function fetchJson(url: string): Promise<any> {
   const response = await fetch(url);
   const data = await response.json();
   if (!response.ok) {
-    const errorMsg = data?.error?.message || "YouTube API 요청에 실패했습니다.";
+    const errorMsg = data?.error?.message || "YouTube API request failed";
     throw new Error(errorMsg);
   }
   return data;
@@ -66,35 +76,92 @@ interface VideoResult {
   link: string;
 }
 
-export default async function handler(
-  req: VercelRequest,
-  res: VercelResponse
-) {
+const parseBody = (req: VercelRequest) => {
+  if (typeof req.body === "string") {
+    try {
+      return JSON.parse(req.body);
+    } catch {
+      return null;
+    }
+  }
+  return req.body ?? {};
+};
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const body = req.body;
+  const body = parseBody(req);
+  if (!body) {
+    return res.status(400).json({ error: "invalid_json" });
+  }
 
-  // ?쨈챘혶쩌?쨈챙?벬?쨍챙?붋????왗モ뮤??API ???째챙?왖??짭챙큄짤, ??졗?벬셌ヂ???챗짼쩍챘쨀????짭챙큄짤
-  const apiKey = (body.apiKey || "").trim();
+  const authHeader = req.headers.authorization;
+  const token =
+    typeof authHeader === "string" && authHeader.startsWith("Bearer ")
+      ? authHeader.slice(7)
+      : null;
+  if (!token) {
+    return res.status(401).json({ error: "auth_required" });
+  }
 
-  if (!apiKey) {
-    return res.status(400).json({ error: "YouTube API 키가 설정되지 않았습니다. 설정에서 입력해 주세요." });
+  const auth = await getSupabaseUser(token);
+  if (!auth.user) {
+    return res.status(401).json({ error: "auth_required" });
+  }
+
+  const metadata = (auth.user as any)?.user_metadata || {};
+  const couponBypassCredits = metadata?.coupon_bypass_credits === true;
+  const userApiKey = String(body.apiKey || "").trim();
+  let apiKey = "";
+
+  let billing: BillingInfo = {
+    mode: "coupon_user_key",
+    cost: 0,
+    remainingCredits: null,
+  };
+
+  if (couponBypassCredits) {
+    if (!userApiKey) {
+      return res.status(400).json({ error: "coupon_user_key_required" });
+    }
+    apiKey = userApiKey;
+  } else {
+    apiKey = String(process.env.YOUTUBE_API_KEY || "").trim();
+    if (!apiKey) {
+      return res.status(400).json({ error: "missing_api_key" });
+    }
+
+    const cost = Number(CREDIT_COSTS.SEARCH);
+    const creditResult = await checkAndDeductCredits(req, res, cost);
+    if (!creditResult.allowed) {
+      return res.status(creditResult.status || 402).json({
+        error: "credit_limit",
+        message: creditResult.message || "Credits required",
+        currentCredits: creditResult.currentCredits,
+      });
+    }
+
+    billing = {
+      mode: "server_credit",
+      cost,
+      remainingCredits: creditResult.currentCredits,
+    };
   }
 
   const query = String(body.query || "").trim();
   if (!query) {
-    return res.status(400).json({ error: "검색 키워드를 입력해 주세요." });
+    return res.status(400).json({ error: "missing_query" });
   }
 
-  const days = Number(body.days || 3650); // 0?쨈챘짤쨈 ??왗?꼲?챗쨍째챗째??(??10??
-  const durationFilter = body.durationFilter || "any"; // any, short, long
+  const days = Number(body.days || 3650);
+  const durationFilter = body.durationFilter || "any";
   const minViews = Number(body.minViews || 0);
   const maxSubs = Number(body.maxSubs || 999999999);
   const maxScan = Math.min(Number(body.maxScan || 50), 500);
 
-  // ?혻챙짠흹 ??왗?왖??짚챙혻??  let publishedAfter: string | undefined;
+  let publishedAfter: string | undefined;
   if (days > 0) {
     publishedAfter = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
   }
@@ -102,7 +169,7 @@ export default async function handler(
   const keywords = query
     .replace(/,/g, " ")
     .split(" ")
-    .map((word) => word.trim().toLowerCase())
+    .map((word: string) => word.trim().toLowerCase())
     .filter(Boolean);
 
   const videoIds: string[] = [];
@@ -142,8 +209,6 @@ export default async function handler(
 
         const title = item?.snippet?.title || "";
         const titleLower = title.toLowerCase();
-
-        // ?짚챙?뵀??챘짠짚챙쨔짯 (?흹챘짧짤 챗쨍째챘째? ??왗?왖걘ヂ㎳겷? ?혻챠?혶?짭챠?◈?쨈챘?싈???▣?꽓???왗? ??왗?◈??혻챙?)
         const matches = keywords.length === 0 || keywords.some((word) => titleLower.includes(word));
         if (!matches) continue;
 
@@ -171,10 +236,10 @@ export default async function handler(
       return res.json({
         results: [],
         summary: { scanned: collected, titleFiltered, matched: 0 },
+        billing,
       });
     }
 
-    // 챙짹?왗モ왖???▣ヂ냈?챗째??쨍챙?짚챗쨍?(챗쨉짭챘혧???
     const uniqueChannelIds = Array.from(new Set(channelIds)).filter(Boolean);
     const channelSubs: Record<string, number> = {};
 
@@ -191,7 +256,6 @@ export default async function handler(
       }
     }
 
-    // ?혖챙?혖 ?혖챙?왖???▣ヂ냈?챗째??쨍챙?짚챗쨍?(?짭챙?혶 ?흹챗째?? ?흹챗쨌쨍, ?짚챘짧?? 챙징째챠큄흸??
     const results: VideoResult[] = [];
     for (const chunk of chunkArray(videoIds, 50)) {
       const videoParams = new URLSearchParams({
@@ -213,7 +277,6 @@ export default async function handler(
         const subs = Number(channelSubs[channelId] || 0);
         const durationSeconds = parseDurationToSeconds(content.duration);
 
-        // 챗쨍째챗째????왗?왖?(?혧챠혧쩌: 1챘쨋?챘짱쨍챘짠흸 / 챘징짹챠혧쩌: 1챘쨋??쨈챙?혖)
         let passDuration = true;
         if (durationFilter === "short") {
           passDuration = durationSeconds < 60;
@@ -221,10 +284,8 @@ export default async function handler(
           passDuration = durationSeconds >= 60;
         }
 
-        // 챗쨍째챘쨀쨍 ??왗?왖걘ヂ?(챙징째챠큄흸?? 챗쨉짭챘혧???
         if (!passDuration || viewCount < minViews || subs > maxSubs) continue;
 
-        // 챗쨍째챙?붋??챘짧짢챘짤???? 챗쨀?왗р슿? 챗쨉짭챘혧??????ヂ?챙징째챠큄흸??챘째째챙??
         const contribution = subs > 0 ? Number((viewCount / subs).toFixed(2)) : viewCount > 0 ? 999 : 0;
 
         results.push({
@@ -245,7 +306,6 @@ export default async function handler(
       }
     }
 
-    // 챗쨍째챘쨀쨍 ??▣ヂ졖? 챘짧짢챘짤????챗쨍째챙?붋?? ??쇒? ??
     results.sort((a, b) => b.contribution - a.contribution);
 
     return res.json({
@@ -255,11 +315,10 @@ export default async function handler(
         titleFiltered,
         matched: results.length,
       },
+      billing,
     });
   } catch (error: any) {
     console.error("[Search API Error]:", error);
-    return res.status(500).json({ error: error.message || "영상 검색 중 오류가 발생했습니다." });
+    return res.status(500).json({ error: error?.message || "search_failed" });
   }
 }
-
-

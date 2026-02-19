@@ -2,9 +2,10 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/services/supabase";
 import type { User } from "@supabase/supabase-js";
-import { FiUser, FiClock, FiSettings, FiKey } from "react-icons/fi";
+import { FiUser, FiClock, FiKey, FiGift, FiZap, FiRefreshCw } from "react-icons/fi";
 import ApiKeyInput from "@/components/ApiKeyInput";
 import HomeBackButton from "@/components/HomeBackButton";
+import UserCreditToolbar from "@/components/UserCreditToolbar";
 
 const MyPage: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -12,6 +13,13 @@ const MyPage: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [geminiApiKey, setGeminiApiKey] = useState("");
   const [googleCloudApiKey, setGoogleCloudApiKey] = useState("");
+  const [couponCode, setCouponCode] = useState("");
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponMessage, setCouponMessage] = useState<string | null>(null);
+  const [credits, setCredits] = useState<number | null>(null);
+  const [creditsLoading, setCreditsLoading] = useState(false);
+  const [hasUserGeminiKey, setHasUserGeminiKey] = useState(false);
+  const [couponBypassCredits, setCouponBypassCredits] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -72,6 +80,120 @@ const MyPage: React.FC = () => {
     }
   };
 
+  const fetchCreditState = async () => {
+    setCreditsLoading(true);
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) {
+        setCredits(0);
+        setHasUserGeminiKey(false);
+        setCouponBypassCredits(false);
+        return;
+      }
+
+      const [creditRes, settingsRes] = await Promise.all([
+        fetch("/api/YOUTUBE/user", {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            "Content-Type": "application/json",
+          },
+        }),
+        fetch("/api/user/settings", {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        }),
+      ]);
+
+      if (creditRes.ok) {
+        const data = await creditRes.json();
+        setCredits(Number(data?.credits ?? 0));
+      } else {
+        setCredits(0);
+      }
+
+      if (settingsRes.ok) {
+        const data = await settingsRes.json();
+        const userKey = typeof data?.gemini_api_key === "string" ? data.gemini_api_key.trim() : "";
+        setHasUserGeminiKey(Boolean(userKey));
+        setCouponBypassCredits(data?.coupon_bypass_credits === true);
+      } else {
+        setHasUserGeminiKey(false);
+        setCouponBypassCredits(false);
+      }
+    } catch (error) {
+      console.error("Failed to fetch credit state:", error);
+      setCredits(0);
+      setHasUserGeminiKey(false);
+      setCouponBypassCredits(false);
+    } finally {
+      setCreditsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!user) return;
+    fetchCreditState();
+    const handleCreditRefresh = () => fetchCreditState();
+    window.addEventListener("creditRefresh", handleCreditRefresh);
+    return () => window.removeEventListener("creditRefresh", handleCreditRefresh);
+  }, [user?.id]);
+
+  const handleApplyCoupon = async () => {
+    const code = couponCode.trim();
+    if (!code) {
+      setCouponMessage("쿠폰 코드를 입력해주세요.");
+      return;
+    }
+
+    setCouponLoading(true);
+    setCouponMessage(null);
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) {
+        navigate("/");
+        return;
+      }
+
+      const response = await fetch("/api/user/coupon", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ code }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const reason = data?.message || "coupon_apply_failed";
+        if (reason === "coupon_already_used") {
+          setCouponMessage("이미 사용한 쿠폰입니다.");
+        } else if (reason === "coupon_expired") {
+          setCouponMessage("만료된 쿠폰입니다.");
+        } else if (reason === "coupon_not_found" || reason === "invalid_code") {
+          setCouponMessage("유효하지 않은 쿠폰 코드입니다.");
+        } else {
+          setCouponMessage("쿠폰 적용에 실패했습니다. 잠시 후 다시 시도해주세요.");
+        }
+        return;
+      }
+
+      setCouponMessage("쿠폰 적용 완료: 이제 본인 API 키를 등록하면 크레딧 없이 사용 가능합니다.");
+      setCouponCode("");
+      window.dispatchEvent(new Event("creditRefresh"));
+    } catch (error) {
+      console.error("Failed to apply coupon:", error);
+      setCouponMessage("쿠폰 적용 중 오류가 발생했습니다.");
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center text-white">
@@ -83,7 +205,7 @@ const MyPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-black text-white relative">
       <div className="absolute top-0 right-0 p-6 flex gap-3 z-10 items-center">
-
+        <UserCreditToolbar user={user} onLogout={handleLogout} tone="emerald" showCredits />
       </div>
 
       <div className="max-w-4xl mx-auto px-6 py-20">
@@ -112,7 +234,33 @@ const MyPage: React.FC = () => {
               <h2 className="text-xl font-bold text-white mb-1">
                 {user?.user_metadata?.full_name || "사용자"}
               </h2>
-              <p className="text-sm text-slate-400 mb-6">{user?.email}</p>
+              <p className="text-sm text-slate-400 mb-4">{user?.email}</p>
+
+              <div className="w-full mb-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-3 text-left">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-emerald-300 flex items-center gap-1">
+                    <FiZap /> 크레딧
+                  </span>
+                  <button
+                    onClick={fetchCreditState}
+                    disabled={creditsLoading}
+                    className="p-1 rounded hover:bg-white/10 transition-colors disabled:opacity-50"
+                    title="크레딧 새로고침"
+                  >
+                    <FiRefreshCw className={`text-emerald-300 text-xs ${creditsLoading ? "animate-spin" : ""}`} />
+                  </button>
+                </div>
+                <p className="text-2xl font-black text-emerald-200 mt-1">
+                  {creditsLoading ? "-" : (credits ?? 0).toLocaleString()}
+                </p>
+                <p className="text-[11px] text-slate-300 mt-1 leading-relaxed">
+                  {couponBypassCredits
+                    ? (hasUserGeminiKey
+                        ? "현재 모드: 쿠폰 적용 완료 (본인 API 필수 / 크레딧 차감 없음)"
+                        : "현재 모드: 쿠폰 적용됨 (본인 Gemini API 키 등록 필요)")
+                    : "현재 모드: 기본 크레딧 모드 (서버 API 사용 시 요청별 차감)"}
+                </p>
+              </div>
 
               <button
                 onClick={handleLogout}
@@ -151,6 +299,38 @@ const MyPage: React.FC = () => {
               </Link>
             </div>
 
+            <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6">
+              <h3 className="font-bold text-white mb-4 flex items-center gap-2">
+                <FiZap className="text-emerald-400" /> 크레딧 관리
+              </h3>
+              <div className="grid sm:grid-cols-2 gap-3">
+                <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4">
+                  <p className="text-xs text-emerald-300">현재 보유 크레딧</p>
+                  <p className="text-3xl font-black text-emerald-200 mt-1">
+                    {creditsLoading ? "-" : (credits ?? 0).toLocaleString()}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-white/10 bg-black/30 p-4">
+                  <p className="text-xs text-slate-400">차감 정책</p>
+                  <p className="text-sm text-slate-200 mt-2 leading-relaxed">
+                    기본: 서버 공용 API 사용 시 요청별 크레딧 차감
+                    <br />
+                    쿠폰 적용 후: 본인 API 키 등록 시 크레딧 차감 없음
+                  </p>
+                </div>
+              </div>
+              <div className="mt-4 flex gap-2">
+                <button
+                  onClick={fetchCreditState}
+                  disabled={creditsLoading}
+                  className="px-3 py-2 rounded-lg border border-white/15 hover:bg-white/5 text-sm text-slate-200 disabled:opacity-50 flex items-center gap-2"
+                >
+                  <FiRefreshCw className={creditsLoading ? "animate-spin" : ""} />
+                  크레딧 새로고침
+                </button>
+              </div>
+            </div>
+
             {/* API Settings Section */}
             <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6">
               <h3 className="font-bold text-white mb-4 flex items-center gap-2">
@@ -184,6 +364,33 @@ const MyPage: React.FC = () => {
                   apiType="googleCloud"
                 />
               </div>
+            </div>
+
+            <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6">
+              <h3 className="font-bold text-white mb-4 flex items-center gap-2">
+                <FiGift className="text-emerald-400" /> 할인 쿠폰
+              </h3>
+              <p className="text-sm text-slate-400 mb-4">
+                쿠폰 적용 후에는 본인 API 키를 등록한 요청만 크레딧 없이 사용됩니다. 미등록 시 사용이 제한됩니다.
+              </p>
+              <div className="flex gap-2">
+                <input
+                  value={couponCode}
+                  onChange={(event) => setCouponCode(event.target.value)}
+                  placeholder="쿠폰 코드 입력"
+                  className="flex-1 px-3 py-2 rounded-lg bg-black border border-white/10 text-white placeholder:text-slate-500"
+                />
+                <button
+                  onClick={handleApplyCoupon}
+                  disabled={couponLoading}
+                  className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-sm font-semibold"
+                >
+                  {couponLoading ? "적용 중..." : "적용"}
+                </button>
+              </div>
+              {couponMessage && (
+                <p className="text-sm mt-3 text-slate-300">{couponMessage}</p>
+              )}
             </div>
 
             {/* Recent Activity (Placeholder) */}
