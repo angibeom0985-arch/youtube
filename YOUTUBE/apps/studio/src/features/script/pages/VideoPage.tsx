@@ -37,7 +37,6 @@ import { supabase } from "@/services/supabase";
 import type { User } from "@supabase/supabase-js";
 import HomeBackButton from "@/components/HomeBackButton";
 import ErrorNotice from "@/components/ErrorNotice";
-import ApiKeyInput from "@/components/ApiKeyInput";
 import type { AnalysisResult, NewPlan } from "@/types";
 import { analyzeTranscript, generateIdeas, generateNewPlan } from "@/services/geminiService";
 import { regenerateStoryboardImage } from "@/features/image/services/geminiService";
@@ -46,6 +45,7 @@ import type { CharacterStyle, BackgroundStyle, AspectRatio } from "@/features/im
 
 import { ProgressTracker } from "@/components/ProgressIndicator";
 import UserCreditToolbar from "@/components/UserCreditToolbar";
+import { CREDIT_COSTS, formatCreditLabel } from "@/constants/creditCosts";
 
 const STORAGE_KEYS = {
   title: "video_project_title",
@@ -144,6 +144,30 @@ const normalizeCategoryOrder = (input: unknown): string[] => {
   const unique = Array.from(new Set(valid));
   const missing = scriptCategories.filter((category) => !unique.includes(category));
   return [...unique, ...missing];
+};
+
+const extractGoogleCloudApiKey = (raw: unknown): string => {
+  if (!raw) return "";
+
+  if (typeof raw === "string") {
+    const trimmed = raw.trim();
+    if (!trimmed) return "";
+    if (!trimmed.startsWith("{")) return trimmed;
+
+    try {
+      const parsed = JSON.parse(trimmed) as { apiKey?: string };
+      return typeof parsed.apiKey === "string" ? parsed.apiKey.trim() : "";
+    } catch {
+      return "";
+    }
+  }
+
+  if (typeof raw === "object") {
+    const obj = raw as { apiKey?: unknown };
+    return typeof obj.apiKey === "string" ? obj.apiKey.trim() : "";
+  }
+
+  return "";
 };
 
 type SortableCategoryChipProps = {
@@ -432,6 +456,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [cloudConsoleApiKey, setCloudConsoleApiKey] = useState(() =>
     getStoredString(STORAGE_KEYS.cloudConsoleApiKey, "")
   );
+  const [couponBypassCredits, setCouponBypassCredits] = useState(false);
+  const [couponGuardChecked, setCouponGuardChecked] = useState(false);
   const [renderNotes, setRenderNotes] = useState(() =>
     getStoredString(
       STORAGE_KEYS.renderNotes,
@@ -486,6 +512,70 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       setCharacterColorMap(newMap);
     }
   }, [generatedPlan]);
+
+  useEffect(() => {
+    const loadUserApiSettings = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      if (!token) {
+        setCouponBypassCredits(false);
+        setCouponGuardChecked(true);
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/user/settings", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          setCouponGuardChecked(true);
+          return;
+        }
+
+        const data = await response.json();
+        const isCouponBypass = data?.coupon_bypass_credits === true;
+        const geminiProfileKey = typeof data?.gemini_api_key === "string" ? data.gemini_api_key.trim() : "";
+        const cloudProfileKey = extractGoogleCloudApiKey(data?.google_credit_json);
+
+        setCouponBypassCredits(isCouponBypass);
+
+        if (geminiProfileKey) {
+          setGeminiApiKey(geminiProfileKey);
+          setStoredValue(STORAGE_KEYS.geminiApiKey, geminiProfileKey);
+        }
+        if (cloudProfileKey) {
+          setCloudConsoleApiKey(cloudProfileKey);
+          setStoredValue(STORAGE_KEYS.cloudConsoleApiKey, cloudProfileKey);
+        }
+
+        if (isCouponBypass && (!geminiProfileKey || !cloudProfileKey)) {
+          alert("할인 쿠폰 계정은 마이페이지에서 Gemini/Google Cloud API 키를 먼저 등록해야 합니다.");
+          navigate("/mypage", {
+            replace: true,
+            state: { from: "/video", reason: "coupon_api_key_required" },
+          });
+        }
+      } finally {
+        setCouponGuardChecked(true);
+      }
+    };
+
+    loadUserApiSettings();
+  }, [user?.id, navigate]);
+
+  useEffect(() => {
+    if (!couponGuardChecked) return;
+    if (!couponBypassCredits) return;
+    if (geminiApiKey.trim() && cloudConsoleApiKey.trim()) return;
+    navigate("/mypage", {
+      replace: true,
+      state: { from: "/video", reason: "coupon_api_key_required" },
+    });
+  }, [couponBypassCredits, couponGuardChecked, geminiApiKey, cloudConsoleApiKey, navigate]);
 
   // Sync imageStyle based on characterStyle
   useEffect(() => {
@@ -584,6 +674,50 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     await supabase.auth.signOut();
   };
 
+  const deductCredits = useCallback(async (cost: number) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      setScriptError("로그인이 필요합니다.");
+      return false;
+    }
+
+    const settingsRes = await fetch("/api/user/settings", {
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+      },
+    }).catch(() => null);
+    if (settingsRes?.ok) {
+      const settings = await settingsRes.json().catch(() => ({}));
+      if (settings?.coupon_bypass_credits === true) {
+        return true;
+      }
+    }
+
+    const response = await fetch("/api/YOUTUBE/user", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ action: "deduct", cost }),
+    });
+
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      if (payload?.error === "credit_limit") {
+        setScriptError(
+          `크레딧이 부족합니다. (필요: ${cost}, 보유: ${Number(payload?.currentCredits ?? 0)})`
+        );
+      } else {
+        setScriptError(String(payload?.message || "크레딧 차감에 실패했습니다."));
+      }
+      return false;
+    }
+
+    window.dispatchEvent(new Event("creditRefresh"));
+    return true;
+  }, []);
+
   const handleReset = () => {
     if (!window.confirm('모든 작업 내용을 초기화하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.')) {
       return;
@@ -658,7 +792,16 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
   const handleGenerateImage = async (chapterIndex: number, chapterTitle: string, chapterContent: string) => {
     if (!geminiApiKey) {
-      alert("API 키가 설정되지 않았습니다. 설정 메뉴에서 API 키를 입력해주세요.");
+      alert("API 키가 설정되지 않았습니다. 마이페이지에서 API 키를 등록해주세요.");
+      navigate("/mypage", {
+        replace: true,
+        state: { from: "/video", reason: "coupon_api_key_required" },
+      });
+      return;
+    }
+
+    const charged = await deductCredits(CREDIT_COSTS.GENERATE_IMAGE);
+    if (!charged) {
       return;
     }
 
@@ -1731,7 +1874,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                           disabled={isAnalyzingScript || !isScriptStepReady(0)}
                           className="w-full rounded-full bg-gradient-to-r from-orange-600 to-red-600 px-5 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(251,146,60,0.4)] hover:from-orange-500 hover:to-red-500 transition-all disabled:opacity-60"
                         >
-                          {isAnalyzingScript ? "주제 추천 준비 중..." : "빠르게 주제 추천"}
+                          {isAnalyzingScript ? "주제 추천 준비 중..." : `빠르게 주제 추천 (${formatCreditLabel(CREDIT_COSTS.ANALYZE_TRANSCRIPT + CREDIT_COSTS.GENERATE_IDEAS)})`}
                         </button>
                         <button
                           type="button"
@@ -1739,7 +1882,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                           disabled={isAnalyzingScript || !isScriptStepReady(0)}
                           className="w-full rounded-full border border-white/20 bg-black/40 px-5 py-2 text-sm font-semibold text-white/80 hover:bg-white/10 transition-all disabled:opacity-60"
                         >
-                          {isAnalyzingScript ? "구조 분석 중..." : "대본 구조 분석 보기"}
+                          {isAnalyzingScript ? "구조 분석 중..." : `대본 구조 분석 보기 (${formatCreditLabel(CREDIT_COSTS.ANALYZE_TRANSCRIPT + CREDIT_COSTS.GENERATE_IDEAS)})`}
                         </button>
                       </div>
 
@@ -1953,7 +2096,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                 className="px-4 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 text-white text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition"
                                 title="대본 제목 형식으로 변환"
                               >
-                                {isReformattingTopic ? '변환 중...' : '형식 변환'}
+                                {isReformattingTopic ? '변환 중...' : `형식 변환 (${formatCreditLabel(CREDIT_COSTS.REFORMAT_TOPIC)})`}
                               </button>
                             </div>
                             {scriptTitle.trim() && (
@@ -2011,7 +2154,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                 className="px-4 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 text-white text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition"
                                 title="대본 제목 형식으로 변환"
                               >
-                                {isReformattingTopic ? '변환 중...' : '형식 변환'}
+                                {isReformattingTopic ? '변환 중...' : `형식 변환 (${formatCreditLabel(CREDIT_COSTS.REFORMAT_TOPIC)})`}
                               </button>
                             </div>
                             {scriptTitle.trim() && (
@@ -2037,7 +2180,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         disabled={isGeneratingScript || !isScriptStepReady(2)}
                         className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-red-600 to-red-500 text-white font-semibold shadow-lg hover:from-red-500 hover:to-red-400 transition-all disabled:opacity-50"
                       >
-                        {isGeneratingScript ? "대본 작성 중..." : "대본 생성하기"} <FiChevronRight />
+                        {isGeneratingScript ? "대본 작성 중..." : `대본 생성하기 (${formatCreditLabel(CREDIT_COSTS.GENERATE_SCRIPT)})`} <FiChevronRight />
                       </button>
                     </div>
 
@@ -2984,17 +3127,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 )}
               </div>
 
-              {/* API 키 입력 섹션 */}
-              <div className="mt-6">
-                <ApiKeyInput
-                  apiKey={geminiApiKey}
-                  setApiKey={setGeminiApiKey}
-                  label="Gemini API Key"
-                  placeholder="Gemini API Key를 입력해주세요."
-                  description="이미지 생성에 사용되는 Gemini API Key입니다."
-                />
-              </div>
-
               {/* 챕터 기반 이미지 생성 */}
               <div className="mt-8">
                 {generatedPlan?.chapters && generatedPlan.chapters.length > 0 ? (
@@ -3016,7 +3148,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                             disabled={generatingImageChapter === chapterIndex}
                             className="mt-2 w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg disabled:opacity-50"
                           >
-                            {generatingImageChapter === chapterIndex ? "생성 중..." : "이미지 생성"}
+                            {generatingImageChapter === chapterIndex ? "생성 중..." : `이미지 생성 (${formatCreditLabel(CREDIT_COSTS.GENERATE_IMAGE)})`}
                           </button>
                           {chapterImages[chapterIndex] && (
                             <img
@@ -3044,7 +3176,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                           disabled={generatingImageChapter === chapterIndex}
                           className="mt-2 w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg disabled:opacity-50"
                         >
-                          {generatingImageChapter === chapterIndex ? "생성 중..." : "이미지 생성"}
+                          {generatingImageChapter === chapterIndex ? "생성 중..." : `이미지 생성 (${formatCreditLabel(CREDIT_COSTS.GENERATE_IMAGE)})`}
                         </button>
                         {chapterImages[chapterIndex] && (
                           <img

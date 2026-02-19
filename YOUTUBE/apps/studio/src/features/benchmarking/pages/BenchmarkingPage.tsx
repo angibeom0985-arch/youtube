@@ -1,9 +1,11 @@
 ﻿import React, { useEffect, useMemo, useState } from "react";
 import { FiDownload, FiSearch } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/services/supabase";
 import HomeBackButton from "@/components/HomeBackButton";
 import UserCreditToolbar from "@/components/UserCreditToolbar";
+import { CREDIT_COSTS, formatCreditLabel } from "@/constants/creditCosts";
 
 type VideoResult = {
   id: string;
@@ -66,8 +68,10 @@ const extractGoogleCloudApiKey = (raw: unknown): string => {
 };
 
 const BenchmarkingPage: React.FC = () => {
+  const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [youtubeApiKey, setYoutubeApiKey] = useState("");
+  const [couponBypassCredits, setCouponBypassCredits] = useState(false);
   const [query, setQuery] = useState("일상 건강");
   const [days, setDays] = useState(30);
   const [durationFilter, setDurationFilter] = useState("any");
@@ -106,7 +110,17 @@ const BenchmarkingPage: React.FC = () => {
 
         if (!response.ok) return;
         const data = await response.json();
+        const isCouponBypass = data?.coupon_bypass_credits === true;
+        setCouponBypassCredits(isCouponBypass);
         const extracted = extractGoogleCloudApiKey(data?.google_credit_json);
+        if (isCouponBypass && !extracted) {
+          alert("할인 쿠폰 계정은 마이페이지에서 Google Cloud API 키를 먼저 등록해야 합니다.");
+          navigate("/mypage", {
+            replace: true,
+            state: { from: "/benchmarking", reason: "coupon_api_key_required" },
+          });
+          return;
+        }
         if (!extracted) return;
 
         setYoutubeApiKey(extracted);
@@ -117,7 +131,7 @@ const BenchmarkingPage: React.FC = () => {
     };
 
     loadKeyFromProfile();
-  }, []);
+  }, [navigate]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -127,6 +141,14 @@ const BenchmarkingPage: React.FC = () => {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (couponBypassCredits && !youtubeApiKey.trim()) {
+      setError("할인 쿠폰 계정은 마이페이지에서 Google Cloud API 키를 등록해야 합니다.");
+      navigate("/mypage", {
+        replace: true,
+        state: { from: "/benchmarking", reason: "coupon_api_key_required" },
+      });
+      return;
+    }
 
     setLoading(true);
     setError("");
@@ -151,14 +173,18 @@ const BenchmarkingPage: React.FC = () => {
 
       const data = await response.json();
       if (!response.ok) {
-        if (data?.error === "coupon_user_key_required") {
-          throw new Error("쿠폰 적용 계정은 본인 Google Cloud API 키를 입력해야 합니다.");
-        }
         if (data?.error === "credit_limit") {
-          throw new Error("크레딧이 부족합니다. 쿠폰 적용 또는 개인 API 키 등록 후 다시 시도해 주세요.");
+          throw new Error("크레딧이 부족합니다.");
         }
         if (data?.error === "missing_api_key") {
-          throw new Error("서버 YouTube API 키가 없습니다. 마이페이지에서 개인 API 키를 등록해 주세요.");
+          throw new Error("서버 YouTube API 키가 없습니다. 관리자에게 문의해 주세요.");
+        }
+        if (data?.error === "coupon_user_key_required") {
+          navigate("/mypage", {
+            replace: true,
+            state: { from: "/benchmarking", reason: "coupon_api_key_required" },
+          });
+          throw new Error("할인 쿠폰 모드에서는 마이페이지에 본인 Google Cloud API 키를 등록해야 합니다.");
         }
         if (data?.error === "auth_required") {
           throw new Error("크레딧 모드 사용을 위해 로그인이 필요합니다.");
@@ -219,23 +245,9 @@ const BenchmarkingPage: React.FC = () => {
       <div className="mx-auto max-w-6xl px-6 pt-24 pb-10">
         <HomeBackButton tone="purple" className="mb-4" />
         <h1 className="text-3xl font-black mb-2">벤치마킹 영상 검색</h1>
-        <p className="text-slate-400 mb-8">기본은 서버 키 + 크레딧 차감입니다. 쿠폰 적용 계정만 본인 API 키로 크레딧 없이 사용됩니다.</p>
+        <p className="text-slate-400 mb-8">검색 실행 시 크레딧이 차감됩니다. 쿠폰 계정의 API 키 등록은 마이페이지에서 진행하세요.</p>
 
         <form onSubmit={handleSubmit} className="bg-zinc-900 border border-white/10 rounded-2xl p-6 space-y-4">
-          <div>
-            <label className="block text-sm text-slate-300 mb-2">Google Cloud API 키</label>
-            <input
-              value={youtubeApiKey}
-              onChange={(e) => {
-                const next = e.target.value;
-                setYoutubeApiKey(next);
-                localStorage.setItem("google_cloud_api_key", next);
-              }}
-              placeholder="AIzaSy... (쿠폰 적용 시 필수)"
-              className="w-full px-4 py-3 rounded-xl bg-black border border-white/15"
-            />
-          </div>
-
           <div>
             <label className="block text-sm text-slate-300 mb-2">검색어</label>
             <input
@@ -279,7 +291,7 @@ const BenchmarkingPage: React.FC = () => {
               className="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 disabled:opacity-50 flex items-center gap-2"
             >
               <FiSearch />
-              {loading ? "검색 중..." : "검색"}
+              {loading ? "검색 중..." : `검색 (${formatCreditLabel(CREDIT_COSTS.SEARCH)})`}
             </button>
             <button
               type="button"

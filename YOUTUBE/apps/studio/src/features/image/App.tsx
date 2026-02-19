@@ -36,6 +36,7 @@ import FloatingBottomAd from "@/components/FloatingBottomAd";
 import SideFloatingAd from "@/components/SideFloatingAd";
 import AdBlockDetector from "./components/AdBlockDetector";
 import ApiKeyRequiredModal from "@/components/ApiKeyRequiredModal";
+import { CREDIT_COSTS, formatCreditLabel } from "@/constants/creditCosts";
 
 type ImageAppView = "main" | "user-guide" | "image-prompt";
 
@@ -61,6 +62,8 @@ const App: React.FC<ImageAppProps> = ({
   const noAds = searchParams.get("no_ads") === "true";
   const [user, setUser] = useState<User | null>(null);
   const [apiKey, setApiKey] = useState("");
+  const [couponBypassCredits, setCouponBypassCredits] = useState(false);
+  const [couponGuardChecked, setCouponGuardChecked] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -94,7 +97,11 @@ const App: React.FC<ImageAppProps> = ({
     const loadKeyFromProfile = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
-      if (!token) return;
+      if (!token) {
+        setCouponBypassCredits(false);
+        setCouponGuardChecked(true);
+        return;
+      }
 
       try {
         const response = await fetch("/api/user/settings", {
@@ -106,18 +113,30 @@ const App: React.FC<ImageAppProps> = ({
         if (!response.ok) return;
 
         const data = await response.json();
+        const isCouponBypass = data?.coupon_bypass_credits === true;
+        setCouponBypassCredits(isCouponBypass);
         const profileKey = typeof data?.gemini_api_key === "string" ? data.gemini_api_key.trim() : "";
+        if (isCouponBypass && !profileKey) {
+          alert("할인 쿠폰 계정은 마이페이지에서 Gemini API 키를 먼저 등록해야 합니다.");
+          navigate("/mypage", {
+            replace: true,
+            state: { from: "/image", reason: "coupon_api_key_required" },
+          });
+          return;
+        }
         if (!profileKey) return;
 
         setApiKey(profileKey);
         localStorage.setItem("gemini_api_key", profileKey);
       } catch (error) {
         console.error("Failed to load Gemini API key from profile", error);
+      } finally {
+        setCouponGuardChecked(true);
       }
     };
 
     loadKeyFromProfile();
-  }, []);
+  }, [navigate]);
 
   const [imageStyle, setImageStyle] = useState<"realistic" | "animation">(
     "realistic"
@@ -172,6 +191,16 @@ const App: React.FC<ImageAppProps> = ({
   const [cameraAngleError, setCameraAngleError] = useState<string | null>(null);
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
 
+  useEffect(() => {
+    if (!error) return;
+    const lowered = error.toLowerCase();
+    if (!lowered.includes("coupon_user_key_required") && !error.includes("마이페이지")) return;
+    navigate("/mypage", {
+      replace: true,
+      state: { from: "/image", reason: "coupon_api_key_required" },
+    });
+  }, [error, navigate]);
+
   const getAuthHeaders = useCallback(async () => {
     const { data: { session } } = await supabase.auth.getSession();
     const token = session?.access_token;
@@ -181,6 +210,51 @@ const App: React.FC<ImageAppProps> = ({
     }
     return { headers, token };
   }, []);
+
+  const deductCredits = useCallback(
+    async (cost: number, onError?: (message: string) => void) => {
+      if (!Number.isFinite(cost) || cost <= 0) return true;
+
+      const { headers, token } = await getAuthHeaders();
+      if (!token) {
+        const message = "로그인이 필요합니다.";
+        (onError || setError)(message);
+        return false;
+      }
+
+      const settingsResponse = await fetch("/api/user/settings", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }).catch(() => null);
+      if (settingsResponse?.ok) {
+        const settings = await settingsResponse.json().catch(() => ({}));
+        if (settings?.coupon_bypass_credits === true) {
+          return true;
+        }
+      }
+
+      const response = await fetch("/api/YOUTUBE/user", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ action: "deduct", cost }),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const message =
+          payload?.error === "credit_limit"
+            ? `크레딧이 부족합니다. (필요: ${cost}, 보유: ${Number(payload?.currentCredits ?? 0)})`
+            : String(payload?.message || "크레딧 차감에 실패했습니다.");
+        (onError || setError)(message);
+        return false;
+      }
+
+      window.dispatchEvent(new Event("creditRefresh"));
+      return true;
+    },
+    [getAuthHeaders]
+  );
 
 
   // URL 기반 현재 뷰 결정
@@ -225,6 +299,16 @@ const App: React.FC<ImageAppProps> = ({
   //     setShowApiKeyModal(true);
   //   }
   // }, [apiKey]);
+  useEffect(() => {
+    if (!couponGuardChecked) return;
+    if (!couponBypassCredits) return;
+    if (apiKey.trim()) return;
+    alert("할인 쿠폰 계정은 마이페이지에서 Gemini API 키를 먼저 등록해야 합니다.");
+    navigate("/mypage", {
+      replace: true,
+      state: { from: "/image", reason: "coupon_api_key_required" },
+    });
+  }, [apiKey, couponBypassCredits, couponGuardChecked, navigate]);
 
   // 컴포넌트 마운트 시 저장된 작업 데이터 불러오기 (localStorage 우선, 없으면 sessionStorage)
   useEffect(() => {
@@ -995,6 +1079,12 @@ const App: React.FC<ImageAppProps> = ({
       return;
     }
 
+    const personaCost = CREDIT_COSTS.GENERATE_IMAGE * 2;
+    const charged = await deductCredits(personaCost, setPersonaError);
+    if (!charged) {
+      return;
+    }
+
     setIsLoadingCharacters(true);
     setPersonaError(null);
     setCharacters([]);
@@ -1055,6 +1145,7 @@ const App: React.FC<ImageAppProps> = ({
     personaReferenceImage,
     checkAndReplaceContent,
     saveDataToStorage,
+    deductCredits,
   ]);
 
   const handleRegenerateCharacter = useCallback(
@@ -1070,6 +1161,11 @@ const App: React.FC<ImageAppProps> = ({
         );
         return;
       }
+      const charged = await deductCredits(CREDIT_COSTS.GENERATE_IMAGE, setPersonaError);
+      if (!charged) {
+        return;
+      }
+
       try {
         const mergedDescription = customPrompt
           ? `${description}\n추가 요청: ${customPrompt}`
@@ -1096,7 +1192,7 @@ const App: React.FC<ImageAppProps> = ({
         setPersonaError(message.startsWith('❌') || message.startsWith('✅') ? message : `❌ ${message}`);
       }
     },
-    [apiKey, imageStyle, aspectRatio, personaStyle, saveDataToStorage]
+    [apiKey, imageStyle, aspectRatio, personaStyle, saveDataToStorage, deductCredits]
   );
 
   const handleGenerateVideoSource = useCallback(async () => {
@@ -1116,6 +1212,12 @@ const App: React.FC<ImageAppProps> = ({
     const isSafe = checkAndReplaceContent(videoSourceScript);
     if (!isSafe) {
       setIsContentWarningAcknowledged(false);
+      return;
+    }
+
+    const videoSourceCost = CREDIT_COSTS.GENERATE_IMAGE * Math.max(1, imageCount);
+    const charged = await deductCredits(videoSourceCost, setError);
+    if (!charged) {
       return;
     }
 
@@ -1161,6 +1263,7 @@ const App: React.FC<ImageAppProps> = ({
     aspectRatio,
     checkAndReplaceContent,
     saveDataToStorage,
+    deductCredits,
   ]);
 
   const handleRegenerateVideoSourceImage = useCallback(
@@ -1172,6 +1275,11 @@ const App: React.FC<ImageAppProps> = ({
 
       const target = videoSource.find((item) => item.id === storyboardItemId);
       if (!target) return;
+
+      const charged = await deductCredits(CREDIT_COSTS.GENERATE_IMAGE, setError);
+      if (!charged) {
+        return;
+      }
 
       try {
         const mergedScene = customPrompt
@@ -1209,6 +1317,7 @@ const App: React.FC<ImageAppProps> = ({
       referenceImage,
       aspectRatio,
       saveDataToStorage,
+      deductCredits,
     ]
   );
 
@@ -1225,6 +1334,12 @@ const App: React.FC<ImageAppProps> = ({
     }
     if (selectedCameraAngles.length === 0) {
       setCameraAngleError("생성할 앵글을 최소 1개 이상 선택해주세요.");
+      return;
+    }
+
+    const angleCost = CREDIT_COSTS.GENERATE_IMAGE * Math.max(1, selectedCameraAngles.length);
+    const charged = await deductCredits(angleCost, setCameraAngleError);
+    if (!charged) {
       return;
     }
 
@@ -1278,6 +1393,7 @@ const App: React.FC<ImageAppProps> = ({
     selectedCameraAngles,
     aspectRatio,
     saveDataToStorage,
+    deductCredits,
   ]);
 
   const handleResetAll = useCallback(() => {
@@ -1953,7 +2069,7 @@ const App: React.FC<ImageAppProps> = ({
                     <span className="ml-2">페르소나 생성 중...</span>
                   </>
                 ) : (
-                  "페르소나 생성"
+                  `페르소나 생성 (${formatCreditLabel(CREDIT_COSTS.GENERATE_IMAGE * 2)})`
                 )}
               </button>
             </section>
@@ -2187,7 +2303,7 @@ const App: React.FC<ImageAppProps> = ({
                       <span className="ml-2">영상 소스 생성 중...</span>
                     </>
                   ) : (
-                    "영상 소스 생성"
+                    `영상 소스 생성 (${formatCreditLabel(CREDIT_COSTS.GENERATE_IMAGE * Math.max(1, imageCount))})`
                   )}
                 </button>
                 {characters.length === 0 && !referenceImage && (
@@ -2257,7 +2373,7 @@ const App: React.FC<ImageAppProps> = ({
                           <span className="ml-2">생성 중...</span>
                         </>
                       ) : (
-                        "한 번 더 생성"
+                        `한 번 더 생성 (${formatCreditLabel(CREDIT_COSTS.GENERATE_IMAGE * Math.max(1, imageCount))})`
                       )}
                     </button>
                     <button
@@ -2460,7 +2576,7 @@ const App: React.FC<ImageAppProps> = ({
                       : "bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 shadow-lg hover:shadow-xl transform hover:scale-105"
                       }`}
                   >
-                    🚀 선택한 {selectedCameraAngles.length}가지 앵글 생성하기
+                    🚀 선택한 {selectedCameraAngles.length}가지 앵글 생성하기 ({formatCreditLabel(CREDIT_COSTS.GENERATE_IMAGE * Math.max(1, selectedCameraAngles.length))})
                   </button>
 
                   {!apiKey && (

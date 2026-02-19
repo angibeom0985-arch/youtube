@@ -1,5 +1,5 @@
 ﻿import React, { useEffect, useState, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { generateSsml, generateActingPrompt } from "@/services/geminiService";
 import { FiPlay, FiPause, FiMic, FiSliders, FiCpu, FiInfo, FiUser, FiFileText, FiDownload } from "react-icons/fi";
 import { supabase } from "@/services/supabase";
@@ -8,6 +8,7 @@ import HomeBackButton from "@/components/HomeBackButton";
 import type { User } from "@supabase/supabase-js";
 import ErrorNotice from "@/components/ErrorNotice";
 import { ProgressTracker } from "@/components/ProgressIndicator";
+import { CREDIT_COSTS } from "@/constants/creditCosts";
 
 const STORAGE_KEYS = {
   text: "tts_text",
@@ -73,17 +74,14 @@ const toTtsErrorMessage = (raw: string): string => {
   const code = (raw || "").trim().toLowerCase();
   if (!code) return "TTS 요청에 실패했습니다.";
   if (code.includes("auth_required")) return "로그인이 필요합니다.";
-  if (code.includes("missing_user_google_key")) {
-    return "마이페이지에서 Google Cloud API 키 또는 서비스 계정 JSON을 등록해 주세요.";
-  }
-  if (code.includes("coupon_user_key_required")) {
-    return "쿠폰 적용 계정은 본인 Google Cloud API 키를 등록해야 사용할 수 있습니다.";
-  }
   if (code.includes("missing_api_key")) {
-    return "서버 Google API 키가 설정되지 않았습니다. 마이페이지에서 Google Cloud API 키를 등록해 주세요.";
+    return "서버 Google API 키가 설정되지 않았습니다. 관리자에게 문의해 주세요.";
   }
   if (code.includes("credit_limit")) {
-    return "크레딧이 부족합니다. 쿠폰을 적용하거나 개인 Google API 키를 등록해 주세요.";
+    return "크레딧이 부족합니다.";
+  }
+  if (code.includes("coupon_user_key_required")) {
+    return "할인 쿠폰 모드에서는 마이페이지에 본인 Google Cloud API 키를 먼저 등록해야 합니다.";
   }
   if (code.includes("usage_limit")) return "사용량 제한에 도달했습니다. 잠시 후 다시 시도해 주세요.";
   return raw;
@@ -106,6 +104,7 @@ const voiceOptions = [
 ];
 
 const TtsPage: React.FC = () => {
+  const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [isAuthChecking, setIsAuthChecking] = useState(true);
   const [text, setText] = useState(() => getStoredString(STORAGE_KEYS.text));
@@ -139,6 +138,7 @@ const TtsPage: React.FC = () => {
   const [useAIActing, setUseAIActing] = useState(false); // AI ?곌린 紐⑤뱶 ?좉?
   const [generatingPrompt, setGeneratingPrompt] = useState(false); // ?袁⑨세?袁る뱜 ??밴쉐 餓?
   const [hasUserGoogleKey, setHasUserGoogleKey] = useState(false); // ?꾨＼?꾪듃 ?앹꽦 以?
+  const [couponBypassCredits, setCouponBypassCredits] = useState(false);
 
   // Auth
   useEffect(() => {
@@ -175,14 +175,25 @@ const TtsPage: React.FC = () => {
         }
 
         const data = await response.json();
-        setHasUserGoogleKey(hasGoogleCredential(data?.google_credit_json));
+        const hasKey = hasGoogleCredential(data?.google_credit_json);
+        const isCouponBypass = data?.coupon_bypass_credits === true;
+        setHasUserGoogleKey(hasKey);
+        setCouponBypassCredits(isCouponBypass);
+        if (isCouponBypass && !hasKey) {
+          alert("할인 쿠폰 계정은 마이페이지에서 Google Cloud API 키를 먼저 등록해야 합니다.");
+          navigate("/mypage", {
+            replace: true,
+            state: { from: "/tts", reason: "coupon_api_key_required" },
+          });
+        }
       } catch {
         setHasUserGoogleKey(false);
+        setCouponBypassCredits(false);
       }
     };
 
     loadUserKeyStatus();
-  }, [user?.id]);
+  }, [user?.id, navigate]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -298,6 +309,16 @@ const TtsPage: React.FC = () => {
       setError("蹂?섑븷 ?띿뒪?몃? ?낅젰??二쇱꽭??");
       return;
     }
+    if (couponBypassCredits && !hasUserGoogleKey) {
+      const message = "할인 쿠폰 계정은 마이페이지에서 Google Cloud API 키를 먼저 등록해야 합니다.";
+      setError(message);
+      alert(message);
+      navigate("/mypage", {
+        replace: true,
+        state: { from: "/tts", reason: "coupon_api_key_required" },
+      });
+      return;
+    }
 
     setIsGenerating(true);
     setProgressStep("preparing");
@@ -359,7 +380,14 @@ const TtsPage: React.FC = () => {
 
     } catch (err: any) {
       console.error("TTS ?붿껌 ?ㅽ뙣:", err);
-      setError(err.message || "?????녿뒗 ?ㅻ쪟媛 諛쒖깮?덉뒿?덈떎.");
+      const message = err?.message || "?????녿뒗 ?ㅻ쪟媛 諛쒖깮?덉뒿?덈떎.";
+      if (String(message).includes("마이페이지") || String(message).toLowerCase().includes("coupon_user_key_required")) {
+        navigate("/mypage", {
+          replace: true,
+          state: { from: "/tts", reason: "coupon_api_key_required" },
+        });
+      }
+      setError(message);
     } finally {
       setIsGenerating(false);
       setTtsProgress({ ...ttsProgress, currentStep: 0 });
@@ -553,7 +581,7 @@ const TtsPage: React.FC = () => {
                       className="px-4 py-2 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-100 rounded-xl text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed self-start"
                       title="?蹂몄쓣 遺꾩꽍?섏뿬 ?곌린 ???먮룞 ?꾩꽦"
                     >
-                      {generatingPrompt ? "遺꾩꽍 以?.." : "?먮룞 ?꾩꽦"}
+                      {generatingPrompt ? "분석 중..." : "자동 완성 (1 크레딧)"}
                     </button>
                   </div>
                   <div className="flex items-start gap-2 mt-3 text-xs text-emerald-400/70">
@@ -603,7 +631,7 @@ const TtsPage: React.FC = () => {
               ) : (
                 <>
                   <FiMic size={22} />
-                  <span>TTS ?뚯꽦 ?앹꽦?섍린</span>
+                  <span>TTS 음성 생성하기 (10자당 {CREDIT_COSTS.TTS_PER_10_CHARS} 크레딧)</span>
                 </>
               )}
             </button>

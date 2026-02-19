@@ -112,6 +112,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
 
   // Auth state
   const [user, setUser] = useState<User | null>(null);
+  const [couponBypassCredits, setCouponBypassCredits] = useState(false);
 
   useEffect(() => {
     // Check active session
@@ -128,6 +129,41 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    const checkCouponApiRequirement = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) {
+        setCouponBypassCredits(false);
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/user/settings", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (!response.ok) return;
+        const data = await response.json();
+        const isCouponBypass = data?.coupon_bypass_credits === true;
+        const hasGeminiKey = typeof data?.gemini_api_key === "string" && data.gemini_api_key.trim().length > 0;
+        setCouponBypassCredits(isCouponBypass);
+        if (isCouponBypass && !hasGeminiKey) {
+          alert("할인 쿠폰 계정은 마이페이지에서 Gemini API 키를 먼저 등록해야 합니다.");
+          navigate("/mypage", {
+            replace: true,
+            state: { from: "/script", reason: "coupon_api_key_required" },
+          });
+        }
+      } catch {
+        // no-op
+      }
+    };
+
+    checkCouponApiRequirement();
+  }, [user?.id, navigate]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -197,6 +233,15 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const noAds = searchParams.get("no_ads") === "true";
+
+  useEffect(() => {
+    if (!error || !couponBypassCredits) return;
+    if (!error.includes("할인 쿠폰 모드")) return;
+    navigate("/mypage", {
+      replace: true,
+      state: { from: "/script", reason: "coupon_api_key_required" },
+    });
+  }, [couponBypassCredits, error, navigate]);
 
   const handleAdBlockDetected = () => {
     if (noAds) return;
