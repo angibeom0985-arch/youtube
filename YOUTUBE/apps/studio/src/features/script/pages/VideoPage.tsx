@@ -45,7 +45,7 @@ import type { CharacterStyle, BackgroundStyle, AspectRatio } from "@/features/im
 
 import { ProgressTracker } from "@/components/ProgressIndicator";
 import UserCreditToolbar from "@/components/UserCreditToolbar";
-import { CREDIT_COSTS, formatCreditLabel } from "@/constants/creditCosts";
+import { CREDIT_COSTS, formatCreditButtonLabel } from "@/constants/creditCosts";
 
 const STORAGE_KEYS = {
   title: "video_project_title",
@@ -1874,7 +1874,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                           disabled={isAnalyzingScript || !isScriptStepReady(0)}
                           className="w-full rounded-full bg-gradient-to-r from-orange-600 to-red-600 px-5 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(251,146,60,0.4)] hover:from-orange-500 hover:to-red-500 transition-all disabled:opacity-60"
                         >
-                          {isAnalyzingScript ? "주제 추천 준비 중..." : `빠르게 주제 추천 (${formatCreditLabel(CREDIT_COSTS.ANALYZE_TRANSCRIPT + CREDIT_COSTS.GENERATE_IDEAS)})`}
+                          {isAnalyzingScript ? "주제 추천 준비 중..." : `빠르게 주제 추천 (${formatCreditButtonLabel(CREDIT_COSTS.ANALYZE_TRANSCRIPT + CREDIT_COSTS.GENERATE_IDEAS)})`}
                         </button>
                         <button
                           type="button"
@@ -1882,7 +1882,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                           disabled={isAnalyzingScript || !isScriptStepReady(0)}
                           className="w-full rounded-full border border-white/20 bg-black/40 px-5 py-2 text-sm font-semibold text-white/80 hover:bg-white/10 transition-all disabled:opacity-60"
                         >
-                          {isAnalyzingScript ? "구조 분석 중..." : `대본 구조 분석 보기 (${formatCreditLabel(CREDIT_COSTS.ANALYZE_TRANSCRIPT + CREDIT_COSTS.GENERATE_IDEAS)})`}
+                          {isAnalyzingScript ? "구조 분석 중..." : `대본 구조 분석 보기 (${formatCreditButtonLabel(CREDIT_COSTS.ANALYZE_TRANSCRIPT + CREDIT_COSTS.GENERATE_IDEAS)})`}
                         </button>
                       </div>
 
@@ -2096,7 +2096,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                 className="px-4 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 text-white text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition"
                                 title="대본 제목 형식으로 변환"
                               >
-                                {isReformattingTopic ? '변환 중...' : `형식 변환 (${formatCreditLabel(CREDIT_COSTS.REFORMAT_TOPIC)})`}
+                                {isReformattingTopic ? '변환 중...' : `형식 변환 (${formatCreditButtonLabel(CREDIT_COSTS.REFORMAT_TOPIC)})`}
                               </button>
                             </div>
                             {scriptTitle.trim() && (
@@ -2154,7 +2154,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                 className="px-4 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 text-white text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition"
                                 title="대본 제목 형식으로 변환"
                               >
-                                {isReformattingTopic ? '변환 중...' : `형식 변환 (${formatCreditLabel(CREDIT_COSTS.REFORMAT_TOPIC)})`}
+                                {isReformattingTopic ? '변환 중...' : `형식 변환 (${formatCreditButtonLabel(CREDIT_COSTS.REFORMAT_TOPIC)})`}
                               </button>
                             </div>
                             {scriptTitle.trim() && (
@@ -2180,7 +2180,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         disabled={isGeneratingScript || !isScriptStepReady(2)}
                         className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-red-600 to-red-500 text-white font-semibold shadow-lg hover:from-red-500 hover:to-red-400 transition-all disabled:opacity-50"
                       >
-                        {isGeneratingScript ? "대본 작성 중..." : `대본 생성하기 (${formatCreditLabel(CREDIT_COSTS.GENERATE_SCRIPT)})`} <FiChevronRight />
+                        {isGeneratingScript ? "대본 작성 중..." : `대본 생성하기 (${formatCreditButtonLabel(CREDIT_COSTS.GENERATE_SCRIPT)})`} <FiChevronRight />
                       </button>
                     </div>
 
@@ -3148,7 +3148,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                             disabled={generatingImageChapter === chapterIndex}
                             className="mt-2 w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg disabled:opacity-50"
                           >
-                            {generatingImageChapter === chapterIndex ? "생성 중..." : `이미지 생성 (${formatCreditLabel(CREDIT_COSTS.GENERATE_IMAGE)})`}
+                            {generatingImageChapter === chapterIndex ? "생성 중..." : `이미지 생성 (${formatCreditButtonLabel(CREDIT_COSTS.GENERATE_IMAGE)})`}
                           </button>
                           {chapterImages[chapterIndex] && (
                             <img
@@ -3176,7 +3176,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                           disabled={generatingImageChapter === chapterIndex}
                           className="mt-2 w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg disabled:opacity-50"
                         >
-                          {generatingImageChapter === chapterIndex ? "생성 중..." : `이미지 생성 (${formatCreditLabel(CREDIT_COSTS.GENERATE_IMAGE)})`}
+                          {generatingImageChapter === chapterIndex ? "생성 중..." : `이미지 생성 (${formatCreditButtonLabel(CREDIT_COSTS.GENERATE_IMAGE)})`}
                         </button>
                         {chapterImages[chapterIndex] && (
                           <img

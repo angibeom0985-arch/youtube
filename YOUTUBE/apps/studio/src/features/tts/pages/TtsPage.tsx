@@ -8,7 +8,7 @@ import HomeBackButton from "@/components/HomeBackButton";
 import type { User } from "@supabase/supabase-js";
 import ErrorNotice from "@/components/ErrorNotice";
 import { ProgressTracker } from "@/components/ProgressIndicator";
-import { CREDIT_COSTS } from "@/constants/creditCosts";
+import { CREDIT_COSTS, formatCreditButtonLabel, formatCreditPer10CharsButtonLabel } from "@/constants/creditCosts";
 
 const STORAGE_KEYS = {
   text: "tts_text",
@@ -581,7 +581,7 @@ const TtsPage: React.FC = () => {
                       className="px-4 py-2 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-100 rounded-xl text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed self-start"
                       title="?蹂몄쓣 遺꾩꽍?섏뿬 ?곌린 ???먮룞 ?꾩꽦"
                     >
-                      {generatingPrompt ? "분석 중..." : "자동 완성 (1 크레딧)"}
+                      {generatingPrompt ? "분석 중..." : `자동 완성 (${formatCreditButtonLabel(CREDIT_COSTS.GENERATE_IDEAS)})`}
                     </button>
                   </div>
                   <div className="flex items-start gap-2 mt-3 text-xs text-emerald-400/70">
@@ -609,7 +609,7 @@ const TtsPage: React.FC = () => {
                     className={`rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2 text-sm font-bold text-white shadow-[0_10px_24px_rgba(16,185,129,0.25)] transition-all hover:from-emerald-500 hover:to-teal-500 disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-2`}
                   >
                     <FiMic size={16} />
-                    {isGenerating ? "생성 중..." : `음성 생성 (${CREDIT_COSTS.TTS_PER_10_CHARS} 크레딧/10자)`}
+                    {isGenerating ? "생성 중..." : `음성 생성 (${formatCreditPer10CharsButtonLabel(CREDIT_COSTS.TTS_PER_10_CHARS)})`}
                   </button>
                 </div>
               </div>

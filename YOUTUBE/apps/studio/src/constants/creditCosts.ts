@@ -8,4 +8,9 @@ export const CREDIT_COSTS = {
   TTS_PER_10_CHARS: 1,
 } as const;
 
-export const formatCreditLabel = (cost: number): string => `${cost} 韥爤霐;
+export const formatCreditLabel = (cost: number): string => `${cost} 农饭调`;
+
+export const formatCreditButtonLabel = (cost: number): string => `? ${formatCreditLabel(cost)}`;
+
+export const formatCreditPer10CharsButtonLabel = (costPer10Chars: number): string =>
+  `? ${costPer10Chars} 农饭调/10磊`;

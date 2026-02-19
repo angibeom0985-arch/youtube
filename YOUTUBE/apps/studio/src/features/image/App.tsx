@@ -36,7 +36,7 @@ import FloatingBottomAd from "@/components/FloatingBottomAd";
 import SideFloatingAd from "@/components/SideFloatingAd";
 import AdBlockDetector from "./components/AdBlockDetector";
 import ApiKeyRequiredModal from "@/components/ApiKeyRequiredModal";
-import { CREDIT_COSTS, formatCreditLabel } from "@/constants/creditCosts";
+import { CREDIT_COSTS, formatCreditButtonLabel } from "@/constants/creditCosts";
 
 type ImageAppView = "main" | "user-guide" | "image-prompt";
 
@@ -2069,7 +2069,7 @@ const App: React.FC<ImageAppProps> = ({
                     <span className="ml-2">페르소나 생성 중...</span>
                   </>
                 ) : (
-                  `페르소나 생성 (${formatCreditLabel(CREDIT_COSTS.GENERATE_IMAGE * 2)})`
+                  `페르소나 생성 (${formatCreditButtonLabel(CREDIT_COSTS.GENERATE_IMAGE * 2)})`
                 )}
               </button>
             </section>
@@ -2303,7 +2303,7 @@ const App: React.FC<ImageAppProps> = ({
                       <span className="ml-2">영상 소스 생성 중...</span>
                     </>
                   ) : (
-                    `영상 소스 생성 (${formatCreditLabel(CREDIT_COSTS.GENERATE_IMAGE * Math.max(1, imageCount))})`
+                    `영상 소스 생성 (${formatCreditButtonLabel(CREDIT_COSTS.GENERATE_IMAGE * Math.max(1, imageCount))})`
                   )}
                 </button>
                 {characters.length === 0 && !referenceImage && (
@@ -2373,7 +2373,7 @@ const App: React.FC<ImageAppProps> = ({
                           <span className="ml-2">생성 중...</span>
                         </>
                       ) : (
-                        `한 번 더 생성 (${formatCreditLabel(CREDIT_COSTS.GENERATE_IMAGE * Math.max(1, imageCount))})`
+                        `한 번 더 생성 (${formatCreditButtonLabel(CREDIT_COSTS.GENERATE_IMAGE * Math.max(1, imageCount))})`
                       )}
                     </button>
                     <button
@@ -2576,7 +2576,7 @@ const App: React.FC<ImageAppProps> = ({
                       : "bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 shadow-lg hover:shadow-xl transform hover:scale-105"
                       }`}
                   >
-                    🚀 선택한 {selectedCameraAngles.length}가지 앵글 생성하기 ({formatCreditLabel(CREDIT_COSTS.GENERATE_IMAGE * Math.max(1, selectedCameraAngles.length))})
+                    🚀 선택한 {selectedCameraAngles.length}가지 앵글 생성하기 ({formatCreditButtonLabel(CREDIT_COSTS.GENERATE_IMAGE * Math.max(1, selectedCameraAngles.length))})
                   </button>
 
                   {!apiKey && (

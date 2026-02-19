@@ -5,7 +5,7 @@ import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/services/supabase";
 import HomeBackButton from "@/components/HomeBackButton";
 import UserCreditToolbar from "@/components/UserCreditToolbar";
-import { CREDIT_COSTS, formatCreditLabel } from "@/constants/creditCosts";
+import { CREDIT_COSTS, formatCreditButtonLabel } from "@/constants/creditCosts";
 
 type VideoResult = {
   id: string;
@@ -307,7 +307,7 @@ const BenchmarkingPage: React.FC = () => {
               className="w-full px-6 py-4 rounded-2xl bg-gradient-to-r from-purple-600 via-fuchsia-600 to-violet-600 hover:from-purple-500 hover:via-fuchsia-500 hover:to-violet-500 disabled:opacity-50 flex items-center justify-center gap-3 text-lg font-black shadow-[0_14px_32px_rgba(139,92,246,0.42)]"
             >
               <FiSearch />
-              {loading ? "검색 중..." : `⚡ 검색 시작 (${formatCreditLabel(CREDIT_COSTS.SEARCH)})`}
+              {loading ? "검색 중..." : `검색 시작 (${formatCreditButtonLabel(CREDIT_COSTS.SEARCH)})`}
             </button>
           </div>
 
