@@ -1,9 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { TextToSpeechClient } from "@google-cloud/text-to-speech";
 import { enforceUsageLimit, recordUsageEvent } from "../../../server/shared/usageLimit.js";
 import { getSupabaseUser, supabaseAdmin } from "../../../server/shared/supabase.js";
 import { getCouponBypassState } from "../../../server/shared/couponBypass.js";
-import { checkAndDeductCredits, CREDIT_COSTS } from "../../../server/shared/creditService.js";
 
 type UserCredentialSource =
   | { kind: "serviceAccount"; credentials: Record<string, unknown> }
@@ -15,6 +13,8 @@ type BillingInfo = {
   cost: number;
   remainingCredits: number | null;
 };
+
+const DEFAULT_TTS_CHAR_COST = 0.1;
 
 const isMissingColumnError = (error: any, column: string): boolean => {
   if (!error) return false;
@@ -81,7 +81,15 @@ const synthesizeWithServiceAccount = async (params: {
   speakingRate: number;
   pitch: number;
 }): Promise<string> => {
-  const client = new TextToSpeechClient({ credentials: params.credentials as any });
+  const ttsModule: any = await import("@google-cloud/text-to-speech");
+  const ClientCtor =
+    ttsModule?.TextToSpeechClient ||
+    ttsModule?.v1?.TextToSpeechClient ||
+    ttsModule?.default?.TextToSpeechClient;
+  if (!ClientCtor) {
+    throw new Error("tts_client_load_failed");
+  }
+  const client = new ClientCtor({ credentials: params.credentials as any });
   const input = params.ssml ? { ssml: params.ssml } : { text: params.text };
 
   const [response] = await client.synthesizeSpeech({
@@ -243,11 +251,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return;
       }
 
+      const creditModule: any = await import("../../../server/shared/creditService.js").catch((err) => {
+        console.error("[api/tts] credit module load failed:", err);
+        return null;
+      });
+      if (!creditModule?.checkAndDeductCredits) {
+        res.status(500).json({ message: "credit_module_load_failed" });
+        return;
+      }
+      const ttsCharCost = Number(creditModule?.CREDIT_COSTS?.TTS_CHAR ?? DEFAULT_TTS_CHAR_COST);
       const charCount = Math.max(1, (text || ssml).length);
-      const cost = Math.max(1, Math.ceil(charCount * CREDIT_COSTS.TTS_CHAR));
+      const cost = Math.max(1, Math.ceil(charCount * ttsCharCost));
       let creditResult;
       try {
-        creditResult = await checkAndDeductCredits(req, res, cost);
+        creditResult = await creditModule.checkAndDeductCredits(req, res, cost);
       } catch (creditError: any) {
         console.error("[api/tts] credit check failed:", creditError);
         res.status(500).json({ message: "credit_check_failed", details: creditError?.message || null });
