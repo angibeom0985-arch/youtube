@@ -1,6 +1,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { createPortal } from "react-dom";
 import {
   DndContext,
   PointerSensor,
@@ -2901,12 +2902,21 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         </div>
                       </div>
 
-                      {/* 더 많은 TTS 목소리 선택 모달 - 오른쪽 사이드바 */}
-                      {showVoiceModal && currentChapterForVoice === index && (
-                        <div className="fixed inset-0 z-[9999] pointer-events-none">
-                          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm pointer-events-auto" onClick={() => setShowVoiceModal(false)} />
-                          <div className="absolute top-0 right-0 h-full w-[90%] max-w-[450px] bg-gradient-to-br from-zinc-900 to-zinc-800 border-l border-white/20 shadow-2xl overflow-y-auto pointer-events-auto animate-slide-in-right" onClick={(e) => e.stopPropagation()}>
-                            <div className="sticky top-0 bg-gradient-to-br from-zinc-900 to-zinc-800 border-b border-white/10 px-6 py-4 flex items-center justify-between z-10">
+                      {/* 더 많은 TTS 목소리 선택 플로팅 패널 */}
+                      {showVoiceModal && currentChapterForVoice === index && typeof document !== "undefined" &&
+                        createPortal(
+                          <div className="fixed inset-0 z-[99999]">
+                            <button
+                              type="button"
+                              aria-label="목소리 패널 닫기"
+                              className="absolute inset-0 bg-black/45 backdrop-blur-sm"
+                              onClick={() => setShowVoiceModal(false)}
+                            />
+                            <div
+                              className="fixed inset-x-3 top-3 bottom-3 sm:inset-y-4 sm:right-4 sm:left-auto sm:w-[460px] bg-gradient-to-br from-zinc-900 to-zinc-800 border border-white/20 sm:border-l shadow-2xl overflow-hidden animate-slide-in-right"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <div className="sticky top-0 bg-gradient-to-br from-zinc-900 to-zinc-800 border-b border-white/10 px-6 py-4 flex items-center justify-between z-10">
                               <div>
                                 <h3 className="text-xl font-bold text-white">AI 보이스 선택</h3>
                                 <p className="text-xs text-white/60 mt-1">{sanitizeCorruptedText(chapter.title, `챕터 ${index + 1}`)}</p>
@@ -2921,7 +2931,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                               </button>
                             </div>
 
-                            <div className="p-6">
+                              <div className="h-[calc(100%-78px)] overflow-y-auto p-6">
                               {/* 추천 목소리 */}
                               <div className="mb-6">
                                 <h4 className="text-base font-bold text-white mb-3 flex items-center gap-2">
@@ -3074,10 +3084,11 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                   ))}
                                 </div>
                               </div>
+                              </div>
                             </div>
-                          </div>
-                        </div>
-                      )}
+                          </div>,
+                          document.body
+                        )}
                     </div>
                   ))}
                 </div>
