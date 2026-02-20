@@ -1050,10 +1050,34 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         });
 
         if (!response.ok) {
-          const payload = await response.json().catch(() => null);
-          const message = String(payload?.message || "").trim();
-          console.error('[TTS] API 오류:', response.status, message || payload);
-          throw new Error(message || `음성 생성 실패: ${response.status}`);
+          const vercelId = response.headers.get("x-vercel-id") || "";
+          const contentType = response.headers.get("content-type") || "";
+          const rawBody = await response.text().catch(() => "");
+          let message = "";
+          let details = "";
+
+          if (contentType.includes("application/json")) {
+            try {
+              const payload = JSON.parse(rawBody || "{}");
+              message = String(payload?.message || "").trim();
+              details = String(payload?.details || "").trim();
+            } catch {
+              message = "";
+            }
+          } else {
+            details = rawBody.slice(0, 300).replace(/\s+/g, " ").trim();
+          }
+
+          const parts = [
+            `HTTP ${response.status}`,
+            message || "unknown_error",
+            details ? `details=${details}` : "",
+            vercelId ? `x-vercel-id=${vercelId}` : "",
+          ].filter(Boolean);
+
+          const merged = parts.join(" | ");
+          console.error("[TTS] API 오류:", merged);
+          throw new Error(`음성 생성 실패: ${merged}`);
         }
 
         const data = await response.json();

@@ -180,99 +180,106 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   }
 
-  const text = typeof body?.text === "string" ? body.text.trim() : "";
-  const ssml = typeof body?.ssml === "string" ? body.ssml.trim() : "";
-  const voice = typeof body?.voice === "string" ? body.voice : "ko-KR-Standard-A";
-  const speakingRate = typeof body?.speakingRate === "number" ? body.speakingRate : 1;
-  const pitch = typeof body?.pitch === "number" ? body.pitch : 0;
-  const clientFingerprint =
-    typeof body?.client?.fingerprint === "string" ? body.client.fingerprint : null;
-
-  if (!text && !ssml) {
-    res.status(400).json({ message: "missing_fields" });
-    return;
-  }
-
-  const metadata = (auth.user as any)?.user_metadata || {};
-  const couponBypassCredits = getCouponBypassState(metadata).active;
-  const serverApiKey = String(process.env.GOOGLE_CLOUD_API_KEY || process.env.GOOGLE_API_KEY || "").trim();
-  let userCredential: UserCredentialSource = parseGoogleCredential(metadata?.google_credit_json);
-
-  let effectiveCredential: UserCredentialSource = { kind: "none" };
-  let billing: BillingInfo = {
-    mode: "coupon_user_key",
-    cost: 0,
-    remainingCredits: null,
-  };
-
-  if (couponBypassCredits) {
-    const profileResult = await supabaseAdmin
-      .from("profiles")
-      .select("google_credit_json")
-      .eq("id", userId)
-      .maybeSingle();
-
-    if (
-      profileResult.error &&
-      profileResult.error.code !== "PGRST116" &&
-      !isMissingColumnError(profileResult.error, "google_credit_json")
-    ) {
-      console.error("[api/tts] failed to load profile settings", profileResult.error);
-      res.status(500).json({ message: "settings_load_failed" });
-      return;
-    }
-
-    const profileCredential = parseGoogleCredential(profileResult.data?.google_credit_json);
-    if (profileCredential.kind !== "none") {
-      userCredential = profileCredential;
-    }
-
-    if (userCredential.kind === "none") {
-      res.status(400).json({ message: "coupon_user_key_required" });
-      return;
-    }
-    effectiveCredential = userCredential;
-  } else {
-    if (!serverApiKey) {
-      res.status(400).json({ message: "missing_api_key" });
-      return;
-    }
-
-    const charCount = Math.max(1, (text || ssml).length);
-    const cost = Math.max(1, Math.ceil(charCount * CREDIT_COSTS.TTS_CHAR));
-    const creditResult = await checkAndDeductCredits(req, res, cost);
-    if (!creditResult.allowed) {
-      res.status(creditResult.status || 402).json({
-        message: creditResult.message || "Credits required",
-        error: "credit_limit",
-        currentCredits: creditResult.currentCredits,
-      });
-      return;
-    }
-
-    effectiveCredential = { kind: "apiKey", apiKey: serverApiKey };
-    billing = {
-      mode: "server_credit",
-      cost,
-      remainingCredits: creditResult.currentCredits,
-    };
-  }
-
-  const usage = await enforceUsageLimit(req, clientFingerprint);
-  if (!usage.allowed) {
-    if (usage.retryAfterSeconds) {
-      res.setHeader("Retry-After", usage.retryAfterSeconds.toString());
-    }
-    res.status(usage.status || 429).json({ message: usage.reason || "usage_limit" });
-    return;
-  }
-
-  await recordUsageEvent(req, "tts", clientFingerprint);
-
-  const languageMatch = voice.match(/^[a-z]{2}-[A-Z]{2}/);
-  const languageCode = languageMatch ? languageMatch[0] : "ko-KR";
-
   try {
+    const text = typeof body?.text === "string" ? body.text.trim() : "";
+    const ssml = typeof body?.ssml === "string" ? body.ssml.trim() : "";
+    const voice = typeof body?.voice === "string" ? body.voice : "ko-KR-Standard-A";
+    const speakingRate = typeof body?.speakingRate === "number" ? body.speakingRate : 1;
+    const pitch = typeof body?.pitch === "number" ? body.pitch : 0;
+    const clientFingerprint =
+      typeof body?.client?.fingerprint === "string" ? body.client.fingerprint : null;
+
+    if (!text && !ssml) {
+      res.status(400).json({ message: "missing_fields" });
+      return;
+    }
+
+    const metadata = (auth.user as any)?.user_metadata || {};
+    const couponBypassCredits = getCouponBypassState(metadata).active;
+    const serverApiKey = String(process.env.GOOGLE_CLOUD_API_KEY || process.env.GOOGLE_API_KEY || "").trim();
+    let userCredential: UserCredentialSource = parseGoogleCredential(metadata?.google_credit_json);
+
+    let effectiveCredential: UserCredentialSource = { kind: "none" };
+    let billing: BillingInfo = {
+      mode: "coupon_user_key",
+      cost: 0,
+      remainingCredits: null,
+    };
+
+    if (couponBypassCredits) {
+      const profileResult = await supabaseAdmin
+        .from("profiles")
+        .select("google_credit_json")
+        .eq("id", userId)
+        .maybeSingle();
+
+      if (
+        profileResult.error &&
+        profileResult.error.code !== "PGRST116" &&
+        !isMissingColumnError(profileResult.error, "google_credit_json")
+      ) {
+        console.error("[api/tts] failed to load profile settings", profileResult.error);
+        res.status(500).json({ message: "settings_load_failed", details: profileResult.error.message || null });
+        return;
+      }
+
+      const profileCredential = parseGoogleCredential(profileResult.data?.google_credit_json);
+      if (profileCredential.kind !== "none") {
+        userCredential = profileCredential;
+      }
+
+      if (userCredential.kind === "none") {
+        res.status(400).json({ message: "coupon_user_key_required" });
+        return;
+      }
+      effectiveCredential = userCredential;
+    } else {
+      if (!serverApiKey) {
+        res.status(400).json({ message: "missing_api_key" });
+        return;
+      }
+
+      const charCount = Math.max(1, (text || ssml).length);
+      const cost = Math.max(1, Math.ceil(charCount * CREDIT_COSTS.TTS_CHAR));
+      let creditResult;
+      try {
+        creditResult = await checkAndDeductCredits(req, res, cost);
+      } catch (creditError: any) {
+        console.error("[api/tts] credit check failed:", creditError);
+        res.status(500).json({ message: "credit_check_failed", details: creditError?.message || null });
+        return;
+      }
+      if (!creditResult.allowed) {
+        res.status(creditResult.status || 402).json({
+          message: creditResult.message || "Credits required",
+          error: "credit_limit",
+          currentCredits: creditResult.currentCredits,
+        });
+        return;
+      }
+
+      effectiveCredential = { kind: "apiKey", apiKey: serverApiKey };
+      billing = {
+        mode: "server_credit",
+        cost,
+        remainingCredits: creditResult.currentCredits,
+      };
+    }
+
+    const usage = await enforceUsageLimit(req, clientFingerprint);
+    if (!usage.allowed) {
+      if (usage.retryAfterSeconds) {
+        res.setHeader("Retry-After", usage.retryAfterSeconds.toString());
+      }
+      res.status(usage.status || 429).json({ message: usage.reason || "usage_limit" });
+      return;
+    }
+
+    await recordUsageEvent(req, "tts", clientFingerprint);
+
+    const languageMatch = voice.match(/^[a-z]{2}-[A-Z]{2}/);
+    const languageCode = languageMatch ? languageMatch[0] : "ko-KR";
+
     const common = {
       text,
       ssml,
@@ -290,7 +297,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.status(200).json({ audioContent, billing });
   } catch (error: any) {
     console.error("[api/tts] error:", error);
-    res.status(500).json({ message: error?.message || "server_error" });
+    res.status(500).json({
+      message: error?.message || "server_error",
+      details: error?.stack ? String(error.stack).slice(0, 1200) : null,
+    });
   }
 }
 
