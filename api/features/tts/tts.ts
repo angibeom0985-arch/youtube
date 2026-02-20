@@ -247,17 +247,47 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     };
 
     if (preview) {
-      // 미리듣기는 서버 키 기반 경량 경로로 처리해 안정성을 우선한다.
-      if (!serverApiKey) {
-        res.status(400).json({ message: "missing_api_key" });
-        return;
+      // 미리듣기: 서버 키 우선, 없으면 사용자 키로 자동 폴백
+      if (serverApiKey) {
+        effectiveCredential = { kind: "apiKey", apiKey: serverApiKey };
+        billing = {
+          mode: "server_credit",
+          cost: 0,
+          remainingCredits: null,
+        };
+      } else {
+        const profileResult = await supabaseAdmin
+          .from("profiles")
+          .select("google_credit_json")
+          .eq("id", userId)
+          .maybeSingle();
+
+        if (
+          profileResult.error &&
+          profileResult.error.code !== "PGRST116" &&
+          !isMissingColumnError(profileResult.error, "google_credit_json")
+        ) {
+          console.error("[api/tts] failed to load profile settings", profileResult.error);
+          res.status(500).json({ message: "settings_load_failed", details: profileResult.error.message || null });
+          return;
+        }
+
+        const profileCredential = parseGoogleCredential(profileResult.data?.google_credit_json);
+        if (profileCredential.kind !== "none") {
+          userCredential = profileCredential;
+        }
+
+        if (userCredential.kind === "none") {
+          res.status(400).json({ message: "preview_user_key_required" });
+          return;
+        }
+        effectiveCredential = userCredential;
+        billing = {
+          mode: "coupon_user_key",
+          cost: 0,
+          remainingCredits: null,
+        };
       }
-      effectiveCredential = { kind: "apiKey", apiKey: serverApiKey };
-      billing = {
-        mode: "server_credit",
-        cost: 0,
-        remainingCredits: null,
-      };
     } else if (couponBypassCredits) {
       const profileResult = await supabaseAdmin
         .from("profiles")
