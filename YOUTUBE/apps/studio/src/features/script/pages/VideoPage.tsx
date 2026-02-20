@@ -1140,6 +1140,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
             voice: googleVoice,
             speakingRate: Math.min(1.4, Math.max(0.8, ttsSpeed * voiceStyle.rate)),
             pitch: voiceStyle.pitch,
+            preview: true,
           }),
           signal: controller.signal,
         });

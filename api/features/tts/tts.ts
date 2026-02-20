@@ -1,7 +1,4 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { enforceUsageLimit, recordUsageEvent } from "../../../server/shared/usageLimit.js";
-import { getSupabaseUser, supabaseAdmin } from "../../../server/shared/supabase.js";
-import { getCouponBypassState } from "../../../server/shared/couponBypass.js";
 
 type UserCredentialSource =
   | { kind: "serviceAccount"; credentials: Record<string, unknown> }
@@ -170,6 +167,36 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
+    const supabaseModule: any = await import("../../../server/shared/supabase.js").catch((err) => {
+      console.error("[api/tts] supabase module load failed:", err);
+      return null;
+    });
+    if (!supabaseModule?.getSupabaseUser) {
+      res.status(500).json({ message: "supabase_module_load_failed" });
+      return;
+    }
+    const getSupabaseUser = supabaseModule.getSupabaseUser as (token: string) => Promise<any>;
+    const supabaseAdmin = supabaseModule.supabaseAdmin as any;
+
+    const usageModule: any = await import("../../../server/shared/usageLimit.js").catch((err) => {
+      console.error("[api/tts] usage module load failed:", err);
+      return null;
+    });
+    const enforceUsageLimit = usageModule?.enforceUsageLimit as
+      | ((req: VercelRequest, clientFingerprint?: string | null) => Promise<any>)
+      | undefined;
+    const recordUsageEvent = usageModule?.recordUsageEvent as
+      | ((req: VercelRequest, action: string, clientFingerprint?: string | null) => Promise<any>)
+      | undefined;
+
+    const couponModule: any = await import("../../../server/shared/couponBypass.js").catch((err) => {
+      console.error("[api/tts] coupon module load failed:", err);
+      return null;
+    });
+    const getCouponBypassState =
+      (couponModule?.getCouponBypassState as ((metadata: Record<string, unknown>) => { active: boolean }) | undefined) ||
+      (() => ({ active: false }));
+
     const token = getBearerToken(req);
     if (!token) {
       res.status(401).json({ message: "auth_required" });
@@ -198,6 +225,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const voice = typeof body?.voice === "string" ? body.voice : "ko-KR-Standard-A";
     const speakingRate = typeof body?.speakingRate === "number" ? body.speakingRate : 1;
     const pitch = typeof body?.pitch === "number" ? body.pitch : 0;
+    const preview = body?.preview === true;
     const clientFingerprint =
       typeof body?.client?.fingerprint === "string" ? body.client.fingerprint : null;
 
@@ -218,7 +246,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       remainingCredits: null,
     };
 
-    if (couponBypassCredits) {
+    if (preview) {
+      // 미리듣기는 서버 키 기반 경량 경로로 처리해 안정성을 우선한다.
+      if (!serverApiKey) {
+        res.status(400).json({ message: "missing_api_key" });
+        return;
+      }
+      effectiveCredential = { kind: "apiKey", apiKey: serverApiKey };
+      billing = {
+        mode: "server_credit",
+        cost: 0,
+        remainingCredits: null,
+      };
+    } else if (couponBypassCredits) {
       const profileResult = await supabaseAdmin
         .from("profiles")
         .select("google_credit_json")
@@ -287,18 +327,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       };
     }
 
-    const usage = await enforceUsageLimit(req, clientFingerprint);
-    if (!usage.allowed) {
-      if (usage.retryAfterSeconds) {
-        res.setHeader("Retry-After", usage.retryAfterSeconds.toString());
+    if (enforceUsageLimit) {
+      const usage = await enforceUsageLimit(req, clientFingerprint);
+      if (!usage.allowed) {
+        if (usage.retryAfterSeconds) {
+          res.setHeader("Retry-After", usage.retryAfterSeconds.toString());
+        }
+        res.status(usage.status || 429).json({ message: usage.reason || "usage_limit" });
+        return;
       }
-      res.status(usage.status || 429).json({ message: usage.reason || "usage_limit" });
-      return;
     }
 
-    recordUsageEvent(req, "tts", clientFingerprint).catch((usageErr) => {
-      console.error("[api/tts] usage event failed:", usageErr);
-    });
+    if (recordUsageEvent) {
+      recordUsageEvent(req, "tts", clientFingerprint).catch((usageErr) => {
+        console.error("[api/tts] usage event failed:", usageErr);
+      });
+    }
 
     const languageMatch = voice.match(/^[a-z]{2}-[A-Z]{2}/);
     const languageCode = languageMatch ? languageMatch[0] : "ko-KR";
@@ -312,15 +356,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       pitch,
     };
 
-    const audioContent =
-      effectiveCredential.kind === "serviceAccount"
-        ? await Promise.race<string>([
-            synthesizeWithServiceAccount({ ...common, credentials: effectiveCredential.credentials }),
-            new Promise<string>((_, reject) =>
-              setTimeout(() => reject(new Error("tts_upstream_timeout")), 15000)
-            ),
-          ])
-        : await synthesizeWithApiKey({ ...common, apiKey: effectiveCredential.apiKey });
+    let audioContent: string;
+    if (effectiveCredential.kind === "serviceAccount") {
+      audioContent = await Promise.race<string>([
+        synthesizeWithServiceAccount({ ...common, credentials: effectiveCredential.credentials }),
+        new Promise<string>((_, reject) => setTimeout(() => reject(new Error("tts_upstream_timeout")), 15000)),
+      ]);
+    } else {
+      try {
+        audioContent = await synthesizeWithApiKey({ ...common, apiKey: effectiveCredential.apiKey });
+      } catch (firstError: any) {
+        const firstMsg = String(firstError?.message || "");
+        const isVoiceIssue =
+          firstMsg.toLowerCase().includes("voice") ||
+          firstMsg.toLowerCase().includes("name") ||
+          firstMsg.toLowerCase().includes("languagecode");
+        if (!isVoiceIssue) throw firstError;
+        audioContent = await synthesizeWithApiKey({
+          ...common,
+          voice: "ko-KR-Wavenet-A",
+        });
+      }
+    }
 
     res.status(200).json({ audioContent, billing });
   } catch (error: any) {
