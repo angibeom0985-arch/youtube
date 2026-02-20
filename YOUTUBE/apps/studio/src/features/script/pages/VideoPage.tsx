@@ -971,6 +971,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   };
 
   // 오디오 재생 함수 (간단한 미리듣기용)
+  const maleVoiceNames = /민준|지훈|준서|도현|태양|동현|상호|재훈|성민|수현|지수|해준|준호/i;
+
   const playBrowserTtsFallback = (
     chapterIndex: number,
     voiceName: string,
@@ -1004,10 +1006,18 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     const voices = synth.getVoices();
     const koVoices = voices.filter((v) => v.lang?.toLowerCase().startsWith("ko"));
     if (koVoices.length > 0) {
+      const isMale = maleVoiceNames.test(voiceName);
+      const maleCandidates = koVoices.filter((v) => /male|man|남|masculine|m$/i.test(v.name));
+      const femaleCandidates = koVoices.filter((v) => /female|woman|여|feminine|f$/i.test(v.name));
+
+      const genderBucket = isMale ? maleCandidates : femaleCandidates;
+      const oppositeBucket = isMale ? femaleCandidates : maleCandidates;
+      const bucket = genderBucket.length ? genderBucket : (oppositeBucket.length ? oppositeBucket : koVoices);
+
       const preferred =
-        koVoices.find((v) => v.name.includes(voiceName)) ||
-        koVoices.find((v) => /female|여성|woman/i.test(v.name) && /서연|유나|혜진|소희|하늘|수아|예린|미정|순자/.test(voiceName)) ||
-        koVoices.find((v) => /male|남성|man/i.test(v.name) && /민준|지훈|준서|도현|태양|동현|상호|재훈|성민/.test(voiceName)) ||
+        bucket.find((v) => v.name.includes(voiceName)) ||
+        // 같은 성별 후보가 여러 개면 서로 다른 인덱스로 강제 분리
+        (isMale ? bucket[Math.min(0, bucket.length - 1)] : bucket[Math.min(1, bucket.length - 1)]) ||
         koVoices[0];
       utterance.voice = preferred || null;
     }
@@ -1052,33 +1062,33 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       setPlayingVoice(voiceName);
 
       const voiceMap: Record<string, string> = {
-        '민준': 'ko-KR-Standard-C',
-        '지훈': 'ko-KR-Standard-B',
-        '준서': 'ko-KR-Standard-D',
-        '도현': 'ko-KR-Neural2-C',
-        '태양': 'ko-KR-Wavenet-D',
-        '동현': 'ko-KR-Standard-C',
-        '상호': 'ko-KR-Standard-B',
-        '재훈': 'ko-KR-Wavenet-B',
-        '성민': 'ko-KR-Standard-D',
-
-        '서연': 'ko-KR-Standard-A',
-        '유나': 'ko-KR-Wavenet-C',
-        '혜진': 'ko-KR-Standard-A',
-        '소희': 'ko-KR-Neural2-A',
-        '하늘': 'ko-KR-Wavenet-A',
-        '수아': 'ko-KR-Standard-A',
-        '예린': 'ko-KR-Wavenet-C',
-        '미정': 'ko-KR-Standard-A',
-        '순자': 'ko-KR-Standard-A',
-
-        '수현': 'ko-KR-Standard-B',
-        '지수': 'ko-KR-Standard-D',
-        '하나': 'ko-KR-Wavenet-A',
-        '세영': 'ko-KR-Wavenet-C',
-        '해준': 'ko-KR-Wavenet-B',
-        '준호': 'ko-KR-Wavenet-D',
-        '하림': 'ko-KR-Neural2-A',
+        // 남성군
+        민준: "ko-KR-Neural2-C",
+        지훈: "ko-KR-Wavenet-B",
+        준서: "ko-KR-Wavenet-D",
+        도현: "ko-KR-Neural2-C",
+        태양: "ko-KR-Wavenet-D",
+        동현: "ko-KR-Standard-C",
+        상호: "ko-KR-Standard-B",
+        재훈: "ko-KR-Wavenet-B",
+        성민: "ko-KR-Standard-D",
+        수현: "ko-KR-Standard-B",
+        지수: "ko-KR-Standard-D",
+        해준: "ko-KR-Wavenet-B",
+        준호: "ko-KR-Wavenet-D",
+        // 여성군
+        서연: "ko-KR-Neural2-A",
+        유나: "ko-KR-Wavenet-C",
+        혜진: "ko-KR-Standard-A",
+        소희: "ko-KR-Neural2-A",
+        하늘: "ko-KR-Wavenet-A",
+        수아: "ko-KR-Standard-A",
+        예린: "ko-KR-Wavenet-C",
+        미정: "ko-KR-Standard-A",
+        순자: "ko-KR-Standard-A",
+        하나: "ko-KR-Wavenet-A",
+        세영: "ko-KR-Wavenet-C",
+        하림: "ko-KR-Neural2-A",
       };
 
       const googleVoice = voiceMap[voiceName] || 'ko-KR-Standard-A';
