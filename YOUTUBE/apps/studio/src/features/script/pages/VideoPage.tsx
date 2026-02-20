@@ -541,6 +541,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
   // Audio playback state
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const browserTtsRef = useRef<SpeechSynthesisUtterance | null>(null);
   const [playingChapter, setPlayingChapter] = useState<number | null>(null);
   const [playingVoice, setPlayingVoice] = useState<string | null>(null);
   const [isPlayingPreview, setIsPlayingPreview] = useState(false);
@@ -949,6 +950,66 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   };
 
   // 오디오 재생 함수 (간단한 미리듣기용)
+  const playBrowserTtsFallback = (
+    chapterIndex: number,
+    voiceName: string,
+    text: string
+  ): boolean => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+      return false;
+    }
+
+    const synth = window.speechSynthesis;
+    const previewText = String(text || "")
+      .split("\n")
+      .map((line) => stripNarrationPrefix(line))
+      .filter(Boolean)
+      .join(" ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 220);
+
+    if (!previewText) {
+      return false;
+    }
+
+    synth.cancel();
+    const utterance = new SpeechSynthesisUtterance(previewText);
+    utterance.lang = "ko-KR";
+    utterance.rate = Math.min(1.4, Math.max(0.8, ttsSpeed));
+
+    const voices = synth.getVoices();
+    const koVoices = voices.filter((v) => v.lang?.toLowerCase().startsWith("ko"));
+    if (koVoices.length > 0) {
+      const preferred =
+        koVoices.find((v) => v.name.includes(voiceName)) ||
+        koVoices.find((v) => /female|여성|woman/i.test(v.name) && /서연|유나|혜진|소희|하늘|수아|예린|미정|순자/.test(voiceName)) ||
+        koVoices.find((v) => /male|남성|man/i.test(v.name) && /민준|지훈|준서|도현|태양|동현|상호|재훈|성민/.test(voiceName)) ||
+        koVoices[0];
+      utterance.voice = preferred || null;
+    }
+
+    utterance.onstart = () => {
+      setPlayingChapter(chapterIndex);
+      setPlayingVoice(voiceName);
+      setIsPlayingPreview(true);
+    };
+    utterance.onend = () => {
+      setPlayingChapter(null);
+      setPlayingVoice(null);
+      setIsPlayingPreview(false);
+    };
+    utterance.onerror = () => {
+      setPlayingChapter(null);
+      setPlayingVoice(null);
+      setIsPlayingPreview(false);
+    };
+
+    browserTtsRef.current = utterance;
+    synth.speak(utterance);
+    return true;
+  };
+
   const playPreviewAudio = async (chapterIndex: number, voiceName: string, text: string) => {
     if (audioRef.current && (playingChapter === chapterIndex && playingVoice === voiceName)) {
       audioRef.current.pause();
@@ -1125,10 +1186,13 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         return;
       }
       console.error('[TTS] 오디오 재생 실패:', error);
-      alert(`음성 재생에 실패했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
-      setIsPlayingPreview(false);
-      setPlayingChapter(null);
-      setPlayingVoice(null);
+      const fallbackOk = playBrowserTtsFallback(chapterIndex, voiceName, text);
+      if (!fallbackOk) {
+        alert(`음성 재생에 실패했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+        setIsPlayingPreview(false);
+        setPlayingChapter(null);
+        setPlayingVoice(null);
+      }
     }
   };
 
@@ -1137,6 +1201,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
+    }
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
     }
     setPlayingChapter(null);
     setPlayingVoice(null);
