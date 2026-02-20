@@ -951,25 +951,28 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   };
 
   const voiceStyleMap: Record<string, { rate: number; pitch: number }> = {
-    민준: { rate: 1.0, pitch: -1.5 },
-    지훈: { rate: 1.05, pitch: -1.0 },
-    준서: { rate: 0.96, pitch: -2.0 },
-    도현: { rate: 1.02, pitch: -0.8 },
-    태양: { rate: 1.12, pitch: -0.5 },
-    동현: { rate: 0.98, pitch: -1.2 },
-    상호: { rate: 0.94, pitch: -2.5 },
-    재훈: { rate: 1.08, pitch: -0.2 },
-    성민: { rate: 0.92, pitch: -3.0 },
-    서연: { rate: 1.0, pitch: 1.8 },
-    유나: { rate: 1.08, pitch: 2.4 },
-    혜진: { rate: 0.98, pitch: 1.2 },
-    소희: { rate: 1.12, pitch: 3.0 },
-    하늘: { rate: 0.96, pitch: 2.0 },
-    수아: { rate: 1.14, pitch: 2.6 },
-    예린: { rate: 1.1, pitch: 2.2 },
-    미정: { rate: 0.94, pitch: 0.8 },
-    순자: { rate: 0.9, pitch: 0.4 },
+    // 품질 저하를 막기 위해 pitch는 0으로 고정하고 rate만 미세 조정
+    민준: { rate: 0.98, pitch: 0 },
+    지훈: { rate: 1.0, pitch: 0 },
+    준서: { rate: 0.96, pitch: 0 },
+    도현: { rate: 1.02, pitch: 0 },
+    태양: { rate: 1.04, pitch: 0 },
+    동현: { rate: 0.98, pitch: 0 },
+    상호: { rate: 0.95, pitch: 0 },
+    재훈: { rate: 1.03, pitch: 0 },
+    성민: { rate: 0.93, pitch: 0 },
+    서연: { rate: 1.0, pitch: 0 },
+    유나: { rate: 1.04, pitch: 0 },
+    혜진: { rate: 0.98, pitch: 0 },
+    소희: { rate: 1.06, pitch: 0 },
+    하늘: { rate: 0.97, pitch: 0 },
+    수아: { rate: 1.05, pitch: 0 },
+    예린: { rate: 1.04, pitch: 0 },
+    미정: { rate: 0.95, pitch: 0 },
+    순자: { rate: 0.92, pitch: 0 },
   };
+
+  const ENABLE_BROWSER_TTS_FALLBACK = false;
 
   // 오디오 재생 함수 (간단한 미리듣기용)
   const maleVoiceNames = /민준|지훈|준서|도현|태양|동현|상호|재훈|성민|수현|지수|해준|준호/i;
@@ -1064,12 +1067,12 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
       const voiceMap: Record<string, string> = {
         // 남성군
-        민준: "ko-KR-Neural2-C",
+        민준: "ko-KR-Wavenet-D",
         지훈: "ko-KR-Wavenet-B",
         준서: "ko-KR-Wavenet-D",
-        도현: "ko-KR-Neural2-C",
+        도현: "ko-KR-Wavenet-B",
         태양: "ko-KR-Wavenet-D",
-        동현: "ko-KR-Standard-C",
+        동현: "ko-KR-Wavenet-B",
         상호: "ko-KR-Standard-B",
         재훈: "ko-KR-Wavenet-B",
         성민: "ko-KR-Standard-D",
@@ -1078,10 +1081,10 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         해준: "ko-KR-Wavenet-B",
         준호: "ko-KR-Wavenet-D",
         // 여성군
-        서연: "ko-KR-Neural2-A",
+        서연: "ko-KR-Wavenet-A",
         유나: "ko-KR-Wavenet-C",
         혜진: "ko-KR-Standard-A",
-        소희: "ko-KR-Neural2-A",
+        소희: "ko-KR-Wavenet-A",
         하늘: "ko-KR-Wavenet-A",
         수아: "ko-KR-Standard-A",
         예린: "ko-KR-Wavenet-C",
@@ -1217,7 +1220,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         return;
       }
       console.error('[TTS] 오디오 재생 실패:', error);
-      const fallbackOk = playBrowserTtsFallback(chapterIndex, voiceName, text);
+      const fallbackOk = ENABLE_BROWSER_TTS_FALLBACK
+        ? playBrowserTtsFallback(chapterIndex, voiceName, text)
+        : false;
       if (!fallbackOk) {
         alert(`음성 재생에 실패했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
         setIsPlayingPreview(false);
