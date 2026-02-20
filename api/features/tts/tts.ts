@@ -1,7 +1,8 @@
-﻿import type { VercelRequest, VercelResponse } from "@vercel/node";
+import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { TextToSpeechClient } from "@google-cloud/text-to-speech";
 import { enforceUsageLimit, recordUsageEvent } from "../../../server/shared/usageLimit.js";
 import { getSupabaseUser, supabaseAdmin } from "../../../server/shared/supabase.js";
+import { getCouponBypassState } from "../../../server/shared/couponBypass.js";
 import { checkAndDeductCredits, CREDIT_COSTS } from "../../../server/shared/creditService.js";
 
 type UserCredentialSource =
@@ -13,6 +14,13 @@ type BillingInfo = {
   mode: "coupon_user_key" | "server_credit";
   cost: number;
   remainingCredits: number | null;
+};
+
+const isMissingColumnError = (error: any, column: string): boolean => {
+  if (!error) return false;
+  const code = String(error.code || "");
+  const message = String(error.message || "");
+  return code === "42703" || message.includes(column);
 };
 
 const getBearerToken = (req: VercelRequest): string | null => {
@@ -185,22 +193,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  const profileResult = await supabaseAdmin
-    .from("profiles")
-    .select("google_credit_json")
-    .eq("id", userId)
-    .single();
-
-  if (profileResult.error) {
-    console.error("[api/tts] failed to load profile settings", profileResult.error);
-    res.status(500).json({ message: "settings_load_failed" });
-    return;
-  }
-
-  const userCredential = parseGoogleCredential(profileResult.data?.google_credit_json);
-  const serverApiKey = String(process.env.GOOGLE_CLOUD_API_KEY || process.env.GOOGLE_API_KEY || "").trim();
   const metadata = (auth.user as any)?.user_metadata || {};
-  const couponBypassCredits = metadata?.coupon_bypass_credits === true;
+  const couponBypassCredits = getCouponBypassState(metadata).active;
+  const serverApiKey = String(process.env.GOOGLE_CLOUD_API_KEY || process.env.GOOGLE_API_KEY || "").trim();
+  let userCredential: UserCredentialSource = parseGoogleCredential(metadata?.google_credit_json);
 
   let effectiveCredential: UserCredentialSource = { kind: "none" };
   let billing: BillingInfo = {
@@ -210,6 +206,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   };
 
   if (couponBypassCredits) {
+    const profileResult = await supabaseAdmin
+      .from("profiles")
+      .select("google_credit_json")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (
+      profileResult.error &&
+      profileResult.error.code !== "PGRST116" &&
+      !isMissingColumnError(profileResult.error, "google_credit_json")
+    ) {
+      console.error("[api/tts] failed to load profile settings", profileResult.error);
+      res.status(500).json({ message: "settings_load_failed" });
+      return;
+    }
+
+    const profileCredential = parseGoogleCredential(profileResult.data?.google_credit_json);
+    if (profileCredential.kind !== "none") {
+      userCredential = profileCredential;
+    }
+
     if (userCredential.kind === "none") {
       res.status(400).json({ message: "coupon_user_key_required" });
       return;
@@ -276,3 +293,4 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.status(500).json({ message: error?.message || "server_error" });
   }
 }
+
