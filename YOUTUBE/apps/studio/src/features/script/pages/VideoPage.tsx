@@ -949,6 +949,27 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     setRenderingStatus("AI 음성 출력을 준비했습니다.");
   };
 
+  const voiceStyleMap: Record<string, { rate: number; pitch: number }> = {
+    민준: { rate: 1.0, pitch: -1.5 },
+    지훈: { rate: 1.05, pitch: -1.0 },
+    준서: { rate: 0.96, pitch: -2.0 },
+    도현: { rate: 1.02, pitch: -0.8 },
+    태양: { rate: 1.12, pitch: -0.5 },
+    동현: { rate: 0.98, pitch: -1.2 },
+    상호: { rate: 0.94, pitch: -2.5 },
+    재훈: { rate: 1.08, pitch: -0.2 },
+    성민: { rate: 0.92, pitch: -3.0 },
+    서연: { rate: 1.0, pitch: 1.8 },
+    유나: { rate: 1.08, pitch: 2.4 },
+    혜진: { rate: 0.98, pitch: 1.2 },
+    소희: { rate: 1.12, pitch: 3.0 },
+    하늘: { rate: 0.96, pitch: 2.0 },
+    수아: { rate: 1.14, pitch: 2.6 },
+    예린: { rate: 1.1, pitch: 2.2 },
+    미정: { rate: 0.94, pitch: 0.8 },
+    순자: { rate: 0.9, pitch: 0.4 },
+  };
+
   // 오디오 재생 함수 (간단한 미리듣기용)
   const playBrowserTtsFallback = (
     chapterIndex: number,
@@ -976,7 +997,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     synth.cancel();
     const utterance = new SpeechSynthesisUtterance(previewText);
     utterance.lang = "ko-KR";
-    utterance.rate = Math.min(1.4, Math.max(0.8, ttsSpeed));
+    const style = voiceStyleMap[voiceName] || { rate: 1, pitch: 0 };
+    utterance.rate = Math.min(1.4, Math.max(0.8, ttsSpeed * style.rate));
+    utterance.pitch = Math.min(2, Math.max(0, 1 + style.pitch * 0.15));
 
     const voices = synth.getVoices();
     const koVoices = voices.filter((v) => v.lang?.toLowerCase().startsWith("ko"));
@@ -1011,12 +1034,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   };
 
   const playPreviewAudio = async (chapterIndex: number, voiceName: string, text: string) => {
-    if (audioRef.current && (playingChapter === chapterIndex && playingVoice === voiceName)) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-      setPlayingChapter(null);
-      setPlayingVoice(null);
-      setIsPlayingPreview(false);
+    if (playingChapter === chapterIndex && playingVoice === voiceName && isPlayingPreview) {
+      stopAudio();
       return;
     }
 
@@ -1063,6 +1082,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       };
 
       const googleVoice = voiceMap[voiceName] || 'ko-KR-Standard-A';
+      const voiceStyle = voiceStyleMap[voiceName] || { rate: 1, pitch: 0 };
       const previewText = String(text || "")
         .split("\n")
         .map((line) => stripNarrationPrefix(line))
@@ -1104,8 +1124,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
           body: JSON.stringify({
             text: previewText,
             voice: googleVoice,
-            speakingRate: ttsSpeed,
-            pitch: 0,
+            speakingRate: Math.min(1.4, Math.max(0.8, ttsSpeed * voiceStyle.rate)),
+            pitch: voiceStyle.pitch,
           }),
           signal: controller.signal,
         });
@@ -2780,8 +2800,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                   const sampleText = allVoiceOptions.find(v => v.name === voice.name)?.sampleText || "안녕하세요. 샘플 음성입니다.";
                                   playPreviewAudio(index, voice.name, sampleText);
                                 }}
-                                disabled={isPlayingPreview && playingChapter === index && playingVoice === voice.name}
-                                className={`p-2 rounded-lg border transition-all disabled:opacity-50 disabled:cursor-not-allowed ${playingChapter === index && playingVoice === voice.name
+                                className={`p-2 rounded-lg border transition-all ${playingChapter === index && playingVoice === voice.name
                                   ? 'border-red-400 bg-red-500 shadow-lg'
                                   : 'border-white/10 bg-black/40 hover:bg-red-500/20 hover:border-red-400/50'
                                   }`}
@@ -2840,11 +2859,10 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                 playPreviewAudio(index, voiceName, text);
                               }
                             }}
-                            disabled={isPlayingPreview && playingChapter === index}
                             className={`px-4 py-2 rounded-full text-white text-sm font-semibold shadow-lg transition-all flex items-center gap-2 ${playingChapter === index
                               ? 'bg-gradient-to-r from-red-700 to-red-500 hover:from-red-600 hover:to-red-500'
                               : 'bg-gradient-to-r from-red-700 to-red-500 hover:from-red-600 hover:to-red-500'
-                              } disabled:opacity-50 disabled:cursor-not-allowed`}
+                              }`}
                           >
                             {playingChapter === index ? (
                               <>
@@ -2920,8 +2938,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                             playPreviewAudio(currentChapterForVoice, voice.name, voice.sampleText);
                                           }
                                         }}
-                                        disabled={isPlayingPreview && playingChapter === currentChapterForVoice && playingVoice === voice.name}
-                                        className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed ${playingChapter === currentChapterForVoice && playingVoice === voice.name
+                                        className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-all ${playingChapter === currentChapterForVoice && playingVoice === voice.name
                                           ? 'bg-red-500 shadow-lg'
                                           : 'bg-white/10 hover:bg-red-500/50'
                                           }`}
@@ -2972,8 +2989,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                             playPreviewAudio(currentChapterForVoice, voice.name, voice.sampleText);
                                           }
                                         }}
-                                        disabled={isPlayingPreview && playingChapter === currentChapterForVoice && playingVoice === voice.name}
-                                        className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed ${playingChapter === currentChapterForVoice && playingVoice === voice.name
+                                        className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-all ${playingChapter === currentChapterForVoice && playingVoice === voice.name
                                           ? 'bg-red-500 shadow-lg'
                                           : 'bg-white/10 hover:bg-red-500/50'
                                           }`}
@@ -3024,8 +3040,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                             playPreviewAudio(currentChapterForVoice, voice.name, voice.sampleText);
                                           }
                                         }}
-                                        disabled={isPlayingPreview && playingChapter === currentChapterForVoice && playingVoice === voice.name}
-                                        className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed ${playingChapter === currentChapterForVoice && playingVoice === voice.name
+                                        className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-all ${playingChapter === currentChapterForVoice && playingVoice === voice.name
                                           ? 'bg-red-500 shadow-lg'
                                           : 'bg-white/10 hover:bg-red-500/50'
                                           }`}
