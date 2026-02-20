@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { getSupabaseUser, supabaseAdmin } from "../shared/supabase.js";
 import { normalizeCouponCode, validateCoupon } from "../shared/couponService.js";
+import { COUPON_BYPASS_MONTHS } from "../shared/couponBypass.js";
 
 const parseJsonBody = async (req: VercelRequest): Promise<any> => {
   if (req.body && typeof req.body === "object") return req.body;
@@ -119,7 +120,7 @@ export default async function userCouponHandler(req: VercelRequest, res: VercelR
   }
   const now = new Date();
   const expiresAt = new Date(now);
-  expiresAt.setMonth(expiresAt.getMonth() + 2);
+  expiresAt.setMonth(expiresAt.getMonth() + COUPON_BYPASS_MONTHS);
 
   const nextMeta = {
     ...metadata,
