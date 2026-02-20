@@ -1,4 +1,4 @@
-﻿
+
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
@@ -186,6 +186,16 @@ const extractGoogleCloudApiKey = (raw: unknown): string => {
   }
 
   return "";
+};
+
+const sanitizeCorruptedText = (value: unknown, fallback = ""): string => {
+  const text = String(value ?? "");
+  const cleaned = text
+    .replace(/\uFFFD/g, "")
+    .replace(/^(?:[?？]+)\s*/g, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+  return cleaned || fallback;
 };
 
 type SortableCategoryChipProps = {
@@ -655,7 +665,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
           .join("\n");
         if (lines.trim()) {
           chapters.push({
-            title: chapter.title || `챕터 ${chapters.length + 1}`,
+            title: sanitizeCorruptedText(chapter.title, `챕터 ${chapters.length + 1}`),
             content: lines.trim(),
           });
         }
@@ -1272,7 +1282,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
             .join("\n");
           if (lines.trim()) {
             chapters.push({
-              title: chapter.title || `챕터 ${chapters.length + 1}`,
+              title: sanitizeCorruptedText(chapter.title, `챕터 ${chapters.length + 1}`),
               content: lines.trim()
             });
           }
@@ -1458,20 +1468,20 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       // Check if it's a timeout error or network error
       if (errorMessage.includes("FUNCTION_INVOCATION_TIMEOUT") || errorMessage.includes("timeout") || errorMessage.includes("timed out")) {
         setScriptError(
-          "?? 분석 작업이 시간 초과되었습니다.\n\n" +
+          "분석 작업이 시간 초과되었습니다.\n\n" +
           `대본 길이: ${scriptLength.toLocaleString()}자\n\n` +
           "긴 대본은 처리 시간이 오래 걸립니다.\n" +
-          "?? 해결 방법:\n" +
-          "? 5분 후 다시 시도해 주세요 (서버가 일시적으로 바쁠 수 있습니다)\n" +
-          "? 대본을 2-3개로 나눠서 분석한 후 결합하는 것을 권장합니다\n" +
-          "? 다시 시도 버튼을 눌러주세요\n\n" +
+          "해결 방법:\n" +
+          "- 5분 후 다시 시도해 주세요 (서버가 일시적으로 바쁠 수 있습니다)\n" +
+          "- 대본을 2-3개로 나눠서 분석한 후 결합하는 것을 권장합니다\n" +
+          "- 다시 시도 버튼을 눌러주세요\n\n" +
           "문제가 계속되면 관리자에게 문의해 주세요."
         );
       } else if (errorMessage.includes("Failed to fetch") || errorMessage.includes("NetworkError")) {
         setScriptError(
-          "?? 네트워크 오류가 발생했습니다.\n\n" +
-          "? 인터넷 연결을 확인해 주세요.\n" +
-          "? 잠시 후 다시 시도해 주세요.\n\n" +
+          "네트워크 오류가 발생했습니다.\n\n" +
+          "- 인터넷 연결을 확인해 주세요.\n" +
+          "- 잠시 후 다시 시도해 주세요.\n\n" +
           `상세 정보: ${errorMessage}`
         );
       } else {
@@ -1560,10 +1570,10 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       // Check if it's a timeout error
       if (errorMessage.includes("FUNCTION_INVOCATION_TIMEOUT") || errorMessage.includes("timeout")) {
         setScriptError(
-          "?? 대본 생성이 시간 초과되었습니다.\n\n" +
+          "대본 생성이 시간 초과되었습니다.\n\n" +
           "요청한 대본이 너무 길거나 서버가 응답하지 않았습니다.\n" +
-          "? 대본 길이를 줄여서 다시 시도해 주세요.\n" +
-          "? 잠시 후 다시 시도해 주세요.\n\n" +
+          "- 대본 길이를 줄여서 다시 시도해 주세요.\n" +
+          "- 잠시 후 다시 시도해 주세요.\n\n" +
           "문제가 계속되면 관리자에게 문의해 주세요."
         );
       } else {
@@ -1594,7 +1604,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       ...plan,
       chapters: plan.chapters?.map(chapter => ({
         ...chapter,
-        title: cleanText(chapter.title || ''),
+        title: sanitizeCorruptedText(cleanText(chapter.title || '')),
         purpose: cleanText(chapter.purpose || ''),
         script: chapter.script?.map(line => ({
           ...line,
@@ -1627,7 +1637,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   ): string => {
     if (!chapter.script) return "";
 
-    let text = `${chapter.title}\n${"=".repeat(50)}\n\n`;
+    const safeTitle = sanitizeCorruptedText(chapter.title, "챕터");
+    let text = `${safeTitle}\n${"=".repeat(50)}\n\n`;
     chapter.script.forEach((item) => {
       const lineText = toScriptLineText(item);
       if (!lineText) return;
@@ -1645,7 +1656,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     return chapters
       .filter((chapter) => chapter.script)
       .map((chapter, index) => {
-        let text = `챕터 ${index + 1}: ${chapter.title}\n${"=".repeat(50)}\n\n`;
+        const safeTitle = sanitizeCorruptedText(chapter.title, `챕터 ${index + 1}`);
+        let text = `챕터 ${index + 1}: ${safeTitle}\n${"=".repeat(50)}\n\n`;
         chapter.script.forEach((item: any) => {
           const lineText = toScriptLineText(item);
           if (!lineText) return;
@@ -1669,7 +1681,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
             .map((line) => toScriptLineText(line))
             .filter(Boolean)
             .join("\n");
-          return `# 챕터 ${index + 1}. ${chapter.title}\n${lines || chapter.purpose}`;
+          const safeTitle = sanitizeCorruptedText(chapter.title, `챕터 ${index + 1}`);
+          return `# 챕터 ${index + 1}. ${safeTitle}\n${lines || chapter.purpose}`;
         })
         .join("\n\n");
     }
@@ -1845,7 +1858,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     {/* 제목 입력 */}
                     <div className="space-y-2">
                       <label className="text-sm font-semibold text-white/80">
-                        ??? 영상 제목 (선택사항)
+                        영상 제목 (선택사항)
                       </label>
                       <input
                         type="text"
@@ -1862,7 +1875,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     {/* 유튜브 URL 입력 */}
                     <div className="space-y-2">
                       <label className="text-sm font-semibold text-white/80">
-                        ?? 유튜브 URL 입력 (선택사항)
+                        유튜브 URL 입력 (선택사항)
                       </label>
                       <input
                         type="text"
@@ -1890,7 +1903,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     {/* 카테고리 선택 */}
                     <div className="space-y-2">
                       <label className="text-sm font-semibold text-white/80">
-                        ??? 카테고리 선택
+                        카테고리 선택
                       </label>
                       <DndContext
                         sensors={categorySensors}
@@ -1916,7 +1929,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     {/* 대본 내용 입력 */}
                     <div className="space-y-2">
                       <label className="text-sm font-semibold text-white/80">
-                        ?? 대본 내용
+                        대본 내용
                       </label>
                       <textarea
                         value={scriptDraft}
@@ -1936,7 +1949,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     {scriptDraft.length > 20000 && (
                       <div className="rounded-xl border border-blue-400/50 bg-blue-500/10 px-4 py-3 text-sm text-blue-300">
                         <div className="flex items-start gap-2">
-                          <span className="text-lg">??</span>
+                          <span className="text-lg">안내</span>
                           <div>
                             <p className="font-semibold">긴 대본 분석 안내</p>
                             <p className="text-xs mt-1 opacity-80">
@@ -1997,7 +2010,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         <div className="rounded-2xl border border-white/10 bg-black/30 p-5 text-sm text-white/70">
                           <div className="mb-4 pb-3 border-b border-white/10">
                             <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
-                              <span className="text-red-400">??</span>
+                              <span className="text-red-400">구조</span>
                               분석된 대본 구조
                             </h3>
                             <p className="text-xs text-white/50">
@@ -2030,7 +2043,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       <div className="rounded-2xl border border-white/10 bg-black/30 p-5">
                         <div className="mb-4 pb-3 border-b border-white/10">
                           <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
-                            <span className="text-red-300">??</span>
+                            <span className="text-red-300">길이</span>
                             영상 길이 설정
                           </h3>
                           <p className="text-xs text-white/50">
@@ -2073,7 +2086,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       <div className="rounded-2xl border border-white/10 bg-black/30 p-5">
                         <div className="mb-4 pb-3 border-b border-white/10">
                           <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
-                            <span className="text-red-300">???</span>
+                            <span className="text-red-300">스타일</span>
                             대본 스타일 선택
                           </h3>
                           <p className="text-xs text-white/50">
@@ -2145,7 +2158,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         <div className="rounded-2xl border border-white/10 bg-black/30 p-5">
                           <div className="mb-3 pb-3 border-b border-white/10">
                             <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
-                              <span className="text-blue-400">??</span>
+                              <span className="text-blue-400">추천</span>
                               AI 추천 주제
                             </h3>
                             <p className="text-xs text-white/50">
@@ -2173,7 +2186,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                           {/* 직접 입력 칸 */}
                           <div className="space-y-2">
                             <label className="text-sm font-semibold text-white/80 flex items-center gap-2">
-                              <span>??</span>
+                              <span>입력</span>
                               또는 직접 주제 입력
                             </label>
                             <div className="flex gap-2">
@@ -2204,7 +2217,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         <div className="rounded-2xl border border-white/10 bg-black/30 p-5">
                           <div className="mb-4 pb-3 border-b border-white/10">
                             <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
-                              <span className="text-blue-400">??</span>
+                              <span className="text-blue-400">추천</span>
                               AI 추천 주제
                             </h3>
                             <p className="text-xs text-white/50">
@@ -2231,7 +2244,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                           {/* 직접 입력 칸 */}
                           <div className="space-y-2 pt-4 border-t border-white/10">
                             <label className="text-sm font-semibold text-white/80 flex items-center gap-2">
-                              <span>??</span>
+                              <span>입력</span>
                               또는 직접 주제 입력
                             </label>
                             <div className="flex gap-2">
@@ -2258,7 +2271,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                             )}
                             {selectedTopic && !scriptIdeas.includes(selectedTopic) && (
                               <p className="text-xs text-red-300 flex items-center gap-1">
-                                <span>?</span>
+                                <span>참고</span>
                                 직접 입력한 주제로 대본을 작성합니다
                               </p>
                             )}
@@ -2301,7 +2314,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         <div className="mb-4 pb-3 border-b border-white/10 flex items-start justify-between gap-3">
                           <div>
                             <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
-                              <span className="text-green-400">?</span>
+                              <span className="text-green-400">완료</span>
                               생성된 대본
                             </h3>
                             <p className="text-xs text-white/50">
@@ -2345,8 +2358,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                 >
                                   <div className="flex items-center justify-between mb-3 gap-2">
                                     <h4 className="text-base font-bold text-white flex items-center gap-2">
-                                      <span className="text-red-400">??</span>
-                                      챕터 {index + 1}. {chapter.title}
+                                      <span className="text-red-400">챕터</span>
+                                      챕터 {index + 1}. {sanitizeCorruptedText(chapter.title, `챕터 ${index + 1}`)}
                                     </h4>
                                     <div className="flex items-center gap-2">
                                       <button
@@ -2521,7 +2534,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                 className="rounded-xl border border-white/10 bg-black/30 p-4"
                               >
                                 <h4 className="text-base font-bold text-white mb-2 flex items-center gap-2">
-                                  <span className="text-red-400">??</span>
+                                  <span className="text-red-400">단계</span>
                                   {stage.stage}
                                 </h4>
                                 <p className="text-sm text-white/60 mb-3 pb-3 border-b border-white/10">
@@ -2592,7 +2605,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                           }}
                           className="mt-3 inline-flex items-center gap-2 rounded-full border border-red-400/60 bg-red-500/20 px-4 py-2 text-sm font-semibold text-red-100 hover:bg-red-500/30 transition"
                         >
-                          ? 더 많은 TTS
+                          더 많은 TTS
                         </button>
                       </div>
                     </div>
@@ -2605,14 +2618,14 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       onChange={(e) => applyVoiceToAllChapters(e.target.value)}
                     >
                       <option value="" disabled>목소리 선택</option>
-                      <optgroup label="?? 남성">
+                      <optgroup label="남성">
                         {allVoiceOptions.filter(v => v.category === "남성" || (v.category === "추천" && ["민준", "지훈", "도현", "태양", "준서", "동현", "상호", "재훈", "성민"].includes(v.name))).map((voice) => (
                           <option key={voice.name} value={voice.name}>
                             {voice.name} · {voice.label}
                           </option>
                         ))}
                       </optgroup>
-                      <optgroup label="?? 여성">
+                      <optgroup label="여성">
                         {allVoiceOptions.filter(v => v.category === "여성" || (v.category === "추천" && ["서연", "유나", "혜진"].includes(v.name))).map((voice) => (
                           <option key={voice.name} value={voice.name}>
                             {voice.name} · {voice.label}
@@ -2625,8 +2638,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     <div key={index} className="relative rounded-2xl border border-white/10 bg-black/30 p-5 overflow-visible">
                       <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/10">
                         <h4 className="text-lg font-bold text-white flex items-center gap-2">
-                          <span className="text-red-400">???</span>
-                          {chapter.title}
+                          <span className="text-red-400">챕터</span>
+                          {sanitizeCorruptedText(chapter.title, `챕터 ${index + 1}`)}
                         </h4>
                         <div className="flex items-center gap-2">
                           <span className="text-xs text-orange-400 font-semibold mr-3">
@@ -2703,7 +2716,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                             }}
                             className="px-4 py-2 rounded-lg border border-red-400/50 bg-red-500/10 text-red-300 text-sm font-medium hover:bg-red-500/20 transition-all"
                           >
-                            ? 더 많은 TTS
+                            더 많은 TTS
                           </button>
                         </div>
                       </div>
@@ -2764,7 +2777,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                             }}
                             className="px-4 py-2 rounded-full bg-gradient-to-r from-red-600 to-red-500 text-white text-sm font-semibold shadow-lg hover:from-red-500 hover:to-red-400 transition-all"
                           >
-                            ? 음성 생성
+                            음성 생성
                           </button>
                         </div>
                       </div>
@@ -2776,8 +2789,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                           <div className="absolute top-0 right-0 h-full w-[90%] max-w-[450px] bg-gradient-to-br from-zinc-900 to-zinc-800 border-l border-white/20 shadow-2xl overflow-y-auto pointer-events-auto animate-slide-in-right" onClick={(e) => e.stopPropagation()}>
                             <div className="sticky top-0 bg-gradient-to-br from-zinc-900 to-zinc-800 border-b border-white/10 px-6 py-4 flex items-center justify-between z-10">
                               <div>
-                                <h3 className="text-xl font-bold text-white">??? AI 보이스 선택</h3>
-                                <p className="text-xs text-white/60 mt-1">{chapter.title}</p>
+                                <h3 className="text-xl font-bold text-white">AI 보이스 선택</h3>
+                                <p className="text-xs text-white/60 mt-1">{sanitizeCorruptedText(chapter.title, `챕터 ${index + 1}`)}</p>
                               </div>
                               <button
                                 onClick={() => setShowVoiceModal(false)}
@@ -2793,7 +2806,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                               {/* 추천 목소리 */}
                               <div className="mb-6">
                                 <h4 className="text-base font-bold text-white mb-3 flex items-center gap-2">
-                                  <span className="text-yellow-400">?</span>
+                                  <span className="text-yellow-400">추천</span>
                                   추천 목소리
                                 </h4>
                                 <div className="space-y-2">
@@ -2845,7 +2858,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                               {/* 남성 목소리 */}
                               <div className="mb-6">
                                 <h4 className="text-base font-bold text-white mb-3 flex items-center gap-2">
-                                  <span className="text-blue-400">??</span>
+                                  <span className="text-blue-400">남성</span>
                                   남성 목소리
                                 </h4>
                                 <div className="space-y-2">
@@ -2897,7 +2910,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                               {/* 여성 목소리 */}
                               <div>
                                 <h4 className="text-base font-bold text-white mb-3 flex items-center gap-2">
-                                  <span className="text-pink-400">??</span>
+                                  <span className="text-pink-400">여성</span>
                                   여성 목소리
                                 </h4>
                                 <div className="space-y-2">
@@ -2986,10 +2999,10 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
           "웹툰",
         ] as CharacterStyle[];
         const characterStyleDescriptions: Record<CharacterStyle, string> = {
-          "실사 극대화": "?? 초현실적이고 사진 같은 퀄리티의 실사 인물",
-          애니메이션: "?? 밝고 화려한 애니메이션 스타일 캐릭터",
-          동물: "?? 귀여운 동물 캐릭터로 변환",
-          웹툰: "??? 깨끗한 선과 표현력 풍부한 한국 웹툰 스타일",
+          "실사 극대화": "초현실적이고 사진 같은 퀄리티의 실사 인물",
+          애니메이션: "밝고 화려한 애니메이션 스타일 캐릭터",
+          동물: "귀여운 동물 캐릭터로 변환",
+          웹툰: "깨끗한 선과 표현력이 풍부한 한국 웹툰 스타일",
           custom: "",
         };
 
@@ -3012,22 +3025,22 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
           "조선시대",
         ] as BackgroundStyle[];
         const backgroundStyleDescriptions: Record<BackgroundStyle, string> = {
-          "감성 멜로": "?? 로맨틱하고 감성적인 따뜻한 분위기",
-          서부극: "?? 거친 사막과 카우보이 배경",
-          "공포 스릴러": "?? 미스터리하고 긴장감 있는 분위기",
-          사이버펑크: "?? 네온사인 가득한 미래 도시",
-          판타지: "???♂? 마법적이고 신비로운 중세 배경",
-          미니멀: "? 깔끔하고 단순한 중성톤 배경",
-          빈티지: "??? 클래식하고 향수를 자아내는 배경",
-          모던: "??? 현대적이고 세련된 도시 배경",
-          "1980년대": "?? 80년대 레트로 패션과 분위기",
-          "2000년대": "?? 2000년대 초반 감성과 스타일",
-          먹방: "?? 맛있는 음식이 가득한 먹방 분위기",
-          귀여움: "?? 귀엽고 사랑스러운 파스텔 감성",
-          AI: "?? 미래지향적인 하이테크 AI 분위기",
-          괴이함: "?? 독특하고 초현실적인 기묘한 분위기",
-          창의적인: "? 상상력 넘치는 독창적인 예술 분위기",
-          조선시대: "?? 한옥과 전통 가옥, 따뜻하고 감성적인 조선 분위기",
+          "감성 멜로": "로맨틱하고 감성적인 따뜻한 분위기",
+          서부극: "거친 사막과 카우보이 배경",
+          "공포 스릴러": "미스터리하고 긴장감 있는 분위기",
+          사이버펑크: "네온사인이 가득한 미래 도시",
+          판타지: "마법적이고 신비로운 중세 배경",
+          미니멀: "깔끔하고 단순한 중성 톤 배경",
+          빈티지: "클래식하고 향수를 자아내는 배경",
+          모던: "현대적이고 세련된 도시 배경",
+          "1980년대": "80년대 레트로 패션과 분위기",
+          "2000년대": "2000년대 초반 감성과 스타일",
+          먹방: "맛있는 음식이 가득한 먹방 분위기",
+          귀여움: "귀엽고 사랑스러운 파스텔 감성",
+          AI: "미래지향적인 하이테크 AI 분위기",
+          괴이함: "독특하고 초현실적인 기묘한 분위기",
+          창의적인: "상상력 넘치는 독창적인 예술 분위기",
+          조선시대: "한옥과 전통 가옥이 어우러진 조선 분위기",
           custom: "",
         };
 
@@ -3035,7 +3048,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
           return (
             <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
               <div className="rounded-2xl border border-white/10 bg-black/30 p-8 text-center">
-                <div className="text-4xl mb-4">??</div>
+                <div className="text-4xl mb-4">안내</div>
                 <h3 className="text-xl font-bold text-white mb-2">대본이 없습니다</h3>
                 <p className="text-white/60">먼저 대본 생성 단계에서 대본을 작성해주세요.</p>
                 <button
@@ -3054,7 +3067,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
             {/* 이미지 설정 */}
             <div className="mb-6 rounded-2xl border border-white/10 bg-black/30 p-6">
               <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                <span className="text-2xl">??</span>
+                <span className="text-2xl">설정</span>
                 이미지 생성 설정
               </h3>
 
@@ -3077,7 +3090,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
               {/* 이미지 스타일 선택 */}
               <div className="mt-8 bg-black/30 border border-white/10 rounded-xl p-[clamp(1rem,2vw,1.4rem)]">
                 <h3 className="text-red-300 font-medium mb-6 flex items-center text-xl">
-                  <span className="mr-2">??</span>
+                  <span className="mr-2">선택</span>
                   이미지 스타일 선택
                 </h3>
 
@@ -3085,7 +3098,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 <div className="mb-6">
                   <div className="flex items-center justify-between mb-3">
                     <h4 className="text-red-200 font-medium flex items-center text-base">
-                      <span className="mr-2">??</span>
+                      <span className="mr-2">인물</span>
                       인물 스타일
                     </h4>
                     <button
@@ -3139,7 +3152,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 <div className="mb-6">
                   <div className="flex items-center justify-between mb-3">
                     <h4 className="text-red-200 font-medium flex items-center text-base">
-                      <span className="mr-2">??</span>
+                      <span className="mr-2">배경</span>
                       배경/분위기 스타일
                     </h4>
                     <button
@@ -3203,7 +3216,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     }}
                     className="rounded bg-white/10 border-white/30 text-red-500 focus:ring-offset-0 focus:ring-red-500"
                   />
-                  ?? 일관성 유지
+                  일관성 유지
                 </label>
                 <p className="text-xs text-white/50">
                   {useConsistentSeed
@@ -3227,7 +3240,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   generatedPlan.chapters.map((chapter, chapterIndex) => (
                     <div key={chapterIndex} className="mt-8">
                       <h4 className="text-xl font-bold text-white mb-4">
-                        챕터 {chapterIndex + 1}: {chapter.title}
+                        챕터 {chapterIndex + 1}: {sanitizeCorruptedText(chapter.title, `챕터 ${chapterIndex + 1}`)}
                       </h4>
                       {chapter.script?.map((line, lineIndex) => (
                         <div key={lineIndex} className="bg-black/30 p-4 rounded-lg border border-white/10 mb-4">
@@ -3238,7 +3251,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                             {line.line}
                           </p>
                           <button
-                            onClick={() => handleGenerateImage(chapterIndex, chapter.title || '', line.imagePrompt || line.line)}
+                            onClick={() => handleGenerateImage(chapterIndex, sanitizeCorruptedText(chapter.title, `챕터 ${chapterIndex + 1}`), line.imagePrompt || line.line)}
                             disabled={generatingImageChapter === chapterIndex}
                             className="mt-2 w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg disabled:opacity-50"
                           >
@@ -3259,14 +3272,14 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   chapterScripts.map((chapter, chapterIndex) => (
                     <div key={chapterIndex} className="mt-8">
                       <h4 className="text-xl font-bold text-white mb-4">
-                        챕터 {chapterIndex + 1}: {chapter.title}
+                        챕터 {chapterIndex + 1}: {sanitizeCorruptedText(chapter.title, `챕터 ${chapterIndex + 1}`)}
                       </h4>
                       <div className="bg-black/30 p-4 rounded-lg border border-white/10 mb-4">
                         <p className="text-sm text-white/70 mb-2 whitespace-pre-wrap">
                           {chapter.content}
                         </p>
                         <button
-                          onClick={() => handleGenerateImage(chapterIndex, chapter.title, chapter.content.substring(0, 300))}
+                          onClick={() => handleGenerateImage(chapterIndex, sanitizeCorruptedText(chapter.title, `챕터 ${chapterIndex + 1}`), chapter.content.substring(0, 300))}
                           disabled={generatingImageChapter === chapterIndex}
                           className="mt-2 w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg disabled:opacity-50"
                         >
@@ -3394,10 +3407,10 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
             <div className="rounded-[clamp(1rem,2vw,1.4rem)] border border-white/20 bg-black/40 p-4">
               <p className="text-sm font-semibold text-white/60">영상 스타일</p>
               <div className="mt-4 space-y-2 text-sm text-white/70">
-                <p>?? 전체 시간: {renderDuration}초</p>
-                <p>?? 화면 비율: {renderRatio}</p>
-                <p>?? FPS: {renderFps}</p>
-                <p>?? 이미지 컷: {imagePreviews.length || imageCount}개</p>
+                <p>전체 시간: {renderDuration}초</p>
+                <p>화면 비율: {renderRatio}</p>
+                <p>FPS: {renderFps}</p>
+                <p>이미지 컷: {imagePreviews.length || imageCount}개</p>
               </div>
               <p className="mt-4 text-sm text-white/40">
                 템포나 분위기를 바꾸고 싶다면 상단 스텝으로 돌아가 수정하면 됩니다.
@@ -3628,4 +3641,5 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 };
 
 export default VideoPage;
+
 
