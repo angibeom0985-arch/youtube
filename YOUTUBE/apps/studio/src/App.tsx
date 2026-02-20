@@ -109,6 +109,7 @@ type AppProps = {
 
 const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
   const navigate = useNavigate();
+  const scriptFromPath = allowDevtools ? "/debug/script" : "/script";
 
   // Auth state
   const [user, setUser] = useState<User | null>(null);
@@ -154,7 +155,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
           alert("할인 쿠폰 계정은 마이페이지에서 Gemini API 키를 먼저 등록해야 합니다.");
           navigate("/mypage", {
             replace: true,
-            state: { from: "/script", reason: "coupon_api_key_required" },
+            state: { from: scriptFromPath, reason: "coupon_api_key_required" },
           });
         }
       } catch {
@@ -163,7 +164,7 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
     };
 
     checkCouponApiRequirement();
-  }, [user?.id, navigate]);
+  }, [user?.id, navigate, scriptFromPath]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -239,9 +240,9 @@ const App: React.FC<AppProps> = ({ allowDevtools = false }) => {
     if (!error.includes("할인 쿠폰 모드")) return;
     navigate("/mypage", {
       replace: true,
-      state: { from: "/script", reason: "coupon_api_key_required" },
+      state: { from: scriptFromPath, reason: "coupon_api_key_required" },
     });
-  }, [couponBypassCredits, error, navigate]);
+  }, [couponBypassCredits, error, navigate, scriptFromPath]);
 
   const handleAdBlockDetected = () => {
     if (noAds) return;

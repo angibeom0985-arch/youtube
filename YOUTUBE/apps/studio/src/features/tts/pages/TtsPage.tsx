@@ -8,7 +8,7 @@ import HomeBackButton from "@/components/HomeBackButton";
 import type { User } from "@supabase/supabase-js";
 import ErrorNotice from "@/components/ErrorNotice";
 import { ProgressTracker } from "@/components/ProgressIndicator";
-import { CREDIT_COSTS, formatCreditButtonLabel, formatCreditPer10CharsButtonLabel } from "@/constants/creditCosts";
+import { CREDIT_COSTS, withCreditLabel, withCreditPer10CharsLabel } from "@/constants/creditCosts";
 
 const STORAGE_KEYS = {
   text: "tts_text",
@@ -33,6 +33,18 @@ const getStoredNumber = (key: string, fallback: number): number => {
   const value = getStoredString(key, "");
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
+};
+
+const setStoredValue = (key: string, value: string): void => {
+  try {
+    if (!value) {
+      localStorage.removeItem(key);
+      return;
+    }
+    localStorage.setItem(key, value);
+  } catch (error) {
+    console.error("TTS localStorage 저장 실패:", error);
+  }
 };
 
 
@@ -103,8 +115,15 @@ const voiceOptions = [
   { value: "zh-CN-Neural2-C", label: "Yunxi", gender: "male", type: "Neural2", lang: "zh" },
 ];
 
-const TtsPage: React.FC = () => {
+interface TtsPageProps {
+  basePath?: string;
+}
+
+const TtsPage: React.FC<TtsPageProps> = ({ basePath = "/tts" }) => {
   const navigate = useNavigate();
+  const normalizedBasePath =
+    basePath && basePath !== "/" ? basePath.replace(/\/$/, "") : "";
+  const ttsFromPath = `${normalizedBasePath || "/tts"}`;
   const [user, setUser] = useState<User | null>(null);
   const [isAuthChecking, setIsAuthChecking] = useState(true);
   const [text, setText] = useState(() => getStoredString(STORAGE_KEYS.text));
@@ -183,7 +202,7 @@ const TtsPage: React.FC = () => {
           alert("할인 쿠폰 계정은 마이페이지에서 Google Cloud API 키를 먼저 등록해야 합니다.");
           navigate("/mypage", {
             replace: true,
-            state: { from: "/tts", reason: "coupon_api_key_required" },
+            state: { from: ttsFromPath, reason: "coupon_api_key_required" },
           });
         }
       } catch {
@@ -193,7 +212,7 @@ const TtsPage: React.FC = () => {
     };
 
     loadUserKeyStatus();
-  }, [user?.id, navigate]);
+  }, [user?.id, navigate, ttsFromPath]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -315,7 +334,7 @@ const TtsPage: React.FC = () => {
       alert(message);
       navigate("/mypage", {
         replace: true,
-        state: { from: "/tts", reason: "coupon_api_key_required" },
+        state: { from: ttsFromPath, reason: "coupon_api_key_required" },
       });
       return;
     }
@@ -384,7 +403,7 @@ const TtsPage: React.FC = () => {
       if (String(message).includes("마이페이지") || String(message).toLowerCase().includes("coupon_user_key_required")) {
         navigate("/mypage", {
           replace: true,
-          state: { from: "/tts", reason: "coupon_api_key_required" },
+          state: { from: ttsFromPath, reason: "coupon_api_key_required" },
         });
       }
       setError(message);
@@ -581,7 +600,7 @@ const TtsPage: React.FC = () => {
                       className="px-4 py-2 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-100 rounded-xl text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed self-start"
                       title="?蹂몄쓣 遺꾩꽍?섏뿬 ?곌린 ???먮룞 ?꾩꽦"
                     >
-                      {generatingPrompt ? "분석 중..." : `자동 완성 (${formatCreditButtonLabel(CREDIT_COSTS.GENERATE_IDEAS)})`}
+                      {generatingPrompt ? "분석 중..." : withCreditLabel("자동 완성", CREDIT_COSTS.GENERATE_IDEAS, { couponBypass: couponBypassCredits })}
                     </button>
                   </div>
                   <div className="flex items-start gap-2 mt-3 text-xs text-emerald-400/70">
@@ -609,7 +628,7 @@ const TtsPage: React.FC = () => {
                     className={`rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2 text-sm font-bold text-white shadow-[0_10px_24px_rgba(16,185,129,0.25)] transition-all hover:from-emerald-500 hover:to-teal-500 disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-2`}
                   >
                     <FiMic size={16} />
-                    {isGenerating ? "생성 중..." : `음성 생성 (${formatCreditPer10CharsButtonLabel(CREDIT_COSTS.TTS_PER_10_CHARS)})`}
+                    {isGenerating ? "생성 중..." : withCreditPer10CharsLabel("음성 생성", CREDIT_COSTS.TTS_PER_10_CHARS, { couponBypass: couponBypassCredits })}
                   </button>
                 </div>
               </div>

@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from "react";
-import App from "@/App";
-import ImageApp from "@/features/image/App";
-import ImageErrorBoundary from "@/features/image/components/ErrorBoundary";
-import VideoPage from "@/features/script/pages/VideoPage";
-import HomePage from "@/features/home/pages/HomePage";
 import { FiEye, FiEyeOff, FiHome } from "react-icons/fi";
+import {
+  HomeScreen,
+  ImageScreen,
+  ScriptScreen,
+  TtsScreen,
+  VideoScreen,
+} from "@/features/shared/StudioScreens";
 
 type LoginState = "checking" | "loggedOut" | "loggedIn";
-type DebugMode = "home" | "script" | "image" | "video";
+type DebugMode = "home" | "script" | "image" | "video" | "tts";
 
 interface DebugPageProps {
   mode: DebugMode;
@@ -89,7 +91,7 @@ const DebugPage: React.FC<DebugPageProps> = ({ mode }) => {
         <div className="w-full max-w-md bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-8">
           <h1 className="text-2xl font-bold mb-6">Debug Login</h1>
                   {error && (
-                    <div className="mb-4 rounded-lg border border-orange-600 bg-orange-950/60 p-3 text-sm text-orange-200">
+                    <div className="mb-4 rounded-lg border border-red-600 bg-red-950/60 p-3 text-sm text-red-200">
                       {error}
                     </div>
                   )}          <form className="space-y-4" onSubmit={handleLogin}>
@@ -125,14 +127,14 @@ const DebugPage: React.FC<DebugPageProps> = ({ mode }) => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-lg bg-orange-600 py-2 font-semibold hover:bg-orange-700 disabled:opacity-50"
+              className="w-full rounded-lg bg-red-600 py-2 font-semibold hover:bg-red-700 disabled:opacity-50"
             >
               {loading ? "Signing in..." : "Sign in"}
             </button>
           </form>
           <a
             href="/"
-            className="mt-4 inline-flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300"
+            className="mt-4 inline-flex items-center gap-2 text-sm text-red-400 hover:text-red-300"
           >
             <FiHome size={16} />
             Back to home
@@ -143,22 +145,22 @@ const DebugPage: React.FC<DebugPageProps> = ({ mode }) => {
   }
 
   if (mode === "image") {
-    return (
-      <ImageErrorBoundary>
-        <ImageApp basePath="/debug/image" />
-      </ImageErrorBoundary>
-    );
+    return <ImageScreen mode="debug" />;
   }
 
   if (mode === "home") {
-    return <HomePage basePath="/debug" allowUnauthedNavigation />;
+    return <HomeScreen mode="debug" />;
   }
 
   if (mode === "video") {
-    return <VideoPage basePath="/debug" />;
+    return <VideoScreen mode="debug" />;
   }
 
-  return <App allowDevtools />;
+  if (mode === "tts") {
+    return <TtsScreen mode="debug" />;
+  }
+
+  return <ScriptScreen mode="debug" />;
 };
 
 export default DebugPage;
