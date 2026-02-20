@@ -1009,7 +1009,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         .join(" ")
         .replace(/\s+/g, " ")
         .trim()
-        .slice(0, 1200);
+        .slice(0, 350);
 
       if (!previewText) {
         throw new Error("음성으로 변환할 텍스트가 없습니다.");

@@ -111,6 +111,8 @@ const synthesizeWithApiKey = async (params: {
   pitch: number;
 }): Promise<string> => {
   const endpoint = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${encodeURIComponent(params.apiKey)}`;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
   const body = {
     input: params.ssml ? { ssml: params.ssml } : { text: params.text },
     voice: { languageCode: params.languageCode, name: params.voice },
@@ -127,7 +129,9 @@ const synthesizeWithApiKey = async (params: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(body),
+    signal: controller.signal,
   });
+  clearTimeout(timeout);
 
   const payload = await response.json().catch(() => ({}));
 
@@ -157,30 +161,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  const token = getBearerToken(req);
-  if (!token) {
-    res.status(401).json({ message: "auth_required" });
-    return;
-  }
-
-  const auth = await getSupabaseUser(token);
-  const userId = auth.user?.id ?? null;
-  if (!userId || !supabaseAdmin) {
-    res.status(401).json({ message: "auth_required" });
-    return;
-  }
-
-  let body: any = req.body;
-  if (typeof body === "string") {
-    try {
-      body = JSON.parse(body);
-    } catch {
-      res.status(400).send("invalid_json");
+  try {
+    const token = getBearerToken(req);
+    if (!token) {
+      res.status(401).json({ message: "auth_required" });
       return;
     }
-  }
 
-  try {
+    const auth = await getSupabaseUser(token);
+    const userId = auth.user?.id ?? null;
+    if (!userId || !supabaseAdmin) {
+      res.status(401).json({ message: "auth_required" });
+      return;
+    }
+
+    let body: any = req.body;
+    if (typeof body === "string") {
+      try {
+        body = JSON.parse(body);
+      } catch {
+        res.status(400).send("invalid_json");
+        return;
+      }
+    }
+
     const text = typeof body?.text === "string" ? body.text.trim() : "";
     const ssml = typeof body?.ssml === "string" ? body.ssml.trim() : "";
     const voice = typeof body?.voice === "string" ? body.voice : "ko-KR-Standard-A";
@@ -275,7 +279,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return;
     }
 
-    await recordUsageEvent(req, "tts", clientFingerprint);
+    recordUsageEvent(req, "tts", clientFingerprint).catch((usageErr) => {
+      console.error("[api/tts] usage event failed:", usageErr);
+    });
 
     const languageMatch = voice.match(/^[a-z]{2}-[A-Z]{2}/);
     const languageCode = languageMatch ? languageMatch[0] : "ko-KR";
@@ -291,14 +297,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const audioContent =
       effectiveCredential.kind === "serviceAccount"
-        ? await synthesizeWithServiceAccount({ ...common, credentials: effectiveCredential.credentials })
+        ? await Promise.race<string>([
+            synthesizeWithServiceAccount({ ...common, credentials: effectiveCredential.credentials }),
+            new Promise<string>((_, reject) =>
+              setTimeout(() => reject(new Error("tts_upstream_timeout")), 15000)
+            ),
+          ])
         : await synthesizeWithApiKey({ ...common, apiKey: effectiveCredential.apiKey });
 
     res.status(200).json({ audioContent, billing });
   } catch (error: any) {
     console.error("[api/tts] error:", error);
+    const rawMessage = String(error?.message || "server_error");
+    const message =
+      rawMessage.includes("aborted") || rawMessage.includes("timeout")
+        ? "tts_upstream_timeout"
+        : rawMessage;
     res.status(500).json({
-      message: error?.message || "server_error",
+      message,
       details: error?.stack ? String(error.stack).slice(0, 1200) : null,
     });
   }
