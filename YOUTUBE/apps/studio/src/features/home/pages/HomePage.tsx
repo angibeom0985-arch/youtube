@@ -249,7 +249,7 @@ const HomePage: React.FC<HomePageProps> = ({
               <div className="flex flex-col items-start gap-3 text-sm lg:items-end lg:text-right">
                 <span className="rounded-full bg-black/40 px-4 py-2 font-semibold text-slate-200">대본 → 이미지 → 영상 → 편집</span>
                 <span className="inline-flex w-fit max-w-full items-center overflow-hidden text-ellipsis whitespace-nowrap rounded-full px-5 py-2 text-sm font-black text-white shadow-[0_0_18px_rgba(185,28,28,0.55)] bg-red-700 group-hover:bg-red-600 transition-colors">
-                  영상 제작 시작 -&gt;
+                  영상 제작을 시작해요 -&gt;
                 </span>
               </div>
             </div>
@@ -279,7 +279,7 @@ const HomePage: React.FC<HomePageProps> = ({
                 className="inline-flex w-fit max-w-full items-center overflow-hidden text-ellipsis whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-black text-white shadow-sm"
                 style={{ backgroundColor: "var(--tone-image-purple, #a855f7)" }}
               >
-                영상 발굴 시작 -&gt;
+                영상 발굴을 시작해요 -&gt;
               </span>
             </div>
           </a>
@@ -303,7 +303,7 @@ const HomePage: React.FC<HomePageProps> = ({
                 className="inline-flex w-fit max-w-full items-center overflow-hidden text-ellipsis whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-black text-white shadow-sm"
                 style={{ backgroundColor: "var(--tone-image-orange, #ea580c)" }}
               >
-                대본 생성 시작 -&gt;
+                대본 생성을 시작해요 -&gt;
               </span>
             </div>
           </a>
@@ -327,7 +327,7 @@ const HomePage: React.FC<HomePageProps> = ({
                 className="inline-flex w-fit max-w-full items-center overflow-hidden text-ellipsis whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-black text-white shadow-sm"
                 style={{ backgroundColor: "var(--tone-image-blue, #2563eb)" }}
               >
-                이미지 생성 시작 -&gt;
+                이미지 생성을 시작해요 -&gt;
               </span>
             </div>
           </a>
@@ -351,7 +351,7 @@ const HomePage: React.FC<HomePageProps> = ({
                 className="inline-flex w-fit max-w-full items-center overflow-hidden text-ellipsis whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-black text-white shadow-sm"
                 style={{ backgroundColor: "var(--tone-image-green, #16a34a)" }}
               >
-                TTS 생성 시작 -&gt;
+                TTS 생성을 시작해요 -&gt;
               </span>
             </div>
           </a>
