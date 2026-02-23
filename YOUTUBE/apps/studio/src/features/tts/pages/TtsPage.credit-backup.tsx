@@ -1,5 +1,5 @@
-﻿import React, { useEffect, useState, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useEffect, useState, useRef } from "react";
+import { Link } from "react-router-dom";
 import { generateSsml, generateActingPrompt } from "@/services/geminiService";
 import { FiPlay, FiPause, FiMic, FiSliders, FiCpu, FiInfo, FiUser, FiFileText, FiDownload } from "react-icons/fi";
 import { supabase } from "@/services/supabase";
@@ -7,8 +7,8 @@ import UserCreditToolbar from "@/components/UserCreditToolbar";
 import HomeBackButton from "@/components/HomeBackButton";
 import type { User } from "@supabase/supabase-js";
 import ErrorNotice from "@/components/ErrorNotice";
+import ApiKeyInput from "@/components/ApiKeyInput";
 import { ProgressTracker } from "@/components/ProgressIndicator";
-import { CREDIT_COSTS, withCreditLabel, withCreditPer10CharsLabel } from "@/constants/creditCosts";
 
 const STORAGE_KEYS = {
   text: "tts_text",
@@ -37,93 +37,44 @@ const getStoredNumber = (key: string, fallback: number): number => {
 
 const setStoredValue = (key: string, value: string): void => {
   try {
-    if (!value) {
-      localStorage.removeItem(key);
-      return;
-    }
     localStorage.setItem(key, value);
   } catch (error) {
-    console.error("TTS localStorage 저장 실패:", error);
+    console.error("TTS 로컬 저장값을 저장하지 못했습니다:", error);
   }
 };
 
-
-const hasGoogleCredential = (raw: unknown): boolean => {
-  if (!raw) return false;
-
-  if (typeof raw === "string") {
-    const trimmed = raw.trim();
-    if (!trimmed) return false;
-    if (!trimmed.startsWith("{")) return true;
-
-    try {
-      const parsed = JSON.parse(trimmed) as {
-        apiKey?: unknown;
-        client_email?: unknown;
-        private_key?: unknown;
-      };
-      if (typeof parsed.apiKey === "string" && parsed.apiKey.trim()) return true;
-      return typeof parsed.client_email === "string" && typeof parsed.private_key === "string";
-    } catch {
-      return false;
-    }
-  }
-
-  if (typeof raw === "object") {
-    const obj = raw as {
-      apiKey?: unknown;
-      client_email?: unknown;
-      private_key?: unknown;
-    };
-    if (typeof obj.apiKey === "string" && obj.apiKey.trim()) return true;
-    return typeof obj.client_email === "string" && typeof obj.private_key === "string";
-  }
-
-  return false;
-};
-
-const toTtsErrorMessage = (raw: string): string => {
-  const code = (raw || "").trim().toLowerCase();
-  if (!code) return "TTS 요청에 실패했습니다.";
-  if (code.includes("auth_required")) return "로그인이 필요합니다.";
-  if (code.includes("missing_api_key")) {
-    return "서버 Google API 키가 설정되지 않았습니다. 관리자에게 문의해 주세요.";
-  }
-  if (code.includes("credit_limit")) {
-    return "크레딧이 부족합니다.";
-  }
-  if (code.includes("coupon_user_key_required")) {
-    return "할인 쿠폰 모드에서는 마이페이지에 본인 Google Cloud API 키를 먼저 등록해야 합니다.";
-  }
-  if (code.includes("usage_limit")) return "사용량 제한에 도달했습니다. 잠시 후 다시 시도해 주세요.";
-  return raw;
-};
-
-// Voice presets for Google Cloud TTS.
+// 목소리 옵션 데이터 확장 (Google Cloud TTS 지원 음성들)
 const voiceOptions = [
-  { value: "ko-KR-Standard-A", label: "Jiyoon", gender: "female", type: "Standard", lang: "ko" },
-  { value: "ko-KR-Wavenet-A", label: "Yujin", gender: "female", type: "Wavenet", lang: "ko" },
-  { value: "ko-KR-Neural2-A", label: "Jisoo", gender: "female", type: "Neural2", lang: "ko" },
-  { value: "ko-KR-Standard-C", label: "Minwoo", gender: "male", type: "Standard", lang: "ko" },
-  { value: "ko-KR-Wavenet-C", label: "Junho", gender: "male", type: "Wavenet", lang: "ko" },
-  { value: "ko-KR-Neural2-C", label: "Minhyuk", gender: "male", type: "Neural2", lang: "ko" },
-  { value: "en-US-Neural2-F", label: "Sarah", gender: "female", type: "Neural2", lang: "en" },
-  { value: "en-US-Neural2-D", label: "John", gender: "male", type: "Neural2", lang: "en" },
-  { value: "ja-JP-Neural2-B", label: "Mayu", gender: "female", type: "Neural2", lang: "ja" },
-  { value: "ja-JP-Neural2-D", label: "Keita", gender: "male", type: "Neural2", lang: "ja" },
-  { value: "zh-CN-Neural2-A", label: "Xiaoxiao", gender: "female", type: "Neural2", lang: "zh" },
-  { value: "zh-CN-Neural2-C", label: "Yunxi", gender: "male", type: "Neural2", lang: "zh" },
+  // --- 한국어 (KO) ---
+  { value: "ko-KR-Standard-A", label: "소연", gender: "female", type: "차분함", lang: "ko" },
+  { value: "ko-KR-Standard-B", label: "지민", gender: "female", type: "또렷함", lang: "ko" },
+  { value: "ko-KR-Standard-D", label: "다영", gender: "female", type: "발랄함", lang: "ko" },
+  { value: "ko-KR-Wavenet-A", label: "애진", gender: "female", type: "섬세함", lang: "ko" },
+  { value: "ko-KR-Wavenet-B", label: "유나", gender: "female", type: "부드러움", lang: "ko" },
+  { value: "ko-KR-Neural2-A", label: "지수", gender: "female", type: "고품질", lang: "ko" },
+  { value: "ko-KR-Neural2-B", label: "소윤", gender: "female", type: "밝음", lang: "ko" },
+  { value: "ko-KR-Standard-C", label: "민우", gender: "male", type: "중후함", lang: "ko" },
+  { value: "ko-KR-Wavenet-C", label: "준혁", gender: "male", type: "저음", lang: "ko" },
+  { value: "ko-KR-Wavenet-D", label: "지훈", gender: "male", type: "차분함", lang: "ko" },
+  { value: "ko-KR-Neural2-C", label: "민현", gender: "male", type: "고품질", lang: "ko" },
+
+  // --- 영어 (EN-US) ---
+  { value: "en-US-Neural2-F", label: "Sarah", gender: "female", type: "Professional", lang: "en" },
+  { value: "en-US-Neural2-H", label: "Emma", gender: "female", type: "Soft", lang: "en" },
+  { value: "en-US-Neural2-D", label: "John", gender: "male", type: "Bold", lang: "en" },
+  { value: "en-US-Neural2-J", label: "Michael", gender: "male", type: "Clear", lang: "en" },
+
+  // --- 일본어 (JA-JP) ---
+  { value: "ja-JP-Neural2-B", label: "Mayu", gender: "female", type: "Natural", lang: "ja" },
+  { value: "ja-JP-Neural2-C", label: "Nanami", gender: "female", type: "Cute", lang: "ja" },
+  { value: "ja-JP-Neural2-D", label: "Keita", gender: "male", type: "Cool", lang: "ja" },
+
+  // --- 중국어 (ZH-CN) ---
+  { value: "zh-CN-Neural2-A", label: "Xiaoxiao", gender: "female", type: "Friendly", lang: "zh" },
+  { value: "zh-CN-Neural2-C", label: "Yunxi", gender: "male", type: "Deep", lang: "zh" },
 ];
 
-interface TtsPageProps {
-  basePath?: string;
-}
-
-const TtsPage: React.FC<TtsPageProps> = ({ basePath = "/tts" }) => {
-  const navigate = useNavigate();
-  const normalizedBasePath =
-    basePath && basePath !== "/" ? basePath.replace(/\/$/, "") : "";
-  const ttsFromPath = `${normalizedBasePath || "/tts"}`;
+const TtsPage: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthChecking, setIsAuthChecking] = useState(true);
   const [text, setText] = useState(() => getStoredString(STORAGE_KEYS.text));
@@ -137,7 +88,7 @@ const TtsPage: React.FC<TtsPageProps> = ({ basePath = "/tts" }) => {
   const [actingPrompt, setActingPrompt] = useState(() => getStoredString(STORAGE_KEYS.prompt));
   const [audioSrc, setAudioSrc] = useState(() => {
     const stored = getStoredString(STORAGE_KEYS.audio);
-    // 로컬 스토리지 데이터가 너무 크면 성능 저하 가능성이 있어 무시합니다.
+    // 로컬 스토리지 데이터가 너무 크면 성능 저하 및 크래시 우려가 있으므로 초기화 제안 또는 무시
     if (stored.length > 5 * 1024 * 1024) {
       console.warn("TTS audio data too large, clearing storage.");
       return "";
@@ -149,16 +100,13 @@ const TtsPage: React.FC<TtsPageProps> = ({ basePath = "/tts" }) => {
   const [progressStep, setProgressStep] = useState("");
   const [ttsProgress, setTtsProgress] = useState({
     currentStep: 0,
-    steps: ["텍스트 준비", "AI 프롬프트 분석", "음성 생성", "완료"],
+    steps: ["텍스트 준비", "AI 연기 분석", "음성 생성", "완료"],
   });
   const [copyStatus, setCopyStatus] = useState("");
   const [previewAudio, setPreviewAudio] = useState<HTMLAudioElement | null>(null);
   const [playingPreview, setPlayingPreview] = useState<string | null>(null);
-  const previewCacheRef = useRef<Map<string, string>>(new Map());
   const [useAIActing, setUseAIActing] = useState(false); // AI 연기 모드 토글
   const [generatingPrompt, setGeneratingPrompt] = useState(false); // 프롬프트 생성 중
-  const [hasUserGoogleKey, setHasUserGoogleKey] = useState(false); // 사용자 키 등록 여부
-  const [couponBypassCredits, setCouponBypassCredits] = useState(false);
 
   // Auth
   useEffect(() => {
@@ -175,46 +123,6 @@ const TtsPage: React.FC<TtsPageProps> = ({ basePath = "/tts" }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  useEffect(() => {
-    const loadUserKeyStatus = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
-      if (!token) {
-        setHasUserGoogleKey(false);
-        return;
-      }
-
-      try {
-        const response = await fetch("/api/user/settings", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        if (!response.ok) {
-          setHasUserGoogleKey(false);
-          return;
-        }
-
-        const data = await response.json();
-        const hasKey = hasGoogleCredential(data?.google_credit_json);
-        const isCouponBypass = data?.coupon_bypass_credits === true;
-        setHasUserGoogleKey(hasKey);
-        setCouponBypassCredits(isCouponBypass);
-        if (isCouponBypass && !hasKey) {
-          alert("할인 쿠폰 계정은 마이페이지에서 Google Cloud API 키를 먼저 등록해야 합니다.");
-          navigate("/mypage", {
-            replace: true,
-            state: { from: ttsFromPath, reason: "coupon_api_key_required" },
-          });
-        }
-      } catch {
-        setHasUserGoogleKey(false);
-        setCouponBypassCredits(false);
-      }
-    };
-
-    loadUserKeyStatus();
-  }, [user?.id, navigate, ttsFromPath]);
-
   const handleLogout = async () => {
     await supabase.auth.signOut();
   };
@@ -228,7 +136,7 @@ const TtsPage: React.FC<TtsPageProps> = ({ basePath = "/tts" }) => {
   useEffect(() => setStoredValue(STORAGE_KEYS.pitch, String(pitch)), [pitch]);
 
   useEffect(() => {
-    // 오디오 소스가 너무 크면 저장하지 않습니다.
+    // 오디오 소스가 너무 크면 저장하지 않음
     if (audioSrc && audioSrc.length < 2 * 1024 * 1024) {
       setStoredValue(STORAGE_KEYS.audio, audioSrc);
     } else if (!audioSrc) {
@@ -266,16 +174,6 @@ const TtsPage: React.FC<TtsPageProps> = ({ basePath = "/tts" }) => {
     }
 
     try {
-      const cachedAudioSrc = previewCacheRef.current.get(voiceId);
-      if (cachedAudioSrc) {
-        const cachedAudio = new Audio(cachedAudioSrc);
-        cachedAudio.onended = () => setPlayingPreview(null);
-        await cachedAudio.play();
-        setPreviewAudio(cachedAudio);
-        setPlayingPreview(voiceId);
-        return;
-      }
-
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
       const headers: Record<string, string> = { "Content-Type": "application/json" };
@@ -286,25 +184,16 @@ const TtsPage: React.FC<TtsPageProps> = ({ basePath = "/tts" }) => {
         method: "POST",
         headers,
         body: JSON.stringify({
-          text: "안녕하세요, 유튜브 채널에 오신 것을 환영합니다. 오늘 영상 핵심만 빠르게 들려드릴게요.",
+          text: "안녕하세요, 미리듣기입니다.",
           voice: voiceId,
           speakingRate: 1,
           pitch: 0,
-          preview: true,
         }),
       });
 
-      if (!response.ok) {
-        const payload = await response.json().catch(() => null);
-        throw new Error(toTtsErrorMessage(payload?.message || "Preview failed"));
-      }
+      if (!response.ok) throw new Error("Preview failed");
       const data = await response.json();
-      if (data?.billing?.mode === "server_credit") {
-        window.dispatchEvent(new Event("creditRefresh"));
-      }
-      const audioSrc = `data:audio/mp3;base64,${data.audioContent}`;
-      previewCacheRef.current.set(voiceId, audioSrc);
-      const audio = new Audio(audioSrc);
+      const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
 
       audio.onended = () => setPlayingPreview(null);
       audio.play();
@@ -340,16 +229,6 @@ const TtsPage: React.FC<TtsPageProps> = ({ basePath = "/tts" }) => {
     }
     if (!text.trim()) {
       setError("변환할 텍스트를 입력해 주세요.");
-      return;
-    }
-    if (couponBypassCredits && !hasUserGoogleKey) {
-      const message = "할인 쿠폰 계정은 마이페이지에서 Google Cloud API 키를 먼저 등록해야 합니다.";
-      setError(message);
-      alert(message);
-      navigate("/mypage", {
-        replace: true,
-        state: { from: ttsFromPath, reason: "coupon_api_key_required" },
-      });
       return;
     }
 
@@ -397,7 +276,7 @@ const TtsPage: React.FC<TtsPageProps> = ({ basePath = "/tts" }) => {
       const payload = await response.json().catch(() => null);
 
       if (!response.ok) {
-        throw new Error(toTtsErrorMessage(payload?.message || "TTS 요청 실패"));
+        throw new Error(payload?.message || "TTS 요청 실패");
       }
 
       if (!payload?.audioContent) {
@@ -405,22 +284,12 @@ const TtsPage: React.FC<TtsPageProps> = ({ basePath = "/tts" }) => {
       }
 
       setAudioSrc(`data:audio/mp3;base64,${payload.audioContent}`);
-      if (payload?.billing?.mode === "server_credit") {
-        window.dispatchEvent(new Event("creditRefresh"));
-      }
       setProgressStep("completed");
       setTtsProgress(prev => ({ ...prev, currentStep: 3 }));
 
     } catch (err: any) {
       console.error("TTS 요청 실패:", err);
-      const message = err?.message || "알 수 없는 오류가 발생했습니다.";
-      if (String(message).includes("마이페이지") || String(message).toLowerCase().includes("coupon_user_key_required")) {
-        navigate("/mypage", {
-          replace: true,
-          state: { from: ttsFromPath, reason: "coupon_api_key_required" },
-        });
-      }
-      setError(message);
+      setError(err.message || "알 수 없는 오류가 발생했습니다.");
     } finally {
       setIsGenerating(false);
       setTtsProgress({ ...ttsProgress, currentStep: 0 });
@@ -446,7 +315,7 @@ const TtsPage: React.FC<TtsPageProps> = ({ basePath = "/tts" }) => {
 
       {/* Auth Status - Top Right */}
       <div className="absolute top-0 right-0 p-4 sm:p-6 flex gap-3 z-50 items-center">
-        <UserCreditToolbar user={user} onLogout={handleLogout} tone="emerald" showCredits={false} />
+        <UserCreditToolbar user={user} onLogout={handleLogout} tone="emerald" />
       </div>
       <div className="absolute top-0 left-0 p-4 sm:p-6 z-50">
         <HomeBackButton tone="emerald" />
@@ -457,9 +326,9 @@ const TtsPage: React.FC<TtsPageProps> = ({ basePath = "/tts" }) => {
         <div className="mb-10 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
           <div>
             <h1 className="text-4xl font-black bg-gradient-to-r from-emerald-400 to-teal-300 bg-clip-text text-transparent">
-              AI 음성 스튜디오
+              AI 성우 스튜디오
             </h1>
-            <p className="text-slate-400 mt-2">대본을 자연스러운 음성으로 빠르게 변환합니다.</p>
+            <p className="text-slate-400 mt-2">대본에 감정을 입혀 생생한 목소리를 만들어보세요.</p>
           </div>
           <button onClick={handleReset} className="px-5 py-2.5 text-sm font-bold text-slate-300 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors">
             초기화
@@ -604,7 +473,7 @@ const TtsPage: React.FC<TtsPageProps> = ({ basePath = "/tts" }) => {
                     <textarea
                       value={actingPrompt}
                       onChange={(e) => setActingPrompt(e.target.value)}
-                      placeholder="예: 뉴스 앵커처럼 신뢰감 있게, 슬픈 드라마 주인공처럼 애절하게 (비워두면 대본 분석 후 자동 완성)"
+                      placeholder="예: 뉴스 앵커처럼 신뢰감 있게, 슬픈 드라마 주인공처럼 애절하게 (비워두면 대본 분석하여 자동 완성)"
                       className="flex-1 bg-black/40 border border-emerald-500/20 rounded-xl p-4 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 transition-all leading-relaxed"
                       rows={2}
                     />
@@ -614,12 +483,12 @@ const TtsPage: React.FC<TtsPageProps> = ({ basePath = "/tts" }) => {
                       className="px-4 py-2 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-100 rounded-xl text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed self-start"
                       title="대본을 분석하여 연기 톤 자동 완성"
                     >
-                      {generatingPrompt ? "분석 중..." : withCreditLabel("자동 완성", CREDIT_COSTS.GENERATE_IDEAS, { couponBypass: couponBypassCredits })}
+                      {generatingPrompt ? "분석 중..." : "자동 완성"}
                     </button>
                   </div>
                   <div className="flex items-start gap-2 mt-3 text-xs text-emerald-400/70">
                     <FiInfo className="mt-0.5 flex-shrink-0" />
-                    <p>AI가 대본을 분석해 최적의 연기 톤을 제안합니다. 프롬프트를 비우면 대본 내용에 맞춰 자연스럽게 읽습니다.</p>
+                    <p>AI가 대본을 분석하여 최적의 연기 톤을 제안합니다. 프롬프트를 비워두면 대본 내용에 따라 자연스러운 톤으로 읽습니다.</p>
                   </div>
                 </div>
               )}
@@ -627,30 +496,19 @@ const TtsPage: React.FC<TtsPageProps> = ({ basePath = "/tts" }) => {
 
             {/* Text Input */}
             <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-md">
-              <div className="flex items-center justify-between mb-4 gap-3">
+              <div className="flex items-center justify-between mb-4">
                 <label className="text-lg font-bold text-slate-200 flex items-center gap-2">
                   <FiFileText className="text-emerald-400" /> 대본 입력
                 </label>
-                <div className="flex items-center gap-3">
-                  <div className="text-xs text-slate-500 font-mono">
-                    {text.length.toLocaleString()} 자
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleGenerate}
-                    disabled={isGenerating || !text.trim()}
-                    className={`rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2 text-sm font-bold text-white shadow-[0_10px_24px_rgba(16,185,129,0.25)] transition-all hover:from-emerald-500 hover:to-teal-500 disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-2`}
-                  >
-                    <FiMic size={16} />
-                    {isGenerating ? "생성 중..." : withCreditPer10CharsLabel("음성 생성", CREDIT_COSTS.TTS_PER_10_CHARS, { couponBypass: couponBypassCredits })}
-                  </button>
+                <div className="text-xs text-slate-500 font-mono">
+                  {text.length.toLocaleString()} 자
                 </div>
               </div>
               <textarea
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 className="w-full h-80 bg-black/30 border border-white/5 rounded-xl p-5 text-white placeholder:text-slate-700 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 leading-relaxed resize-none transition-all shadow-inner tts-text-input"
-                placeholder="여기에 변환할 대본을 입력하세요. 해설형, 내레이션형 모두 가능합니다."
+                placeholder="여기에 변환할 텍스트를 입력하세요. 대화체, 나레이션 모두 가능합니다."
                 style={
                   {
                     userSelect: "text",
@@ -658,12 +516,32 @@ const TtsPage: React.FC<TtsPageProps> = ({ basePath = "/tts" }) => {
                   } as React.CSSProperties
                 }
               />
-              {isGenerating && (
-                <p className="mt-3 text-sm text-emerald-300">
-                  {progressStep === "analyzing" ? "AI가 감정/톤을 분석하고 있습니다..." : progressStep === "requesting" ? "음성을 생성하고 있습니다..." : "요청을 처리 중입니다..."}
-                </p>
-              )}
             </div>
+
+            {/* Action Button */}
+            <button
+              type="button"
+              onClick={handleGenerate}
+              disabled={isGenerating || !text.trim()}
+              className={`w-full rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-4 text-lg font-black text-white shadow-[0_10px_30px_rgba(16,185,129,0.3)] transition-all hover:from-emerald-500 hover:to-teal-500 hover:-translate-y-0.5 active:scale-[0.98] disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-3`}
+            >
+              {isGenerating ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  <span>{progressStep === 'analyzing' ? 'AI가 감정 분석 중...' : progressStep === 'requesting' ? '음성 생성 중...' : '처리 중...'}</span>
+                </>
+              ) : (
+                <>
+                  <FiMic size={22} />
+                  <span>TTS 음성 생성하기</span>
+                  {text.trim() && (
+                    <span className="bg-white/20 px-2.5 py-0.5 rounded-full text-xs font-bold ml-2">
+                      {Math.ceil(text.trim().length / 10)} ⚡
+                    </span>
+                  )}
+                </>
+              )}
+            </button>
 
             {isGenerating && (
               <ProgressTracker
@@ -673,7 +551,7 @@ const TtsPage: React.FC<TtsPageProps> = ({ basePath = "/tts" }) => {
                   "텍스트를 분석하고 음성 생성을 준비하고 있습니다",
                   "AI가 감정과 억양을 분석하고 있습니다",
                   "Google Cloud TTS로 음성을 생성하고 있습니다",
-                  "음성 파일 생성이 완료되었습니다",
+                  "음성 파일 생성이 완료되었습니다"
                 ]}
                 estimatedTimeSeconds={15}
               />
@@ -737,5 +615,4 @@ const TtsPage: React.FC<TtsPageProps> = ({ basePath = "/tts" }) => {
 };
 
 export default TtsPage;
-
 

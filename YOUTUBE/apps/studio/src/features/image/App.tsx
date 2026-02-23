@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+﻿import React, { useState, useCallback, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { compressImage, canStoreInLocalStorage } from "@/utils/imageCompression";
 import {
@@ -24,6 +24,7 @@ import {
 import type { User } from "@supabase/supabase-js";
 
 import HomeBackButton from "../../components/HomeBackButton";
+import AdSense from "@/components/AdSense";
 import AspectRatioSelector from "@/components/AspectRatioSelector";
 import Spinner from "@/components/Spinner";
 import CharacterCard from "./components/CharacterCard";
@@ -36,7 +37,7 @@ import FloatingBottomAd from "@/components/FloatingBottomAd";
 import SideFloatingAd from "@/components/SideFloatingAd";
 import AdBlockDetector from "./components/AdBlockDetector";
 import ApiKeyRequiredModal from "@/components/ApiKeyRequiredModal";
-import { CREDIT_COSTS, formatCreditButtonLabel } from "@/constants/creditCosts";
+import { CREDIT_COSTS, formatCreditButtonLabel as formatRawCreditButtonLabel } from "@/constants/creditCosts";
 
 type ImageAppView = "main" | "user-guide" | "image-prompt";
 
@@ -64,6 +65,11 @@ const App: React.FC<ImageAppProps> = ({
   const [apiKey, setApiKey] = useState("");
   const [couponBypassCredits, setCouponBypassCredits] = useState(false);
   const [couponGuardChecked, setCouponGuardChecked] = useState(false);
+  const formatCreditButtonLabel = useCallback(
+    (cost: number) =>
+      couponBypassCredits ? "본인 API 모드" : formatRawCreditButtonLabel(cost),
+    [couponBypassCredits]
+  );
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -322,11 +328,11 @@ const App: React.FC<ImageAppProps> = ({
         source = "sessionStorage";
       }
 
-      console.log(`🔄 ${source}에서 데이터 불러오기 시도...`, savedData ? `${savedData.length} bytes` : "없음");
+      console.log(`?? ${source}에서 데이터 불러오기 시도...`, savedData ? `${savedData.length} bytes` : "없음");
 
       if (savedData) {
         const parsed = JSON.parse(savedData);
-        console.log("📦 파싱된 데이터:", {
+        console.log("?? 파싱된 데이터:", {
           characters: parsed.characters?.length || 0,
           videoSource: parsed.videoSource?.length || 0,
           cameraAngles: parsed.cameraAngles?.length || 0,
@@ -342,19 +348,19 @@ const App: React.FC<ImageAppProps> = ({
           setCharacters(parsed.characters);
           restoredCount++;
           restoredItems.push(`페르소나: ${parsed.characters.length}개`);
-          console.log("✅ 페르소나 복원:", parsed.characters.length, "개");
+          console.log("? 페르소나 복원:", parsed.characters.length, "개");
         }
         if (parsed.videoSource && parsed.videoSource.length > 0) {
           setVideoSource(parsed.videoSource);
           restoredCount++;
           restoredItems.push(`영상소스: ${parsed.videoSource.length}개`);
-          console.log("✅ 영상 소스 복원:", parsed.videoSource.length, "개");
+          console.log("? 영상 소스 복원:", parsed.videoSource.length, "개");
         }
         if (parsed.cameraAngles && parsed.cameraAngles.length > 0) {
           setCameraAngles(parsed.cameraAngles);
           restoredCount++;
           restoredItems.push(`카메라앵글: ${parsed.cameraAngles.length}개`);
-          console.log("✅ 카메라 앵글 복원:", parsed.cameraAngles.length, "개");
+          console.log("? 카메라 앵글 복원:", parsed.cameraAngles.length, "개");
         }
 
         // 설정 복원
@@ -363,13 +369,13 @@ const App: React.FC<ImageAppProps> = ({
           setVideoSourceScript(parsed.videoSourceScript);
         if (parsed.personaReferenceImage) {
           setPersonaReferenceImage(parsed.personaReferenceImage);
-          restoredItems.push("페르소나 참조 이미지 ?");
-          console.log("✅ 페르소나 참조 이미지 복원");
+          restoredItems.push("페르소나 참조 이미지 복원");
+          console.log("? 페르소나 참조 이미지 복원");
         }
         if (parsed.referenceImage) {
           setReferenceImage(parsed.referenceImage);
-          restoredItems.push("영상소스 참조 이미지 ?");
-          console.log("✅ 영상소스 참조 이미지 복원");
+          restoredItems.push("영상소스 참조 이미지 복원");
+          console.log("? 영상소스 참조 이미지 복원");
         }
         if (parsed.imageStyle) setImageStyle(parsed.imageStyle);
         if (parsed.personaStyle) setPersonaStyle(parsed.personaStyle);
@@ -389,11 +395,11 @@ const App: React.FC<ImageAppProps> = ({
           setSubtitleEnabled(parsed.subtitleEnabled);
         if (parsed.cameraAngleSourceImage) {
           setCameraAngleSourceImage(parsed.cameraAngleSourceImage);
-          restoredItems.push("카메라앵글 원본 이미지 ?");
-          console.log("✅ 카메라 앵글 원본 이미지 복원");
+          restoredItems.push("카메라앵글 원본 이미지 복원");
+          console.log("? 카메라 앵글 원본 이미지 복원");
         }
 
-        console.log(`✅ 작업 데이터 복원 완료 (from ${source}):`, {
+        console.log(`? 작업 데이터 복원 완료 (from ${source}):`, {
           페르소나: parsed.characters?.length || 0,
           영상소스: parsed.videoSource?.length || 0,
           카메라앵글: parsed.cameraAngles?.length || 0,
@@ -418,15 +424,15 @@ const App: React.FC<ImageAppProps> = ({
 
           const savedTime = parsed.savedAt ? new Date(parsed.savedAt).toLocaleString('ko-KR') : '알 수 없음';
 
-          console.log("✅ 복원 완료!");
-          console.log(`🧾 마지막 작업: ${lastWorkType}`);
-          console.log(`? 저장 시각: ${savedTime}`);
-          console.log(`📦 복원된 항목: ${restoredItems.join(', ')}`);
+          console.log("? 복원 완료!");
+          console.log(`?? 마지막 작업: ${lastWorkType}`);
+          console.log(`?? 저장 시각: ${savedTime}`);
+          console.log(`?? 복원된 항목: ${restoredItems.join(', ')}`);
         } else {
-          console.log("ℹ️ 복원할 작업물이 없습니다 (설정만 복원됨)");
+          console.log("?? 복원할 작업물이 없습니다 (설정만 복원됨)");
         }
       } else {
-        console.log("ℹ️ 저장된 데이터 없음 (localStorage & sessionStorage 모두)");
+        console.log("?? 저장된 데이터 없음 (localStorage & sessionStorage 모두)");
       }
     } catch (e) {
       console.error("? 작업 데이터 불러오기 실패:", e);
@@ -441,7 +447,7 @@ const App: React.FC<ImageAppProps> = ({
       } catch (storageError) {
         console.error("? sessionStorage 정리 실패:", storageError);
       }
-      alert("⚠️ 저장된 데이터가 손상되어 불러올 수 없습니다.\n새로 시작해주세요.");
+      alert("?? 저장된 데이터가 손상되어 불러올 수 없습니다.\n새로 시작해주세요.");
     }
   }, []);
 
@@ -474,7 +480,7 @@ const App: React.FC<ImageAppProps> = ({
     }
 
     const timestamp = new Date().toLocaleTimeString('ko-KR');
-    console.log(`💾 [${timestamp}] 데이터 저장 시작${immediate ? ' (즉시 저장)' : ''}:`, {
+    console.log(`?? [${timestamp}] 데이터 저장 시작${immediate ? ' (즉시 저장)' : ''}:`, {
       페르소나: characters.length,
       영상소스: videoSource.length,
       카메라앵글: cameraAngles.length
@@ -482,7 +488,7 @@ const App: React.FC<ImageAppProps> = ({
 
     try {
       // 이미지 압축 (용량 최적화)
-      console.log(`🗜️ [${timestamp}] 이미지 압축 시작...`);
+      console.log(`??? [${timestamp}] 이미지 압축 시작...`);
       const compressedCharacters = await Promise.all(
         characters.slice(0, 10).map(async (char, idx) => {
           console.log(`  - 페르소나 #${idx + 1} 압축 중...`);
@@ -565,11 +571,11 @@ const App: React.FC<ImageAppProps> = ({
 
       const jsonString = JSON.stringify(dataToSave);
       const sizeInMB = (jsonString.length / 1024 / 1024).toFixed(2);
-      console.log(`💾 [${timestamp}] 저장할 데이터 크기: ${sizeInMB}MB (${jsonString.length} bytes)`);
+      console.log(`?? [${timestamp}] 저장할 데이터 크기: ${sizeInMB}MB (${jsonString.length} bytes)`);
 
       // localStorage 용량 체크 (4MB 제한)
       if (!canStoreInLocalStorage(jsonString, 4)) {
-        console.warn(`⚠️ [${timestamp}] 데이터가 너무 커서 일부만 저장합니다.`);
+        console.warn(`?? [${timestamp}] 데이터가 너무 커서 일부만 저장합니다.`);
         // 용량 초과 시 카메라 앵글 제외하고 재시도
         const minimalData = {
           ...dataToSave,
@@ -578,7 +584,7 @@ const App: React.FC<ImageAppProps> = ({
         const minimalJsonString = JSON.stringify(minimalData);
 
         if (!canStoreInLocalStorage(minimalJsonString, 4)) {
-          console.warn(`⚠️ [${timestamp}] 여전히 용량 초과, 영상 소스도 제외합니다.`);
+          console.warn(`?? [${timestamp}] 여전히 용량 초과, 영상 소스도 제외합니다.`);
           const veryMinimalData = {
             ...minimalData,
             videoSource: [],
@@ -622,7 +628,7 @@ const App: React.FC<ImageAppProps> = ({
             savedAt: new Date().toISOString(),
           };
           localStorage.setItem("youtube_image_work_data", JSON.stringify(minimalData));
-          console.log("✅ 설정 데이터만 저장됨");
+          console.log("? 설정 데이터만 저장됨");
         } catch (retryError) {
           console.error("? 재시도도 실패:", retryError);
         }
@@ -677,7 +683,7 @@ const App: React.FC<ImageAppProps> = ({
 
     // debounce를 위해 타이머 사용
     const timer = setTimeout(() => {
-      console.log('💾 자동 저장 트리거 (1초 debounce 후)');
+      console.log('?? 자동 저장 트리거 (1초 debounce 후)');
       saveDataToStorage(false);
     }, 1000);
 
@@ -1069,7 +1075,7 @@ const App: React.FC<ImageAppProps> = ({
       return;
     }
     if (!personaInput.trim()) {
-      setPersonaError("❌ 페르소나 설명이나 대본을 입력해주세요.");
+      setPersonaError("? 페르소나 설명이나 대본을 입력해주세요.");
       return;
     }
 
@@ -1115,7 +1121,7 @@ const App: React.FC<ImageAppProps> = ({
       } else {
 
         setCharacters(generatedCharacters);
-        setPersonaError(`✅ 페르소나 ${generatedCharacters.length}개 생성 완료`);
+        setPersonaError(`? 페르소나 ${generatedCharacters.length}개 생성 완료`);
         setTimeout(() => saveDataToStorage(true), 100);
       }
     } catch (e) {
@@ -1124,7 +1130,7 @@ const App: React.FC<ImageAppProps> = ({
         e instanceof Error
           ? e.message
           : "페르소나 생성 중 오류가 발생했습니다.";
-      setPersonaError(message.startsWith('❌') || message.startsWith('✅') ? message : `❌ ${message}`);
+      setPersonaError(message.startsWith('?') || message.startsWith('?') ? message : `? ${message}`);
     } finally {
       setIsLoadingCharacters(false);
       setLoadingProgress("");
@@ -1183,13 +1189,13 @@ const App: React.FC<ImageAppProps> = ({
             char.id === characterId ? { ...char, image: newImage } : char
           )
         );
-        setPersonaError(`✅ ${name} 이미지가 업데이트되었습니다.`);
+        setPersonaError(`? ${name} 이미지가 업데이트되었습니다.`);
         setTimeout(() => saveDataToStorage(true), 100);
       } catch (e) {
         console.error("[개발자용] 페르소나 재생성 오류:", e);
         const message =
           e instanceof Error ? e.message : "페르소나 재생성에 실패했습니다.";
-        setPersonaError(message.startsWith('❌') || message.startsWith('✅') ? message : `❌ ${message}`);
+        setPersonaError(message.startsWith('?') || message.startsWith('?') ? message : `? ${message}`);
       }
     },
     [apiKey, imageStyle, aspectRatio, personaStyle, saveDataToStorage, deductCredits]
@@ -1247,7 +1253,7 @@ const App: React.FC<ImageAppProps> = ({
         e instanceof Error
           ? e.message
           : "영상 소스 생성 중 오류가 발생했습니다.";
-      setError(message.startsWith('❌') || message.startsWith('✅') ? message : `❌ ${message}`);
+      setError(message.startsWith('?') || message.startsWith('?') ? message : `? ${message}`);
     } finally {
       setIsLoadingVideoSource(false);
       setLoadingProgress("");
@@ -1305,7 +1311,7 @@ const App: React.FC<ImageAppProps> = ({
         console.error("[개발자용] 영상 소스 재생성 오류:", e);
         const message =
           e instanceof Error ? e.message : "영상 소스 재생성에 실패했습니다.";
-        setError(message.startsWith('❌') || message.startsWith('✅') ? message : `❌ ${message}`);
+        setError(message.startsWith('?') || message.startsWith('?') ? message : `? ${message}`);
       }
     },
     [
@@ -1373,7 +1379,7 @@ const App: React.FC<ImageAppProps> = ({
         );
       } else if (successCount < totalSelected) {
         setCameraAngleError(
-          `⚠️ ${successCount}/${totalSelected}개 앵글만 생성되었습니다. 실패한 앵글은 다시 시도해주세요.`
+          `?? ${successCount}/${totalSelected}개 앵글만 생성되었습니다. 실패한 앵글은 다시 시도해주세요.`
         );
       }
     } catch (e) {
@@ -1601,7 +1607,7 @@ const App: React.FC<ImageAppProps> = ({
             {(characters.length > 0 || videoSource.length > 0 || cameraAngles.length > 0) && (
               <div className="mt-4 bg-blue-900/20 border border-blue-500/50 rounded-lg p-3 max-w-2xl mx-auto">
                 <p className="text-blue-300 text-sm flex items-center justify-center">
-                  <span className="mr-2">✅</span>
+                  <span className="mr-2">?</span>
                   이전 작업이 복원되었습니다:
                   {characters.length > 0 && ` 페르소나 ${characters.length}개`}
                   {videoSource.length > 0 && ` | 영상소스 ${videoSource.length}개`}
@@ -1639,11 +1645,11 @@ const App: React.FC<ImageAppProps> = ({
                   </p>
                   <ul className="text-blue-300 text-sm space-y-1 ml-4">
                     <li>
-                      👤 <strong>인물 묘사:</strong> "20대 중반 여성, 긴 흑발,
+                      ?? <strong>인물 묘사:</strong> "20대 중반 여성, 긴 흑발,
                       밝은 미소, 캐주얼한 옷차림"
                     </li>
                     <li>
-                      📜 <strong>대본 입력:</strong> 전체 스토리 대본을 넣으면
+                      ?? <strong>대본 입력:</strong> 전체 스토리 대본을 넣으면
                       등장인물 자동 추출
                     </li>
                   </ul>
@@ -1659,7 +1665,7 @@ const App: React.FC<ImageAppProps> = ({
               {/* 이미지 스타일 선택 */}
               <div className="mb-6 bg-blue-900/20 border border-blue-500/50 rounded-lg p-6">
                 <h3 className="text-blue-300 font-medium mb-6 flex items-center">
-                  <span className="mr-2">🎨</span>
+                  <span className="mr-2">??</span>
                   이미지 스타일 선택
                 </h3>
 
@@ -1667,7 +1673,7 @@ const App: React.FC<ImageAppProps> = ({
                 <div className="mb-6">
                   <div className="flex items-center justify-between mb-3">
                     <h4 className="text-blue-200 font-medium flex items-center text-sm">
-                      <span className="mr-2">👤</span>
+                      <span className="mr-2">??</span>
                       인물 스타일
                     </h4>
                     <button
@@ -1692,10 +1698,10 @@ const App: React.FC<ImageAppProps> = ({
                       const styleDescriptions: Record<CharacterStyle, string> =
                       {
                         "실사 극대화":
-                          "📸 초현실적이고 사진 같은 퀄리티의 실사 인물",
-                        애니메이션: "🎨 밝고 화려한 애니메이션 스타일 캐릭터",
-                        동물: "🐾 귀여운 동물 캐릭터로 변환",
-                        웹툰: "🖊️ 깨끗한 선과 표현력 풍부한 한국 웹툰 스타일",
+                          "?? 초현실적이고 사진 같은 퀄리티의 실사 인물",
+                        애니메이션: "?? 밝고 화려한 애니메이션 스타일 캐릭터",
+                        동물: "?? 귀여운 동물 캐릭터로 변환",
+                        웹툰: "??? 깨끗한 선과 표현력 풍부한 한국 웹툰 스타일",
                         custom: "",
                       };
                       const imgUrl = `/${encodeURIComponent(style)}.png`;
@@ -1752,7 +1758,7 @@ const App: React.FC<ImageAppProps> = ({
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <h4 className="text-blue-200 font-medium flex items-center text-sm">
-                      <span className="mr-2">🌆</span>
+                      <span className="mr-2">??</span>
                       배경/분위기 스타일
                     </h4>
                     <button
@@ -1788,22 +1794,22 @@ const App: React.FC<ImageAppProps> = ({
                     ).map((style) => {
                       const styleDescriptions: Record<BackgroundStyle, string> =
                       {
-                        "감성 멜로": "💞 로맨틱하고 감성적인 따뜻한 분위기",
-                        서부극: "🤠 거친 사막과 카우보이 배경",
-                        "공포 스릴러": "👻 미스터리하고 긴장감 있는 분위기",
-                        사이버펑크: "🌃 네온사인 가득한 미래 도시",
-                        판타지: "🧙‍♂️ 마법적이고 신비로운 중세 배경",
-                        미니멀: "⬜ 깔끔하고 단순한 중성톤 배경",
-                        빈티지: "🕰️ 클래식하고 향수를 자아내는 배경",
-                        모던: "🏙️ 현대적이고 세련된 도시 배경",
-                        "1980년대": "📻 80년대 레트로 패션과 분위기",
-                        "2000년대": "💿 2000년대 초반 감성과 스타일",
-                        먹방: "🍜 맛있는 음식이 가득한 먹방 분위기",
-                        귀여움: "🐰 귀엽고 사랑스러운 파스텔 감성",
-                        AI: "🤖 미래지향적인 하이테크 AI 분위기",
-                        괴이함: "🌀 독특하고 초현실적인 기묘한 분위기",
-                        창의적인: "✨ 상상력 넘치는 독창적인 예술 분위기",
-                        조선시대: "🏯 한옥과 전통 가옥, 따뜻하고 감성적인 조선 분위기",
+                        "감성 멜로": "?? 로맨틱하고 감성적인 따뜻한 분위기",
+                        서부극: "?? 거친 사막과 카우보이 배경",
+                        "공포 스릴러": "?? 미스터리하고 긴장감 있는 분위기",
+                        사이버펑크: "?? 네온사인 가득한 미래 도시",
+                        판타지: "???♂? 마법적이고 신비로운 중세 배경",
+                        미니멀: "? 깔끔하고 단순한 중성톤 배경",
+                        빈티지: "??? 클래식하고 향수를 자아내는 배경",
+                        모던: "??? 현대적이고 세련된 도시 배경",
+                        "1980년대": "?? 80년대 레트로 패션과 분위기",
+                        "2000년대": "?? 2000년대 초반 감성과 스타일",
+                        먹방: "?? 맛있는 음식이 가득한 먹방 분위기",
+                        귀여움: "?? 귀엽고 사랑스러운 파스텔 감성",
+                        AI: "?? 미래지향적인 하이테크 AI 분위기",
+                        괴이함: "?? 독특하고 초현실적인 기묘한 분위기",
+                        창의적인: "? 상상력 넘치는 독창적인 예술 분위기",
+                        조선시대: "?? 한옥과 전통 가옥, 따뜻하고 감성적인 조선 분위기",
                         custom: "",
                       };
                       const imgUrl = `/${encodeURIComponent(style === "AI" ? "ai" : style)}.png`;
@@ -1860,7 +1866,7 @@ const App: React.FC<ImageAppProps> = ({
               {/* 사진 설정 (구도 및 비율) */}
               <div className="mb-6 bg-blue-900/20 border border-blue-500/50 rounded-lg p-6">
                 <h3 className="text-blue-300 font-medium mb-4 flex items-center">
-                  <span className="mr-2">📷</span>
+                  <span className="mr-2">??</span>
                   사진 설정
                 </h3>
 
@@ -1900,15 +1906,15 @@ const App: React.FC<ImageAppProps> = ({
                       }
                       className="w-full p-3 bg-gray-900 border-2 border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-white"
                     >
-                      <option value="9:16">📱 9:16 - 모바일 세로</option>
-                      <option value="16:9">🖥️ 16:9 - 데스크톱 가로</option>
-                      <option value="1:1">⬜ 1:1 - 정사각형</option>
+                      <option value="9:16">?? 9:16 - 모바일 세로</option>
+                      <option value="16:9">??? 16:9 - 데스크톱 가로</option>
+                      <option value="1:1">? 1:1 - 정사각형</option>
                     </select>
                   </div>
                 </div>
 
                 <div className="text-xs text-gray-400 mt-3">
-                  💡 사진 구도와 이미지 비율을 조합하여 원하는 스타일의 이미지를
+                  ?? 사진 구도와 이미지 비율을 조합하여 원하는 스타일의 이미지를
                   만드세요.
                 </div>
               </div>
@@ -1916,7 +1922,7 @@ const App: React.FC<ImageAppProps> = ({
               {/* 스타일 참조 이미지 업로드 (선택사항) */}
               <div className="mb-6 bg-blue-900/20 border border-blue-500/50 rounded-lg p-6">
                 <h3 className="text-blue-300 font-medium mb-4 flex items-center">
-                  <span className="mr-2">🖼️</span>
+                  <span className="mr-2">???</span>
                   스타일 참조 이미지 (선택사항)
                 </h3>
                 <p className="text-gray-400 text-sm mb-4">
@@ -1927,7 +1933,7 @@ const App: React.FC<ImageAppProps> = ({
                 {!personaReferenceImage ? (
                   <label className="block w-full cursor-pointer">
                     <div className="border-2 border-dashed border-blue-500 rounded-lg p-8 text-center hover:border-blue-400 hover:bg-blue-900/10 transition-all">
-                      <div className="text-blue-300 text-4xl mb-3">🖼️</div>
+                      <div className="text-blue-300 text-4xl mb-3">???</div>
                       <p className="text-blue-200 font-medium mb-1">
                         참조 이미지 업로드
                       </p>
@@ -1973,7 +1979,7 @@ const App: React.FC<ImageAppProps> = ({
                       ? 삭제
                     </button>
                     <p className="text-blue-400 text-sm mt-2 flex items-center">
-                      <span className="mr-2">✅</span>
+                      <span className="mr-2">?</span>
                       참조 이미지가 업로드되었습니다
                     </p>
                   </div>
@@ -1984,7 +1990,7 @@ const App: React.FC<ImageAppProps> = ({
               <div className="mb-6 bg-blue-900/20 border border-blue-500/50 rounded-lg p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-blue-300 font-medium flex items-center">
-                    <span className="mr-2">✏️</span>
+                    <span className="mr-2">??</span>
                     커스텀 이미지 프롬프트 (선택사항)
                   </h3>
                   <button
@@ -1993,7 +1999,7 @@ const App: React.FC<ImageAppProps> = ({
                     }}
                     className="px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-semibold rounded-lg text-sm transition-all duration-200 transform hover:scale-105 flex items-center"
                   >
-                    <span className="mr-2">💡</span>
+                    <span className="mr-2">??</span>
                     내가 원하는 이미지 200% 뽑는 노하우
                   </button>
                 </div>
@@ -2005,7 +2011,7 @@ const App: React.FC<ImageAppProps> = ({
                   className="w-full h-24 p-3 bg-gray-900 border-2 border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-y"
                 />
                 <p className="text-gray-400 text-xs mt-2">
-                  ℹ️ 이 필드는 고급 사용자를 위한 기능입니다. 비워두면 자동으로
+                  ?? 이 필드는 고급 사용자를 위한 기능입니다. 비워두면 자동으로
                   최적화된 프롬프트가 생성됩니다.
                 </p>
               </div>
@@ -2014,7 +2020,7 @@ const App: React.FC<ImageAppProps> = ({
               {contentWarning && !isContentWarningAcknowledged && (
                 <div className="mt-4 bg-blue-900/50 border border-blue-500 text-blue-300 p-4 rounded-lg">
                   <div className="flex items-start">
-                    <span className="text-orange-400 text-xl mr-3">⚠️</span>
+                    <span className="text-orange-400 text-xl mr-3">??</span>
                     <div className="flex-1">
                       <p className="font-medium mb-2">
                         콘텐츠 정책 위반 가능성이 있는 단어가 감지되었습니다
@@ -2039,7 +2045,7 @@ const App: React.FC<ImageAppProps> = ({
                           onClick={handleAutoReplace}
                           className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center"
                         >
-                          ✅ 안전한 단어로 자동 교체
+                          ? 안전한 단어로 자동 교체
                         </button>
                         <button
                           onClick={handleAcknowledgeWarning}
@@ -2091,7 +2097,7 @@ const App: React.FC<ImageAppProps> = ({
                         : "text-red-400 text-xl mr-3"
                     }
                   >
-                    {personaError.startsWith("✅") ? "✅" : "❌"}
+                    {personaError.startsWith("?") ? "?" : "?"}
                   </span>
                   <div className="flex-1">
                     <pre className="font-medium mb-2 whitespace-pre-wrap text-sm leading-relaxed">{personaError}</pre>
@@ -2119,12 +2125,12 @@ const App: React.FC<ImageAppProps> = ({
                 {loadingProgress && (
                   <div className="mt-4 bg-blue-900/30 border border-blue-500/50 rounded-lg p-4 max-w-md mx-auto">
                     <p className="text-blue-300 font-bold text-lg animate-pulse">
-                      ⏳ {loadingProgress}
+                      ? {loadingProgress}
                     </p>
                   </div>
                 )}
                 <p className="mt-4 text-gray-400 text-sm">
-                  ℹ️ API 과부하 방지를 위해 캐릭터 간 3-4초 대기 시간이 있습니다.
+                  ?? API 과부하 방지를 위해 캐릭터 간 3-4초 대기 시간이 있습니다.
                 </p>
                 <p className="mt-2 text-gray-500 text-xs">
                   잠시만 기다려 주세요. 고품질 이미지를 생성하는 중입니다.
@@ -2140,6 +2146,13 @@ const App: React.FC<ImageAppProps> = ({
                 </div>
               </section>
             )}
+
+            {!noAds && (
+              <div className="my-6">
+                <AdSense className="max-w-4xl mx-auto" />
+              </div>
+            )}
+
 <section className="bg-gray-800 p-6 rounded-xl shadow-2xl border-2 border-green-500">
               <h2 className="text-2xl font-bold mb-4 text-green-400 flex items-center">
                 영상 소스 생성
@@ -2171,7 +2184,7 @@ const App: React.FC<ImageAppProps> = ({
               {/* 일관성 유지 (선택사항) - 영상 소스 생성으로 이동 */}
               <div className="mb-6 bg-green-900/20 border border-green-500/50 rounded-lg p-6">
                 <h3 className="text-green-300 font-medium mb-3 flex items-center">
-                  <span className="mr-2">🔁</span>
+                  <span className="mr-2">??</span>
                   일관성 유지 (선택사항)
                 </h3>
                 <p className="text-green-200 text-sm mb-3">
@@ -2194,7 +2207,7 @@ const App: React.FC<ImageAppProps> = ({
                       htmlFor="referenceImageInput"
                       className="cursor-pointer flex flex-col items-center space-y-2 hover:text-green-300 transition-colors"
                     >
-                      <div className="text-3xl">🖼️?</div>
+                      <div className="text-3xl">???</div>
                       <div className="text-green-300 font-medium">
                         참조 이미지 업로드
                       </div>
@@ -2245,14 +2258,14 @@ const App: React.FC<ImageAppProps> = ({
               {/* 생성 옵션 설정 */}
               <div className="mb-4 bg-green-900/20 border border-green-500/50 rounded-lg p-4">
                 <h3 className="text-green-300 font-medium mb-3 flex items-center">
-                  <span className="mr-2">⚙️</span>
+                  <span className="mr-2">??</span>
                   생성 옵션 설정
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* 자막 설정 */}
                   <div>
                     <label className="block text-sm font-medium text-green-200 mb-2">
-                      💬 자막 설정
+                      ?? 자막 설정
                     </label>
                     <select
                       value={subtitleEnabled ? "on" : "off"}
@@ -2261,8 +2274,8 @@ const App: React.FC<ImageAppProps> = ({
                       }
                       className="w-full p-2 bg-gray-800 border border-gray-600 rounded-lg text-green-200 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                     >
-                      <option value="off">🚫 자막 OFF (기본값)</option>
-                      <option value="on">✅ 자막 ON</option>
+                      <option value="off">?? 자막 OFF (기본값)</option>
+                      <option value="on">? 자막 ON</option>
                     </select>
                     <p className="text-xs text-gray-400 mt-1">
                       자막 포함 여부를 선택하세요
@@ -2308,7 +2321,7 @@ const App: React.FC<ImageAppProps> = ({
                 </button>
                 {characters.length === 0 && !referenceImage && (
                   <p className="text-yellow-400 text-sm mt-2">
-                    💡 영상 소스를 생성하려면 위에서 페르소나를 먼저 생성하거나, 참조 이미지를 업로드해주세요.
+                    ?? 영상 소스를 생성하려면 위에서 페르소나를 먼저 생성하거나, 참조 이미지를 업로드해주세요.
                   </p>
                 )}
               </div>
@@ -2412,6 +2425,11 @@ const App: React.FC<ImageAppProps> = ({
               <h2 className="text-2xl font-bold mb-4 text-orange-400 flex items-center">
                 사진 구도 확장 (최대 6가지 앵글)
               </h2>
+              {!noAds && (
+                <div className="mb-4">
+                  <AdSense className="max-w-4xl mx-auto" />
+                </div>
+              )}
               <p className="text-orange-200 text-sm mb-4">
                 원하는 앵글을 선택하여 다양한 구도의 이미지를 생성합니다.
               </p>
@@ -2419,7 +2437,7 @@ const App: React.FC<ImageAppProps> = ({
               {/* 중요 안내 */}
               <div className="mb-4 bg-blue-900/20 border border-blue-500/50 rounded-lg p-4">
                 <p className="text-blue-300 text-sm font-semibold mb-2">
-                  🧭 작동 방식
+                  ?? 작동 방식
                 </p>
                 <ul className="text-blue-200 text-xs space-y-1 list-disc list-inside">
                   <li><strong>1단계:</strong> Gemini Vision AI가 업로드한 이미지를 상세히 분석 (피사체, 조명, 스타일 등)</li>
@@ -2433,7 +2451,7 @@ const App: React.FC<ImageAppProps> = ({
               {/* 이미지 업로드 섹션 */}
               <div className="mb-6 bg-orange-900/20 border border-orange-500/50 rounded-lg p-6">
                 <h3 className="text-orange-300 font-medium mb-3 flex items-center">
-                  <span className="mr-2">📷</span>
+                  <span className="mr-2">??</span>
                   분석할 원본 이미지 업로드
                 </h3>
                 <p className="text-orange-200 text-sm mb-3">
@@ -2453,7 +2471,7 @@ const App: React.FC<ImageAppProps> = ({
                       htmlFor="cameraAngleImageInput"
                       className="cursor-pointer flex flex-col items-center space-y-2 hover:text-orange-300 transition-colors"
                     >
-                      <div className="text-3xl">🖼️?</div>
+                      <div className="text-3xl">???</div>
                       <div className="text-orange-300 font-medium">
                         원본 이미지 업로드
                       </div>
@@ -2500,12 +2518,12 @@ const App: React.FC<ImageAppProps> = ({
                 </h3>
                 <div className="grid grid-cols-2 gap-3">
                   {[
-                    { value: 'Front View' as CameraAngle, label: '정면', emoji: '🙂', direction: '' },
-                    { value: 'Right Side View' as CameraAngle, label: '오른쪽 측면', emoji: '🙂', direction: '(왼쪽을 바라봄)' },
-                    { value: 'Left Side View' as CameraAngle, label: '왼쪽 측면', emoji: '🙂', direction: '(오른쪽을 바라봄)' },
-                    { value: 'Back View' as CameraAngle, label: '뒷모습', emoji: '🙂', direction: '' },
-                    { value: 'Full Body' as CameraAngle, label: '전신', emoji: '🙂', direction: '' },
-                    { value: 'Close-up Face' as CameraAngle, label: '얼굴 근접', emoji: '🙂', direction: '' },
+                    { value: 'Front View' as CameraAngle, label: '정면', emoji: '??', direction: '' },
+                    { value: 'Right Side View' as CameraAngle, label: '오른쪽 측면', emoji: '??', direction: '(왼쪽을 바라봄)' },
+                    { value: 'Left Side View' as CameraAngle, label: '왼쪽 측면', emoji: '??', direction: '(오른쪽을 바라봄)' },
+                    { value: 'Back View' as CameraAngle, label: '뒷모습', emoji: '??', direction: '' },
+                    { value: 'Full Body' as CameraAngle, label: '전신', emoji: '??', direction: '' },
+                    { value: 'Close-up Face' as CameraAngle, label: '얼굴 근접', emoji: '??', direction: '' },
                   ].map((angle) => (
                     <label
                       key={angle.value}
@@ -2557,7 +2575,7 @@ const App: React.FC<ImageAppProps> = ({
               {/* 비율 선택 */}
               <div className="mb-4">
                 <label className="block text-orange-300 text-sm mb-2 font-semibold">
-                  📐 생성할 이미지 비율
+                  ?? 생성할 이미지 비율
                 </label>
                 <AspectRatioSelector
                   selectedRatio={aspectRatio}
@@ -2576,12 +2594,12 @@ const App: React.FC<ImageAppProps> = ({
                       : "bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 shadow-lg hover:shadow-xl transform hover:scale-105"
                       }`}
                   >
-                    🚀 선택한 {selectedCameraAngles.length}가지 앵글 생성하기 ({formatCreditButtonLabel(CREDIT_COSTS.GENERATE_IMAGE * Math.max(1, selectedCameraAngles.length))})
+                    ?? 선택한 {selectedCameraAngles.length}가지 앵글 생성하기 ({formatCreditButtonLabel(CREDIT_COSTS.GENERATE_IMAGE * Math.max(1, selectedCameraAngles.length))})
                   </button>
 
                   {!apiKey && (
                     <p className="text-yellow-400 text-sm mt-2">
-                      ⚠️ 서버 API 키가 설정되지 않았습니다. 관리자에게 문의해주세요.
+                      ?? 서버 API 키가 설정되지 않았습니다. 관리자에게 문의해주세요.
                     </p>
                   )}
                 </>
@@ -2605,10 +2623,10 @@ const App: React.FC<ImageAppProps> = ({
                         </p>
                         <div className="mt-4 bg-orange-950/50 rounded-lg p-3">
                           <p className="text-orange-300 text-xs">
-                            ⏱️ 생성 중에는 브라우저를 닫지 마세요
+                            ?? 생성 중에는 브라우저를 닫지 마세요
                           </p>
                           <p className="text-orange-400 text-xs mt-1">
-                            ⚠️ 할당량 초과 시 생성된 이미지만 저장됩니다
+                            ?? 할당량 초과 시 생성된 이미지만 저장됩니다
                           </p>
                         </div>
                       </div>
@@ -2631,7 +2649,7 @@ const App: React.FC<ImageAppProps> = ({
                 <div className="mt-6">
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="text-xl font-bold text-orange-300">
-                      📸 생성된 카메라 앵글 ({cameraAngles.length}개)
+                      ?? 생성된 카메라 앵글 ({cameraAngles.length}개)
                     </h3>
                     <button
                       onClick={async () => {
@@ -2719,7 +2737,7 @@ const App: React.FC<ImageAppProps> = ({
                       }}
                       className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-semibold"
                     >
-                      ⬇️ 전체 다운로드 ({cameraAngles.length}개)
+                      ?? 전체 다운로드 ({cameraAngles.length}개)
                     </button>
                   </div>
 
@@ -2794,7 +2812,7 @@ const App: React.FC<ImageAppProps> = ({
                             }}
                             className="w-full py-2 bg-orange-600 text-white rounded text-xs font-semibold hover:bg-orange-700 transition-colors"
                           >
-                            ⬇️ 다운로드
+                            ?? 다운로드
                           </button>
                         </div>
                       </div>
@@ -2813,3 +2831,4 @@ const App: React.FC<ImageAppProps> = ({
 };
 
 export default App;
+

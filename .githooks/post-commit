@@ -1,0 +1,29 @@
+#!/usr/bin/env sh
+set -eu
+
+# Allow opt-out per commit: SKIP_AUTO_PUSH=1 git commit -m "..."
+if [ "${SKIP_AUTO_PUSH:-}" = "1" ]; then
+  exit 0
+fi
+
+TARGET_REMOTE_URL="https://github.com/angibeom0985-arch/youtube"
+
+current_remote="$(git remote get-url origin 2>/dev/null || true)"
+if [ -z "$current_remote" ]; then
+  exit 0
+fi
+
+normalize_url() {
+  printf "%s" "$1" | sed 's/\.git$//' | tr '[:upper:]' '[:lower:]'
+}
+
+if [ "$(normalize_url "$current_remote")" != "$(normalize_url "$TARGET_REMOTE_URL")" ]; then
+  exit 0
+fi
+
+branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
+if [ -z "$branch" ] || [ "$branch" = "HEAD" ]; then
+  exit 0
+fi
+
+git push -u origin "$branch" >/dev/null 2>&1 || git push origin "$branch" >/dev/null 2>&1 || true

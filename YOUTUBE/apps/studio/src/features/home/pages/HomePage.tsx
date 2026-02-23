@@ -167,6 +167,12 @@ const HomePage: React.FC<HomePageProps> = ({
         {user ? (
           <div className="flex items-center gap-3">
             <Link
+              to="/pricing"
+              className="px-4 py-2 text-sm font-bold text-amber-100 border border-amber-400/50 rounded-full bg-amber-500/20 hover:bg-amber-500/30 transition-all flex items-center gap-2 shadow-[0_0_18px_rgba(251,191,36,0.25)]"
+            >
+              <span>크레딧 구매</span>
+            </Link>
+            <Link
               to="/mypage"
               className="px-4 py-2 text-sm font-bold text-red-100 border border-red-500/40 rounded-full bg-red-500/10 hover:bg-red-500/20 transition-all flex items-center gap-2"
             >
@@ -237,13 +243,13 @@ const HomePage: React.FC<HomePageProps> = ({
                 </span>
                 <h2 className="mt-4 text-3xl font-black">영상 제작 스튜디오</h2>
                 <p className="mt-3 text-sm text-slate-100/80">
-                  대본 생성부터 이미지, 영상 패키징, 편집 체크리스트까지 한 화면에서 흐름대로 진행합니다.
+                  대본 생성, 이미지 제작, 영상 패키징, 편집 체크리스트 통합.
                 </p>
               </div>
               <div className="flex flex-col items-start gap-3 text-sm lg:items-end lg:text-right">
                 <span className="rounded-full bg-black/40 px-4 py-2 font-semibold text-slate-200">대본 → 이미지 → 영상 → 편집</span>
-                <span className="inline-flex items-center rounded-full px-5 py-2 text-sm font-black text-white shadow-[0_0_18px_rgba(185,28,28,0.55)] bg-red-700 group-hover:bg-red-600 transition-colors">
-                  영상 제작 시작하기 -&gt;
+                <span className="inline-flex w-fit max-w-full items-center overflow-hidden text-ellipsis whitespace-nowrap rounded-full px-5 py-2 text-sm font-black text-white shadow-[0_0_18px_rgba(185,28,28,0.55)] bg-red-700 group-hover:bg-red-600 transition-colors">
+                  영상 제작 시작 -&gt;
                 </span>
               </div>
             </div>
@@ -264,16 +270,16 @@ const HomePage: React.FC<HomePageProps> = ({
                   className="mt-3 text-sm text-slate-100/80 overflow-hidden"
                   style={{ display: "-webkit-box", WebkitLineClamp: 2 as any, WebkitBoxOrient: "vertical" }}
                 >
-                  벤치마킹할 만한 잠재력 높은 유튜브 영상을 빠르게 찾아드립니다. 채널 규모 대비 조회 효율을 분석합니다.
+                  키워드 기반 영상 탐색, 채널 규모 대비 조회 효율 분석.
                 </p>
               </div>
             </div>
             <div className="mt-8 flex justify-end">
               <span
-                className="inline-flex items-center rounded-full px-4 py-1.5 text-sm font-black text-white shadow-sm"
+                className="inline-flex w-fit max-w-full items-center overflow-hidden text-ellipsis whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-black text-white shadow-sm"
                 style={{ backgroundColor: "var(--tone-image-purple, #a855f7)" }}
               >
-                영상 발굴 시작하기 -&gt;
+                영상 발굴 시작 -&gt;
               </span>
             </div>
           </a>
@@ -288,16 +294,16 @@ const HomePage: React.FC<HomePageProps> = ({
               <div>
                 <h2 className="mt-2 text-2xl font-bold">대본 생성</h2>
                 <p className="mt-3 text-sm text-slate-100/80 truncate whitespace-nowrap overflow-hidden">
-                  떡상한 영상의 대본을 분석한 다음, 그걸 토대로 내 영상의 대본으로 만들어드립니다.
+                  레퍼런스 대본 분석, 내 채널용 대본 구조화.
                 </p>
               </div>
             </div>
             <div className="mt-8 flex justify-end">
               <span
-                className="inline-flex items-center rounded-full px-4 py-1.5 text-sm font-black text-white shadow-sm"
+                className="inline-flex w-fit max-w-full items-center overflow-hidden text-ellipsis whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-black text-white shadow-sm"
                 style={{ backgroundColor: "var(--tone-image-orange, #ea580c)" }}
               >
-                대본 생성 시작하기 -&gt;
+                대본 생성 시작 -&gt;
               </span>
             </div>
           </a>
@@ -312,16 +318,16 @@ const HomePage: React.FC<HomePageProps> = ({
               <div>
                 <h2 className="mt-2 text-2xl font-bold">이미지 생성</h2>
                 <p className="mt-3 text-sm text-slate-100/80">
-                  대본에 맞는 이미지와 스토리보드를 제작합니다.
+                  대본 기반 이미지 생성, 스토리보드 구성.
                 </p>
               </div>
             </div>
             <div className="mt-8 flex justify-end">
               <span
-                className="inline-flex items-center rounded-full px-4 py-1.5 text-sm font-black text-white shadow-sm"
+                className="inline-flex w-fit max-w-full items-center overflow-hidden text-ellipsis whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-black text-white shadow-sm"
                 style={{ backgroundColor: "var(--tone-image-blue, #2563eb)" }}
               >
-                이미지 생성 시작하기 -&gt;
+                이미지 생성 시작 -&gt;
               </span>
             </div>
           </a>
@@ -336,16 +342,16 @@ const HomePage: React.FC<HomePageProps> = ({
               <div>
                 <h2 className="mt-2 text-2xl font-bold">TTS 생성</h2>
                 <p className="mt-3 text-sm text-slate-100/80">
-                  대본을 음성으로 변환해 내레이션을 빠르게 제작합니다.
+                  대본 음성 변환, 나레이션 오디오 생성.
                 </p>
               </div>
             </div>
             <div className="mt-8 flex justify-end">
               <span
-                className="inline-flex items-center rounded-full px-4 py-1.5 text-sm font-black text-white shadow-sm"
+                className="inline-flex w-fit max-w-full items-center overflow-hidden text-ellipsis whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-black text-white shadow-sm"
                 style={{ backgroundColor: "var(--tone-image-green, #16a34a)" }}
               >
-                TTS 생성 시작하기 -&gt;
+                TTS 생성 시작 -&gt;
               </span>
             </div>
           </a>

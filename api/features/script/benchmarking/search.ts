@@ -1,9 +1,16 @@
-﻿import type { VercelRequest, VercelResponse } from "@vercel/node";
+import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { checkAndDeductCredits, CREDIT_COSTS } from "../../../../server/shared/creditService.js";
 import { getSupabaseUser } from "../../../../server/shared/supabase.js";
+import { getCouponBypassState } from "../../../../server/shared/couponBypass.js";
 
 const YT_BASE_URL = "https://www.googleapis.com/youtube/v3";
 const MAX_RESULTS_PER_PAGE = 50;
+const REGION_MAP: Record<string, { regionCode: string; relevanceLanguage: string }> = {
+  KR: { regionCode: "KR", relevanceLanguage: "ko" },
+  US: { regionCode: "US", relevanceLanguage: "en" },
+  JP: { regionCode: "JP", relevanceLanguage: "ja" },
+  ALL: { regionCode: "", relevanceLanguage: "" },
+};
 
 type BillingMode = "coupon_user_key" | "server_credit";
 
@@ -112,7 +119,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const metadata = (auth.user as any)?.user_metadata || {};
-  const couponBypassCredits = metadata?.coupon_bypass_credits === true;
+  const couponBypassCredits = getCouponBypassState(metadata).active;
   const userApiKey = String(body.apiKey || "").trim();
   let apiKey = "";
 
@@ -159,6 +166,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const durationFilter = body.durationFilter || "any";
   const minViews = Number(body.minViews || 0);
   const maxSubs = Number(body.maxSubs || 999999999);
+  const minEfficiency = Number(body.minEfficiency || 0);
+  const region = String(body.region || "ALL").toUpperCase();
+  const regionConfig = REGION_MAP[region] || REGION_MAP.ALL;
   const maxScan = Math.min(Number(body.maxScan || 50), 500);
 
   let publishedAfter: string | undefined;
@@ -192,6 +202,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       if (publishedAfter) {
         searchParams.set("publishedAfter", publishedAfter);
+      }
+      if (regionConfig.regionCode) {
+        searchParams.set("regionCode", regionConfig.regionCode);
+      }
+      if (regionConfig.relevanceLanguage) {
+        searchParams.set("relevanceLanguage", regionConfig.relevanceLanguage);
       }
 
       if (nextPageToken) {
@@ -287,6 +303,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (!passDuration || viewCount < minViews || subs > maxSubs) continue;
 
         const contribution = subs > 0 ? Number((viewCount / subs).toFixed(2)) : viewCount > 0 ? 999 : 0;
+        if (contribution < minEfficiency) continue;
 
         results.push({
           id: videoId,
@@ -322,3 +339,4 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: error?.message || "search_failed" });
   }
 }
+

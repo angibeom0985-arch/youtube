@@ -24,11 +24,10 @@ const toUserMessage = (raw: string): string => {
 
   if (lower.includes("rate_limit")) return "요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.";
   if (lower.includes("auth_required")) return "로그인이 필요합니다.";
-  if (lower.includes("coupon_user_key_required")) {
-    return "쿠폰 적용 계정은 본인 Gemini API 키를 등록해야 사용할 수 있습니다.";
-  }
-  if (lower.includes("missing_user_api_key")) return "마이페이지에서 Gemini API 키를 등록해 주세요.";
   if (lower.includes("missing_api_key")) return "서버 API 설정 오류입니다. 관리자에게 문의해 주세요.";
+  if (lower.includes("coupon_user_key_required")) {
+    return "할인 쿠폰 모드에서는 마이페이지에 본인 Gemini API 키를 등록해야 합니다.";
+  }
   if (lower.includes("missing_fields") || lower.includes("invalid_request")) {
     return "요청 값이 올바르지 않습니다. 입력값을 확인해 주세요.";
   }

@@ -183,7 +183,11 @@ const MyPage: React.FC = () => {
         return;
       }
 
-      setCouponMessage("쿠폰 적용 완료: 이제 본인 API 키를 등록하면 크레딧 없이 사용 가능합니다.");
+      const expiryRaw = typeof data?.bypassExpiresAt === "string" ? data.bypassExpiresAt : "";
+      const expiryLabel = expiryRaw
+        ? new Date(expiryRaw).toLocaleDateString("ko-KR")
+        : "적용일로부터 2개월";
+      setCouponMessage(`쿠폰 적용 완료: 유효기간은 ${expiryLabel}까지이며, Gemini/Google Cloud 본인 API 키 등록 시 전체 기능을 크레딧 없이 사용할 수 있습니다.`);
       setCouponCode("");
       window.dispatchEvent(new Event("creditRefresh"));
     } catch (error) {
@@ -203,14 +207,14 @@ const MyPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white relative">
+    <div className="min-h-screen text-white relative bg-[radial-gradient(circle_at_16%_12%,rgba(99,102,241,0.20),transparent_42%),radial-gradient(circle_at_84%_0%,rgba(37,99,235,0.14),transparent_36%),linear-gradient(180deg,#020617_0%,#020617_100%)]">
       <div className="absolute top-0 right-0 p-6 flex gap-3 z-10 items-center">
-        <UserCreditToolbar user={user} onLogout={handleLogout} tone="emerald" showCredits />
+        <UserCreditToolbar user={user} onLogout={handleLogout} tone="indigo" showCredits />
       </div>
 
       <div className="max-w-4xl mx-auto px-6 py-20">
         <div className="mb-8">
-          <HomeBackButton tone="purple" />
+          <HomeBackButton tone="indigo" />
         </div>
 
         <h1 className="text-4xl font-bold mb-2">마이 페이지</h1>
@@ -218,7 +222,7 @@ const MyPage: React.FC = () => {
 
         <div className="grid md:grid-cols-3 gap-6">
           {/* User Profile Card */}
-          <div className="md:col-span-1 bg-zinc-900 border border-white/10 rounded-2xl p-6">
+          <div className="md:col-span-1 bg-slate-900/75 border border-indigo-300/20 rounded-2xl p-6 backdrop-blur-sm">
             <div className="flex flex-col items-center text-center">
               <div className="w-24 h-24 rounded-full bg-zinc-800 flex items-center justify-center mb-4 border-2 border-white/10">
                 {user?.user_metadata?.avatar_url ? (
@@ -236,9 +240,9 @@ const MyPage: React.FC = () => {
               </h2>
               <p className="text-sm text-slate-400 mb-4">{user?.email}</p>
 
-              <div className="w-full mb-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-3 text-left">
+              <div className="w-full mb-4 rounded-xl border border-indigo-400/30 bg-indigo-500/12 px-3 py-3 text-left">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-emerald-300 flex items-center gap-1">
+                  <span className="text-xs text-indigo-300 flex items-center gap-1">
                     <FiZap /> 크레딧
                   </span>
                   <button
@@ -247,10 +251,10 @@ const MyPage: React.FC = () => {
                     className="p-1 rounded hover:bg-white/10 transition-colors disabled:opacity-50"
                     title="크레딧 새로고침"
                   >
-                    <FiRefreshCw className={`text-emerald-300 text-xs ${creditsLoading ? "animate-spin" : ""}`} />
+                    <FiRefreshCw className={`text-indigo-300 text-xs ${creditsLoading ? "animate-spin" : ""}`} />
                   </button>
                 </div>
-                <p className="text-2xl font-black text-emerald-200 mt-1">
+                <p className="text-2xl font-black text-indigo-200 mt-1">
                   {creditsLoading ? "-" : (credits ?? 0).toLocaleString()}
                 </p>
                 <p className="text-[11px] text-slate-300 mt-1 leading-relaxed">
@@ -282,7 +286,7 @@ const MyPage: React.FC = () => {
           <div className="md:col-span-2 space-y-6">
             {/* Quick Actions */}
             <div className="grid grid-cols-2 gap-4">
-              <Link to="/script" className="bg-zinc-900 border border-white/10 p-5 rounded-2xl hover:border-white/30 transition-colors group">
+              <Link to="/script" className="bg-slate-900/75 border border-indigo-300/20 p-5 rounded-2xl hover:border-indigo-300/45 transition-colors group backdrop-blur-sm">
                 <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center mb-3 group-hover:bg-orange-500/20 transition-colors">
                   <span className="text-xl">📝</span>
                 </div>
@@ -290,7 +294,7 @@ const MyPage: React.FC = () => {
                 <p className="text-xs text-slate-500 mt-1">저장된 대본 보기</p>
               </Link>
 
-              <Link to="/video" className="bg-zinc-900 border border-white/10 p-5 rounded-2xl hover:border-white/30 transition-colors group">
+              <Link to="/video" className="bg-slate-900/75 border border-indigo-300/20 p-5 rounded-2xl hover:border-indigo-300/45 transition-colors group backdrop-blur-sm">
                 <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center mb-3 group-hover:bg-red-500/20 transition-colors">
                   <span className="text-xl">🎬</span>
                 </div>
@@ -299,14 +303,14 @@ const MyPage: React.FC = () => {
               </Link>
             </div>
 
-            <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6">
+            <div className="bg-slate-900/75 border border-indigo-300/20 rounded-2xl p-6 backdrop-blur-sm">
               <h3 className="font-bold text-white mb-4 flex items-center gap-2">
                 <FiZap className="text-emerald-400" /> 크레딧 관리
               </h3>
               <div className="grid sm:grid-cols-2 gap-3">
                 <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4">
-                  <p className="text-xs text-emerald-300">현재 보유 크레딧</p>
-                  <p className="text-3xl font-black text-emerald-200 mt-1">
+                  <p className="text-xs text-indigo-300">현재 보유 크레딧</p>
+                  <p className="text-3xl font-black text-indigo-200 mt-1">
                     {creditsLoading ? "-" : (credits ?? 0).toLocaleString()}
                   </p>
                 </div>
@@ -323,7 +327,7 @@ const MyPage: React.FC = () => {
                 <button
                   onClick={fetchCreditState}
                   disabled={creditsLoading}
-                  className="px-3 py-2 rounded-lg border border-white/15 hover:bg-white/5 text-sm text-slate-200 disabled:opacity-50 flex items-center gap-2"
+                  className="px-3 py-2 rounded-lg border border-indigo-300/20 hover:bg-indigo-500/10 text-sm text-slate-200 disabled:opacity-50 flex items-center gap-2"
                 >
                   <FiRefreshCw className={creditsLoading ? "animate-spin" : ""} />
                   크레딧 새로고침
@@ -332,7 +336,7 @@ const MyPage: React.FC = () => {
             </div>
 
             {/* API Settings Section */}
-            <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6">
+            <div className="bg-slate-900/75 border border-indigo-300/20 rounded-2xl p-6 backdrop-blur-sm">
               <h3 className="font-bold text-white mb-4 flex items-center gap-2">
                 <FiKey className="text-orange-400" /> API 키 설정
               </h3>
@@ -366,12 +370,12 @@ const MyPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6">
+            <div className="bg-slate-900/75 border border-indigo-300/20 rounded-2xl p-6 backdrop-blur-sm">
               <h3 className="font-bold text-white mb-4 flex items-center gap-2">
                 <FiGift className="text-emerald-400" /> 할인 쿠폰
               </h3>
               <p className="text-sm text-slate-400 mb-4">
-                쿠폰 적용 후에는 본인 API 키를 등록한 요청만 크레딧 없이 사용됩니다. 미등록 시 사용이 제한됩니다.
+                쿠폰 적용 후 유효기간은 2개월이며, Gemini/Google Cloud 본인 API 키를 등록한 요청만 크레딧 없이 사용됩니다. 미등록 시 사용이 제한됩니다.
               </p>
               <div className="flex gap-2">
                 <input
@@ -383,7 +387,7 @@ const MyPage: React.FC = () => {
                 <button
                   onClick={handleApplyCoupon}
                   disabled={couponLoading}
-                  className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-sm font-semibold"
+                  className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-semibold"
                 >
                   {couponLoading ? "적용 중..." : "적용"}
                 </button>
@@ -394,7 +398,7 @@ const MyPage: React.FC = () => {
             </div>
 
             {/* Recent Activity (Placeholder) */}
-            <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6">
+            <div className="bg-slate-900/75 border border-indigo-300/20 rounded-2xl p-6 backdrop-blur-sm">
               <h3 className="font-bold text-white mb-4 flex items-center gap-2">
                 <FiClock /> 최근 활동 내역
               </h3>
@@ -410,3 +414,4 @@ const MyPage: React.FC = () => {
 };
 
 export default MyPage;
+

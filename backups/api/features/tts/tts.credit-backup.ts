@@ -75,12 +75,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   }
 
-  // Google Service Account JSON ???뚯씪 寃쎈줈 ?ㅼ젙
+  // Google Service Account JSON 파일 경로 설정
   let keyFilename = process.env.GOOGLE_APPLICATION_CREDENTIALS;
   const jsonFileName = "google-credentials.json";
 
   if (!keyFilename || !fs.existsSync(keyFilename)) {
-    // ?꾨낫 寃쎈줈???뺤씤
+    // 후보 경로들 확인
         const candidates = [
       path.join(process.cwd(), "api", "youtube_TTS", jsonFileName),
       path.join(__dirname, jsonFileName),
@@ -99,7 +99,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   }
 
-  // ?섍꼍蹂?섎줈 JSON ?댁슜??吏곸젒 ?꾨떖??寃쎌슦 泥섎━ (Vercel 沅뚯옣 諛⑹떇)
+  // 환경변수로 JSON 내용을 직접 전달한 경우 처리 (Vercel 권장 방식)
   let clientOptions: any = { keyFilename };
 
   if (userCredentials) {
@@ -154,7 +154,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return;
     }
 
-    // Buffer瑜?Base64 臾몄옄?대줈 蹂?섑븯???꾩넚
+    // Buffer를 Base64 문자열로 변환해서 전송
     const audioContent = Buffer.from(response.audioContent).toString("base64");
 
     res.status(200).json({ audioContent });

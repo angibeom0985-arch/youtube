@@ -9,7 +9,9 @@
     "build": "node scripts/vite-run.mjs build",
     "preview": "node scripts/vite-run.mjs preview",
     "generate-og": "node YOUTUBE/scripts/generate_og_image.js",
-    "finish": "node scripts/finish.mjs"
+    "finish": "node scripts/finish.mjs",
+    "setup:hooks": "node scripts/setup-git-hooks.mjs",
+    "prepare": "npm run setup:hooks"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

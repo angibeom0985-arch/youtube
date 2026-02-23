@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { StoryboardImage as StoryboardImageType } from "../types";
-import Spinner from "./Spinner";
+import Spinner from "@/components/Spinner";
 
 interface StoryboardImageProps {
   item: StoryboardImageType;

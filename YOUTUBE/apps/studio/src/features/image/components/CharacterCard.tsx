@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Character } from "../types";
-import Spinner from "./Spinner";
+import Spinner from "@/components/Spinner";
 
 interface CharacterCardProps {
   character: Character;

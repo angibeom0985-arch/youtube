@@ -1,0 +1,21 @@
+﻿===== tsc_app_only.txt =====
+src/features/image/App.tsx(84,30): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+src/features/image/services/supabase.ts(3,33): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+src/features/image/services/supabase.ts(4,37): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+
+===== tsc_app_only_2.txt =====
+src/features/image/App.tsx(84,30): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+src/features/image/services/supabase.ts(3,33): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+src/features/image/services/supabase.ts(4,37): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+
+===== tsc_app_src_only.txt =====
+src/App.tsx(38,40): error TS5097: An import path can only end with a '.tsx' extension when 'allowImportingTsExtensions' is enabled.
+src/components/Login.tsx(10,38): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+src/services/supabase.ts(3,33): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+src/services/supabase.ts(4,37): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+src/utils/textHighlight.tsx(201,11): error TS2686: 'React' refers to a UMD global, but the current file is a module. Consider adding an import instead.
+
+===== tsc_output_3.txt =====
+src/App.tsx(880,11): error TS2554: Expected 4-5 arguments, but got 6.
+src/pages/ApiGuideAiStudioPage.tsx(18,18): error TS2345: Argument of type 'Promise<GuidePageData>' is not assignable to parameter of type 'SetStateAction<GuidePageData>'.
+

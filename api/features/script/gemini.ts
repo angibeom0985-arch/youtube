@@ -1,4 +1,4 @@
-﻿import type { VercelRequest, VercelResponse } from "@vercel/node";
+import type { VercelRequest, VercelResponse } from "@vercel/node";
 import {
   analyzeTranscript,
   generateIdeas,
@@ -14,6 +14,7 @@ import {
 import { enforceAbusePolicy } from "../../../server/shared/abuseGuard.js";
 import { enforceUsageLimit, recordUsageEvent } from "../../../server/shared/usageLimit.js";
 import { getSupabaseUser, supabaseAdmin } from "../../../server/shared/supabase.js";
+import { getCouponBypassState } from "../../../server/shared/couponBypass.js";
 import { checkAndDeductCredits, CREDIT_COSTS } from "../../../server/shared/creditService.js";
 
 type RateEntry = {
@@ -125,7 +126,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const metadata = (authResult.user as any)?.user_metadata || {};
-    const couponBypassCredits = metadata?.coupon_bypass_credits === true;
+    const couponBypassCredits = getCouponBypassState(metadata).active;
 
     let userApiKey = "";
     const profileResult = await supabaseAdmin
@@ -167,9 +168,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       console.error("Failed to record usage event:", err);
     });
 
-    // New policy:
-    // 1) Coupon-applied user: credits bypass, but own API key is required.
-    // 2) Non-coupon user: always server API + credits deduction.
     if (couponBypassCredits) {
       if (!userApiKey) {
         res.status(400).send("coupon_user_key_required");

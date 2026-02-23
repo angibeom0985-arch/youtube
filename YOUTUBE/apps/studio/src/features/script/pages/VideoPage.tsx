@@ -113,26 +113,26 @@ const voiceOptions = [
 
 // 확장된 목소리 옵션 (모달용)
 const allVoiceOptions = [
-  { name: "민준", label: "남성 캐주얼", tone: "신뢰감 있는 다큐 스타일", category: "추천", sampleText: "오늘은 여러분께 정말 흥미로운 이야기를 들려드리려고 합니다." },
-  { name: "서연", label: "여성 아나운서", tone: "차분한 뉴스 톤", category: "추천", sampleText: "지금부터 중요한 정보를 정확하게 전달해 드리겠습니다." },
-  { name: "지훈", label: "남성 비즈니스", tone: "프로페셔널 프레젠테이션", category: "추천", sampleText: "오늘 발표할 내용은 우리 사업의 핵심 전략입니다." },
-  { name: "유나", label: "여성 상냥", tone: "밝고 친근한 진행", category: "추천", sampleText: "안녕하세요! 오늘도 즐거운 하루 보내고 계신가요?" },
-  { name: "혜진", label: "여성 중년", tone: "안정적인 라디오 톤", category: "추천", sampleText: "차분하게 핵심만 정리해서 전달드리겠습니다." },
-  { name: "도현", label: "남성 내레이션", tone: "정중한 해설 톤", category: "추천", sampleText: "지금부터 핵심 내용을 차근차근 짚어보겠습니다." },
+  { name: "민준", label: "남성 캐주얼", tone: "신뢰감 있는 다큐 스타일", category: "추천", sampleText: "안녕하세요, 유튜브 채널에 오신 것을 환영합니다. 오늘 영상에서는 핵심만 빠르게 알려드릴게요." },
+  { name: "서연", label: "여성 아나운서", tone: "차분한 뉴스 톤", category: "추천", sampleText: "안녕하세요, 유튜브 시청자 여러분. 오늘 영상의 주요 내용을 정확하게 전달해 드리겠습니다." },
+  { name: "지훈", label: "남성 비즈니스", tone: "프로페셔널 프레젠테이션", category: "추천", sampleText: "이번 유튜브 영상에서는 실무에 바로 적용할 수 있는 전략 세 가지를 소개합니다." },
+  { name: "유나", label: "여성 상냥", tone: "밝고 친근한 진행", category: "추천", sampleText: "유튜브에 오신 여러분 반가워요. 오늘도 재미있고 유익한 내용으로 준비했어요." },
+  { name: "혜진", label: "여성 중년", tone: "안정적인 라디오 톤", category: "추천", sampleText: "오늘 유튜브 영상은 처음 보는 분도 이해하기 쉽게 차근차근 설명해 드릴게요." },
+  { name: "도현", label: "남성 내레이션", tone: "정중한 해설 톤", category: "추천", sampleText: "지금부터 유튜브 영상의 핵심 포인트를 하나씩 짚어보겠습니다." },
 
-  { name: "태양", label: "남성 에너지", tone: "활기찬 운동 코치", category: "남성", sampleText: "자, 이제 시작합니다! 힘차게 따라오세요!" },
-  { name: "준서", label: "남성 다큐", tone: "깊이 있는 내레이션", category: "남성", sampleText: "이 장면에서 우리는 자연의 경이로운 순간을 목격하게 됩니다." },
-  { name: "동현", label: "남성 카리스마", tone: "리더십 강연 톤", category: "남성", sampleText: "성공하고 싶다면, 지금 바로 행동으로 옮겨야 합니다." },
-  { name: "상호", label: "남성 중년", tone: "따뜻한 해설 톤", category: "남성", sampleText: "천천히 정리하면 결국 답이 보입니다." },
-  { name: "재훈", label: "남성 젊은", tone: "경쾌한 진행", category: "남성", sampleText: "오늘 주제, 정말 재밌게 풀어보겠습니다!" },
-  { name: "성민", label: "남성 시니어", tone: "묵직한 조언 톤", category: "남성", sampleText: "경험에서 나온 조언은 단순하지만 강력합니다." },
+  { name: "태양", label: "남성 에너지", tone: "활기찬 운동 코치", category: "남성", sampleText: "유튜브 가족 여러분, 오늘도 힘차게 시작합니다. 끝까지 함께 가보시죠!" },
+  { name: "준서", label: "남성 다큐", tone: "깊이 있는 내레이션", category: "남성", sampleText: "이 유튜브 영상에서는 데이터 기반으로 변화의 흐름을 분석해 보겠습니다." },
+  { name: "동현", label: "남성 카리스마", tone: "리더십 강연 톤", category: "남성", sampleText: "유튜브에서 성장하려면 지금 바로 실행해야 합니다. 오늘 그 방법을 알려드립니다." },
+  { name: "상호", label: "남성 중년", tone: "따뜻한 해설 톤", category: "남성", sampleText: "오늘 유튜브 콘텐츠는 실수 줄이는 방법을 중심으로 정리했습니다." },
+  { name: "재훈", label: "남성 젊은", tone: "경쾌한 진행", category: "남성", sampleText: "유튜브 시청자 여러분, 오늘 주제 진짜 꿀팁 많으니까 꼭 끝까지 봐주세요!" },
+  { name: "성민", label: "남성 시니어", tone: "묵직한 조언 톤", category: "남성", sampleText: "이번 유튜브 영상은 경험에서 나온 현실적인 조언을 담았습니다." },
 
-  { name: "소희", label: "여성 ASMR", tone: "부드러운 집중용 음성", category: "여성", sampleText: "편안하게 들으시면서, 천천히 따라오세요." },
-  { name: "하늘", label: "여성 차분", tone: "명상 가이드 톤", category: "여성", sampleText: "깊게 숨을 들이마시고, 천천히 내쉬어 보세요." },
-  { name: "수아", label: "여성 활발", tone: "쇼핑호스트 스타일", category: "여성", sampleText: "와! 이 제품 정말 대박이에요! 지금 바로 확인해보세요!" },
-  { name: "예린", label: "여성 젊은", tone: "가벼운 브이로그 톤", category: "여성", sampleText: "오늘 하루 같이 가볍게 시작해볼까요?" },
-  { name: "미정", label: "여성 중년", tone: "안정적 설명 톤", category: "여성", sampleText: "핵심만 간단하게 정리해 드릴게요." },
-  { name: "순자", label: "여성 시니어", tone: "따뜻한 이야기 톤", category: "여성", sampleText: "옛날 이야기도 요즘엔 다 이유가 있답니다." },
+  { name: "소희", label: "여성 ASMR", tone: "부드러운 집중용 음성", category: "여성", sampleText: "편안하게 유튜브 영상을 들으시면서 오늘 핵심 내용을 천천히 따라와 주세요." },
+  { name: "하늘", label: "여성 차분", tone: "명상 가이드 톤", category: "여성", sampleText: "유튜브 영상 시작 전에 호흡을 고르고, 중요한 포인트에 집중해 보겠습니다." },
+  { name: "수아", label: "여성 활발", tone: "쇼핑호스트 스타일", category: "여성", sampleText: "오늘 유튜브 영상 대박입니다! 바로 써먹을 수 있는 팁만 모아서 보여드릴게요." },
+  { name: "예린", label: "여성 젊은", tone: "가벼운 브이로그 톤", category: "여성", sampleText: "유튜브 브이로그처럼 편하게 보시고, 오늘 영상에서 필요한 부분만 쏙 가져가세요." },
+  { name: "미정", label: "여성 중년", tone: "안정적 설명 톤", category: "여성", sampleText: "오늘 유튜브 콘텐츠는 복잡한 내용을 간단한 예시로 정리해 드립니다." },
+  { name: "순자", label: "여성 시니어", tone: "따뜻한 이야기 톤", category: "여성", sampleText: "유튜브에서 오래 사랑받는 콘텐츠의 공통점을 따뜻하게 들려드릴게요." },
 ];
 
 const scriptCategories = [
@@ -1067,31 +1067,31 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
       const voiceMap: Record<string, string> = {
         // 남성군
-        민준: "ko-KR-Wavenet-D",
-        지훈: "ko-KR-Wavenet-B",
-        준서: "ko-KR-Wavenet-D",
-        도현: "ko-KR-Wavenet-B",
-        태양: "ko-KR-Wavenet-D",
-        동현: "ko-KR-Wavenet-B",
-        상호: "ko-KR-Standard-B",
-        재훈: "ko-KR-Wavenet-B",
-        성민: "ko-KR-Standard-D",
-        수현: "ko-KR-Standard-B",
-        지수: "ko-KR-Standard-D",
-        해준: "ko-KR-Wavenet-B",
-        준호: "ko-KR-Wavenet-D",
+        민준: "ko-KR-Wavenet-C",
+        지훈: "ko-KR-Wavenet-C",
+        준서: "ko-KR-Wavenet-C",
+        도현: "ko-KR-Neural2-C",
+        태양: "ko-KR-Neural2-C",
+        동현: "ko-KR-Standard-C",
+        상호: "ko-KR-Standard-C",
+        재훈: "ko-KR-Wavenet-C",
+        성민: "ko-KR-Neural2-C",
+        수현: "ko-KR-Standard-C",
+        지수: "ko-KR-Wavenet-C",
+        해준: "ko-KR-Neural2-C",
+        준호: "ko-KR-Wavenet-C",
         // 여성군
         서연: "ko-KR-Wavenet-A",
-        유나: "ko-KR-Wavenet-C",
+        유나: "ko-KR-Neural2-A",
         혜진: "ko-KR-Standard-A",
         소희: "ko-KR-Wavenet-A",
-        하늘: "ko-KR-Wavenet-A",
+        하늘: "ko-KR-Neural2-A",
         수아: "ko-KR-Standard-A",
-        예린: "ko-KR-Wavenet-C",
+        예린: "ko-KR-Wavenet-A",
         미정: "ko-KR-Standard-A",
-        순자: "ko-KR-Standard-A",
+        순자: "ko-KR-Neural2-A",
         하나: "ko-KR-Wavenet-A",
-        세영: "ko-KR-Wavenet-C",
+        세영: "ko-KR-Neural2-A",
         하림: "ko-KR-Neural2-A",
       };
 
@@ -1104,7 +1104,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         .join(" ")
         .replace(/\s+/g, " ")
         .trim()
-        .slice(0, 350);
+        .slice(0, 120);
 
       if (!previewText) {
         throw new Error("음성으로 변환할 텍스트가 없습니다.");
@@ -2715,29 +2715,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
               {chapterScripts.length > 0 ? (
                 <div className="space-y-4 overflow-visible">
-                  {currentStep === steps.findIndex((step) => step.id === "tts") && chapterScripts.length > 0 && (
-                    <div className="fixed right-6 top-1/2 z-[80] hidden -translate-y-1/2 lg:flex flex-col items-end gap-3">
-                      <div className="rounded-2xl border border-white/15 bg-gradient-to-b from-black/80 to-black/50 px-4 py-3 shadow-[0_20px_60px_rgba(0,0,0,0.45)] backdrop-blur">
-                        <p className="text-xs text-white/50">현재 선택</p>
-                        <p className="text-sm font-semibold text-white">
-                          {currentChapterForVoice !== null
-                            ? chapterScripts[currentChapterForVoice]?.title || `챕터 ${currentChapterForVoice + 1}`
-                            : "챕터 선택 필요"}
-                        </p>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const index = currentChapterForVoice ?? 0;
-                            setCurrentChapterForVoice(index);
-                            setShowVoiceModal(true);
-                          }}
-                          className="mt-3 inline-flex items-center gap-2 rounded-full border border-red-400/60 bg-red-500/20 px-4 py-2 text-sm font-semibold text-red-100 hover:bg-red-500/30 transition"
-                        >
-                          더 많은 TTS
-                        </button>
-                      </div>
-                    </div>
-                  )}
                   <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-white/10 bg-black/30 px-4 py-3">
                     <span className="text-sm font-semibold text-white/70">전체 목소리 적용</span>
                     <select
@@ -2814,7 +2791,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                 type="button"
                                 onClick={() => {
                                   setCurrentChapterForVoice(index);
-                                  const sampleText = allVoiceOptions.find(v => v.name === voice.name)?.sampleText || "안녕하세요. 샘플 음성입니다.";
+                                  const sampleText = allVoiceOptions.find(v => v.name === voice.name)?.sampleText || "안녕하세요, 유튜브 채널 미리듣기 샘플입니다.";
                                   playPreviewAudio(index, voice.name, sampleText);
                                 }}
                                 className={`p-2 rounded-lg border transition-all ${playingChapter === index && playingVoice === voice.name

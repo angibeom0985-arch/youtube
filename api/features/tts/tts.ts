@@ -388,7 +388,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       };
     }
 
-    if (enforceUsageLimit) {
+    if (!preview && enforceUsageLimit) {
       const usage = await enforceUsageLimit(req, clientFingerprint);
       if (!usage.allowed) {
         if (usage.retryAfterSeconds) {
@@ -400,7 +400,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (recordUsageEvent) {
-      recordUsageEvent(req, "tts", clientFingerprint).catch((usageErr) => {
+      recordUsageEvent(req, preview ? "tts_preview" : "tts", clientFingerprint).catch((usageErr) => {
         console.error("[api/tts] usage event failed:", usageErr);
       });
     }

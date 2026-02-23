@@ -1,11 +1,12 @@
 ﻿import React, { useEffect, useMemo, useState } from "react";
 import { FiDownload, FiSearch } from "react-icons/fi";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/services/supabase";
 import HomeBackButton from "@/components/HomeBackButton";
 import UserCreditToolbar from "@/components/UserCreditToolbar";
-import { CREDIT_COSTS, formatCreditButtonLabel } from "@/constants/creditCosts";
+import AdSense from "@/components/AdSense";
+import { CREDIT_COSTS, withCreditLabel } from "@/constants/creditCosts";
 
 type VideoResult = {
   id: string;
@@ -36,6 +37,8 @@ type SearchCacheEntry = {
 };
 
 const dateOptions = [
+  { label: "7일", days: 7 },
+  { label: "14일", days: 14 },
   { label: "1개월", days: 30 },
   { label: "2개월", days: 60 },
   { label: "6개월", days: 180 },
@@ -65,6 +68,7 @@ const sortOptions = [
 ] as const;
 
 type SortOption = (typeof sortOptions)[number]["value"];
+type RegionOption = "KR" | "US" | "JP" | "ALL";
 
 const SEARCH_CACHE_NAMESPACE = "benchmarking_search_cache_v1";
 const SEARCH_CACHE_TTL_MS = 1000 * 60 * 60 * 12; // 12시간
@@ -107,8 +111,16 @@ const getMomentumTier = (score: number): string => {
   return "보통";
 };
 
-const buildSearchCacheKey = (query: string, days: number, durationFilter: string): string =>
-  `${query.trim().toLowerCase()}::${days}::${durationFilter}`;
+const buildSearchCacheKey = (
+  query: string,
+  days: number,
+  durationFilter: string,
+  region: RegionOption,
+  minViews: number,
+  maxSubs: number,
+  minEfficiency: number,
+): string =>
+  `${query.trim().toLowerCase()}::${days}::${durationFilter}::${region}::${minViews}::${maxSubs}::${minEfficiency}`;
 
 const readSearchCache = (cacheKey: string): SearchCacheEntry | null => {
   try {
@@ -145,6 +157,7 @@ const writeSearchCache = (cacheKey: string, entry: SearchCacheEntry) => {
 
 const BenchmarkingPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [user, setUser] = useState<User | null>(null);
   const [youtubeApiKey, setYoutubeApiKey] = useState("");
   const [couponBypassCredits, setCouponBypassCredits] = useState(false);
@@ -152,6 +165,11 @@ const BenchmarkingPage: React.FC = () => {
   const [queryTouched, setQueryTouched] = useState(false);
   const [days, setDays] = useState(30);
   const [durationFilter, setDurationFilter] = useState("any");
+  const [region, setRegion] = useState<RegionOption>("KR");
+  const [minViews, setMinViews] = useState(10_000);
+  const [maxSubs, setMaxSubs] = useState(100_000);
+  const [minEfficiency, setMinEfficiency] = useState(1);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [subscriberMin, setSubscriberMin] = useState(0);
   const [sortBy, setSortBy] = useState<SortOption>("momentum");
   const [loading, setLoading] = useState(false);
@@ -159,6 +177,7 @@ const BenchmarkingPage: React.FC = () => {
   const [cacheMessage, setCacheMessage] = useState("");
   const [summary, setSummary] = useState<SearchSummary | null>(null);
   const [results, setResults] = useState<VideoResult[]>([]);
+  const noAds = new URLSearchParams(location.search).get("no_ads") === "true";
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -245,7 +264,15 @@ const BenchmarkingPage: React.FC = () => {
       return;
     }
 
-    const cacheKey = buildSearchCacheKey(query, days, durationFilter);
+    const cacheKey = buildSearchCacheKey(
+      query,
+      days,
+      durationFilter,
+      region,
+      minViews,
+      maxSubs,
+      minEfficiency,
+    );
     const cached = readSearchCache(cacheKey);
     if (cached) {
       setResults(cached.results || []);
@@ -270,6 +297,10 @@ const BenchmarkingPage: React.FC = () => {
           query,
           days,
           durationFilter,
+          region,
+          minViews,
+          maxSubs,
+          minEfficiency,
           maxScan: 100,
         }),
       });
@@ -346,7 +377,16 @@ const BenchmarkingPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white relative overflow-hidden">
+    <div
+      className="min-h-screen bg-black text-white relative overflow-hidden"
+      style={{
+        fontFamily:
+          '"Pretendard Variable", "Pretendard", "Noto Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", "Segoe UI", sans-serif',
+        WebkitFontSmoothing: "antialiased",
+        MozOsxFontSmoothing: "grayscale",
+        textRendering: "optimizeLegibility",
+      }}
+    >
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_20%_15%,rgba(168,85,247,0.18),transparent_38%),radial-gradient(circle_at_80%_0%,rgba(139,92,246,0.18),transparent_30%),linear-gradient(180deg,rgba(17,24,39,0.25),rgba(0,0,0,0.85))]" />
       <div className="absolute top-0 right-0 p-4 sm:p-6 flex gap-3 z-50 items-center">
         <UserCreditToolbar user={user} onLogout={handleLogout} tone="purple" showCredits={false} />
@@ -378,66 +418,122 @@ const BenchmarkingPage: React.FC = () => {
           </div>
 
           <div className="rounded-xl border border-purple-300/20 bg-purple-950/20 p-3">
-            <div className="grid gap-4 lg:grid-cols-3 lg:divide-x lg:divide-purple-400/20">
-              <div className="lg:pr-4">
-                <p className="text-xs font-bold text-purple-200/80 mb-2">기간</p>
-                <div className="flex flex-wrap gap-2">
+            <div className="flex items-end gap-3 overflow-x-auto pb-1 whitespace-nowrap">
+              <div className="min-w-[180px]">
+                <label className="block text-xs font-bold text-purple-200/80 mb-2">기간</label>
+                <select
+                  value={days}
+                  onChange={(e) => setDays(Number(e.target.value))}
+                  className="w-full h-11 px-3 rounded-xl border border-purple-300/30 bg-black/45 text-purple-100 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+                >
                   {dateOptions.map((item) => (
-                    <button
-                      key={item.days}
-                      type="button"
-                      onClick={() => setDays(item.days)}
-                      className={`px-3 py-2 rounded-full border text-sm whitespace-nowrap transition-all ${days === item.days ? "bg-gradient-to-r from-purple-600 to-fuchsia-600 border-purple-300 text-white shadow-[0_6px_20px_rgba(139,92,246,0.4)]" : "border-purple-300/25 bg-purple-900/20 text-purple-100/80 hover:border-purple-300/40"}`}
-                    >
+                    <option key={item.days} value={item.days}>
                       {item.label}
-                    </button>
+                    </option>
                   ))}
-                </div>
+                </select>
               </div>
 
-              <div className="lg:px-4">
-                <p className="text-xs font-bold text-purple-200/80 mb-2">영상 길이</p>
-                <div className="flex flex-wrap gap-2">
+              <div className="min-w-[220px]">
+                <label className="block text-xs font-bold text-purple-200/80 mb-2">영상 길이</label>
+                <select
+                  value={durationFilter}
+                  onChange={(e) => setDurationFilter(e.target.value)}
+                  className="w-full h-11 px-3 rounded-xl border border-purple-300/30 bg-black/45 text-purple-100 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+                >
                   {durationOptions.map((item) => (
-                    <button
-                      key={item.value}
-                      type="button"
-                      onClick={() => setDurationFilter(item.value)}
-                      className={`px-3 py-2 rounded-full border text-sm whitespace-nowrap transition-all ${durationFilter === item.value ? "bg-gradient-to-r from-purple-600 to-fuchsia-600 border-purple-300 text-white shadow-[0_6px_20px_rgba(139,92,246,0.4)]" : "border-purple-300/25 bg-purple-900/20 text-purple-100/80 hover:border-purple-300/40"}`}
-                    >
+                    <option key={item.value} value={item.value}>
                       {item.label}
-                    </button>
+                    </option>
                   ))}
-                </div>
+                </select>
               </div>
 
-              <div className="lg:pl-4">
-                <p className="text-xs font-bold text-purple-200/80 mb-2">구독자수</p>
-                <div className="flex flex-wrap gap-2">
+              <div className="min-w-[180px]">
+                <label className="block text-xs font-bold text-purple-200/80 mb-2">구독자수</label>
+                <select
+                  value={subscriberMin}
+                  onChange={(e) => setSubscriberMin(Number(e.target.value))}
+                  className="w-full h-11 px-3 rounded-xl border border-purple-300/30 bg-black/45 text-purple-100 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+                >
                   {subscriberOptions.map((item) => (
-                    <button
-                      key={item.min}
-                      type="button"
-                      onClick={() => setSubscriberMin(item.min)}
-                      className={`px-3 py-2 rounded-full border text-sm whitespace-nowrap transition-all ${subscriberMin === item.min ? "bg-gradient-to-r from-purple-600 to-fuchsia-600 border-purple-300 text-white shadow-[0_6px_20px_rgba(139,92,246,0.4)]" : "border-purple-300/25 bg-purple-900/20 text-purple-100/80 hover:border-purple-300/40"}`}
-                    >
+                    <option key={item.min} value={item.min}>
                       {item.label}
-                    </button>
+                    </option>
                   ))}
-                </div>
+                </select>
+              </div>
+
+              <div className="min-w-[180px]">
+                <label className="block text-xs font-bold text-purple-200/80 mb-2">국가/언어</label>
+                <select
+                  value={region}
+                  onChange={(e) => setRegion(e.target.value as RegionOption)}
+                  className="w-full h-11 px-3 rounded-xl border border-purple-300/30 bg-black/45 text-purple-100 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+                >
+                  <option value="KR">한국어</option>
+                  <option value="US">영어(미국)</option>
+                  <option value="JP">일본어</option>
+                  <option value="ALL">전체</option>
+                </select>
+              </div>
+
+              <div className="ml-auto min-w-[96px]">
+                <button
+                  type="button"
+                  onClick={exportToCsv}
+                  disabled={!filteredResults.length}
+                  className="h-11 px-4 rounded-xl border border-purple-300/35 bg-purple-900/20 disabled:opacity-50 flex items-center justify-center gap-2 text-purple-100/90 w-full"
+                >
+                  <FiDownload /> CSV
+                </button>
               </div>
             </div>
           </div>
 
-          <div className="flex justify-end">
+          <div className="rounded-xl border border-purple-300/20 bg-purple-950/20 p-3">
             <button
               type="button"
-              onClick={exportToCsv}
-              disabled={!filteredResults.length}
-              className="px-4 py-2 rounded-full border border-purple-300/35 bg-purple-900/20 disabled:opacity-50 flex items-center gap-2 text-purple-100/90 whitespace-nowrap"
+              onClick={() => setShowAdvanced((prev) => !prev)}
+              className="text-xs font-bold text-purple-100/85 hover:text-white"
             >
-              <FiDownload /> CSV
+              고급 설정 {showAdvanced ? "접기" : "펼치기"}
             </button>
+            {showAdvanced && (
+              <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                <div>
+                  <label className="block text-xs font-bold text-purple-200/80 mb-2">최소 조회수</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={minViews}
+                    onChange={(e) => setMinViews(Math.max(0, Number(e.target.value) || 0))}
+                    className="w-full h-11 px-3 rounded-xl border border-purple-300/30 bg-black/45 text-purple-100 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-purple-200/80 mb-2">최대 구독자</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={maxSubs}
+                    onChange={(e) => setMaxSubs(Math.max(0, Number(e.target.value) || 0))}
+                    className="w-full h-11 px-3 rounded-xl border border-purple-300/30 bg-black/45 text-purple-100 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-purple-200/80 mb-2">최소 효율(조회/구독)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    step="0.1"
+                    value={minEfficiency}
+                    onChange={(e) => setMinEfficiency(Math.max(0, Number(e.target.value) || 0))}
+                    className="w-full h-11 px-3 rounded-xl border border-purple-300/30 bg-black/45 text-purple-100 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="pt-2">
@@ -447,13 +543,19 @@ const BenchmarkingPage: React.FC = () => {
               className="w-full px-6 py-4 rounded-2xl bg-gradient-to-r from-purple-600 via-fuchsia-600 to-violet-600 hover:from-purple-500 hover:via-fuchsia-500 hover:to-violet-500 disabled:opacity-50 flex items-center justify-center gap-3 text-lg font-black shadow-[0_14px_32px_rgba(139,92,246,0.42)]"
             >
               <FiSearch />
-              {loading ? "검색 중..." : `검색 시작 (${formatCreditButtonLabel(CREDIT_COSTS.SEARCH).replace("크레딯", "크레딧")})`}
+              {loading ? "검색 중..." : withCreditLabel("검색 시작", CREDIT_COSTS.SEARCH, { couponBypass: couponBypassCredits })}
             </button>
           </div>
 
           {error && <p className="text-red-300 text-sm">{error}</p>}
           {!error && cacheMessage && <p className="text-emerald-300 text-sm">{cacheMessage}</p>}
         </form>
+
+        {!noAds && (
+          <div className="mt-6">
+            <AdSense className="max-w-4xl mx-auto" />
+          </div>
+        )}
 
         {summary && (
           <div className="mt-6 text-sm text-purple-100/85 bg-purple-950/40 border border-purple-400/25 rounded-xl px-4 py-3">
@@ -521,3 +623,5 @@ const BenchmarkingPage: React.FC = () => {
 };
 
 export default BenchmarkingPage;
+
+

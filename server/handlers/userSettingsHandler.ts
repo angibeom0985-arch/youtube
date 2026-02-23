@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { getSupabaseUser } from "../shared/supabase.js";
+import { getCouponBypassState } from "../shared/couponBypass.js";
 
 const parseJsonBody = async (req: VercelRequest): Promise<any> => {
   if (req.body && typeof req.body === "object") return req.body;
@@ -89,18 +90,14 @@ export default async function userSettingsHandler(req: VercelRequest, res: Verce
       typeof metadata.coupon_bypass_expires_at === "string"
         ? metadata.coupon_bypass_expires_at
         : null;
-    const bypassExpiryTime = bypassExpiresAtRaw ? new Date(bypassExpiresAtRaw).getTime() : Number.NaN;
-    const couponBypassCredits =
-      metadata.coupon_bypass_credits === true &&
-      Number.isFinite(bypassExpiryTime) &&
-      Date.now() <= bypassExpiryTime;
+    const couponBypass = getCouponBypassState(metadata);
 
     return res.status(200).json({
       gemini_api_key: geminiApiKey,
       google_credit_json: googleCreditJson,
-      coupon_bypass_credits: couponBypassCredits,
+      coupon_bypass_credits: couponBypass.active,
       coupon_bypass_enabled_at: bypassEnabledAtRaw,
-      coupon_bypass_expires_at: bypassExpiresAtRaw,
+      coupon_bypass_expires_at: couponBypass.expiresAt ?? bypassExpiresAtRaw,
     });
   }
 
@@ -194,3 +191,4 @@ export default async function userSettingsHandler(req: VercelRequest, res: Verce
 
   return res.status(405).json({ message: "Method not allowed" });
 }
+

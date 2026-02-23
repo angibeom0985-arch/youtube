@@ -1,22 +1,23 @@
 import { getSupabaseUser } from "./supabase.js";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { getCouponBypassState } from "./couponBypass.js";
 
-// ?¬ë ˆ??ë¹„ìš© ?•ì˜
+// 크레딧 비용 정의
 export const CREDIT_COSTS = {
-  SEARCH: 5,          // ë²¤ì¹˜ë§ˆí‚¹ ê²€??
-  SCRIPT_PLAN: 10,    // ê¸°íš???ì„±
-  SCRIPT_OUTLINE: 5,  // ì±•í„° ëª©ì°¨ êµ¬ì„± (? ê·œ)
-  SCRIPT_CHUNK: 5,    // ì±•í„°ë³??€ë³??ì„± (? ê·œ)
-  IMAGE_GEN: 5,       // ?´ë?ì§€ 1???ì„±
-  TTS_CHAR: 0.1,      // TTS 1ê¸€?ë‹¹ (10??= 1?¬ë ˆ??
-  ANALYSIS: 1,        // ?ìƒ ë¶„ì„ (ê°€ë³ê²Œ)
-  IDEATION: 1,        // ?„ì´?”ì–´ ?ì„± (ê°€ë³ê²Œ)
+  SEARCH: 5,          // 벤치마킹 검색
+  SCRIPT_PLAN: 10,    // 기획안 생성
+  SCRIPT_OUTLINE: 5,  // 챕터 목차 구성 (신규)
+  SCRIPT_CHUNK: 5,    // 챕터별 대본 생성 (신규)
+  IMAGE_GEN: 5,       // 이미지 1장 생성
+  TTS_CHAR: 0.1,      // TTS 1글자당 (10자 = 1크레딧)
+  ANALYSIS: 1,        // 영상 분석 (가볍게)
+  IDEATION: 1,        // 아이디어 생성 (가볍게)
 };
 
-// ?¬ë ˆ???¤ì •
-const INITIAL_CREDITS = 12;        // ? ê·œ ê°€?…ìž ì´ˆê¸° ?¬ë ˆ??
-const INITIAL_PERIOD_DAYS = 0;     // ì´ˆê¸° ?¬ë ˆ???¬ìš© ê¸°í•œ (3??
-const DAILY_FREE_CREDITS = 12;     // 3???´í›„ ?¼ì¼ ë¬´ë£Œ ?¬ë ˆ??
+// 크레딧 정책
+const INITIAL_CREDITS = 0;         // 가입 시 기본 크레딧 없음
+const INITIAL_PERIOD_DAYS = 0;     // 초기 크레딧 사용 기한 (3일)
+const DAILY_FREE_CREDITS = 0;      // 일일 무료 충전 없음
 
 export interface CreditCheckResult {
   allowed: boolean;
@@ -39,21 +40,21 @@ const getClientIp = (req: VercelRequest): string | null => {
 };
 
 /**
- * ?¬ìš©??IDë¥?ì¶”ì¶œ?˜ê³  ?¬ë ˆ?§ì„ ?•ì¸/ì°¨ê°?˜ëŠ” ë¯¸ë“¤?¨ì–´ ?¨ìˆ˜
+ * 사용자 ID를 추출하고 크레딧을 확인/차감하는 미들웨어 함수
  */
 export const checkAndDeductCredits = async (
   req: VercelRequest,
   res: VercelResponse,
   cost: number
 ): Promise<CreditCheckResult> => {
-  // 1. Supabase ?¸ì¦ ? í° ?•ì¸
+  // 1. Supabase 인증 토큰 확인
   const authHeader = req.headers.authorization;
   if (!authHeader) {
     return {
       allowed: false,
       currentCredits: 0,
       cost,
-      message: "ë¡œê·¸?¸ì´ ?„ìš”???œë¹„?¤ìž…?ˆë‹¤. ?Œì›ê°€?…í•˜ê³??¬ë ˆ?§ì„ ë°›ì•„ë³´ì„¸??",
+      message: "로그인이 필요한 서비스입니다. 로그인 후 다시 시도해 주세요.",
       status: 401,
     };
   }
@@ -64,13 +65,14 @@ export const checkAndDeductCredits = async (
   const supabaseClient = authResult.client;
   const supabaseAny = supabaseClient as any;
   const usingAdmin = authResult.usingAdmin;
+  const couponBypass = getCouponBypassState((user as any)?.user_metadata || {});
 
   if (!user || !supabaseClient) {
     return {
       allowed: false,
       currentCredits: 0,
       cost,
-      message: "? íš¨?˜ì? ?Šì? ? í°?…ë‹ˆ??",
+      message: "유효하지 않은 토큰입니다.",
       status: 401,
     };
   }
@@ -78,7 +80,7 @@ export const checkAndDeductCredits = async (
   const userId = user.id;
   const clientIp = getClientIp(req);
 
-  // 2. ?„ë¡œ???¬ë ˆ?? ì¡°íšŒ
+  // 2. 프로필 크레딧 조회
   const { data: profile, error: profileError } = await supabaseClient
     .from("profiles")
     .select("credits, last_reset_date, signup_ip, initial_credits_expiry")
@@ -91,18 +93,18 @@ export const checkAndDeductCredits = async (
       allowed: false,
       currentCredits: 0,
       cost,
-      message: "?¬ë ˆ???•ë³´ë¥?ë¶ˆëŸ¬?¤ì? ëª»í–ˆ?µë‹ˆ??",
+      message: "크레딧 정보를 불러오지 못했습니다.",
       status: 500,
     };
   }
 
-  // ?„ë¡œ?„ì´ ?†ìœ¼ë©??ì„± (ê°€???¸ë¦¬ê±°ê? ?¤íŒ¨?ˆì„ ê²½ìš° ?€ë¹?
+  // 프로필이 없으면 생성 (가입 트리거 실패 대비)
   let currentCredits = profile?.credits ?? 0;
   let lastReset = profile?.last_reset_date;
 
   if (!profile) {
-    // [IP ì¤‘ë³µ ê°€??ì²´í¬]
-    // ê°™ì? IPë¡??´ë? ê°€?…ëœ ?¤ë¥¸ ê³„ì •???ˆëŠ”ì§€ ?•ì¸
+    // [IP 중복 가입 체크]
+    // 같은 IP로 이미 가입된 다른 계정이 있는지 확인
     if (clientIp && usingAdmin) {
       const { data: existingIpProfiles, error: ipCheckError } = await supabaseClient
         .from("profiles")
@@ -112,19 +114,19 @@ export const checkAndDeductCredits = async (
         .limit(1);
 
       if (!ipCheckError && existingIpProfiles && existingIpProfiles.length > 0) {
-        // ì¤‘ë³µ IP ë°œê²¬: ?„ì˜ˆ ?œë¹„???´ìš© ì°¨ë‹¨
+        // 중복 IP 발견: 서비스 이용 차단
         console.log(`Abuse detected: Duplicate IP (${clientIp}). User ${userId} blocked.`);
         return {
           allowed: false,
           currentCredits: 0,
           cost,
-          message: "ì£„ì†¡?©ë‹ˆ?? IP???˜ë‚˜??ê³„ì •ë§?ì´ˆê¸° ?¬ë ˆ?§ì„ ë°›ì„ ???ˆìŠµ?ˆë‹¤. ê¸°ì¡´??ê°€?…í•œ ê³„ì •?¼ë¡œ ë¡œê·¸?¸í•´ì£¼ì„¸??",
+          message: "죄송합니다. IP당 하나의 계정만 초기 크레딧을 받을 수 있습니다. 기존에 가입한 계정으로 로그인해주세요.",
           status: 403,
         };
       }
     }
 
-    // ? ê·œ ê°€?…ìž: ì´ˆê¸° 100 ?¬ë ˆ??+ 3???¬ìš©ê¸°í•œ ?¤ì •
+    // 신규 가입자: 초기 크레딧 + 사용 기한 설정
     const signupDate = new Date();
     const initialExpiryDate =
       INITIAL_PERIOD_DAYS > 0 ? new Date(signupDate) : null;
@@ -149,14 +151,14 @@ export const checkAndDeductCredits = async (
     currentCredits = INITIAL_CREDITS;
     lastReset = new Date().toISOString();
   } else if (!profile.signup_ip && clientIp && usingAdmin) {
-    // ê¸°ë¡??IPê°€ ?†ìœ¼ë©??„ìž¬ IP ê¸°ë¡ (?˜ìœ„ ?¸í™˜??
+    // 기록된 IP가 없으면 현재 IP 기록 (하위 호환용)
     await supabaseClient
       .from("profiles")
       .update({ signup_ip: clientIp })
       .eq("id", userId);
   }
 
-  // 3. ?¼ì¼ ë¦¬ì…‹ ë¡œì§
+  // 3. 일일 리셋 로직
   const today = new Date().toISOString().split("T")[0];
   const lastResetDate = lastReset ? new Date(lastReset).toISOString().split("T")[0] : "";
   const initialExpiryDate = profile?.initial_credits_expiry;
@@ -164,15 +166,15 @@ export const checkAndDeductCredits = async (
     INITIAL_PERIOD_DAYS > 0 && initialExpiryDate && new Date() < new Date(initialExpiryDate);
 
   if (lastResetDate !== today) {
-    // ? ì§œê°€ ë°”ë€Œì—ˆ????
+    // 날짜가 바뀌었을 때
     if (isInInitialPeriod) {
-      // ì´ˆê¸° 3??ê¸°ê°„ ì¤? ? ì§œë§??…ë°?´íŠ¸ (?¬ë ˆ??ì¶©ì „ ?ˆí•¨)
+      // 초기 기간 중에는 날짜만 업데이트 (크레딧 충전 없음)
       await supabaseClient
         .from("profiles")
         .update({ last_reset_date: today })
         .eq("id", userId);
     } else {
-      // 3???´í›„: ?¼ì¼ ë¬´ë£Œ ?¬ë ˆ??ì§€ê¸?
+      // 초기 기간 이후: 일일 무료 크레딧 지급
       if (currentCredits < DAILY_FREE_CREDITS) {
         currentCredits = DAILY_FREE_CREDITS;
         await supabaseClient
@@ -180,7 +182,7 @@ export const checkAndDeductCredits = async (
           .update({ credits: currentCredits, last_reset_date: today })
           .eq("id", userId);
       } else {
-        // ?´ë? ë§Žìœ¼ë©?? ì§œë§??…ë°?´íŠ¸
+        // 이미 많으면 날짜만 업데이트
         await supabaseClient
           .from("profiles")
           .update({ last_reset_date: today })
@@ -189,19 +191,29 @@ export const checkAndDeductCredits = async (
     }
   }
 
-  // 4. ?¬ë ˆ??ì°¨ê° ?•ì¸
+  // 4. 크레딧 차감 확인
+  if (couponBypass.active) {
+    return {
+      allowed: true,
+      currentCredits,
+      cost: 0,
+      message: "coupon_bypass_active",
+      userId,
+    };
+  }
+
   if (currentCredits < cost) {
     return {
       allowed: false,
       currentCredits,
       cost,
-      message: `?¬ë ˆ?§ì´ ë¶€ì¡±í•©?ˆë‹¤. (?„ìš”: ${cost}, ë³´ìœ : ${currentCredits})`,
+      message: `크레딧이 부족합니다. (필요: ${cost}, 보유: ${currentCredits})`,
       status: 402, // Payment Required
       userId,
     };
   }
 
-  // 5. ?¬ë ˆ??ì°¨ê° ?¤í–‰
+  // 5. 크레딧 차감 실행
   const newCredits = currentCredits - cost;
   const { error: updateError } = await supabaseClient
     .from("profiles")
@@ -210,7 +222,7 @@ export const checkAndDeductCredits = async (
 
   if (updateError) {
     console.error("Credit deduction error:", updateError);
-    return { allowed: false, currentCredits, cost, message: "?¬ë ˆ??ì°¨ê° ì¤??¤ë¥˜ ë°œìƒ", status: 500 };
+    return { allowed: false, currentCredits, cost, message: "크레딧 차감 중 오류 발생", status: 500 };
   }
 
   return { allowed: true, currentCredits: newCredits, cost, userId };
