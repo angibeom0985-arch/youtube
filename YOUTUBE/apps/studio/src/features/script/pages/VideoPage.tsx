@@ -165,6 +165,11 @@ const allVoiceOptions = [
   { name: "순자", label: "여성 시니어", tone: "따뜻한 이야기 톤", category: "여성", sampleText: "유튜브에서 오래 사랑받는 콘텐츠의 공통점을 따뜻하게 들려드릴게요." },
 ];
 
+const resolveVoiceMeta = (voiceName: string) =>
+  allVoiceOptions.find((voice) => voice.name === voiceName) ||
+  voiceOptions.find((voice) => voice.name === voiceName) ||
+  null;
+
 const scriptCategories = [
   "썰 채널",
   "건강",
@@ -458,6 +463,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     )
   );
   const [selectedVoice, setSelectedVoice] = useState(voiceOptions[0].name);
+  const [quickVoiceOptions, setQuickVoiceOptions] = useState(() => [...voiceOptions]);
   const [ttsSpeed, setTtsSpeed] = useState(1);
   const [showVoiceModal, setShowVoiceModal] = useState(false);
   const [currentChapterForVoice, setCurrentChapterForVoice] = useState<number | null>(null);
@@ -1075,6 +1081,28 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   };
   const stripGenderPrefix = (label: string): string =>
     String(label || "").replace(/^(?:\uB0A8\uC131|\uC5EC\uC131)\s*/, "").trim();
+  const pinVoiceToQuickOptions = (voiceName: string) => {
+    const picked = resolveVoiceMeta(voiceName);
+    if (!picked) return;
+    const pickedCategory = "category" in picked ? picked.category : undefined;
+    setQuickVoiceOptions((prev) => {
+      if (prev.some((voice) => voice.name === picked.name)) return prev;
+      const next = [...prev];
+      let targetIndex = next.length - 1;
+      if (pickedCategory) {
+        for (let i = next.length - 1; i >= 0; i -= 1) {
+          const meta = resolveVoiceMeta(next[i].name);
+          const metaCategory = meta && "category" in meta ? meta.category : undefined;
+          if (metaCategory === pickedCategory) {
+            targetIndex = i;
+            break;
+          }
+        }
+      }
+      next[targetIndex] = { name: picked.name, label: picked.label, tone: picked.tone };
+      return next;
+    });
+  };
 
   // 오디오 재생 함수 (간단한 미리듣기용)
   const maleVoiceNames = /민준|지훈|준서|도현|태양|동현|상호|재훈|성민|수현|지수|해준|준호/i;
@@ -2912,7 +2940,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         </h4>
                         <div className="flex items-center gap-2">
                           <span className="text-xs text-orange-400 font-semibold mr-3">
-                            {chapterVoices[index] || voiceOptions[0].name}
+                            {chapterVoices[index] || quickVoiceOptions[0]?.name || "민준"}
                           </span>
                           <span className="text-xs text-white/50">{chapter.content.length}자</span>
                         </div>
@@ -2935,7 +2963,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       <div className="mt-4 flex flex-wrap items-center gap-3">
                         <div className="text-sm font-semibold text-white/60">TTS 선택</div>
                         <div className="flex flex-wrap gap-2">
-                          {voiceOptions.map((voice) => (
+                          {quickVoiceOptions.map((voice) => (
                             <div key={voice.name} className="flex items-center gap-1">
                               <button
                                 type="button"
@@ -2943,13 +2971,13 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                   setCurrentChapterForVoice(index);
                                   setChapterVoices({ ...chapterVoices, [index]: voice.name });
                                 }}
-                                className={`px-4 py-2 rounded-lg border text-sm font-medium transition-all ${(chapterVoices[index] || voiceOptions[0].name) === voice.name
+                                className={`px-4 py-2 rounded-lg border text-sm font-medium transition-all inline-flex items-center gap-2 ${(chapterVoices[index] || quickVoiceOptions[0]?.name || "민준") === voice.name
                                   ? "border-red-400 bg-gradient-to-r from-red-600/30 to-red-500/25 text-red-200 shadow-lg"
                                   : "border-white/20 bg-black/40 text-white/70 hover:border-red-400/50 hover:bg-red-500/10"
                                   }`}
                               >
-                                {voice.name}
-                                <span className="text-xs ml-1 opacity-70">· {stripGenderPrefix(voice.label)}</span>
+                                <span>{voice.name}</span>
+                                <span className="text-xs opacity-70 max-w-[170px] truncate">{voice.tone}</span>
                               </button>
                               <button
                                 type="button"
@@ -3092,6 +3120,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                       onClick={() => {
                                         if (currentChapterForVoice !== null) {
                                           setChapterVoices({ ...chapterVoices, [currentChapterForVoice]: voice.name });
+                                          pinVoiceToQuickOptions(voice.name);
                                           playPreviewAudio(currentChapterForVoice, voice.name, voice.sampleText);
                                         }
                                         setShowVoiceModal(false);
@@ -3143,6 +3172,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                       onClick={() => {
                                         if (currentChapterForVoice !== null) {
                                           setChapterVoices({ ...chapterVoices, [currentChapterForVoice]: voice.name });
+                                          pinVoiceToQuickOptions(voice.name);
                                           playPreviewAudio(currentChapterForVoice, voice.name, voice.sampleText);
                                         }
                                         setShowVoiceModal(false);
