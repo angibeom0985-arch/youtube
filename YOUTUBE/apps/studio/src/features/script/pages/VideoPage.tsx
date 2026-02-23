@@ -41,6 +41,7 @@ import HomeBackButton from "@/components/HomeBackButton";
 import ErrorNotice from "@/components/ErrorNotice";
 import type { AnalysisResult, NewPlan } from "@/types";
 import { analyzeTranscript, generateIdeas, generateNewPlan } from "@/services/geminiService";
+import { getVideoDetails } from "@/services/youtubeService";
 import { regenerateStoryboardImage } from "@/features/image/services/geminiService";
 import type { CharacterStyle, BackgroundStyle, AspectRatio } from "@/features/image/types";
 
@@ -87,6 +88,33 @@ const getNormalizedYoutubeUrl = (raw: string): string | null => {
     const isYoutubeHost = host === "youtu.be" || host.endsWith("youtube.com");
     if (!isYoutubeHost) return null;
     return parsed.toString();
+  } catch {
+    return null;
+  }
+};
+
+const extractYoutubeVideoId = (url: string): string | null => {
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname.toLowerCase();
+
+    if (host === "youtu.be") {
+      const id = parsed.pathname.replace(/^\/+/, "").split("/")[0];
+      return id || null;
+    }
+
+    if (host.endsWith("youtube.com")) {
+      const watchId = parsed.searchParams.get("v");
+      if (watchId) return watchId;
+
+      const pathParts = parsed.pathname.split("/").filter(Boolean);
+      const markerIndex = pathParts.findIndex((part) => part === "embed" || part === "shorts" || part === "live");
+      if (markerIndex >= 0 && pathParts[markerIndex + 1]) {
+        return pathParts[markerIndex + 1];
+      }
+    }
+
+    return null;
   } catch {
     return null;
   }
@@ -410,6 +438,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     () => getNormalizedYoutubeUrl(youtubeUrl),
     [youtubeUrl]
   );
+  const [youtubeLinkPreview, setYoutubeLinkPreview] = useState<{ title: string; thumbnailUrl: string } | null>(null);
+  const [youtubeLinkPreviewLoading, setYoutubeLinkPreviewLoading] = useState(false);
+  const [youtubeLinkPreviewError, setYoutubeLinkPreviewError] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(() =>
     getStoredString(STORAGE_KEYS.scriptCategory, scriptCategories[0])
   );
@@ -725,6 +756,51 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   useEffect(() => setStoredValue(STORAGE_KEYS.editNotes, editNotes), [editNotes]);
   useEffect(() => setStoredValue(STORAGE_KEYS.format, videoFormat), [videoFormat]);
   useEffect(() => setStoredValue(STORAGE_KEYS.step, String(currentStep)), [currentStep]);
+
+  useEffect(() => {
+    if (!normalizedYoutubeUrl) {
+      setYoutubeLinkPreview(null);
+      setYoutubeLinkPreviewLoading(false);
+      setYoutubeLinkPreviewError("");
+      return;
+    }
+
+    let cancelled = false;
+    setYoutubeLinkPreviewLoading(true);
+    setYoutubeLinkPreviewError("");
+
+    const loadPreview = async () => {
+      try {
+        const details = await getVideoDetails(normalizedYoutubeUrl);
+        if (cancelled) return;
+        setYoutubeLinkPreview({
+          title: details.title || "유튜브 영상",
+          thumbnailUrl: details.thumbnailUrl || "",
+        });
+      } catch {
+        if (cancelled) return;
+        const fallbackId = extractYoutubeVideoId(normalizedYoutubeUrl);
+        if (fallbackId) {
+          setYoutubeLinkPreview({
+            title: "유튜브 영상 링크",
+            thumbnailUrl: `https://i.ytimg.com/vi/${fallbackId}/hqdefault.jpg`,
+          });
+        } else {
+          setYoutubeLinkPreview(null);
+        }
+        setYoutubeLinkPreviewError("영상 메타데이터를 불러오지 못했습니다.");
+      } finally {
+        if (!cancelled) {
+          setYoutubeLinkPreviewLoading(false);
+        }
+      }
+    };
+
+    loadPreview();
+    return () => {
+      cancelled = true;
+    };
+  }, [normalizedYoutubeUrl]);
 
   // 분석 및 생성 결과 localStorage 저장
   useEffect(() => setStoredJson("videopage_scriptAnalysis", scriptAnalysis), [scriptAnalysis]);
@@ -2014,15 +2090,47 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       />
                       {normalizedYoutubeUrl && (
                         <div className="rounded-xl border border-sky-400/35 bg-sky-500/10 px-4 py-3">
-                          <p className="text-xs font-semibold text-sky-300 mb-1">외부 링크</p>
+                          <p className="text-xs font-semibold text-sky-300 mb-2">외부 링크</p>
                           <a
                             href={normalizedYoutubeUrl}
                             target="_blank"
                             rel="noreferrer"
-                            className="inline-flex items-center gap-2 text-sm text-sky-100 hover:text-sky-50 underline underline-offset-2 break-all"
+                            className="group block rounded-lg border border-sky-300/30 bg-slate-950/40 p-3 hover:border-sky-300/50 hover:bg-slate-900/55 transition-colors"
                           >
-                            {normalizedYoutubeUrl}
-                            <FiExternalLink className="shrink-0" />
+                            <div className="flex items-start gap-3">
+                              <div className="h-20 w-36 shrink-0 overflow-hidden rounded-md border border-white/10 bg-black/40">
+                                {youtubeLinkPreviewLoading ? (
+                                  <div className="h-full w-full animate-pulse bg-white/10" />
+                                ) : youtubeLinkPreview?.thumbnailUrl ? (
+                                  <img
+                                    src={youtubeLinkPreview.thumbnailUrl}
+                                    alt={youtubeLinkPreview.title || "유튜브 썸네일"}
+                                    className="h-full w-full object-cover"
+                                    loading="lazy"
+                                  />
+                                ) : (
+                                  <div className="h-full w-full flex items-center justify-center text-xs text-white/45">
+                                    미리보기 없음
+                                  </div>
+                                )}
+                              </div>
+
+                              <div className="min-w-0 flex-1">
+                                <p className="text-sm font-semibold text-sky-100 line-clamp-2">
+                                  {youtubeLinkPreviewLoading
+                                    ? "영상 정보를 불러오는 중..."
+                                    : (youtubeLinkPreview?.title || "유튜브 영상 열기")}
+                                </p>
+                                <p className="mt-1 text-xs text-sky-100/75 break-all line-clamp-2">
+                                  {normalizedYoutubeUrl}
+                                </p>
+                                {youtubeLinkPreviewError && (
+                                  <p className="mt-1 text-[11px] text-amber-200/90">{youtubeLinkPreviewError}</p>
+                                )}
+                              </div>
+
+                              <FiExternalLink className="mt-0.5 shrink-0 text-sky-100/80 group-hover:text-sky-50" />
+                            </div>
                           </a>
                         </div>
                       )}
