@@ -3487,10 +3487,17 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   onChange={(e) => setImagePrompt(e.target.value)}
                   onFocus={() => setIsImagePromptFocused(true)}
                   onBlur={() => setIsImagePromptFocused(false)}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
+                  onCopy={(e) => e.stopPropagation()}
+                  onCut={(e) => e.stopPropagation()}
+                  onPaste={(e) => e.stopPropagation()}
                   rows={4}
                   className="w-full rounded-xl border border-white/20 bg-black/30 px-4 py-3 text-sm text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500"
                   placeholder={isImagePromptFocused ? "" : recommendedImagePrompt}
                   spellCheck={false}
+                  autoComplete="off"
                   style={
                     {
                       userSelect: "text",
