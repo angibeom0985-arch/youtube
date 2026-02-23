@@ -1051,6 +1051,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   };
 
   const ENABLE_BROWSER_TTS_FALLBACK = true;
+  const PREVIEW_FALLBACK_DELAY_MS = 900;
 
   // 오디오 재생 함수 (간단한 미리듣기용)
   const maleVoiceNames = /민준|지훈|준서|도현|태양|동현|상호|재훈|성민|수현|지수|해준|준호/i;
@@ -1082,8 +1083,10 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     const utterance = new SpeechSynthesisUtterance(previewText);
     utterance.lang = "ko-KR";
     const style = voiceStyleMap[voiceName] || { rate: 1, pitch: 0 };
+    const isMaleVoice = maleVoiceNames.test(voiceName);
+    const adjustedPitch = style.pitch !== 0 ? style.pitch : (isMaleVoice ? -2 : 2);
     utterance.rate = Math.min(1.4, Math.max(0.8, ttsSpeed * style.rate));
-    utterance.pitch = Math.min(2, Math.max(0, 1 + style.pitch * 0.15));
+    utterance.pitch = Math.min(2, Math.max(0, 1 + adjustedPitch * 0.15));
 
     const voices = synth.getVoices();
     const koVoices = voices.filter((v) => v.lang?.toLowerCase().startsWith("ko"));
@@ -1175,6 +1178,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
       const googleVoice = voiceMap[voiceName] || 'ko-KR-Standard-A';
       const voiceStyle = voiceStyleMap[voiceName] || { rate: 1, pitch: 0 };
+      const isMaleVoice = maleVoiceNames.test(voiceName);
+      const adjustedPitch = voiceStyle.pitch !== 0 ? voiceStyle.pitch : (isMaleVoice ? -2 : 2);
       const previewText = String(text || "")
         .split("\n")
         .map((line) => stripNarrationPrefix(line))
@@ -1209,7 +1214,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         if (ENABLE_BROWSER_TTS_FALLBACK) {
           fallbackTimer = setTimeout(() => {
             fallbackStarted = playBrowserTtsFallback(chapterIndex, voiceName, text);
-          }, 220);
+          }, PREVIEW_FALLBACK_DELAY_MS);
         }
 
         const controller = new AbortController();
@@ -1225,7 +1230,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
             text: previewText,
             voice: googleVoice,
             speakingRate: Math.min(1.4, Math.max(0.8, ttsSpeed * voiceStyle.rate)),
-            pitch: voiceStyle.pitch,
+            pitch: adjustedPitch,
             preview: true,
           }),
           signal: controller.signal,
