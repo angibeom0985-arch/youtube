@@ -165,6 +165,7 @@ const BenchmarkingPage: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [youtubeApiKey, setYoutubeApiKey] = useState("");
   const [couponBypassCredits, setCouponBypassCredits] = useState(false);
+  const [billingModeChecked, setBillingModeChecked] = useState(false);
   const [query, setQuery] = useState("경제학");
   const [queryTouched, setQueryTouched] = useState(false);
   const [days, setDays] = useState(30);
@@ -204,7 +205,10 @@ const BenchmarkingPage: React.FC = () => {
     const loadKeyFromProfile = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
-      if (!token) return;
+      if (!token) {
+        setBillingModeChecked(true);
+        return;
+      }
 
       try {
         const response = await fetch("/api/user/settings", {
@@ -230,6 +234,8 @@ const BenchmarkingPage: React.FC = () => {
         localStorage.setItem("google_cloud_api_key", extracted);
       } catch {
         // no-op
+      } finally {
+        setBillingModeChecked(true);
       }
     };
 
@@ -312,7 +318,7 @@ const BenchmarkingPage: React.FC = () => {
       const data = await response.json();
       if (!response.ok) {
         if (data?.error === "credit_limit") {
-          throw new Error("크레딧이 부족합니다.");
+          throw new Error(couponBypassCredits ? "요청 한도를 초과했습니다. 잠시 후 다시 시도해 주세요." : "크레딧이 부족합니다.");
         }
         if (data?.error === "missing_api_key") {
           throw new Error("서버 YouTube API 키가 없습니다. 관리자에게 문의해 주세요.");
@@ -325,7 +331,7 @@ const BenchmarkingPage: React.FC = () => {
           throw new Error("할인 쿠폰 모드에서는 마이페이지에 본인 Google Cloud API 키를 등록해야 합니다.");
         }
         if (data?.error === "auth_required") {
-          throw new Error("크레딧 모드 사용을 위해 로그인이 필요합니다.");
+          throw new Error("로그인이 필요합니다.");
         }
         throw new Error(data?.error || "검색에 실패했습니다.");
       }
@@ -539,7 +545,11 @@ const BenchmarkingPage: React.FC = () => {
               className="w-full px-6 py-4 rounded-2xl bg-gradient-to-r from-purple-600 via-fuchsia-600 to-violet-600 hover:from-purple-500 hover:via-fuchsia-500 hover:to-violet-500 disabled:opacity-50 flex items-center justify-center gap-3 text-lg font-black shadow-[0_14px_32px_rgba(139,92,246,0.42)]"
             >
               <FiSearch />
-              {loading ? "검색 중..." : withCreditLabel("검색 시작", CREDIT_COSTS.SEARCH, { couponBypass: couponBypassCredits })}
+              {loading
+                ? "검색 중..."
+                : (billingModeChecked
+                  ? withCreditLabel("검색 시작", CREDIT_COSTS.SEARCH, { couponBypass: couponBypassCredits })
+                  : "검색 시작")}
             </button>
           </div>
 
