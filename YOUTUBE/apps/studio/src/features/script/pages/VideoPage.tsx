@@ -301,7 +301,7 @@ const steps: Step[] = [
   {
     id: "tts",
     label: "음성 생성",
-    description: "AI 보이스 선택·내레이션 저장",
+    description: "TTS 선택·내레이션 저장",
     icon: <FiMic />,
   },
   {
@@ -2822,7 +2822,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
             <div className="rounded-[clamp(1rem,2vw,1.6rem)] border border-white/10 bg-black/40 p-[clamp(1.25rem,2vw,1.8rem)] shadow-[0_18px_40px_rgba(0,0,0,0.45)]">
               <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
                 <div>
-                  <p className="text-sm font-semibold text-white/60">스크립트 & AI 보이스</p>
+                  <p className="text-sm font-semibold text-white/60">스크립트 & TTS</p>
                   <h3 className="text-2xl font-bold text-white mt-1">대본에 음성을 입혀주세요.</h3>
                   <p className="mt-2 text-sm text-white/60">
                     각 챕터별로 목소리를 선택하고 편집할 수 있습니다.
@@ -2894,7 +2894,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       />
 
                       <div className="mt-4 flex flex-wrap items-center gap-3">
-                        <div className="text-sm font-semibold text-white/60">AI 보이스 선택</div>
+                        <div className="text-sm font-semibold text-white/60">TTS 선택</div>
                         <div className="flex flex-wrap gap-2">
                           {voiceOptions.map((voice) => (
                             <div key={voice.name} className="flex items-center gap-1">
@@ -3026,7 +3026,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                             >
                               <div className="sticky top-0 bg-gradient-to-br from-zinc-900 to-zinc-800 border-b border-white/10 px-6 py-4 flex items-center justify-between z-10">
                               <div>
-                                <h3 className="text-xl font-bold text-white">AI 보이스 선택</h3>
+                                <h3 className="text-xl font-bold text-white">TTS 선택</h3>
                                 <p className="text-xs text-white/60 mt-1">{sanitizeCorruptedText(chapter.title, `챕터 ${index + 1}`)}</p>
                               </div>
                               <button
