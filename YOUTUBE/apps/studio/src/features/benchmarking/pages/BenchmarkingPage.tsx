@@ -72,6 +72,10 @@ type RegionOption = "KR" | "US" | "JP" | "ALL";
 
 const SEARCH_CACHE_NAMESPACE = "benchmarking_search_cache_v1";
 const SEARCH_CACHE_TTL_MS = 1000 * 60 * 60 * 12; // 12시간
+const selectOptionStyle: React.CSSProperties = {
+  backgroundColor: "#200533",
+  color: "#f3e8ff",
+};
 
 const extractGoogleCloudApiKey = (raw: unknown): string => {
   if (!raw) return "";
@@ -427,7 +431,7 @@ const BenchmarkingPage: React.FC = () => {
                   className="w-full h-11 px-3 rounded-xl border border-purple-300/30 bg-black/45 text-purple-100 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
                 >
                   {dateOptions.map((item) => (
-                    <option key={item.days} value={item.days}>
+                    <option key={item.days} value={item.days} style={selectOptionStyle}>
                       {item.label}
                     </option>
                   ))}
@@ -442,7 +446,7 @@ const BenchmarkingPage: React.FC = () => {
                   className="w-full h-11 px-3 rounded-xl border border-purple-300/30 bg-black/45 text-purple-100 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
                 >
                   {durationOptions.map((item) => (
-                    <option key={item.value} value={item.value}>
+                    <option key={item.value} value={item.value} style={selectOptionStyle}>
                       {item.label}
                     </option>
                   ))}
@@ -457,7 +461,7 @@ const BenchmarkingPage: React.FC = () => {
                   className="w-full h-11 px-3 rounded-xl border border-purple-300/30 bg-black/45 text-purple-100 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
                 >
                   {subscriberOptions.map((item) => (
-                    <option key={item.min} value={item.min}>
+                    <option key={item.min} value={item.min} style={selectOptionStyle}>
                       {item.label}
                     </option>
                   ))}
@@ -471,35 +475,27 @@ const BenchmarkingPage: React.FC = () => {
                   onChange={(e) => setRegion(e.target.value as RegionOption)}
                   className="w-full h-11 px-3 rounded-xl border border-purple-300/30 bg-black/45 text-purple-100 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
                 >
-                  <option value="KR">한국어</option>
-                  <option value="US">영어(미국)</option>
-                  <option value="JP">일본어</option>
-                  <option value="ALL">전체</option>
+                  <option value="KR" style={selectOptionStyle}>한국어</option>
+                  <option value="US" style={selectOptionStyle}>영어(미국)</option>
+                  <option value="JP" style={selectOptionStyle}>일본어</option>
+                  <option value="ALL" style={selectOptionStyle}>전체</option>
                 </select>
               </div>
 
               <div className="ml-auto min-w-[96px]">
                 <button
                   type="button"
-                  onClick={exportToCsv}
-                  disabled={!filteredResults.length}
-                  className="h-11 px-4 rounded-xl border border-purple-300/35 bg-purple-900/20 disabled:opacity-50 flex items-center justify-center gap-2 text-purple-100/90 w-full"
+                  onClick={() => setShowAdvanced((prev) => !prev)}
+                  className="h-11 px-4 rounded-xl border border-purple-300/35 bg-purple-900/20 flex items-center justify-center text-base font-extrabold text-purple-100 w-full hover:bg-purple-800/30"
                 >
-                  <FiDownload /> CSV
+                  고급 설정 {showAdvanced ? "접기" : "펼치기"}
                 </button>
               </div>
             </div>
           </div>
 
-          <div className="rounded-xl border border-purple-300/20 bg-purple-950/20 p-3">
-            <button
-              type="button"
-              onClick={() => setShowAdvanced((prev) => !prev)}
-              className="text-xs font-bold text-purple-100/85 hover:text-white"
-            >
-              고급 설정 {showAdvanced ? "접기" : "펼치기"}
-            </button>
-            {showAdvanced && (
+          {showAdvanced && (
+            <div className="rounded-xl border border-purple-300/20 bg-purple-950/20 p-3">
               <div className="mt-3 grid gap-3 sm:grid-cols-3">
                 <div>
                   <label className="block text-xs font-bold text-purple-200/80 mb-2">최소 조회수</label>
@@ -533,8 +529,8 @@ const BenchmarkingPage: React.FC = () => {
                   />
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           <div className="pt-2">
             <button
@@ -575,6 +571,14 @@ const BenchmarkingPage: React.FC = () => {
                     {item.label}
                   </button>
                 ))}
+                <button
+                  type="button"
+                  onClick={exportToCsv}
+                  disabled={!filteredResults.length}
+                  className="ml-1 px-3 py-1.5 rounded-full border border-purple-300/35 bg-purple-900/20 disabled:opacity-50 flex items-center justify-center gap-2 text-xs font-bold text-purple-100/90"
+                >
+                  <FiDownload /> CSV
+                </button>
               </div>
             </div>
           </div>
