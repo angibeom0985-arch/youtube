@@ -136,17 +136,19 @@ type Step = {
 
 const voiceOptions = [
   { name: "민준", label: "남성 대표", tone: "신뢰감 있는 다큐 스타일" },
+  { name: "지훈", label: "남성 보이스", tone: "프로페셔널 프레젠테이션" },
   { name: "서연", label: "여성 대표", tone: "차분한 뉴스 톤" },
+  { name: "유나", label: "여성 보이스", tone: "밝고 친근한 진행" },
 ];
 
 // 확장된 목소리 옵션 (모달용)
 const allVoiceOptions = [
-  { name: "민준", label: "남성 캐주얼", tone: "신뢰감 있는 다큐 스타일", category: "추천", sampleText: "안녕하세요, 유튜브 채널에 오신 것을 환영합니다. 오늘 영상에서는 핵심만 빠르게 알려드릴게요." },
-  { name: "서연", label: "여성 아나운서", tone: "차분한 뉴스 톤", category: "추천", sampleText: "안녕하세요, 유튜브 시청자 여러분. 오늘 영상의 주요 내용을 정확하게 전달해 드리겠습니다." },
-  { name: "지훈", label: "남성 비즈니스", tone: "프로페셔널 프레젠테이션", category: "추천", sampleText: "이번 유튜브 영상에서는 실무에 바로 적용할 수 있는 전략 세 가지를 소개합니다." },
-  { name: "유나", label: "여성 상냥", tone: "밝고 친근한 진행", category: "추천", sampleText: "유튜브에 오신 여러분 반가워요. 오늘도 재미있고 유익한 내용으로 준비했어요." },
-  { name: "혜진", label: "여성 중년", tone: "안정적인 라디오 톤", category: "추천", sampleText: "오늘 유튜브 영상은 처음 보는 분도 이해하기 쉽게 차근차근 설명해 드릴게요." },
-  { name: "도현", label: "남성 내레이션", tone: "정중한 해설 톤", category: "추천", sampleText: "지금부터 유튜브 영상의 핵심 포인트를 하나씩 짚어보겠습니다." },
+  { name: "민준", label: "남성 캐주얼", tone: "신뢰감 있는 다큐 스타일", category: "남성", sampleText: "안녕하세요, 유튜브 채널에 오신 것을 환영합니다. 오늘 영상에서는 핵심만 빠르게 알려드릴게요." },
+  { name: "서연", label: "여성 아나운서", tone: "차분한 뉴스 톤", category: "여성", sampleText: "안녕하세요, 유튜브 시청자 여러분. 오늘 영상의 주요 내용을 정확하게 전달해 드리겠습니다." },
+  { name: "지훈", label: "남성 비즈니스", tone: "프로페셔널 프레젠테이션", category: "남성", sampleText: "이번 유튜브 영상에서는 실무에 바로 적용할 수 있는 전략 세 가지를 소개합니다." },
+  { name: "유나", label: "여성 상냥", tone: "밝고 친근한 진행", category: "여성", sampleText: "유튜브에 오신 여러분 반가워요. 오늘도 재미있고 유익한 내용으로 준비했어요." },
+  { name: "혜진", label: "여성 중년", tone: "안정적인 라디오 톤", category: "여성", sampleText: "오늘 유튜브 영상은 처음 보는 분도 이해하기 쉽게 차근차근 설명해 드릴게요." },
+  { name: "도현", label: "남성 내레이션", tone: "정중한 해설 톤", category: "남성", sampleText: "지금부터 유튜브 영상의 핵심 포인트를 하나씩 짚어보겠습니다." },
 
   { name: "태양", label: "남성 에너지", tone: "활기찬 운동 코치", category: "남성", sampleText: "유튜브 가족 여러분, 오늘도 힘차게 시작합니다. 끝까지 함께 가보시죠!" },
   { name: "준서", label: "남성 다큐", tone: "깊이 있는 내레이션", category: "남성", sampleText: "이 유튜브 영상에서는 데이터 기반으로 변화의 흐름을 분석해 보겠습니다." },
@@ -1048,7 +1050,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     순자: { rate: 0.92, pitch: 0 },
   };
 
-  const ENABLE_BROWSER_TTS_FALLBACK = false;
+  const ENABLE_BROWSER_TTS_FALLBACK = true;
 
   // 오디오 재생 함수 (간단한 미리듣기용)
   const maleVoiceNames = /민준|지훈|준서|도현|태양|동현|상호|재훈|성민|수현|지수|해준|준호/i;
@@ -1144,28 +1146,28 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       const voiceMap: Record<string, string> = {
         // 남성군
         민준: "ko-KR-Wavenet-C",
-        지훈: "ko-KR-Wavenet-C",
-        준서: "ko-KR-Wavenet-C",
-        도현: "ko-KR-Neural2-C",
-        태양: "ko-KR-Neural2-C",
-        동현: "ko-KR-Standard-C",
+        지훈: "ko-KR-Neural2-C",
+        준서: "ko-KR-Neural2-B",
+        도현: "ko-KR-Standard-C",
+        태양: "ko-KR-Wavenet-B",
+        동현: "ko-KR-Standard-B",
         상호: "ko-KR-Standard-C",
-        재훈: "ko-KR-Wavenet-C",
-        성민: "ko-KR-Neural2-C",
+        재훈: "ko-KR-Wavenet-D",
+        성민: "ko-KR-Neural2-D",
         수현: "ko-KR-Standard-C",
         지수: "ko-KR-Wavenet-C",
         해준: "ko-KR-Neural2-C",
-        준호: "ko-KR-Wavenet-C",
+        준호: "ko-KR-Wavenet-B",
         // 여성군
         서연: "ko-KR-Wavenet-A",
         유나: "ko-KR-Neural2-A",
         혜진: "ko-KR-Standard-A",
-        소희: "ko-KR-Wavenet-A",
-        하늘: "ko-KR-Neural2-A",
-        수아: "ko-KR-Standard-A",
-        예린: "ko-KR-Wavenet-A",
+        소희: "ko-KR-Wavenet-D",
+        하늘: "ko-KR-Neural2-D",
+        수아: "ko-KR-Standard-D",
+        예린: "ko-KR-Wavenet-B",
         미정: "ko-KR-Standard-A",
-        순자: "ko-KR-Neural2-A",
+        순자: "ko-KR-Neural2-B",
         하나: "ko-KR-Wavenet-A",
         세영: "ko-KR-Neural2-A",
         하림: "ko-KR-Neural2-A",
@@ -1180,7 +1182,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         .join(" ")
         .replace(/\s+/g, " ")
         .trim()
-        .slice(0, 120);
+        .slice(0, 72);
 
       if (!previewText) {
         throw new Error("음성으로 변환할 텍스트가 없습니다.");
@@ -1200,8 +1202,16 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       }
 
       let audioUrl = cachedUrl || "";
+      let fallbackStarted = false;
+      let fallbackTimer: ReturnType<typeof setTimeout> | null = null;
 
       if (!audioUrl) {
+        if (ENABLE_BROWSER_TTS_FALLBACK) {
+          fallbackTimer = setTimeout(() => {
+            fallbackStarted = playBrowserTtsFallback(chapterIndex, voiceName, text);
+          }, 220);
+        }
+
         const controller = new AbortController();
         previewAbortRef.current = controller;
 
@@ -1257,21 +1267,22 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
           throw new Error('오디오 데이터가 없습니다');
         }
 
-        const binaryString = atob(data.audioContent);
-        const bytes = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-          bytes[i] = binaryString.charCodeAt(i);
-        }
-        const audioBlob = new Blob([bytes], { type: 'audio/mpeg' });
-        audioUrl = URL.createObjectURL(audioBlob);
+        audioUrl = `data:audio/mpeg;base64,${data.audioContent}`;
 
         previewCacheRef.current.set(cacheKey, audioUrl);
         if (previewCacheRef.current.size > 8) {
           const firstKey = previewCacheRef.current.keys().next().value;
           const oldUrl = previewCacheRef.current.get(firstKey);
-          if (oldUrl) URL.revokeObjectURL(oldUrl);
+          if (oldUrl && oldUrl.startsWith("blob:")) URL.revokeObjectURL(oldUrl);
           previewCacheRef.current.delete(firstKey);
         }
+      }
+
+      if (fallbackTimer) {
+        clearTimeout(fallbackTimer);
+      }
+      if (fallbackStarted && typeof window !== "undefined" && "speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
       }
 
       if (requestId !== previewRequestIdRef.current) {
@@ -1279,6 +1290,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       }
 
       audioRef.current = new Audio(audioUrl);
+      audioRef.current.preload = "auto";
       audioRef.current.onended = () => {
         setPlayingChapter(null);
         setPlayingVoice(null);
@@ -2832,14 +2844,14 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     >
                       <option value="" disabled>목소리 선택</option>
                       <optgroup label="남성">
-                        {allVoiceOptions.filter(v => v.category === "남성" || (v.category === "추천" && ["민준", "지훈", "도현", "태양", "준서", "동현", "상호", "재훈", "성민"].includes(v.name))).map((voice) => (
+                        {allVoiceOptions.filter(v => v.category === "남성").map((voice) => (
                           <option key={voice.name} value={voice.name}>
                             {voice.name} · {voice.label}
                           </option>
                         ))}
                       </optgroup>
                       <optgroup label="여성">
-                        {allVoiceOptions.filter(v => v.category === "여성" || (v.category === "추천" && ["서연", "유나", "혜진"].includes(v.name))).map((voice) => (
+                        {allVoiceOptions.filter(v => v.category === "여성").map((voice) => (
                           <option key={voice.name} value={voice.name}>
                             {voice.name} · {voice.label}
                           </option>
@@ -3023,57 +3035,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                             </div>
 
                               <div className="h-[calc(100%-78px)] overflow-y-auto p-6">
-                              {/* 추천 목소리 */}
-                              <div className="mb-6">
-                                <h4 className="text-base font-bold text-white mb-3 flex items-center gap-2">
-                                  <span className="text-yellow-400">추천</span>
-                                  추천 목소리
-                                </h4>
-                                <div className="space-y-2">
-                                  {allVoiceOptions.filter(v => v.category === "추천").map((voice) => (
-                                    <button
-                                      key={voice.name}
-                                      onClick={() => {
-                                        if (currentChapterForVoice !== null) {
-                                          setChapterVoices({ ...chapterVoices, [currentChapterForVoice]: voice.name });
-                                          playPreviewAudio(currentChapterForVoice, voice.name, voice.sampleText);
-                                        }
-                                        setShowVoiceModal(false);
-                                      }}
-                                      className="w-full rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-white/0 hover:from-red-500/20 hover:to-red-500/10 hover:border-red-400/50 transition-all group p-3 flex items-center gap-3"
-                                    >
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          if (currentChapterForVoice !== null) {
-                                            playPreviewAudio(currentChapterForVoice, voice.name, voice.sampleText);
-                                          }
-                                        }}
-                                        className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-all ${playingChapter === currentChapterForVoice && playingVoice === voice.name
-                                          ? 'bg-red-500 shadow-lg'
-                                          : 'bg-white/10 hover:bg-red-500/50'
-                                          }`}
-                                        title={playingChapter === currentChapterForVoice && playingVoice === voice.name ? '정지' : '미리듣기'}
-                                      >
-                                        {playingChapter === currentChapterForVoice && playingVoice === voice.name ? (
-                                          <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
-                                          </svg>
-                                        ) : (
-                                          <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M8 5v14l11-7z" />
-                                          </svg>
-                                        )}
-                                      </button>
-                                      <div className="flex-1 text-left">
-                                        <p className="text-base font-bold text-white group-hover:text-red-300 transition-colors">{voice.name}</p>
-                                        <p className="text-xs text-white/60 mt-0.5">{voice.label} · {voice.tone}</p>
-                                      </div>
-                                    </button>
-                                  ))}
-                                </div>
-                              </div>
-
                               {/* 남성 목소리 */}
                               <div className="mb-6">
                                 <h4 className="text-base font-bold text-white mb-3 flex items-center gap-2">
