@@ -1059,25 +1059,26 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
   const ENABLE_BROWSER_TTS_FALLBACK = false;
   const PREVIEW_FALLBACK_DELAY_MS = 900;
+  // /tts 페이지와 동일한 실제 Google Voice ID 기반으로 매핑합니다.
   const strictVoiceProfileMap: Record<string, { voice: string; rate: number; pitch: number }> = {
-    "\uBBFC\uC900": { voice: "ko-KR-Wavenet-C", rate: 0.96, pitch: -2.8 }, // 민준
-    "\uC9C0\uD6C8": { voice: "ko-KR-Neural2-C", rate: 1.04, pitch: -1.4 }, // 지훈
-    "\uB3C4\uD604": { voice: "ko-KR-Standard-C", rate: 0.92, pitch: -3.6 }, // 도현
-    "\uD0DC\uC591": { voice: "ko-KR-Wavenet-B", rate: 1.08, pitch: -0.4 }, // 태양
-    "\uC900\uC11C": { voice: "ko-KR-Neural2-B", rate: 0.98, pitch: -2.2 }, // 준서
-    "\uB3D9\uD604": { voice: "ko-KR-Standard-B", rate: 1.01, pitch: -1.8 }, // 동현
-    "\uC0C1\uD638": { voice: "ko-KR-Standard-C", rate: 0.9, pitch: -4.0 }, // 상호
-    "\uC7AC\uD6C8": { voice: "ko-KR-Wavenet-B", rate: 1.1, pitch: -0.9 }, // 재훈
-    "\uC131\uBBFC": { voice: "ko-KR-Neural2-B", rate: 0.88, pitch: -4.8 }, // 성민
-    "\uC11C\uC5F0": { voice: "ko-KR-Wavenet-A", rate: 1.0, pitch: 1.4 }, // 서연
-    "\uC720\uB098": { voice: "ko-KR-Neural2-A", rate: 1.06, pitch: 2.8 }, // 유나
-    "\uD61C\uC9C4": { voice: "ko-KR-Standard-A", rate: 0.96, pitch: 0.8 }, // 혜진
-    "\uC18C\uD76C": { voice: "ko-KR-Wavenet-D", rate: 1.02, pitch: 3.4 }, // 소희
-    "\uD558\uB298": { voice: "ko-KR-Neural2-D", rate: 0.94, pitch: 2.0 }, // 하늘
-    "\uC218\uC544": { voice: "ko-KR-Standard-D", rate: 1.12, pitch: 4.0 }, // 수아
-    "\uC608\uB9B0": { voice: "ko-KR-Wavenet-D", rate: 1.08, pitch: 3.1 }, // 예린
-    "\uBBF8\uC815": { voice: "ko-KR-Standard-A", rate: 0.93, pitch: 1.2 }, // 미정
-    "\uC21C\uC790": { voice: "ko-KR-Neural2-A", rate: 0.9, pitch: 0.6 }, // 순자
+    민준: { voice: "ko-KR-Wavenet-C", rate: 0.96, pitch: -2.8 },
+    지훈: { voice: "ko-KR-Neural2-C", rate: 1.04, pitch: -1.4 },
+    도현: { voice: "ko-KR-Standard-C", rate: 0.92, pitch: -3.6 },
+    태양: { voice: "ko-KR-Wavenet-B", rate: 1.08, pitch: -0.4 },
+    준서: { voice: "ko-KR-Neural2-B", rate: 0.98, pitch: -2.2 },
+    동현: { voice: "ko-KR-Standard-B", rate: 1.01, pitch: -1.8 },
+    상호: { voice: "ko-KR-Wavenet-B", rate: 0.9, pitch: -4.0 },
+    재훈: { voice: "ko-KR-Neural2-B", rate: 1.1, pitch: -0.9 },
+    성민: { voice: "ko-KR-Standard-B", rate: 0.88, pitch: -4.8 },
+    서연: { voice: "ko-KR-Wavenet-A", rate: 1.0, pitch: 1.4 },
+    유나: { voice: "ko-KR-Neural2-A", rate: 1.06, pitch: 2.8 },
+    혜진: { voice: "ko-KR-Standard-A", rate: 0.96, pitch: 0.8 },
+    소희: { voice: "ko-KR-Wavenet-D", rate: 1.02, pitch: 3.4 },
+    하늘: { voice: "ko-KR-Neural2-D", rate: 0.94, pitch: 2.0 },
+    수아: { voice: "ko-KR-Standard-D", rate: 1.12, pitch: 4.0 },
+    예린: { voice: "ko-KR-Wavenet-D", rate: 1.08, pitch: 3.1 },
+    미정: { voice: "ko-KR-Neural2-A", rate: 0.93, pitch: 1.2 },
+    순자: { voice: "ko-KR-Standard-A", rate: 0.9, pitch: 0.6 },
   };
   const stripGenderPrefix = (label: string): string =>
     String(label || "").replace(/^(?:\uB0A8\uC131|\uC5EC\uC131)\s*/, "").trim();
@@ -1201,38 +1202,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       setPlayingChapter(chapterIndex);
       setPlayingVoice(voiceName);
 
-      const voiceMap: Record<string, string> = {
-        // 남성군
-        민준: "ko-KR-Wavenet-C",
-        지훈: "ko-KR-Neural2-C",
-        준서: "ko-KR-Neural2-B",
-        도현: "ko-KR-Standard-C",
-        태양: "ko-KR-Wavenet-B",
-        동현: "ko-KR-Standard-B",
-        상호: "ko-KR-Standard-C",
-        재훈: "ko-KR-Wavenet-B",
-        성민: "ko-KR-Neural2-B",
-        수현: "ko-KR-Standard-C",
-        지수: "ko-KR-Wavenet-C",
-        해준: "ko-KR-Neural2-C",
-        준호: "ko-KR-Wavenet-B",
-        // 여성군
-        서연: "ko-KR-Wavenet-A",
-        유나: "ko-KR-Neural2-A",
-        혜진: "ko-KR-Standard-A",
-        소희: "ko-KR-Wavenet-D",
-        하늘: "ko-KR-Neural2-D",
-        수아: "ko-KR-Standard-D",
-        예린: "ko-KR-Wavenet-D",
-        미정: "ko-KR-Standard-A",
-        순자: "ko-KR-Neural2-A",
-        하나: "ko-KR-Wavenet-A",
-        세영: "ko-KR-Neural2-A",
-        하림: "ko-KR-Neural2-A",
-      };
-
       const strictProfile = strictVoiceProfileMap[voiceName];
-      const googleVoice = strictProfile?.voice || voiceMap[voiceName] || 'ko-KR-Standard-A';
+      const googleVoice = strictProfile?.voice || "ko-KR-Standard-A";
       const voiceStyle = strictProfile
         ? { rate: strictProfile.rate, pitch: strictProfile.pitch }
         : (voiceStyleMap[voiceName] || { rate: 1, pitch: 0 });
