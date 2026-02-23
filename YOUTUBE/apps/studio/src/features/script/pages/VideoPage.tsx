@@ -3422,7 +3422,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 {/* 인물 스타일 */}
                 <div className="mb-6">
                   <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-red-200 font-medium text-base">인물 스타일</h4>
+                    <h4 className="text-red-200 font-medium text-base">인물</h4>
                     <button
                       onClick={() => setCharacterStyle("custom")}
                       className={`py-1.5 px-4 rounded-lg font-medium text-xs transition-all duration-200 ${characterStyle === "custom"
@@ -3473,7 +3473,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 {/* 배경/분위기 스타일 */}
                 <div className="mb-6">
                   <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-red-200 font-medium text-base">배경/분위기 스타일</h4>
+                    <h4 className="text-red-200 font-medium text-base">배경 스타일</h4>
                     <button
                       onClick={() => setBackgroundStyle("custom")}
                       className={`py-1.5 px-4 rounded-lg font-medium text-xs transition-all duration-200 ${backgroundStyle === "custom"
@@ -3489,9 +3489,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       <button
                         key={style}
                         onClick={() => setBackgroundStyle(style)}
-                        className={`w-full aspect-square rounded-lg text-xs font-semibold transition-all ${backgroundStyle === style
-                          ? "bg-red-600 text-white shadow-lg scale-105"
-                          : "bg-white/10 text-white/70 hover:bg-white/20"
+                        className={`w-full aspect-square rounded-lg text-xs font-semibold transition-all border-2 ${backgroundStyle === style
+                          ? "border-red-400 ring-2 ring-red-400/70 bg-red-600/60 text-white shadow-lg scale-105"
+                          : "border-transparent bg-white/10 text-white/70 hover:bg-white/20 hover:border-red-300/60"
                           } relative overflow-hidden p-0`}
                         style={{
                           backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('/${style === "AI" ? "ai" : style}.png')`,
