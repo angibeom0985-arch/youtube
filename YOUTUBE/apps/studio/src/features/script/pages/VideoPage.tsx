@@ -579,6 +579,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [playingChapter, setPlayingChapter] = useState<number | null>(null);
   const [playingVoice, setPlayingVoice] = useState<string | null>(null);
   const [isPlayingPreview, setIsPlayingPreview] = useState(false);
+  const [ttsPreviewErrorMessage, setTtsPreviewErrorMessage] = useState<string | null>(null);
   const previewAbortRef = useRef<AbortController | null>(null);
   const previewRequestIdRef = useRef(0);
   const previewCacheRef = useRef<Map<string, string>>(new Map());
@@ -1060,17 +1061,17 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     "\uC900\uC11C": { voice: "ko-KR-Neural2-B", rate: 0.98, pitch: -2.2 }, // 준서
     "\uB3D9\uD604": { voice: "ko-KR-Standard-B", rate: 1.01, pitch: -1.8 }, // 동현
     "\uC0C1\uD638": { voice: "ko-KR-Standard-C", rate: 0.9, pitch: -4.0 }, // 상호
-    "\uC7AC\uD6C8": { voice: "ko-KR-Wavenet-D", rate: 1.1, pitch: -0.9 }, // 재훈
-    "\uC131\uBBFC": { voice: "ko-KR-Neural2-D", rate: 0.88, pitch: -4.8 }, // 성민
+    "\uC7AC\uD6C8": { voice: "ko-KR-Wavenet-B", rate: 1.1, pitch: -0.9 }, // 재훈
+    "\uC131\uBBFC": { voice: "ko-KR-Neural2-B", rate: 0.88, pitch: -4.8 }, // 성민
     "\uC11C\uC5F0": { voice: "ko-KR-Wavenet-A", rate: 1.0, pitch: 1.4 }, // 서연
     "\uC720\uB098": { voice: "ko-KR-Neural2-A", rate: 1.06, pitch: 2.8 }, // 유나
     "\uD61C\uC9C4": { voice: "ko-KR-Standard-A", rate: 0.96, pitch: 0.8 }, // 혜진
     "\uC18C\uD76C": { voice: "ko-KR-Wavenet-D", rate: 1.02, pitch: 3.4 }, // 소희
     "\uD558\uB298": { voice: "ko-KR-Neural2-D", rate: 0.94, pitch: 2.0 }, // 하늘
     "\uC218\uC544": { voice: "ko-KR-Standard-D", rate: 1.12, pitch: 4.0 }, // 수아
-    "\uC608\uB9B0": { voice: "ko-KR-Wavenet-B", rate: 1.08, pitch: 3.1 }, // 예린
+    "\uC608\uB9B0": { voice: "ko-KR-Wavenet-D", rate: 1.08, pitch: 3.1 }, // 예린
     "\uBBF8\uC815": { voice: "ko-KR-Standard-A", rate: 0.93, pitch: 1.2 }, // 미정
-    "\uC21C\uC790": { voice: "ko-KR-Neural2-B", rate: 0.9, pitch: 0.6 }, // 순자
+    "\uC21C\uC790": { voice: "ko-KR-Neural2-A", rate: 0.9, pitch: 0.6 }, // 순자
   };
   const stripGenderPrefix = (label: string): string =>
     String(label || "").replace(/^(?:\uB0A8\uC131|\uC5EC\uC131)\s*/, "").trim();
@@ -1167,6 +1168,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       }
 
       const requestId = ++previewRequestIdRef.current;
+      setTtsPreviewErrorMessage(null);
       setIsPlayingPreview(true);
       setPlayingChapter(chapterIndex);
       setPlayingVoice(voiceName);
@@ -1180,8 +1182,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         태양: "ko-KR-Wavenet-B",
         동현: "ko-KR-Standard-B",
         상호: "ko-KR-Standard-C",
-        재훈: "ko-KR-Wavenet-D",
-        성민: "ko-KR-Neural2-D",
+        재훈: "ko-KR-Wavenet-B",
+        성민: "ko-KR-Neural2-B",
         수현: "ko-KR-Standard-C",
         지수: "ko-KR-Wavenet-C",
         해준: "ko-KR-Neural2-C",
@@ -1193,9 +1195,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         소희: "ko-KR-Wavenet-D",
         하늘: "ko-KR-Neural2-D",
         수아: "ko-KR-Standard-D",
-        예린: "ko-KR-Wavenet-B",
+        예린: "ko-KR-Wavenet-D",
         미정: "ko-KR-Standard-A",
-        순자: "ko-KR-Neural2-B",
+        순자: "ko-KR-Neural2-A",
         하나: "ko-KR-Wavenet-A",
         세영: "ko-KR-Neural2-A",
         하림: "ko-KR-Neural2-A",
@@ -1283,16 +1285,25 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
             details = rawBody.slice(0, 300).replace(/\s+/g, " ").trim();
           }
 
-          const parts = [
-            `HTTP ${response.status}`,
-            message || "unknown_error",
-            details ? `details=${details}` : "",
-            vercelId ? `x-vercel-id=${vercelId}` : "",
-          ].filter(Boolean);
-
-          const merged = parts.join(" | ");
-          console.error("[TTS] API 오류:", merged);
-          throw new Error(`음성 생성 실패: ${merged}`);
+          const reason = (message || details || "tts_generation_failed").trim().toLowerCase();
+          const friendlyMessage =
+            reason.includes("invalid_api_key") || reason.includes("api key not valid")
+              ? "Google Cloud API 키가 유효하지 않습니다. 마이페이지에서 API 키를 다시 등록해 주세요."
+              : reason.includes("coupon_user_key_required") || reason.includes("preview_user_key_required")
+                ? "할인 쿠폰 코드 적용 모드에서는 마이페이지에 Google Cloud API 키 등록이 필요합니다."
+                : reason.includes("tts_permission_denied")
+                  ? "Google Cloud TTS 권한이 없습니다. API 키 권한을 확인해 주세요."
+                  : reason.includes("tts_quota_exceeded")
+                    ? "TTS 사용량 한도에 도달했습니다. 잠시 후 다시 시도해 주세요."
+                    : reason.includes("tts_voice_not_supported")
+                      ? "선택한 음성을 현재 계정에서 사용할 수 없습니다. 다른 음성을 선택해 주세요."
+                      : "음성 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+          const requestMeta = [`HTTP ${response.status}`, vercelId ? `요청ID: ${vercelId}` : ""]
+            .filter(Boolean)
+            .join(" · ");
+          const finalMessage = requestMeta ? `${friendlyMessage}\n\n${requestMeta}` : friendlyMessage;
+          console.error("[TTS] API 오류:", { status: response.status, message, details, vercelId });
+          throw new Error(finalMessage);
         }
 
         const data = await response.json();
@@ -1346,7 +1357,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         ? playBrowserTtsFallback(chapterIndex, voiceName, text)
         : false;
       if (!fallbackOk) {
-        alert(`음성 재생에 실패했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+        setTtsPreviewErrorMessage(error instanceof Error ? error.message : "알 수 없는 오류");
         setIsPlayingPreview(false);
         setPlayingChapter(null);
         setPlayingVoice(null);
@@ -3848,6 +3859,35 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
           </main>
         </div>
       </div>
+      {ttsPreviewErrorMessage && typeof document !== "undefined" &&
+        createPortal(
+          <div className="fixed inset-0 z-[100001]">
+            <button
+              type="button"
+              aria-label="TTS 오류 창 닫기"
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              onClick={() => setTtsPreviewErrorMessage(null)}
+            />
+            <div className="absolute left-1/2 top-1/2 w-[min(94vw,920px)] max-h-[86vh] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-cyan-300/50 bg-[#0f1b1d] shadow-[0_18px_55px_rgba(0,0,0,0.55)] overflow-hidden">
+              <div className="flex items-center justify-between gap-3 border-b border-cyan-200/20 px-5 py-4">
+                <h3 className="text-lg font-bold text-cyan-100">TTS 오류</h3>
+                <button
+                  type="button"
+                  onClick={() => setTtsPreviewErrorMessage(null)}
+                  className="rounded-full border border-cyan-200/40 px-4 py-1.5 text-sm font-semibold text-cyan-100 hover:bg-cyan-200/10"
+                >
+                  닫기
+                </button>
+              </div>
+              <div className="max-h-[calc(86vh-82px)] overflow-y-auto px-5 py-4">
+                <pre className="whitespace-pre-wrap break-words text-[15px] leading-7 text-cyan-50">
+                  {ttsPreviewErrorMessage}
+                </pre>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
     </div>
   );
 };

@@ -153,6 +153,81 @@ const synthesizeWithApiKey = async (params: {
   return audioContent;
 };
 
+const buildVoiceFallbackCandidates = (voice: string): string[] => {
+  const letterMatch = voice.match(/-([A-D])$/i);
+  const requestedLetter = letterMatch?.[1]?.toUpperCase() || null;
+  const basePrefix = requestedLetter ? voice.replace(/-([A-D])$/i, "") : voice;
+
+  const prefixes = Array.from(
+    new Set([
+      basePrefix,
+      basePrefix.replace("Neural2", "Wavenet"),
+      basePrefix.replace("Wavenet", "Neural2"),
+      basePrefix.replace("Standard", "Wavenet"),
+      basePrefix.replace("Wavenet", "Standard"),
+      basePrefix.replace("Neural2", "Standard"),
+      basePrefix.replace("Standard", "Neural2"),
+    ].filter(Boolean))
+  );
+
+  const maleLetters = new Set(["B", "C"]);
+  const femaleLetters = new Set(["A", "D"]);
+  const fallbackLetters = requestedLetter
+    ? maleLetters.has(requestedLetter)
+      ? ["B", "C"]
+      : femaleLetters.has(requestedLetter)
+        ? ["A", "D"]
+        : ["A", "B", "C", "D"]
+    : ["A", "B", "C", "D"];
+
+  const candidates: string[] = [];
+  if (requestedLetter) {
+    for (const prefix of prefixes) {
+      candidates.push(`${prefix}-${requestedLetter}`);
+    }
+  } else {
+    candidates.push(voice);
+  }
+
+  for (const letter of fallbackLetters) {
+    for (const family of ["ko-KR-Neural2", "ko-KR-Wavenet", "ko-KR-Standard"]) {
+      candidates.push(`${family}-${letter}`);
+    }
+  }
+
+  return Array.from(new Set(candidates.filter(Boolean)));
+};
+
+const isVoiceResolutionError = (message: string): boolean => {
+  const lowered = message.toLowerCase();
+  return (
+    lowered.includes("voice") ||
+    lowered.includes("name") ||
+    lowered.includes("languagecode") ||
+    lowered.includes("invalid argument")
+  );
+};
+
+const sanitizeTtsErrorMessage = (message: string): string => {
+  const lowered = message.toLowerCase();
+  if (lowered.includes("api key not valid") || lowered.includes("invalid api key")) {
+    return "invalid_api_key";
+  }
+  if (lowered.includes("permission") || lowered.includes("forbidden")) {
+    return "tts_permission_denied";
+  }
+  if (lowered.includes("quota")) {
+    return "tts_quota_exceeded";
+  }
+  if (lowered.includes("timeout") || lowered.includes("aborted")) {
+    return "tts_upstream_timeout";
+  }
+  if (isVoiceResolutionError(lowered)) {
+    return "tts_voice_not_supported";
+  }
+  return "tts_generation_failed";
+};
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader("Cache-Control", "no-store");
 
@@ -424,19 +499,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         new Promise<string>((_, reject) => setTimeout(() => reject(new Error("tts_upstream_timeout")), 15000)),
       ]);
     } else {
-      try {
-        audioContent = await synthesizeWithApiKey({ ...common, apiKey: effectiveCredential.apiKey });
-      } catch (firstError: any) {
-        const firstMsg = String(firstError?.message || "");
-        const isVoiceIssue =
-          firstMsg.toLowerCase().includes("voice") ||
-          firstMsg.toLowerCase().includes("name") ||
-          firstMsg.toLowerCase().includes("languagecode");
-        if (!isVoiceIssue) throw firstError;
-        audioContent = await synthesizeWithApiKey({
-          ...common,
-          voice: "ko-KR-Wavenet-A",
-        });
+      const fallbackVoices = buildVoiceFallbackCandidates(voice);
+      let lastError: any = null;
+      for (const candidateVoice of fallbackVoices) {
+        try {
+          audioContent = await synthesizeWithApiKey({
+            ...common,
+            apiKey: effectiveCredential.apiKey,
+            voice: candidateVoice,
+          });
+          lastError = null;
+          break;
+        } catch (candidateError: any) {
+          lastError = candidateError;
+          const msg = String(candidateError?.message || "");
+          if (!isVoiceResolutionError(msg)) {
+            throw candidateError;
+          }
+        }
+      }
+      if (lastError) {
+        throw lastError;
       }
     }
 
@@ -444,13 +527,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   } catch (error: any) {
     console.error("[api/tts] error:", error);
     const rawMessage = String(error?.message || "server_error");
-    const message =
-      rawMessage.includes("aborted") || rawMessage.includes("timeout")
-        ? "tts_upstream_timeout"
-        : rawMessage;
+    const message = sanitizeTtsErrorMessage(rawMessage);
     res.status(500).json({
       message,
-      details: error?.stack ? String(error.stack).slice(0, 1200) : null,
+      details: null,
     });
   }
 }
