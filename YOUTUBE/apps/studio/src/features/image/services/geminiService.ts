@@ -10,8 +10,12 @@ import type {
   VideoSourceImage,
 } from "../types";
 
-const IMAGE_MODEL = "gemini-2.0-flash-preview-image-generation";
-const TEXT_MODEL = "gemini-2.0-flash";
+const IMAGE_MODELS = [
+  "gemini-3-pro-image-preview",
+  "gemini-2.5-flash-image",
+  "gemini-2.0-flash-preview-image-generation",
+] as const;
+const TEXT_MODEL = "gemini-2.5-flash";
 const MAX_CHARACTERS = 6;
 
 type ScenePlanItem = {
@@ -78,15 +82,36 @@ const callTextModel = async (ai: GoogleGenAI, prompt: string): Promise<string> =
 };
 
 const callImageModel = async (ai: GoogleGenAI, prompt: string): Promise<string> => {
-  const res: any = await ai.models.generateContent({
-    model: IMAGE_MODEL,
-    contents: [{ role: "user", parts: [{ text: prompt }] }],
-    config: {
-      responseModalities: [Modality.TEXT, Modality.IMAGE],
-    },
-  });
+  let lastError: unknown = null;
 
-  return extractImageBase64(res);
+  for (const model of IMAGE_MODELS) {
+    try {
+      const res: any = await ai.models.generateContent({
+        model,
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        config: {
+          responseModalities: [Modality.TEXT, Modality.IMAGE],
+        },
+      });
+      return extractImageBase64(res);
+    } catch (error: any) {
+      lastError = error;
+      const msg = String(error?.message || "").toLowerCase();
+      const isModelAvailabilityError =
+        msg.includes("not found") ||
+        msg.includes("is not supported") ||
+        msg.includes("model") ||
+        msg.includes("404");
+      if (!isModelAvailabilityError) {
+        throw error;
+      }
+    }
+  }
+
+  throw new Error(
+    `이미지 생성 모델을 찾지 못했습니다. 시도한 모델: ${IMAGE_MODELS.join(", ")}. ` +
+      `원본 오류: ${lastError instanceof Error ? lastError.message : String(lastError)}`
+  );
 };
 
 const ratioHint = (aspectRatio: AspectRatio): string => {
