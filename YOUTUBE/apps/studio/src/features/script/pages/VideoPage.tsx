@@ -3476,10 +3476,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
           <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
             {/* 이미지 설정 */}
             <div className="mb-6 rounded-2xl border border-white/10 bg-black/30 p-6">
-              <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                <span className="text-2xl">설정</span>
-                이미지 생성 설정
-              </h3>
+              <h3 className="text-lg font-bold text-white mb-4">이미지 생성 설정</h3>
 
               <div className="mt-6">
                 <label className="block text-xl font-bold text-white mb-3">
@@ -3493,6 +3490,15 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   rows={4}
                   className="w-full rounded-xl border border-white/20 bg-black/30 px-4 py-3 text-sm text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500"
                   placeholder={isImagePromptFocused ? "" : recommendedImagePrompt}
+                  spellCheck={false}
+                  style={
+                    {
+                      userSelect: "text",
+                      WebkitUserSelect: "text",
+                      MozUserSelect: "text",
+                      msUserSelect: "text",
+                    } as React.CSSProperties
+                  }
                 />
                 <p className="text-xs text-white/50 mt-2">
                   비워두면 대본을 분석해 자동 추천 분위기 프롬프트를 적용합니다.
