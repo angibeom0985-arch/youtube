@@ -58,6 +58,7 @@ const STORAGE_KEYS = {
   tts: "video_project_tts",
   ttsChapters: "video_project_tts_chapters",
   ttsChapterVoices: "video_project_tts_chapter_voices",
+  ttsFavorites: "video_project_tts_favorites",
   youtubeUrl: "video_project_youtube_url",
   scriptCategory: "video_project_script_category",
   scriptCategoryOrder: "video_project_script_category_order",
@@ -495,7 +496,17 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     )
   );
   const [selectedVoice, setSelectedVoice] = useState(voiceOptions[0].name);
-  const [quickVoiceOptions, setQuickVoiceOptions] = useState(() => [...voiceOptions]);
+  const [favoriteVoiceNames, setFavoriteVoiceNames] = useState<string[]>(() => {
+    const defaults = voiceOptions.map((voice) => voice.name);
+    const stored = getStoredJson(STORAGE_KEYS.ttsFavorites, defaults);
+    if (!Array.isArray(stored)) return defaults;
+    const validNames = stored.filter(
+      (name): name is string =>
+        typeof name === "string" && allVoiceOptions.some((voice) => voice.name === name)
+    );
+    const unique = Array.from(new Set(validNames));
+    return unique.length > 0 ? unique : defaults;
+  });
   const [ttsSpeed, setTtsSpeed] = useState(1);
   const [showVoiceModal, setShowVoiceModal] = useState(false);
   const [voiceGenderFilter, setVoiceGenderFilter] = useState<"전체" | VoiceGender>("전체");
@@ -778,6 +789,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   useEffect(() => setStoredJson(STORAGE_KEYS.scriptCategoryOrder, categoryOrder), [categoryOrder]);
   useEffect(() => setStoredValue(STORAGE_KEYS.script, scriptDraft), [scriptDraft]);
   useEffect(() => setStoredValue(STORAGE_KEYS.tts, ttsScript), [ttsScript]);
+  useEffect(() => setStoredJson(STORAGE_KEYS.ttsFavorites, favoriteVoiceNames), [favoriteVoiceNames]);
   useEffect(() => setStoredJson(STORAGE_KEYS.ttsChapters, chapterScripts), [chapterScripts]);
   useEffect(() => setStoredJson(STORAGE_KEYS.ttsChapterVoices, chapterVoices), [chapterVoices]);
   useEffect(() => setStoredValue(STORAGE_KEYS.scriptStyle, scriptStyle), [scriptStyle]);
@@ -1090,26 +1102,21 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     );
   const stripGenderPrefix = (label: string): string =>
     String(label || "").replace(/^(?:\uB0A8\uC131|\uC5EC\uC131)\s*/, "").trim();
-  const pinVoiceToQuickOptions = (voiceName: string) => {
-    const picked = resolveVoiceMeta(voiceName);
-    if (!picked) return;
-    const pickedCategory = "category" in picked ? picked.category : undefined;
-    setQuickVoiceOptions((prev) => {
-      if (prev.some((voice) => voice.name === picked.name)) return prev;
-      const next = [...prev];
-      let targetIndex = next.length - 1;
-      if (pickedCategory) {
-        for (let i = next.length - 1; i >= 0; i -= 1) {
-          const meta = resolveVoiceMeta(next[i].name);
-          const metaCategory = meta && "category" in meta ? meta.category : undefined;
-          if (metaCategory === pickedCategory) {
-            targetIndex = i;
-            break;
-          }
-        }
+  const favoriteVoiceOptions = useMemo(
+    () =>
+      favoriteVoiceNames
+        .map((voiceName) => resolveVoiceMeta(voiceName))
+        .filter((voice): voice is ExtendedVoiceOption => Boolean(voice && "googleVoice" in voice)),
+    [favoriteVoiceNames]
+  );
+  const isFavoriteVoice = (voiceName: string) => favoriteVoiceNames.includes(voiceName);
+  const toggleFavoriteVoice = (voiceName: string) => {
+    setFavoriteVoiceNames((prev) => {
+      if (prev.includes(voiceName)) {
+        const next = prev.filter((name) => name !== voiceName);
+        return next.length > 0 ? next : [voiceOptions[0].name];
       }
-      next[targetIndex] = { name: picked.name, label: picked.label, tone: picked.tone };
-      return next;
+      return [...prev, voiceName];
     });
   };
   const voiceTagFilters: Array<"전체" | VoiceTag> = [
@@ -2937,7 +2944,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         </h4>
                         <div className="flex items-center gap-2">
                           <span className="text-xs text-orange-400 font-semibold mr-3">
-                            {chapterVoices[index] || quickVoiceOptions[0]?.name || "민준"}
+                            {chapterVoices[index] || favoriteVoiceOptions[0]?.name || "민준"}
                           </span>
                           <span className="text-xs text-white/50">{chapter.content.length}자</span>
                         </div>
@@ -2958,9 +2965,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       />
 
                       <div className="mt-4 flex flex-wrap items-center gap-3">
-                        <div className="text-sm font-semibold text-white/60">TTS 선택</div>
+                        <div className="text-sm font-semibold text-white/60">TTS 즐겨찾기</div>
                         <div className="flex flex-wrap gap-2">
-                          {quickVoiceOptions.map((voice) => (
+                          {favoriteVoiceOptions.map((voice) => (
                             <div key={voice.name} className="flex items-center gap-1">
                               <button
                                 type="button"
@@ -2968,7 +2975,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                   setCurrentChapterForVoice(index);
                                   setChapterVoices({ ...chapterVoices, [index]: voice.name });
                                 }}
-                                className={`px-4 py-2 rounded-lg border text-sm font-medium transition-all inline-flex items-center gap-2 ${(chapterVoices[index] || quickVoiceOptions[0]?.name || "민준") === voice.name
+                                className={`px-4 py-2 rounded-lg border text-sm font-medium transition-all inline-flex items-center gap-2 ${(chapterVoices[index] || favoriteVoiceOptions[0]?.name || "민준") === voice.name
                                   ? "border-red-400 bg-gradient-to-r from-red-600/30 to-red-500/25 text-red-200 shadow-lg"
                                   : "border-white/20 bg-black/40 text-white/70 hover:border-red-400/50 hover:bg-red-500/10"
                                   }`}
@@ -3140,7 +3147,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                       onClick={() => {
                                         if (currentChapterForVoice !== null) {
                                           setChapterVoices({ ...chapterVoices, [currentChapterForVoice]: voice.name });
-                                          pinVoiceToQuickOptions(voice.name);
                                           playPreviewAudio(currentChapterForVoice, voice.name, voice.sampleText);
                                         }
                                         setShowVoiceModal(false);
@@ -3169,6 +3175,20 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                             <path d="M8 5v14l11-7z" />
                                           </svg>
                                         )}
+                                      </button>
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          toggleFavoriteVoice(voice.name);
+                                        }}
+                                        className={`flex-shrink-0 w-8 h-8 rounded-full border transition ${
+                                          isFavoriteVoice(voice.name)
+                                            ? "border-amber-300 bg-amber-500/25 text-amber-200"
+                                            : "border-white/20 bg-white/5 text-white/70 hover:border-amber-300/50"
+                                        }`}
+                                        title={isFavoriteVoice(voice.name) ? "즐겨찾기 해제" : "즐겨찾기 등록"}
+                                      >
+                                        {isFavoriteVoice(voice.name) ? "★" : "☆"}
                                       </button>
                                       <div className="flex-1 text-left min-w-0">
                                         <p className="text-base font-bold text-white group-hover:text-red-300 transition-colors">{voice.name}</p>
