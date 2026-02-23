@@ -593,11 +593,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     { id: number; voice: string; text: string; status: string }[]
   >([]);
   const [imagePrompt, setImagePrompt] = useState(() =>
-    getStoredString(
-      STORAGE_KEYS.imagePrompt,
-      "미래 도시 배경 속 경제 그래프 앞에 서 있는 캐릭터"
-    )
+    getStoredString(STORAGE_KEYS.imagePrompt, "")
   );
+  const [isImagePromptFocused, setIsImagePromptFocused] = useState(false);
   const [chapterImagePrompts, setChapterImagePrompts] = useState<Record<number, string>>({});
   const [isGeneratingImagePrompt, setIsGeneratingImagePrompt] = useState(false);
   const [generatingPromptChapter, setGeneratingPromptChapter] = useState<number | null>(null);
@@ -652,6 +650,34 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
   const progressTimerRef = useRef<number | null>(null);
   const [characterColorMap, setCharacterColorMap] = useState<Map<string, string>>(new Map());
+  const recommendedImagePrompt = useMemo(() => {
+    const chapterText = chapterScripts.map((chapter) => chapter.content).join(" ");
+    const generatedText = generatedPlan?.scriptWithCharacters?.map((line) => line.line).join(" ") || "";
+    const base = `${chapterText} ${generatedText} ${scriptDraft} ${selectedCategory}`.toLowerCase();
+
+    if (!base.trim()) {
+      return "대본 분위기에 맞는 영화적 조명과 통일된 색감의 장면";
+    }
+
+    const isMystery = /미스터리|공포|스릴러|괴이|추적|범죄|사건/.test(base);
+    const isEconomic = /경제|환율|투자|자산|시장|돈|금리|부동산/.test(base);
+    const isBright = /희망|성장|성공|꿀팁|활기|밝|유쾌/.test(base);
+    const isHistorical = /조선|역사|전통|왕|시대/.test(base);
+
+    if (isMystery) {
+      return "어두운 대비 조명, 긴장감 있는 그림자, 시네마틱 스릴러 분위기의 장면";
+    }
+    if (isEconomic) {
+      return "도시 야경과 데이터 비주얼이 어우러진 현대적 비즈니스 다큐 분위기의 장면";
+    }
+    if (isHistorical) {
+      return "전통 건축과 질감이 살아있는 사극 영화 톤, 자연광 중심의 깊이 있는 장면";
+    }
+    if (isBright) {
+      return "밝은 자연광과 선명한 컬러, 역동적인 구도로 구성된 활기찬 장면";
+    }
+    return "스토리 중심의 시네마틱 연출, 주제를 강조하는 조명과 통일된 색감의 장면";
+  }, [chapterScripts, generatedPlan, scriptDraft, selectedCategory]);
 
   // Audio playback state
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -1037,6 +1063,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
     try {
       const contentSummary = chapterContent.slice(0, 300).replace(/\n/g, ' ');
+      const basePrompt = imagePrompt.trim() || recommendedImagePrompt;
 
       // Construct detailed style prompt
       let stylePrompt = "";
@@ -1052,7 +1079,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         stylePrompt += `Background Style: ${backgroundStyle}. `;
       }
 
-      const fullPrompt = `${chapterTitle}: ${contentSummary}. ${stylePrompt} High quality, detailed.`;
+      const fullPrompt = `${basePrompt}. ${chapterTitle}: ${contentSummary}. ${stylePrompt} High quality, detailed.`;
 
       // Use regenerateStoryboardImage from geminiService
       // Note: We pass empty array for characters as VideoPage doesn't have full Character objects yet.
@@ -3375,29 +3402,27 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 <textarea
                   value={imagePrompt}
                   onChange={(e) => setImagePrompt(e.target.value)}
+                  onFocus={() => setIsImagePromptFocused(true)}
+                  onBlur={() => setIsImagePromptFocused(false)}
                   rows={4}
-                  className="w-full rounded-xl border border-white/20 bg-black/30 px-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-red-500"
-                  placeholder="예: 미래 도시 배경 속 경제 그래프 앞에 서 있는 캐릭터"
+                  className="w-full rounded-xl border border-white/20 bg-black/30 px-4 py-3 text-sm text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  placeholder={isImagePromptFocused ? "" : recommendedImagePrompt}
                 />
                 <p className="text-xs text-white/50 mt-2">
-                  각 컷의 이미지 생성 시 기본적으로 적용될 프롬프트입니다.
+                  비워두면 대본을 분석해 자동 추천 분위기 프롬프트를 적용합니다.
                 </p>
               </div>
 
               {/* 이미지 스타일 선택 */}
               <div className="mt-8 bg-black/30 border border-white/10 rounded-xl p-[clamp(1rem,2vw,1.4rem)]">
                 <h3 className="text-red-300 font-medium mb-6 flex items-center text-xl">
-                  <span className="mr-2">선택</span>
                   이미지 스타일 선택
                 </h3>
 
                 {/* 인물 스타일 */}
                 <div className="mb-6">
                   <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-red-200 font-medium flex items-center text-base">
-                      <span className="mr-2">인물</span>
-                      인물 스타일
-                    </h4>
+                    <h4 className="text-red-200 font-medium text-base">인물 스타일</h4>
                     <button
                       onClick={() => setCharacterStyle("custom")}
                       className={`py-1.5 px-4 rounded-lg font-medium text-xs transition-all duration-200 ${characterStyle === "custom"
@@ -3413,7 +3438,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       <div key={style} className="relative">
                         <button
                           onClick={() => setCharacterStyle(style)}
-                          className={`relative w-full h-24 rounded-lg font-medium text-sm transition-all duration-200 overflow-hidden group ${characterStyle === style
+                          className={`relative w-full aspect-square rounded-lg font-medium text-sm transition-all duration-200 overflow-hidden group ${characterStyle === style
                             ? "ring-2 ring-red-500 shadow-lg scale-105"
                             : "hover:scale-105 hover:ring-1 hover:ring-red-400"
                             }`}
@@ -3448,10 +3473,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 {/* 배경/분위기 스타일 */}
                 <div className="mb-6">
                   <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-red-200 font-medium flex items-center text-base">
-                      <span className="mr-2">배경</span>
-                      배경/분위기 스타일
-                    </h4>
+                    <h4 className="text-red-200 font-medium text-base">배경/분위기 스타일</h4>
                     <button
                       onClick={() => setBackgroundStyle("custom")}
                       className={`py-1.5 px-4 rounded-lg font-medium text-xs transition-all duration-200 ${backgroundStyle === "custom"
@@ -3467,10 +3489,10 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       <button
                         key={style}
                         onClick={() => setBackgroundStyle(style)}
-                        className={`px-3 py-2 rounded-lg text-xs font-semibold transition-all ${backgroundStyle === style
+                        className={`w-full aspect-square rounded-lg text-xs font-semibold transition-all ${backgroundStyle === style
                           ? "bg-red-600 text-white shadow-lg scale-105"
                           : "bg-white/10 text-white/70 hover:bg-white/20"
-                          } relative overflow-hidden`}
+                          } relative overflow-hidden p-0`}
                         style={{
                           backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('/${style === "AI" ? "ai" : style}.png')`,
                           backgroundSize: 'cover',
