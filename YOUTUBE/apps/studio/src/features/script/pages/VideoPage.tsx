@@ -1052,6 +1052,28 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
   const ENABLE_BROWSER_TTS_FALLBACK = false;
   const PREVIEW_FALLBACK_DELAY_MS = 900;
+  const strictVoiceProfileMap: Record<string, { voice: string; rate: number; pitch: number }> = {
+    "\uBBFC\uC900": { voice: "ko-KR-Wavenet-C", rate: 0.96, pitch: -2.8 }, // 민준
+    "\uC9C0\uD6C8": { voice: "ko-KR-Neural2-C", rate: 1.04, pitch: -1.4 }, // 지훈
+    "\uB3C4\uD604": { voice: "ko-KR-Standard-C", rate: 0.92, pitch: -3.6 }, // 도현
+    "\uD0DC\uC591": { voice: "ko-KR-Wavenet-B", rate: 1.08, pitch: -0.4 }, // 태양
+    "\uC900\uC11C": { voice: "ko-KR-Neural2-B", rate: 0.98, pitch: -2.2 }, // 준서
+    "\uB3D9\uD604": { voice: "ko-KR-Standard-B", rate: 1.01, pitch: -1.8 }, // 동현
+    "\uC0C1\uD638": { voice: "ko-KR-Standard-C", rate: 0.9, pitch: -4.0 }, // 상호
+    "\uC7AC\uD6C8": { voice: "ko-KR-Wavenet-D", rate: 1.1, pitch: -0.9 }, // 재훈
+    "\uC131\uBBFC": { voice: "ko-KR-Neural2-D", rate: 0.88, pitch: -4.8 }, // 성민
+    "\uC11C\uC5F0": { voice: "ko-KR-Wavenet-A", rate: 1.0, pitch: 1.4 }, // 서연
+    "\uC720\uB098": { voice: "ko-KR-Neural2-A", rate: 1.06, pitch: 2.8 }, // 유나
+    "\uD61C\uC9C4": { voice: "ko-KR-Standard-A", rate: 0.96, pitch: 0.8 }, // 혜진
+    "\uC18C\uD76C": { voice: "ko-KR-Wavenet-D", rate: 1.02, pitch: 3.4 }, // 소희
+    "\uD558\uB298": { voice: "ko-KR-Neural2-D", rate: 0.94, pitch: 2.0 }, // 하늘
+    "\uC218\uC544": { voice: "ko-KR-Standard-D", rate: 1.12, pitch: 4.0 }, // 수아
+    "\uC608\uB9B0": { voice: "ko-KR-Wavenet-B", rate: 1.08, pitch: 3.1 }, // 예린
+    "\uBBF8\uC815": { voice: "ko-KR-Standard-A", rate: 0.93, pitch: 1.2 }, // 미정
+    "\uC21C\uC790": { voice: "ko-KR-Neural2-B", rate: 0.9, pitch: 0.6 }, // 순자
+  };
+  const stripGenderPrefix = (label: string): string =>
+    String(label || "").replace(/^(?:\uB0A8\uC131|\uC5EC\uC131)\s*/, "").trim();
 
   // 오디오 재생 함수 (간단한 미리듣기용)
   const maleVoiceNames = /민준|지훈|준서|도현|태양|동현|상호|재훈|성민|수현|지수|해준|준호/i;
@@ -1082,7 +1104,10 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     synth.cancel();
     const utterance = new SpeechSynthesisUtterance(previewText);
     utterance.lang = "ko-KR";
-    const style = voiceStyleMap[voiceName] || { rate: 1, pitch: 0 };
+    const strictProfile = strictVoiceProfileMap[voiceName];
+    const style = strictProfile
+      ? { rate: strictProfile.rate, pitch: strictProfile.pitch }
+      : (voiceStyleMap[voiceName] || { rate: 1, pitch: 0 });
     const isMaleVoice = maleVoiceNames.test(voiceName);
     const adjustedPitch = style.pitch !== 0 ? style.pitch : (isMaleVoice ? -2 : 2);
     utterance.rate = Math.min(1.4, Math.max(0.8, ttsSpeed * style.rate));
@@ -1176,8 +1201,11 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         하림: "ko-KR-Neural2-A",
       };
 
-      const googleVoice = voiceMap[voiceName] || 'ko-KR-Standard-A';
-      const voiceStyle = voiceStyleMap[voiceName] || { rate: 1, pitch: 0 };
+      const strictProfile = strictVoiceProfileMap[voiceName];
+      const googleVoice = strictProfile?.voice || voiceMap[voiceName] || 'ko-KR-Standard-A';
+      const voiceStyle = strictProfile
+        ? { rate: strictProfile.rate, pitch: strictProfile.pitch }
+        : (voiceStyleMap[voiceName] || { rate: 1, pitch: 0 });
       const isMaleVoice = maleVoiceNames.test(voiceName);
       const adjustedPitch = voiceStyle.pitch !== 0 ? voiceStyle.pitch : (isMaleVoice ? -2 : 2);
       const previewText = String(text || "")
@@ -2851,14 +2879,14 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       <optgroup label="남성">
                         {allVoiceOptions.filter(v => v.category === "남성").map((voice) => (
                           <option key={voice.name} value={voice.name}>
-                            {voice.name} · {voice.label}
+                            {voice.name} · {stripGenderPrefix(voice.label)}
                           </option>
                         ))}
                       </optgroup>
                       <optgroup label="여성">
                         {allVoiceOptions.filter(v => v.category === "여성").map((voice) => (
                           <option key={voice.name} value={voice.name}>
-                            {voice.name} · {voice.label}
+                            {voice.name} · {stripGenderPrefix(voice.label)}
                           </option>
                         ))}
                       </optgroup>
@@ -2910,7 +2938,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                   }`}
                               >
                                 {voice.name}
-                                <span className="text-xs ml-1 opacity-70">· {voice.label}</span>
+                                <span className="text-xs ml-1 opacity-70">· {stripGenderPrefix(voice.label)}</span>
                               </button>
                               <button
                                 type="button"
@@ -3084,7 +3112,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                       </button>
                                       <div className="flex-1 text-left">
                                         <p className="text-base font-bold text-white group-hover:text-red-300 transition-colors">{voice.name}</p>
-                                        <p className="text-xs text-white/60 mt-0.5">{voice.label} · {voice.tone}</p>
+                                        <p className="text-xs text-white/60 mt-0.5">{stripGenderPrefix(voice.label)} · {voice.tone}</p>
                                       </div>
                                     </button>
                                   ))}
@@ -3135,7 +3163,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                       </button>
                                       <div className="flex-1 text-left">
                                         <p className="text-base font-bold text-white group-hover:text-red-300 transition-colors">{voice.name}</p>
-                                        <p className="text-xs text-white/60 mt-0.5">{voice.label} · {voice.tone}</p>
+                                        <p className="text-xs text-white/60 mt-0.5">{stripGenderPrefix(voice.label)} · {voice.tone}</p>
                                       </div>
                                     </button>
                                   ))}
