@@ -170,6 +170,14 @@ type ExtendedVoiceOption = {
   fallbackVoice?: string;
 };
 
+type SupportErrorDialog = {
+  title: string;
+  context: string;
+  message: string;
+  troubleshooting: string[];
+  reportText: string;
+};
+
 // 확장된 목소리 옵션 (모달용)
 const allVoiceOptions: ExtendedVoiceOption[] = [
   { name: "민준", label: "신뢰 나레이션", tone: "신뢰감 있는 다큐 스타일", category: "남성", model: "Neural2", googleVoice: "ko-KR-Neural2-C", ssmlGender: "MALE", rate: 0.98, pitch: -1.8, tags: ["신뢰감 있는", "나레이션용"], sampleText: "핵심 데이터부터 차분하게 정리해 드리겠습니다." },
@@ -685,7 +693,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [playingChapter, setPlayingChapter] = useState<number | null>(null);
   const [playingVoice, setPlayingVoice] = useState<string | null>(null);
   const [isPlayingPreview, setIsPlayingPreview] = useState(false);
-  const [ttsPreviewErrorMessage, setTtsPreviewErrorMessage] = useState<string | null>(null);
+  const [supportErrorDialog, setSupportErrorDialog] = useState<SupportErrorDialog | null>(null);
+  const [supportCopyStatus, setSupportCopyStatus] = useState("");
   const previewAbortRef = useRef<AbortController | null>(null);
   const previewRequestIdRef = useRef(0);
   const previewCacheRef = useRef<Map<string, string>>(new Map());
@@ -1007,7 +1016,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        alert("로그인이 필요합니다.");
+        openSupportErrorDialog("로그인 필요", "주제 형식 변환", new Error("로그인이 필요합니다."));
         return;
       }
 
@@ -1038,7 +1047,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       }
     } catch (error) {
       console.error('주제 변환 오류:', error);
-      alert('주제 변환 중 오류가 발생했습니다. 다시 시도해주세요.');
+      openSupportErrorDialog("주제 변환 오류", "주제 형식 변환", error);
     } finally {
       setIsReformattingTopic(false);
     }
@@ -1046,7 +1055,11 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
   const handleGenerateImage = async (chapterIndex: number, chapterTitle: string, chapterContent: string) => {
     if (!geminiApiKey) {
-      alert("API 키가 설정되지 않았습니다. 마이페이지에서 API 키를 등록해주세요.");
+      openSupportErrorDialog(
+        "API 키 설정 필요",
+        "이미지 생성",
+        new Error("API 키가 설정되지 않았습니다. 마이페이지에서 API 키를 등록해주세요.")
+      );
       navigate("/mypage", {
         replace: true,
         state: { from: "/video", reason: "coupon_api_key_required" },
@@ -1098,7 +1111,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
     } catch (error) {
       console.error('이미지 생성 오류:', error);
-      alert('이미지 생성 중 오류가 발생했습니다: ' + (error instanceof Error ? error.message : String(error)));
+      openSupportErrorDialog("이미지 생성 오류", "이미지 생성", error);
     } finally {
       setGeneratingImageChapter(null);
     }
@@ -1189,6 +1202,79 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     if (voiceTagFilter !== "전체" && !voice.tags.includes(voiceTagFilter)) return false;
     return true;
   });
+  const buildTroubleshootingSteps = (message: string): string[] => {
+    const normalized = String(message || "").toLowerCase();
+    if (normalized.includes("api key") || normalized.includes("invalid_api_key")) {
+      return [
+        "마이페이지에서 Google/Gemini API 키를 다시 저장한 뒤 재시도하세요.",
+        "키 앞뒤 공백이 없는지 확인하세요.",
+        "Cloud 콘솔에서 해당 API(Text-to-Speech 또는 Gemini) 활성화를 확인하세요.",
+      ];
+    }
+    if (normalized.includes("quota") || normalized.includes("429")) {
+      return [
+        "할당량/요금제 상태를 확인한 뒤 1~5분 후 재시도하세요.",
+        "같은 작업을 짧은 시간에 반복 실행하지 마세요.",
+        "필요하면 모델 또는 품질 옵션을 낮춰 요청량을 줄이세요.",
+      ];
+    }
+    if (normalized.includes("not found") || normalized.includes("model")) {
+      return [
+        "사용 가능한 모델 목록에서 해당 모델 지원 여부를 확인하세요.",
+        "문제가 지속되면 기본 모델(Standard)로 변경 후 다시 시도하세요.",
+        "오류 전문을 복사해 제작자에게 전달하세요.",
+      ];
+    }
+    if (normalized.includes("auth_required") || normalized.includes("로그인이 필요")) {
+      return [
+        "다시 로그인한 후 동일 작업을 재시도하세요.",
+        "다른 탭에서 로그아웃되어 세션이 만료되지 않았는지 확인하세요.",
+      ];
+    }
+    return [
+      "페이지를 새로고침한 뒤 동일 작업을 다시 시도하세요.",
+      "브라우저 캐시를 지우거나 시크릿 창에서 재현 여부를 확인하세요.",
+      "아래 오류 내용을 복사해 제작자에게 전달하세요.",
+    ];
+  };
+  const openSupportErrorDialog = (title: string, context: string, error: unknown) => {
+    const message = error instanceof Error ? error.message : String(error || "알 수 없는 오류");
+    const troubleshooting = buildTroubleshootingSteps(message);
+    const reportText = [
+      "[제작자에게 전달]",
+      `시간: ${new Date().toISOString()}`,
+      `페이지: ${location.pathname}`,
+      `기능: ${context}`,
+      `오류: ${message}`,
+    ].join("\n");
+    setSupportCopyStatus("");
+    setSupportErrorDialog({
+      title,
+      context,
+      message,
+      troubleshooting,
+      reportText,
+    });
+  };
+  const handleCopySupportReport = async () => {
+    if (!supportErrorDialog) return;
+    try {
+      if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(supportErrorDialog.reportText);
+      } else {
+        const ta = document.createElement("textarea");
+        ta.value = supportErrorDialog.reportText;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+      }
+      setSupportCopyStatus("복사 완료");
+      window.setTimeout(() => setSupportCopyStatus(""), 1800);
+    } catch {
+      setSupportCopyStatus("복사 실패");
+    }
+  };
 
   // 오디오 재생 함수 (간단한 미리듣기용)
   const maleVoiceNames = /민준|지훈|준서|도현|태양|동현|상호|재훈|성민|건우|시우|수현|지수|해준|준호/i;
@@ -1282,7 +1368,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       }
 
       const requestId = ++previewRequestIdRef.current;
-      setTtsPreviewErrorMessage(null);
+      setSupportErrorDialog(null);
       setIsPlayingPreview(true);
       setPlayingChapter(chapterIndex);
       setPlayingVoice(voiceName);
@@ -1325,7 +1411,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       const { data: { session } } = await supabase.auth.getSession();
 
       if (!session) {
-        alert('로그인이 필요합니다.');
+        openSupportErrorDialog("로그인 필요", "TTS 미리듣기", new Error("로그인이 필요합니다."));
         setIsPlayingPreview(false);
         setPlayingChapter(null);
         setPlayingVoice(null);
@@ -1457,7 +1543,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         ? playBrowserTtsFallback(chapterIndex, voiceName, text)
         : false;
       if (!fallbackOk) {
-        setTtsPreviewErrorMessage(error instanceof Error ? error.message : "알 수 없는 오류");
+        openSupportErrorDialog("TTS 미리듣기 오류", "TTS 미리듣기", error);
         setIsPlayingPreview(false);
         setPlayingChapter(null);
         setPlayingVoice(null);
@@ -3955,30 +4041,57 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
           </main>
         </div>
       </div>
-      {ttsPreviewErrorMessage && typeof document !== "undefined" &&
+      {supportErrorDialog && typeof document !== "undefined" &&
         createPortal(
           <div className="fixed inset-0 z-[100001]">
             <button
               type="button"
-              aria-label="TTS 오류 창 닫기"
+              aria-label="오류 창 닫기"
               className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-              onClick={() => setTtsPreviewErrorMessage(null)}
+              onClick={() => setSupportErrorDialog(null)}
             />
-            <div className="absolute left-1/2 top-1/2 w-[min(94vw,920px)] max-h-[86vh] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-cyan-300/50 bg-[#0f1b1d] shadow-[0_18px_55px_rgba(0,0,0,0.55)] overflow-hidden">
-              <div className="flex items-center justify-between gap-3 border-b border-cyan-200/20 px-5 py-4">
-                <h3 className="text-lg font-bold text-cyan-100">TTS 오류</h3>
+            <div className="absolute left-1/2 top-1/2 w-[min(96vw,1120px)] max-h-[92vh] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-cyan-300/50 bg-[#0f1b1d] shadow-[0_18px_55px_rgba(0,0,0,0.55)] overflow-hidden">
+              <div className="flex items-center justify-between gap-3 border-b border-cyan-200/20 px-6 py-4">
+                <h3 className="text-lg font-bold text-cyan-100">{supportErrorDialog.title}</h3>
                 <button
                   type="button"
-                  onClick={() => setTtsPreviewErrorMessage(null)}
+                  onClick={() => setSupportErrorDialog(null)}
                   className="rounded-full border border-cyan-200/40 px-4 py-1.5 text-sm font-semibold text-cyan-100 hover:bg-cyan-200/10"
                 >
                   닫기
                 </button>
               </div>
-              <div className="max-h-[calc(86vh-82px)] overflow-y-auto px-5 py-4">
-                <pre className="whitespace-pre-wrap break-words text-[15px] leading-7 text-cyan-50">
-                  {ttsPreviewErrorMessage}
-                </pre>
+              <div className="max-h-[calc(92vh-82px)] overflow-y-auto px-6 py-5 space-y-5">
+                <div className="rounded-xl border border-cyan-200/20 bg-black/25 p-4">
+                  <p className="text-sm font-semibold text-cyan-100">오류 기능</p>
+                  <p className="mt-1 text-sm text-cyan-50">{supportErrorDialog.context}</p>
+                </div>
+                <div className="rounded-xl border border-cyan-200/20 bg-black/25 p-4">
+                  <p className="text-sm font-semibold text-cyan-100">오류 메시지</p>
+                  <pre className="mt-2 whitespace-pre-wrap break-words text-[14px] leading-6 text-cyan-50">{supportErrorDialog.message}</pre>
+                </div>
+                <div className="rounded-xl border border-emerald-300/30 bg-emerald-900/20 p-4">
+                  <p className="text-sm font-semibold text-emerald-200">해결 방법</p>
+                  <ul className="mt-2 space-y-1 text-sm text-emerald-100">
+                    {supportErrorDialog.troubleshooting.map((item, idx) => (
+                      <li key={`${item}-${idx}`}>{idx + 1}. {item}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="rounded-xl border border-amber-300/30 bg-amber-900/20 p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <p className="text-sm font-semibold text-amber-200">제작자에게 전달</p>
+                    <button
+                      type="button"
+                      onClick={handleCopySupportReport}
+                      className="rounded-full border border-amber-200/60 px-4 py-1.5 text-sm font-semibold text-amber-100 hover:bg-amber-200/10"
+                    >
+                      복사
+                    </button>
+                  </div>
+                  <pre className="mt-2 whitespace-pre-wrap break-words text-[13px] leading-6 text-amber-100">{supportErrorDialog.reportText}</pre>
+                  {supportCopyStatus && <p className="mt-2 text-xs text-amber-200">{supportCopyStatus}</p>}
+                </div>
               </div>
             </div>
           </div>,
