@@ -1050,7 +1050,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     순자: { rate: 0.92, pitch: 0 },
   };
 
-  const ENABLE_BROWSER_TTS_FALLBACK = true;
+  const ENABLE_BROWSER_TTS_FALLBACK = false;
   const PREVIEW_FALLBACK_DELAY_MS = 900;
 
   // 오디오 재생 함수 (간단한 미리듣기용)
