@@ -3470,14 +3470,14 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         className={`px-3 py-2 rounded-lg text-xs font-semibold transition-all ${backgroundStyle === style
                           ? "bg-red-600 text-white shadow-lg scale-105"
                           : "bg-white/10 text-white/70 hover:bg-white/20"
-                          }`}
+                          } relative overflow-hidden`}
                         style={{
                           backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('/${style === "AI" ? "ai" : style}.png')`,
                           backgroundSize: 'cover',
                           backgroundPosition: 'center'
                         }}
                       >
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+                        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
                         <div className="relative h-full flex flex-col justify-end p-3 text-left">
                           <div className="text-white font-bold text-sm mb-0.5">{style}</div>
                           <div className="text-white/70 text-[10px] leading-tight line-clamp-2">
