@@ -141,28 +141,60 @@ const voiceOptions = [
   { name: "유나", label: "여성 보이스", tone: "밝고 친근한 진행" },
 ];
 
+type VoiceModel = "Neural2" | "Wavenet" | "Standard" | "Studio";
+type VoiceGender = "남성" | "여성";
+type VoiceTag =
+  | "신뢰감 있는"
+  | "발랄한"
+  | "차분한"
+  | "권위 있는"
+  | "나레이션용"
+  | "광고/홍보";
+type SsmlGender = "MALE" | "FEMALE" | "NEUTRAL";
+
+type ExtendedVoiceOption = {
+  name: string;
+  label: string;
+  tone: string;
+  category: VoiceGender;
+  model: VoiceModel;
+  googleVoice: string;
+  ssmlGender: SsmlGender;
+  rate: number;
+  pitch: number;
+  tags: VoiceTag[];
+  sampleText: string;
+  availability?: "available" | "fallback";
+  fallbackVoice?: string;
+};
+
 // 확장된 목소리 옵션 (모달용)
-const allVoiceOptions = [
-  { name: "민준", label: "남성 캐주얼", tone: "신뢰감 있는 다큐 스타일", category: "남성", sampleText: "안녕하세요, 유튜브 채널에 오신 것을 환영합니다. 오늘 영상에서는 핵심만 빠르게 알려드릴게요." },
-  { name: "서연", label: "여성 아나운서", tone: "차분한 뉴스 톤", category: "여성", sampleText: "안녕하세요, 유튜브 시청자 여러분. 오늘 영상의 주요 내용을 정확하게 전달해 드리겠습니다." },
-  { name: "지훈", label: "남성 비즈니스", tone: "프로페셔널 프레젠테이션", category: "남성", sampleText: "이번 유튜브 영상에서는 실무에 바로 적용할 수 있는 전략 세 가지를 소개합니다." },
-  { name: "유나", label: "여성 상냥", tone: "밝고 친근한 진행", category: "여성", sampleText: "유튜브에 오신 여러분 반가워요. 오늘도 재미있고 유익한 내용으로 준비했어요." },
-  { name: "혜진", label: "여성 중년", tone: "안정적인 라디오 톤", category: "여성", sampleText: "오늘 유튜브 영상은 처음 보는 분도 이해하기 쉽게 차근차근 설명해 드릴게요." },
-  { name: "도현", label: "남성 내레이션", tone: "정중한 해설 톤", category: "남성", sampleText: "지금부터 유튜브 영상의 핵심 포인트를 하나씩 짚어보겠습니다." },
+const allVoiceOptions: ExtendedVoiceOption[] = [
+  { name: "민준", label: "신뢰 나레이션", tone: "신뢰감 있는 다큐 스타일", category: "남성", model: "Neural2", googleVoice: "ko-KR-Neural2-C", ssmlGender: "MALE", rate: 0.98, pitch: -1.8, tags: ["신뢰감 있는", "나레이션용"], sampleText: "핵심 데이터부터 차분하게 정리해 드리겠습니다." },
+  { name: "지훈", label: "권위 비즈니스", tone: "프로페셔널 프레젠테이션", category: "남성", model: "Wavenet", googleVoice: "ko-KR-Wavenet-C", ssmlGender: "MALE", rate: 1.02, pitch: -1.2, tags: ["권위 있는", "광고/홍보"], sampleText: "실무에 바로 적용할 전략 세 가지를 말씀드리겠습니다." },
+  { name: "도현", label: "권위 해설", tone: "정중한 해설 톤", category: "남성", model: "Standard", googleVoice: "ko-KR-Standard-C", ssmlGender: "MALE", rate: 0.96, pitch: -2.4, tags: ["권위 있는", "나레이션용"], sampleText: "지금부터 핵심 포인트를 순서대로 짚어보겠습니다." },
+  { name: "태양", label: "발랄 에너지", tone: "활기찬 진행 톤", category: "남성", model: "Wavenet", googleVoice: "ko-KR-Wavenet-D", ssmlGender: "MALE", rate: 1.08, pitch: -0.4, tags: ["발랄한", "광고/홍보"], sampleText: "오늘 영상 진짜 알찬 정보 많으니 끝까지 함께해 주세요!" },
+  { name: "준서", label: "차분 다큐", tone: "깊이 있는 내레이션", category: "남성", model: "Standard", googleVoice: "ko-KR-Standard-D", ssmlGender: "MALE", rate: 0.94, pitch: -2.8, tags: ["차분한", "나레이션용"], sampleText: "데이터를 바탕으로 변화의 흐름을 천천히 살펴보겠습니다." },
+  { name: "동현", label: "신뢰 강연", tone: "리더십 강연 톤", category: "남성", model: "Neural2", googleVoice: "ko-KR-Neural2-C", ssmlGender: "MALE", rate: 1.0, pitch: -1.0, tags: ["신뢰감 있는", "권위 있는"], sampleText: "지금 실행하면 결과가 달라집니다. 방법을 알려드리죠." },
+  { name: "상호", label: "차분 설명", tone: "따뜻한 해설 톤", category: "남성", model: "Wavenet", googleVoice: "ko-KR-Wavenet-D", ssmlGender: "MALE", rate: 0.92, pitch: -3.2, tags: ["차분한", "나레이션용"], sampleText: "복잡한 내용을 쉽고 안정적으로 정리해드리겠습니다." },
+  { name: "재훈", label: "발랄 진행", tone: "경쾌한 진행", category: "남성", model: "Standard", googleVoice: "ko-KR-Standard-C", ssmlGender: "MALE", rate: 1.1, pitch: -0.6, tags: ["발랄한", "광고/홍보"], sampleText: "이 꿀팁들, 바로 써먹을 수 있게 빠르게 알려드릴게요!" },
+  { name: "성민", label: "권위 조언", tone: "묵직한 조언 톤", category: "남성", model: "Standard", googleVoice: "ko-KR-Standard-D", ssmlGender: "MALE", rate: 0.9, pitch: -3.6, tags: ["권위 있는", "신뢰감 있는"], sampleText: "경험에서 나온 현실적인 조언을 전해드리겠습니다." },
 
-  { name: "태양", label: "남성 에너지", tone: "활기찬 운동 코치", category: "남성", sampleText: "유튜브 가족 여러분, 오늘도 힘차게 시작합니다. 끝까지 함께 가보시죠!" },
-  { name: "준서", label: "남성 다큐", tone: "깊이 있는 내레이션", category: "남성", sampleText: "이 유튜브 영상에서는 데이터 기반으로 변화의 흐름을 분석해 보겠습니다." },
-  { name: "동현", label: "남성 카리스마", tone: "리더십 강연 톤", category: "남성", sampleText: "유튜브에서 성장하려면 지금 바로 실행해야 합니다. 오늘 그 방법을 알려드립니다." },
-  { name: "상호", label: "남성 중년", tone: "따뜻한 해설 톤", category: "남성", sampleText: "오늘 유튜브 콘텐츠는 실수 줄이는 방법을 중심으로 정리했습니다." },
-  { name: "재훈", label: "남성 젊은", tone: "경쾌한 진행", category: "남성", sampleText: "유튜브 시청자 여러분, 오늘 주제 진짜 꿀팁 많으니까 꼭 끝까지 봐주세요!" },
-  { name: "성민", label: "남성 시니어", tone: "묵직한 조언 톤", category: "남성", sampleText: "이번 유튜브 영상은 경험에서 나온 현실적인 조언을 담았습니다." },
+  { name: "서연", label: "차분 아나운서", tone: "차분한 뉴스 톤", category: "여성", model: "Wavenet", googleVoice: "ko-KR-Wavenet-A", ssmlGender: "FEMALE", rate: 0.98, pitch: 1.2, tags: ["차분한", "나레이션용"], sampleText: "오늘 영상의 주요 내용을 정확하고 또렷하게 전달해 드립니다." },
+  { name: "유나", label: "발랄 친근", tone: "밝고 친근한 진행", category: "여성", model: "Neural2", googleVoice: "ko-KR-Neural2-A", ssmlGender: "FEMALE", rate: 1.06, pitch: 2.6, tags: ["발랄한", "광고/홍보"], sampleText: "반가워요. 오늘도 재미있고 유익한 내용으로 준비했어요." },
+  { name: "혜진", label: "신뢰 라디오", tone: "안정적인 라디오 톤", category: "여성", model: "Neural2", googleVoice: "ko-KR-Neural2-B", ssmlGender: "FEMALE", rate: 0.96, pitch: 0.8, tags: ["신뢰감 있는", "차분한"], sampleText: "처음 보는 분도 이해하기 쉽게 차근차근 설명해 드릴게요." },
+  { name: "소희", label: "발랄 라이브", tone: "생동감 있는 리액션", category: "여성", model: "Wavenet", googleVoice: "ko-KR-Wavenet-B", ssmlGender: "FEMALE", rate: 1.08, pitch: 3.0, tags: ["발랄한", "광고/홍보"], sampleText: "지금부터 분위기 올려서 핵심만 시원하게 전달하겠습니다!" },
+  { name: "하늘", label: "차분 가이드", tone: "명상 가이드 톤", category: "여성", model: "Standard", googleVoice: "ko-KR-Standard-A", ssmlGender: "FEMALE", rate: 0.94, pitch: 1.6, tags: ["차분한", "나레이션용"], sampleText: "호흡을 고르고 중요한 포인트에 집중해 보겠습니다." },
+  { name: "수아", label: "발랄 쇼호스트", tone: "쇼핑호스트 스타일", category: "여성", model: "Standard", googleVoice: "ko-KR-Standard-B", ssmlGender: "FEMALE", rate: 1.1, pitch: 3.4, tags: ["발랄한", "광고/홍보"], sampleText: "오늘 영상, 바로 써먹을 수 있는 팁만 골라서 보여드릴게요." },
+  { name: "예린", label: "신뢰 브이로그", tone: "가벼운 브이로그 톤", category: "여성", model: "Wavenet", googleVoice: "ko-KR-Wavenet-B", ssmlGender: "FEMALE", rate: 1.04, pitch: 2.4, tags: ["신뢰감 있는", "발랄한"], sampleText: "편하게 보시고 필요한 부분만 쏙 가져가세요." },
+  { name: "미정", label: "권위 설명", tone: "안정적 설명 톤", category: "여성", model: "Standard", googleVoice: "ko-KR-Standard-A", ssmlGender: "FEMALE", rate: 0.92, pitch: 1.0, tags: ["권위 있는", "차분한"], sampleText: "복잡한 내용을 간단한 예시로 명확하게 정리해 드립니다." },
+  { name: "순자", label: "차분 스토리", tone: "따뜻한 이야기 톤", category: "여성", model: "Neural2", googleVoice: "ko-KR-Neural2-B", ssmlGender: "FEMALE", rate: 0.9, pitch: 0.4, tags: ["차분한", "나레이션용"], sampleText: "오래 사랑받는 콘텐츠의 공통점을 따뜻하게 들려드릴게요." },
 
-  { name: "소희", label: "여성 ASMR", tone: "부드러운 집중용 음성", category: "여성", sampleText: "편안하게 유튜브 영상을 들으시면서 오늘 핵심 내용을 천천히 따라와 주세요." },
-  { name: "하늘", label: "여성 차분", tone: "명상 가이드 톤", category: "여성", sampleText: "유튜브 영상 시작 전에 호흡을 고르고, 중요한 포인트에 집중해 보겠습니다." },
-  { name: "수아", label: "여성 활발", tone: "쇼핑호스트 스타일", category: "여성", sampleText: "오늘 유튜브 영상 대박입니다! 바로 써먹을 수 있는 팁만 모아서 보여드릴게요." },
-  { name: "예린", label: "여성 젊은", tone: "가벼운 브이로그 톤", category: "여성", sampleText: "유튜브 브이로그처럼 편하게 보시고, 오늘 영상에서 필요한 부분만 쏙 가져가세요." },
-  { name: "미정", label: "여성 중년", tone: "안정적 설명 톤", category: "여성", sampleText: "오늘 유튜브 콘텐츠는 복잡한 내용을 간단한 예시로 정리해 드립니다." },
-  { name: "순자", label: "여성 시니어", tone: "따뜻한 이야기 톤", category: "여성", sampleText: "유튜브에서 오래 사랑받는 콘텐츠의 공통점을 따뜻하게 들려드릴게요." },
+  // ko-KR Studio 단일 보이스는 현재 공식 표에서 확인되지 않아 Standard로 안전 폴백됩니다.
+  { name: "서윤", label: "Studio 뉴스", tone: "방송형 차분 톤", category: "여성", model: "Studio", googleVoice: "ko-KR-Studio-A", ssmlGender: "FEMALE", rate: 1.0, pitch: 1.0, tags: ["차분한", "권위 있는"], sampleText: "스튜디오 톤으로 또렷한 뉴스 전달감을 제공합니다.", availability: "fallback", fallbackVoice: "ko-KR-Standard-A" },
+  { name: "지안", label: "Studio 내레이션", tone: "깊이 있는 도큐 톤", category: "여성", model: "Studio", googleVoice: "ko-KR-Studio-B", ssmlGender: "FEMALE", rate: 0.96, pitch: 0.8, tags: ["신뢰감 있는", "나레이션용"], sampleText: "차분한 흐름으로 내용 몰입도를 높여드리겠습니다.", availability: "fallback", fallbackVoice: "ko-KR-Standard-B" },
+  { name: "건우", label: "Studio 브리핑", tone: "권위 있는 브리핑 톤", category: "남성", model: "Studio", googleVoice: "ko-KR-Studio-C", ssmlGender: "MALE", rate: 0.98, pitch: -1.2, tags: ["권위 있는", "신뢰감 있는"], sampleText: "핵심 사실을 중심으로 명확하게 브리핑하겠습니다.", availability: "fallback", fallbackVoice: "ko-KR-Standard-C" },
+  { name: "시우", label: "Studio 광고", tone: "고급 광고 내레이션", category: "남성", model: "Studio", googleVoice: "ko-KR-Studio-D", ssmlGender: "MALE", rate: 1.04, pitch: -0.4, tags: ["광고/홍보", "발랄한"], sampleText: "고급스러운 톤으로 브랜드 메시지를 전달해드립니다.", availability: "fallback", fallbackVoice: "ko-KR-Standard-D" },
 ];
 
 const resolveVoiceMeta = (voiceName: string) =>
@@ -466,6 +498,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [quickVoiceOptions, setQuickVoiceOptions] = useState(() => [...voiceOptions]);
   const [ttsSpeed, setTtsSpeed] = useState(1);
   const [showVoiceModal, setShowVoiceModal] = useState(false);
+  const [voiceGenderFilter, setVoiceGenderFilter] = useState<"전체" | VoiceGender>("전체");
+  const [voiceTagFilter, setVoiceTagFilter] = useState<"전체" | VoiceTag>("전체");
   const [currentChapterForVoice, setCurrentChapterForVoice] = useState<number | null>(null);
   const [chapterVoices, setChapterVoices] = useState<Record<number, string>>(() =>
     getStoredJson(STORAGE_KEYS.ttsChapterVoices, {})
@@ -1035,51 +1069,25 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     setRenderingStatus("AI 음성 출력을 준비했습니다.");
   };
 
-  const voiceStyleMap: Record<string, { rate: number; pitch: number }> = {
-    // 품질 저하를 막기 위해 pitch는 0으로 고정하고 rate만 미세 조정
-    민준: { rate: 0.98, pitch: 0 },
-    지훈: { rate: 1.0, pitch: 0 },
-    준서: { rate: 0.96, pitch: 0 },
-    도현: { rate: 1.02, pitch: 0 },
-    태양: { rate: 1.04, pitch: 0 },
-    동현: { rate: 0.98, pitch: 0 },
-    상호: { rate: 0.95, pitch: 0 },
-    재훈: { rate: 1.03, pitch: 0 },
-    성민: { rate: 0.93, pitch: 0 },
-    서연: { rate: 1.0, pitch: 0 },
-    유나: { rate: 1.04, pitch: 0 },
-    혜진: { rate: 0.98, pitch: 0 },
-    소희: { rate: 1.06, pitch: 0 },
-    하늘: { rate: 0.97, pitch: 0 },
-    수아: { rate: 1.05, pitch: 0 },
-    예린: { rate: 1.04, pitch: 0 },
-    미정: { rate: 0.95, pitch: 0 },
-    순자: { rate: 0.92, pitch: 0 },
-  };
+  const voiceStyleMap: Record<string, { rate: number; pitch: number }> = Object.fromEntries(
+    allVoiceOptions.map((voice) => [voice.name, { rate: voice.rate, pitch: voice.pitch }])
+  );
 
   const ENABLE_BROWSER_TTS_FALLBACK = false;
   const PREVIEW_FALLBACK_DELAY_MS = 900;
-  // /tts 페이지와 동일한 실제 Google Voice ID 기반으로 매핑합니다.
-  const strictVoiceProfileMap: Record<string, { voice: string; rate: number; pitch: number }> = {
-    민준: { voice: "ko-KR-Wavenet-C", rate: 0.96, pitch: -2.8 },
-    지훈: { voice: "ko-KR-Neural2-C", rate: 1.04, pitch: -1.4 },
-    도현: { voice: "ko-KR-Standard-C", rate: 0.92, pitch: -3.6 },
-    태양: { voice: "ko-KR-Wavenet-B", rate: 1.08, pitch: -0.4 },
-    준서: { voice: "ko-KR-Neural2-B", rate: 0.98, pitch: -2.2 },
-    동현: { voice: "ko-KR-Standard-B", rate: 1.01, pitch: -1.8 },
-    상호: { voice: "ko-KR-Wavenet-B", rate: 0.9, pitch: -4.0 },
-    재훈: { voice: "ko-KR-Neural2-B", rate: 1.1, pitch: -0.9 },
-    성민: { voice: "ko-KR-Standard-B", rate: 0.88, pitch: -4.8 },
-    서연: { voice: "ko-KR-Wavenet-A", rate: 1.0, pitch: 1.4 },
-    유나: { voice: "ko-KR-Neural2-A", rate: 1.06, pitch: 2.8 },
-    혜진: { voice: "ko-KR-Standard-A", rate: 0.96, pitch: 0.8 },
-    소희: { voice: "ko-KR-Wavenet-D", rate: 1.02, pitch: 3.4 },
-    하늘: { voice: "ko-KR-Neural2-D", rate: 0.94, pitch: 2.0 },
-    수아: { voice: "ko-KR-Standard-D", rate: 1.12, pitch: 4.0 },
-    예린: { voice: "ko-KR-Wavenet-D", rate: 1.08, pitch: 3.1 },
-    미정: { voice: "ko-KR-Neural2-A", rate: 0.93, pitch: 1.2 },
-    순자: { voice: "ko-KR-Standard-A", rate: 0.9, pitch: 0.6 },
-  };
+  const strictVoiceProfileMap: Record<string, { voice: string; ssmlGender: SsmlGender; rate: number; pitch: number; fallbackVoice?: string }> =
+    Object.fromEntries(
+      allVoiceOptions.map((voice) => [
+        voice.name,
+        {
+          voice: voice.googleVoice,
+          ssmlGender: voice.ssmlGender,
+          rate: voice.rate,
+          pitch: voice.pitch,
+          fallbackVoice: voice.fallbackVoice,
+        },
+      ])
+    );
   const stripGenderPrefix = (label: string): string =>
     String(label || "").replace(/^(?:\uB0A8\uC131|\uC5EC\uC131)\s*/, "").trim();
   const pinVoiceToQuickOptions = (voiceName: string) => {
@@ -1104,9 +1112,23 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       return next;
     });
   };
+  const voiceTagFilters: Array<"전체" | VoiceTag> = [
+    "전체",
+    "신뢰감 있는",
+    "발랄한",
+    "차분한",
+    "권위 있는",
+    "나레이션용",
+    "광고/홍보",
+  ];
+  const filteredVoiceModalOptions = allVoiceOptions.filter((voice) => {
+    if (voiceGenderFilter !== "전체" && voice.category !== voiceGenderFilter) return false;
+    if (voiceTagFilter !== "전체" && !voice.tags.includes(voiceTagFilter)) return false;
+    return true;
+  });
 
   // 오디오 재생 함수 (간단한 미리듣기용)
-  const maleVoiceNames = /민준|지훈|준서|도현|태양|동현|상호|재훈|성민|수현|지수|해준|준호/i;
+  const maleVoiceNames = /민준|지훈|준서|도현|태양|동현|상호|재훈|성민|건우|시우|수현|지수|해준|준호/i;
 
   const playBrowserTtsFallback = (
     chapterIndex: number,
@@ -1204,6 +1226,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
       const strictProfile = strictVoiceProfileMap[voiceName];
       const googleVoice = strictProfile?.voice || "ko-KR-Standard-A";
+      const ssmlGender = strictProfile?.ssmlGender || (maleVoiceNames.test(voiceName) ? "MALE" : "FEMALE");
       const voiceStyle = strictProfile
         ? { rate: strictProfile.rate, pitch: strictProfile.pitch }
         : (voiceStyleMap[voiceName] || { rate: 1, pitch: 0 });
@@ -1258,6 +1281,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
           body: JSON.stringify({
             text: previewText,
             voice: googleVoice,
+            ssmlGender,
             speakingRate: Math.min(1.4, Math.max(0.8, ttsSpeed * voiceStyle.rate)),
             pitch: adjustedPitch,
             preview: true,
@@ -1271,12 +1295,14 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
           const rawBody = await response.text().catch(() => "");
           let message = "";
           let details = "";
+          let hint = "";
 
           if (contentType.includes("application/json")) {
             try {
               const payload = JSON.parse(rawBody || "{}");
               message = String(payload?.message || "").trim();
               details = String(payload?.details || "").trim();
+              hint = String(payload?.hint || "").trim();
             } catch {
               message = "";
             }
@@ -1300,7 +1326,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
           const requestMeta = [`HTTP ${response.status}`, vercelId ? `요청ID: ${vercelId}` : ""]
             .filter(Boolean)
             .join(" · ");
-          const finalMessage = requestMeta ? `${friendlyMessage}\n\n${requestMeta}` : friendlyMessage;
+          const finalMessage = [friendlyMessage, hint, requestMeta].filter(Boolean).join("\n\n");
           console.error("[TTS] API 오류:", { status: response.status, message, details, vercelId });
           throw new Error(finalMessage);
         }
@@ -2979,6 +3005,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                             type="button"
                             onClick={() => {
                               setCurrentChapterForVoice(index);
+                              setVoiceGenderFilter("전체");
+                              setVoiceTagFilter("전체");
                               setShowVoiceModal(true);
                             }}
                             className="px-4 py-2 rounded-lg border border-red-400/50 bg-red-500/10 text-red-300 text-sm font-medium hover:bg-red-500/20 transition-all"
@@ -3077,67 +3105,36 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                               </button>
                             </div>
 
-                              <div className="h-[calc(100%-78px)] overflow-y-auto p-6">
-                              {/* 남성 목소리 */}
-                              <div className="mb-6">
-                                <h4 className="text-base font-bold text-white mb-3 flex items-center gap-2">
-                                  <span className="text-blue-400">남성</span>
-                                  남성 목소리
-                                </h4>
-                                <div className="space-y-2">
-                                  {allVoiceOptions.filter(v => v.category === "남성").map((voice) => (
-                                    <button
-                                      key={voice.name}
-                                      onClick={() => {
-                                        if (currentChapterForVoice !== null) {
-                                          setChapterVoices({ ...chapterVoices, [currentChapterForVoice]: voice.name });
-                                          pinVoiceToQuickOptions(voice.name);
-                                          playPreviewAudio(currentChapterForVoice, voice.name, voice.sampleText);
-                                        }
-                                        setShowVoiceModal(false);
-                                      }}
-                                      className="w-full rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-white/0 hover:from-red-500/20 hover:to-red-500/10 hover:border-red-400/50 transition-all group p-3 flex items-center gap-3"
-                                    >
+                              <div className="h-[calc(100%-78px)] overflow-y-auto p-6 space-y-4">
+                                <div className="rounded-xl border border-white/10 bg-black/30 p-3 space-y-3">
+                                  <div className="flex flex-wrap gap-2">
+                                    {(["전체", "남성", "여성"] as const).map((gender) => (
                                       <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          if (currentChapterForVoice !== null) {
-                                            playPreviewAudio(currentChapterForVoice, voice.name, voice.sampleText);
-                                          }
-                                        }}
-                                        className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-all ${playingChapter === currentChapterForVoice && playingVoice === voice.name
-                                          ? 'bg-red-500 shadow-lg'
-                                          : 'bg-white/10 hover:bg-red-500/50'
-                                          }`}
-                                        title={playingChapter === currentChapterForVoice && playingVoice === voice.name ? '정지' : '미리듣기'}
+                                        key={gender}
+                                        type="button"
+                                        onClick={() => setVoiceGenderFilter(gender)}
+                                        className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition ${voiceGenderFilter === gender ? "border-red-300 bg-red-500/25 text-red-100" : "border-white/15 text-white/70 hover:border-red-300/40"}`}
                                       >
-                                        {playingChapter === currentChapterForVoice && playingVoice === voice.name ? (
-                                          <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
-                                          </svg>
-                                        ) : (
-                                          <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M8 5v14l11-7z" />
-                                          </svg>
-                                        )}
+                                        {gender}
                                       </button>
-                                      <div className="flex-1 text-left">
-                                        <p className="text-base font-bold text-white group-hover:text-red-300 transition-colors">{voice.name}</p>
-                                        <p className="text-xs text-white/60 mt-0.5">{stripGenderPrefix(voice.label)} · {voice.tone}</p>
-                                      </div>
-                                    </button>
-                                  ))}
+                                    ))}
+                                  </div>
+                                  <div className="flex flex-wrap gap-2">
+                                    {voiceTagFilters.map((tag) => (
+                                      <button
+                                        key={tag}
+                                        type="button"
+                                        onClick={() => setVoiceTagFilter(tag)}
+                                        className={`px-3 py-1.5 rounded-full text-xs border transition ${voiceTagFilter === tag ? "border-red-300 bg-red-500/20 text-red-100" : "border-white/15 text-white/70 hover:border-red-300/35"}`}
+                                      >
+                                        {tag}
+                                      </button>
+                                    ))}
+                                  </div>
                                 </div>
-                              </div>
 
-                              {/* 여성 목소리 */}
-                              <div>
-                                <h4 className="text-base font-bold text-white mb-3 flex items-center gap-2">
-                                  <span className="text-pink-400">여성</span>
-                                  여성 목소리
-                                </h4>
                                 <div className="space-y-2">
-                                  {allVoiceOptions.filter(v => v.category === "여성").map((voice) => (
+                                  {filteredVoiceModalOptions.map((voice) => (
                                     <button
                                       key={voice.name}
                                       onClick={() => {
@@ -3158,10 +3155,10 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                           }
                                         }}
                                         className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-all ${playingChapter === currentChapterForVoice && playingVoice === voice.name
-                                          ? 'bg-red-500 shadow-lg'
-                                          : 'bg-white/10 hover:bg-red-500/50'
+                                          ? "bg-red-500 shadow-lg"
+                                          : "bg-white/10 hover:bg-red-500/50"
                                           }`}
-                                        title={playingChapter === currentChapterForVoice && playingVoice === voice.name ? '정지' : '미리듣기'}
+                                        title={playingChapter === currentChapterForVoice && playingVoice === voice.name ? "정지" : "미리듣기"}
                                       >
                                         {playingChapter === currentChapterForVoice && playingVoice === voice.name ? (
                                           <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -3173,14 +3170,27 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                           </svg>
                                         )}
                                       </button>
-                                      <div className="flex-1 text-left">
+                                      <div className="flex-1 text-left min-w-0">
                                         <p className="text-base font-bold text-white group-hover:text-red-300 transition-colors">{voice.name}</p>
-                                        <p className="text-xs text-white/60 mt-0.5">{stripGenderPrefix(voice.label)} · {voice.tone}</p>
+                                        <p className="text-xs text-white/60 mt-0.5 truncate">{stripGenderPrefix(voice.label)} · {voice.tone}</p>
+                                        <div className="mt-1 flex flex-wrap gap-1">
+                                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white/70">{voice.category}</span>
+                                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white/70">{voice.model}</span>
+                                          {voice.availability === "fallback" && (
+                                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-200">
+                                              자동 폴백
+                                            </span>
+                                          )}
+                                        </div>
                                       </div>
                                     </button>
                                   ))}
+                                  {filteredVoiceModalOptions.length === 0 && (
+                                    <div className="rounded-xl border border-white/10 bg-black/20 p-4 text-sm text-white/60">
+                                      선택한 필터에 해당하는 목소리가 없습니다.
+                                    </div>
+                                  )}
                                 </div>
-                              </div>
                               </div>
                             </div>
                           </div>,

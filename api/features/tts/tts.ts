@@ -74,6 +74,7 @@ const synthesizeWithServiceAccount = async (params: {
   text: string;
   ssml: string;
   voice: string;
+  ssmlGender?: "MALE" | "FEMALE" | "NEUTRAL";
   languageCode: string;
   speakingRate: number;
   pitch: number;
@@ -91,7 +92,11 @@ const synthesizeWithServiceAccount = async (params: {
 
   const [response] = await client.synthesizeSpeech({
     input,
-    voice: { languageCode: params.languageCode, name: params.voice },
+    voice: {
+      languageCode: params.languageCode,
+      name: params.voice,
+      ...(params.ssmlGender ? { ssmlGender: params.ssmlGender } : {}),
+    },
     audioConfig: {
       audioEncoding: "MP3",
       speakingRate: params.speakingRate,
@@ -111,6 +116,7 @@ const synthesizeWithApiKey = async (params: {
   text: string;
   ssml: string;
   voice: string;
+  ssmlGender?: "MALE" | "FEMALE" | "NEUTRAL";
   languageCode: string;
   speakingRate: number;
   pitch: number;
@@ -120,7 +126,11 @@ const synthesizeWithApiKey = async (params: {
   const timeout = setTimeout(() => controller.abort(), 15000);
   const body = {
     input: params.ssml ? { ssml: params.ssml } : { text: params.text },
-    voice: { languageCode: params.languageCode, name: params.voice },
+    voice: {
+      languageCode: params.languageCode,
+      name: params.voice,
+      ...(params.ssmlGender ? { ssmlGender: params.ssmlGender } : {}),
+    },
     audioConfig: {
       audioEncoding: "MP3",
       speakingRate: params.speakingRate,
@@ -156,10 +166,12 @@ const synthesizeWithApiKey = async (params: {
 const buildVoiceFallbackCandidates = (voice: string): string[] => {
   const letterMatch = voice.match(/-([A-D])$/i);
   const requestedLetter = letterMatch?.[1]?.toUpperCase() || null;
-  const basePrefix = requestedLetter ? voice.replace(/-([A-D])$/i, "") : voice;
+  const basePrefixRaw = requestedLetter ? voice.replace(/-([A-D])$/i, "") : voice;
+  const basePrefix = basePrefixRaw.replace("Studio", "Standard");
 
   const prefixes = Array.from(
     new Set([
+      basePrefixRaw,
       basePrefix,
       basePrefix.replace("Neural2", "Wavenet"),
       basePrefix.replace("Wavenet", "Neural2"),
@@ -185,6 +197,8 @@ const buildVoiceFallbackCandidates = (voice: string): string[] => {
     for (const prefix of prefixes) {
       candidates.push(`${prefix}-${requestedLetter}`);
     }
+    // 모델 실패 시 같은 성별의 Standard로 우선 폴백
+    candidates.push(`ko-KR-Standard-${requestedLetter}`);
   } else {
     candidates.push(voice);
   }
@@ -227,6 +241,8 @@ const sanitizeTtsErrorMessage = (message: string): string => {
   }
   return "tts_generation_failed";
 };
+
+const isLikelyGoogleApiKey = (apiKey: string): boolean => /^AIza[0-9A-Za-z\-_]{20,}$/.test(apiKey);
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader("Cache-Control", "no-store");
@@ -298,6 +314,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const text = typeof body?.text === "string" ? body.text.trim() : "";
     const ssml = typeof body?.ssml === "string" ? body.ssml.trim() : "";
     const voice = typeof body?.voice === "string" ? body.voice : "ko-KR-Standard-A";
+    const ssmlGender =
+      body?.ssmlGender === "MALE" || body?.ssmlGender === "FEMALE" || body?.ssmlGender === "NEUTRAL"
+        ? body.ssmlGender
+        : undefined;
     const speakingRate = typeof body?.speakingRate === "number" ? body.speakingRate : 1;
     const pitch = typeof body?.pitch === "number" ? body.pitch : 0;
     const preview = body?.preview === true;
@@ -487,12 +507,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       text,
       ssml,
       voice,
+      ssmlGender,
       languageCode,
       speakingRate,
       pitch,
     };
 
     let audioContent: string;
+    if (effectiveCredential.kind === "apiKey" && !isLikelyGoogleApiKey(effectiveCredential.apiKey)) {
+      throw new Error("invalid_api_key");
+    }
     if (effectiveCredential.kind === "serviceAccount") {
       audioContent = await Promise.race<string>([
         synthesizeWithServiceAccount({ ...common, credentials: effectiveCredential.credentials }),
@@ -528,8 +552,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     console.error("[api/tts] error:", error);
     const rawMessage = String(error?.message || "server_error");
     const message = sanitizeTtsErrorMessage(rawMessage);
-    res.status(500).json({
+    const status =
+      message === "invalid_api_key"
+        ? 401
+        : message === "tts_quota_exceeded"
+          ? 429
+          : message === "tts_permission_denied"
+            ? 403
+            : message === "tts_voice_not_supported"
+              ? 400
+              : 500;
+    const hint =
+      message === "invalid_api_key"
+        ? "마이페이지에서 Google Cloud API 키를 다시 등록해 주세요."
+        : message === "tts_quota_exceeded"
+          ? "할당량을 확인하고 잠시 후 다시 시도해 주세요."
+          : message === "tts_permission_denied"
+            ? "Cloud Text-to-Speech API 권한을 확인해 주세요."
+            : message === "tts_voice_not_supported"
+              ? "선택한 모델을 지원하지 않아 Standard 모델로 자동 폴백됩니다."
+              : null;
+    res.status(status).json({
       message,
+      hint,
       details: null,
     });
   }
