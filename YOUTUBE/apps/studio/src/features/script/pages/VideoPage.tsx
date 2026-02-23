@@ -152,6 +152,7 @@ type VoiceTag =
   | "나레이션용"
   | "광고/홍보";
 type SsmlGender = "MALE" | "FEMALE" | "NEUTRAL";
+type VoicePreset = "대화형" | "뉴스형" | "광고형";
 
 type ExtendedVoiceOption = {
   name: string;
@@ -202,6 +203,34 @@ const resolveVoiceMeta = (voiceName: string) =>
   allVoiceOptions.find((voice) => voice.name === voiceName) ||
   voiceOptions.find((voice) => voice.name === voiceName) ||
   null;
+
+const escapeSsmlText = (text: string): string =>
+  String(text || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+
+const resolveVoicePreset = (voice: ExtendedVoiceOption | null): VoicePreset => {
+  if (!voice) return "대화형";
+  if (voice.tags.includes("광고/홍보") || voice.tags.includes("발랄한")) return "광고형";
+  if (voice.tags.includes("권위 있는") || voice.tags.includes("차분한") || voice.tags.includes("나레이션용")) return "뉴스형";
+  return "대화형";
+};
+
+const buildPresetSsml = (text: string, preset: VoicePreset): string => {
+  const cleaned = escapeSsmlText(text).replace(/\s+/g, " ").trim();
+  if (!cleaned) return "";
+
+  if (preset === "뉴스형") {
+    return `<speak><prosody rate="94%" pitch="-1st"><p>${cleaned}</p></prosody><break time="180ms"/></speak>`;
+  }
+  if (preset === "광고형") {
+    return `<speak><prosody rate="110%" pitch="+2st" volume="+3dB"><emphasis level="moderate">${cleaned}</emphasis></prosody><break time="100ms"/></speak>`;
+  }
+  return `<speak><prosody rate="102%" pitch="+0.5st"><p>${cleaned}</p></prosody><break time="140ms"/></speak>`;
+};
 
 const scriptCategories = [
   "썰 채널",
@@ -1234,6 +1263,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       const strictProfile = strictVoiceProfileMap[voiceName];
       const googleVoice = strictProfile?.voice || "ko-KR-Standard-A";
       const ssmlGender = strictProfile?.ssmlGender || (maleVoiceNames.test(voiceName) ? "MALE" : "FEMALE");
+      const voiceMeta = allVoiceOptions.find((voice) => voice.name === voiceName) || null;
+      const voicePreset = resolveVoicePreset(voiceMeta);
       const voiceStyle = strictProfile
         ? { rate: strictProfile.rate, pitch: strictProfile.pitch }
         : (voiceStyleMap[voiceName] || { rate: 1, pitch: 0 });
@@ -1251,8 +1282,17 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       if (!previewText) {
         throw new Error("음성으로 변환할 텍스트가 없습니다.");
       }
+      const ssml = buildPresetSsml(previewText, voicePreset);
+      const presetAdjustedRate =
+        voicePreset === "광고형" ? ttsSpeed * voiceStyle.rate * 1.08 :
+          voicePreset === "뉴스형" ? ttsSpeed * voiceStyle.rate * 0.94 :
+            ttsSpeed * voiceStyle.rate;
+      const presetAdjustedPitch =
+        voicePreset === "광고형" ? adjustedPitch + 1.6 :
+          voicePreset === "뉴스형" ? adjustedPitch - 0.6 :
+            adjustedPitch;
 
-      const cacheKey = `${googleVoice}::${previewText}`;
+      const cacheKey = `${googleVoice}::${voicePreset}::${ssml}`;
       const cachedUrl = previewCacheRef.current.get(cacheKey);
 
       const { data: { session } } = await supabase.auth.getSession();
@@ -1287,10 +1327,11 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
           },
           body: JSON.stringify({
             text: previewText,
+            ssml,
             voice: googleVoice,
             ssmlGender,
-            speakingRate: Math.min(1.4, Math.max(0.8, ttsSpeed * voiceStyle.rate)),
-            pitch: adjustedPitch,
+            speakingRate: Math.min(1.4, Math.max(0.8, presetAdjustedRate)),
+            pitch: presetAdjustedPitch,
             preview: true,
           }),
           signal: controller.signal,
@@ -2982,6 +3023,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                               >
                                 <span>{voice.name}</span>
                                 <span className="text-xs opacity-70 max-w-[170px] truncate">{voice.tone}</span>
+                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white/70">{resolveVoicePreset(voice)}</span>
                               </button>
                               <button
                                 type="button"
@@ -3196,6 +3238,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                         <div className="mt-1 flex flex-wrap gap-1">
                                           <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white/70">{voice.category}</span>
                                           <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white/70">{voice.model}</span>
+                                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white/70">{resolveVoicePreset(voice)}</span>
                                           {voice.availability === "fallback" && (
                                             <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-200">
                                               자동 폴백
