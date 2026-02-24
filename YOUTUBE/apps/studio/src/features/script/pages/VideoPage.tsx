@@ -615,8 +615,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [customBackgroundStyle, setCustomBackgroundStyle] = useState<string>("");
   const [imageStyle, setImageStyle] = useState<"realistic" | "animation">("realistic"); // Derived/Synced
 
-  const [chapterImages, setChapterImages] = useState<Record<number, string>>({});
-  const [generatingImageChapter, setGeneratingImageChapter] = useState<number | null>(null);
+  const [chapterImages, setChapterImages] = useState<Record<string, string>>({});
+  const [generatingImageChapter, setGeneratingImageChapter] = useState<string | null>(null);
   const [useConsistentSeed, setUseConsistentSeed] = useState(true);
   const [imageSeed, setImageSeed] = useState<number>(Math.floor(Math.random() * 1000000));
 
@@ -1053,7 +1053,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     }
   };
 
-  const handleGenerateImage = async (chapterIndex: number, chapterTitle: string, chapterContent: string) => {
+  const handleGenerateImage = async (imageKey: string, chapterTitle: string, chapterContent: string) => {
     if (!geminiApiKey) {
       openSupportErrorDialog(
         "API 키 설정 필요",
@@ -1072,7 +1072,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       return;
     }
 
-    setGeneratingImageChapter(chapterIndex);
+    setGeneratingImageChapter(imageKey);
 
     try {
       const contentSummary = chapterContent.slice(0, 300).replace(/\n/g, ' ');
@@ -1107,7 +1107,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         renderRatio as AspectRatio
       );
 
-      setChapterImages({ ...chapterImages, [chapterIndex]: imageUrl });
+      setChapterImages((prev) => ({ ...prev, [imageKey]: imageUrl }));
 
     } catch (error) {
       console.error('이미지 생성 오류:', error);
@@ -2171,50 +2171,89 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     return "";
   };
 
-  const timelineScenes = useMemo(() => {
-    const lines = (chapterScripts.length > 0
-      ? chapterScripts.map((chapter) => chapter.content).join("\n")
-      : scriptDraft)
-      .split("\n")
-      .map((line) => line.trim())
-      .filter(Boolean);
-    const fallbackLines = lines.length ? lines : ["주제 소개", "핵심 전개", "결론 요약"];
-    const seconds = resolveRenderDurationSeconds();
-    return Array.from({ length: requiredImageCount }, (_, index) => {
-      const isLast = index === requiredImageCount - 1;
-      const used = index * 4;
-      const remain = Math.max(1, seconds - used);
-      const durationSeconds = isLast ? Math.min(4, remain) : 4;
-      return {
-        id: index,
-        label: `컷 ${index + 1}`,
-        duration: `${durationSeconds}초`,
-        desc: fallbackLines[index % fallbackLines.length],
-      };
-    });
-  }, [chapterScripts, scriptDraft, renderDuration, requiredImageCount]);
-  const imageGenerationSlots = useMemo(() => {
+  const chapterCutPlans = useMemo(() => {
     const source = chapterScripts.length
-      ? chapterScripts
+      ? chapterScripts.map((chapter, index) => ({
+        chapterIndex: index,
+        title: sanitizeCorruptedText(chapter.title, `챕터 ${index + 1}`),
+        content: String(chapter.content || "").trim(),
+      }))
       : generatedPlan?.chapters?.map((chapter, index) => ({
+        chapterIndex: index,
         title: sanitizeCorruptedText(chapter.title, `챕터 ${index + 1}`),
         content: (chapter.script || [])
           .map((line) => toScriptLineText(line))
           .filter(Boolean)
-          .join("\n"),
+          .join("\n")
+          .trim(),
       })) || [];
 
     if (!source.length) return [];
 
-    return Array.from({ length: requiredImageCount }, (_, slotIndex) => {
-      const base = source[slotIndex % source.length];
+    const weights = source.map((chapter) => Math.max(1, chapter.content.length));
+    const totalWeight = weights.reduce((acc, cur) => acc + cur, 0);
+    const baseCuts = source.map((chapter, idx) => ({
+      ...chapter,
+      cuts: Math.floor((requiredImageCount * weights[idx]) / totalWeight),
+    }));
+    let allocated = baseCuts.reduce((acc, chapter) => acc + chapter.cuts, 0);
+    let cursor = 0;
+    while (allocated < requiredImageCount) {
+      baseCuts[cursor % baseCuts.length].cuts += 1;
+      allocated += 1;
+      cursor += 1;
+    }
+    while (allocated > requiredImageCount) {
+      const target = baseCuts[cursor % baseCuts.length];
+      if (target.cuts > 0) {
+        target.cuts -= 1;
+        allocated -= 1;
+      }
+      cursor += 1;
+    }
+
+    let globalCutIndex = 0;
+    const totalSeconds = resolveRenderDurationSeconds();
+    return baseCuts.map((chapter) => {
+      const lines = chapter.content.split("\n").map((line) => line.trim()).filter(Boolean);
+      const fallback = lines.length ? lines : [chapter.title];
+      const cuts = Array.from({ length: chapter.cuts }, (_, localCutIndex) => {
+        const isLast = globalCutIndex === requiredImageCount - 1;
+        const used = globalCutIndex * 4;
+        const remain = Math.max(1, totalSeconds - used);
+        const duration = isLast ? Math.min(4, remain) : 4;
+        const imageKey = `chapter-${chapter.chapterIndex}-cut-${localCutIndex}`;
+        const cut = {
+          globalCutIndex,
+          localCutIndex,
+          imageKey,
+          secondsFrom: used,
+          secondsTo: used + duration,
+          content: fallback[localCutIndex % fallback.length],
+          chapterTitle: chapter.title,
+        };
+        globalCutIndex += 1;
+        return cut;
+      });
       return {
-        slotIndex,
-        title: sanitizeCorruptedText(base.title, `컷 ${slotIndex + 1}`),
-        content: String(base.content || "").trim(),
+        chapterIndex: chapter.chapterIndex,
+        title: chapter.title,
+        cuts,
       };
     });
-  }, [chapterScripts, generatedPlan, requiredImageCount]);
+  }, [chapterScripts, generatedPlan, requiredImageCount, renderDuration]);
+  const timelineScenes = useMemo(
+    () =>
+      chapterCutPlans.flatMap((chapter) =>
+        chapter.cuts.map((cut) => ({
+          id: cut.globalCutIndex,
+          label: `챕터 ${chapter.chapterIndex + 1} · 컷 ${cut.localCutIndex + 1}`,
+          duration: `${cut.secondsTo - cut.secondsFrom}초`,
+          desc: cut.content,
+        }))
+      ),
+    [chapterCutPlans]
+  );
 
   const categorySensors = useSensors(
     useSensor(PointerSensor, {
@@ -3707,29 +3746,42 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 <p className="text-sm text-white/60 mb-4">
                   영상 길이 {resolveRenderDurationSeconds()}초 기준으로 4초당 1컷, 총 {requiredImageCount}장을 생성합니다.
                 </p>
-                {imageGenerationSlots.length > 0 ? (
-                  imageGenerationSlots.map((slot) => (
-                    <div key={slot.slotIndex} className="mt-6">
-                      <h4 className="text-lg font-bold text-white mb-3">
-                        컷 {slot.slotIndex + 1} ({Math.min((slot.slotIndex + 1) * 4, resolveRenderDurationSeconds())}초)
+                {chapterCutPlans.length > 0 ? (
+                  chapterCutPlans.map((chapter) => (
+                    <div key={chapter.chapterIndex} className="mt-6">
+                      <h4 className="text-xl font-bold text-white mb-3">
+                        챕터 {chapter.chapterIndex + 1}: {chapter.title}
                       </h4>
-                      <div className="bg-black/30 p-4 rounded-lg border border-white/10 mb-4">
-                        <p className="text-sm text-white/70 mb-2 whitespace-pre-wrap">
-                          {slot.content.slice(0, 260) || "장면 설명이 없습니다."}
-                        </p>
-                        <button
-                          onClick={() => handleGenerateImage(slot.slotIndex, slot.title, slot.content.substring(0, 300))}
-                          disabled={generatingImageChapter === slot.slotIndex}
-                          className="mt-2 w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg disabled:opacity-50"
-                        >
-                          {generatingImageChapter === slot.slotIndex ? "생성 중..." : withOptionalCreditLabel("이미지 생성", CREDIT_COSTS.GENERATE_IMAGE)}
-                        </button>
-                        {chapterImages[slot.slotIndex] && (
-                          <img
-                            src={chapterImages[slot.slotIndex]}
-                            alt={`Scene ${slot.slotIndex + 1} Image`}
-                            className="mt-4 max-w-full h-auto rounded-lg"
-                          />
+                      <div className="space-y-3">
+                        {chapter.cuts.length === 0 ? (
+                          <div className="rounded-lg border border-white/10 bg-black/30 p-4 text-sm text-white/50">
+                            이 챕터는 현재 영상 길이 배분에서 컷이 없습니다.
+                          </div>
+                        ) : (
+                          chapter.cuts.map((cut) => (
+                            <div key={cut.imageKey} className="bg-black/30 p-4 rounded-lg border border-white/10">
+                              <p className="text-sm font-semibold text-white mb-1">
+                                컷 {cut.localCutIndex + 1} ({cut.secondsFrom}초 ~ {cut.secondsTo}초)
+                              </p>
+                              <p className="text-sm text-white/70 mb-2 whitespace-pre-wrap">
+                                {cut.content.slice(0, 260) || "장면 설명이 없습니다."}
+                              </p>
+                              <button
+                                onClick={() => handleGenerateImage(cut.imageKey, cut.chapterTitle, cut.content.substring(0, 300))}
+                                disabled={generatingImageChapter === cut.imageKey}
+                                className="mt-2 w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg disabled:opacity-50"
+                              >
+                                {generatingImageChapter === cut.imageKey ? "생성 중..." : withOptionalCreditLabel("이미지 생성", CREDIT_COSTS.GENERATE_IMAGE)}
+                              </button>
+                              {chapterImages[cut.imageKey] && (
+                                <img
+                                  src={chapterImages[cut.imageKey]}
+                                  alt={`챕터 ${chapter.chapterIndex + 1} 컷 ${cut.localCutIndex + 1} 이미지`}
+                                  className="mt-4 max-w-full h-auto rounded-lg"
+                                />
+                              )}
+                            </div>
+                          ))
                         )}
                       </div>
                     </div>
