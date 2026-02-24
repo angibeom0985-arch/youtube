@@ -3746,12 +3746,21 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 <p className="text-sm text-white/60 mb-4">
                   영상 길이 {resolveRenderDurationSeconds()}초 기준으로 4초당 1컷, 총 {requiredImageCount}장을 생성합니다.
                 </p>
+                <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-red-400/40 bg-red-500/10 px-3 py-1 text-xs font-semibold text-red-200">
+                  컷 생성 모드
+                  <span className="text-white/70">4초당 1컷</span>
+                </div>
                 {chapterCutPlans.length > 0 ? (
                   chapterCutPlans.map((chapter) => (
                     <div key={chapter.chapterIndex} className="mt-6">
-                      <h4 className="text-xl font-bold text-white mb-3">
-                        챕터 {chapter.chapterIndex + 1}: {chapter.title}
-                      </h4>
+                      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                        <h4 className="text-xl font-bold text-white">
+                          챕터 {chapter.chapterIndex + 1}: {chapter.title}
+                        </h4>
+                        <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold text-white/80">
+                          총 {chapter.cuts.length}컷
+                        </span>
+                      </div>
                       <div className="space-y-3">
                         {chapter.cuts.length === 0 ? (
                           <div className="rounded-lg border border-white/10 bg-black/30 p-4 text-sm text-white/50">
