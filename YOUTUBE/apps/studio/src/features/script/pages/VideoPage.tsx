@@ -1849,6 +1849,31 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       setRenderDuration(String(seconds));
     }
   };
+  const resolveRenderDurationSeconds = () => {
+    const seconds = Number(renderDuration);
+    return Number.isFinite(seconds) && seconds > 0 ? seconds : 60;
+  };
+  const requiredImageCount = useMemo(() => {
+    const seconds = resolveRenderDurationSeconds();
+    return Math.max(1, Math.ceil(seconds / 4));
+  }, [renderDuration]);
+  useEffect(() => {
+    const seconds = resolveRenderDurationSeconds();
+    const minutes = Math.max(1, Math.round(seconds / 60));
+    if ([1, 8, 60].includes(minutes)) {
+      const next = String(minutes);
+      if (scriptLengthMinutes !== next) {
+        setScriptLengthMinutes(next);
+      }
+      return;
+    }
+    if (scriptLengthMinutes !== "custom") {
+      setScriptLengthMinutes("custom");
+    }
+    if (customScriptLength !== String(minutes)) {
+      setCustomScriptLength(String(minutes));
+    }
+  }, [renderDuration]);
   const isScriptStepReady = (index: number) => {
     switch (index) {
       case 0:
@@ -2147,24 +2172,49 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   };
 
   const timelineScenes = useMemo(() => {
-    const lines = scriptDraft
+    const lines = (chapterScripts.length > 0
+      ? chapterScripts.map((chapter) => chapter.content).join("\n")
+      : scriptDraft)
       .split("\n")
       .map((line) => line.trim())
       .filter(Boolean);
-    if (!lines.length) {
-      return [
-        { id: 0, label: "도입", duration: "4초", desc: "주제 소개" },
-        { id: 1, label: "전개", duration: "6초", desc: "문제점 언급" },
-        { id: 2, label: "해결", duration: "5초", desc: "해결책/사례" },
-      ];
-    }
-    return lines.slice(0, 4).map((line, index) => ({
-      id: index,
-      label: `컷 ${index + 1}`,
-      duration: `${3 + index}s`,
-      desc: line,
-    }));
-  }, [scriptDraft]);
+    const fallbackLines = lines.length ? lines : ["주제 소개", "핵심 전개", "결론 요약"];
+    const seconds = resolveRenderDurationSeconds();
+    return Array.from({ length: requiredImageCount }, (_, index) => {
+      const isLast = index === requiredImageCount - 1;
+      const used = index * 4;
+      const remain = Math.max(1, seconds - used);
+      const durationSeconds = isLast ? Math.min(4, remain) : 4;
+      return {
+        id: index,
+        label: `컷 ${index + 1}`,
+        duration: `${durationSeconds}초`,
+        desc: fallbackLines[index % fallbackLines.length],
+      };
+    });
+  }, [chapterScripts, scriptDraft, renderDuration, requiredImageCount]);
+  const imageGenerationSlots = useMemo(() => {
+    const source = chapterScripts.length
+      ? chapterScripts
+      : generatedPlan?.chapters?.map((chapter, index) => ({
+        title: sanitizeCorruptedText(chapter.title, `챕터 ${index + 1}`),
+        content: (chapter.script || [])
+          .map((line) => toScriptLineText(line))
+          .filter(Boolean)
+          .join("\n"),
+      })) || [];
+
+    if (!source.length) return [];
+
+    return Array.from({ length: requiredImageCount }, (_, slotIndex) => {
+      const base = source[slotIndex % source.length];
+      return {
+        slotIndex,
+        title: sanitizeCorruptedText(base.title, `컷 ${slotIndex + 1}`),
+        content: String(base.content || "").trim(),
+      };
+    });
+  }, [chapterScripts, generatedPlan, requiredImageCount]);
 
   const categorySensors = useSensors(
     useSensor(PointerSensor, {
@@ -3652,61 +3702,32 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 )}
               </div>
 
-              {/* 챕터 기반 이미지 생성 */}
+              {/* 4초당 1컷 이미지 생성 */}
               <div className="mt-8">
-                {generatedPlan?.chapters && generatedPlan.chapters.length > 0 ? (
-                  generatedPlan.chapters.map((chapter, chapterIndex) => (
-                    <div key={chapterIndex} className="mt-8">
-                      <h4 className="text-xl font-bold text-white mb-4">
-                        챕터 {chapterIndex + 1}: {sanitizeCorruptedText(chapter.title, `챕터 ${chapterIndex + 1}`)}
-                      </h4>
-                      {chapter.script?.map((line, lineIndex) => (
-                        <div key={lineIndex} className="bg-black/30 p-4 rounded-lg border border-white/10 mb-4">
-                          <p className="text-sm text-white/70 mb-2">
-                            <span className={`font-bold ${characterColorMap.get(line.character) || "text-red-400"}`}>
-                              {line.character}:
-                            </span>{" "}
-                            {line.line}
-                          </p>
-                          <button
-                            onClick={() => handleGenerateImage(chapterIndex, sanitizeCorruptedText(chapter.title, `챕터 ${chapterIndex + 1}`), line.imagePrompt || line.line)}
-                            disabled={generatingImageChapter === chapterIndex}
-                            className="mt-2 w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg disabled:opacity-50"
-                          >
-                            {generatingImageChapter === chapterIndex ? "생성 중..." : withOptionalCreditLabel("이미지 생성", CREDIT_COSTS.GENERATE_IMAGE)}
-                          </button>
-                          {chapterImages[chapterIndex] && (
-                            <img
-                              src={chapterImages[chapterIndex]}
-                              alt={`Chapter ${chapterIndex + 1} Image`}
-                              className="mt-4 max-w-full h-auto rounded-lg"
-                            />
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  ))
-                ) : chapterScripts && chapterScripts.length > 0 ? (
-                  chapterScripts.map((chapter, chapterIndex) => (
-                    <div key={chapterIndex} className="mt-8">
-                      <h4 className="text-xl font-bold text-white mb-4">
-                        챕터 {chapterIndex + 1}: {sanitizeCorruptedText(chapter.title, `챕터 ${chapterIndex + 1}`)}
+                <p className="text-sm text-white/60 mb-4">
+                  영상 길이 {resolveRenderDurationSeconds()}초 기준으로 4초당 1컷, 총 {requiredImageCount}장을 생성합니다.
+                </p>
+                {imageGenerationSlots.length > 0 ? (
+                  imageGenerationSlots.map((slot) => (
+                    <div key={slot.slotIndex} className="mt-6">
+                      <h4 className="text-lg font-bold text-white mb-3">
+                        컷 {slot.slotIndex + 1} ({Math.min((slot.slotIndex + 1) * 4, resolveRenderDurationSeconds())}초)
                       </h4>
                       <div className="bg-black/30 p-4 rounded-lg border border-white/10 mb-4">
                         <p className="text-sm text-white/70 mb-2 whitespace-pre-wrap">
-                          {chapter.content}
+                          {slot.content.slice(0, 260) || "장면 설명이 없습니다."}
                         </p>
                         <button
-                          onClick={() => handleGenerateImage(chapterIndex, sanitizeCorruptedText(chapter.title, `챕터 ${chapterIndex + 1}`), chapter.content.substring(0, 300))}
-                          disabled={generatingImageChapter === chapterIndex}
+                          onClick={() => handleGenerateImage(slot.slotIndex, slot.title, slot.content.substring(0, 300))}
+                          disabled={generatingImageChapter === slot.slotIndex}
                           className="mt-2 w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg disabled:opacity-50"
                         >
-                          {generatingImageChapter === chapterIndex ? "생성 중..." : withOptionalCreditLabel("이미지 생성", CREDIT_COSTS.GENERATE_IMAGE)}
+                          {generatingImageChapter === slot.slotIndex ? "생성 중..." : withOptionalCreditLabel("이미지 생성", CREDIT_COSTS.GENERATE_IMAGE)}
                         </button>
-                        {chapterImages[chapterIndex] && (
+                        {chapterImages[slot.slotIndex] && (
                           <img
-                            src={chapterImages[chapterIndex]}
-                            alt={`Chapter ${chapterIndex + 1} Image`}
+                            src={chapterImages[slot.slotIndex]}
+                            alt={`Scene ${slot.slotIndex + 1} Image`}
                             className="mt-4 max-w-full h-auto rounded-lg"
                           />
                         )}
@@ -3728,7 +3749,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   <p className="text-sm font-semibold text-white/60">영상 생성</p>
                   <h3 className="text-2xl font-bold text-white">씬을 구성해 볼까요</h3>
                 </div>
-                <span className="text-sm font-semibold text-red-300">{imagePreviews.length}컷 선택</span>
+                <span className="text-sm font-semibold text-red-300">{Object.keys(chapterImages).length}/{requiredImageCount}컷 생성</span>
               </div>
               <div className="mt-4 space-y-3">
                 {timelineScenes.map((scene) => (
@@ -3828,7 +3849,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 <p>전체 시간: {renderDuration}초</p>
                 <p>화면 비율: {renderRatio}</p>
                 <p>FPS: {renderFps}</p>
-                <p>이미지 컷: {imagePreviews.length || imageCount}개</p>
+                <p>이미지 컷: {Object.keys(chapterImages).length || requiredImageCount}개</p>
               </div>
               <p className="mt-4 text-sm text-white/40">
                 템포나 분위기를 바꾸고 싶다면 상단 스텝으로 돌아가 수정하면 됩니다.
