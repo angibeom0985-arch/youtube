@@ -3833,7 +3833,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
               <div className="space-y-3 pt-4 border-t border-white/10">
                 <h4 className="text-sm font-semibold text-white/80">일관성 유지 (선택)</h4>
                 <p className="text-xs text-white/50">
-                  /image 기능처럼 참조 이미지를 업로드하면 해당 이미지의 스타일과 톤을 유지하며 컷을 생성합니다.
+                  참조 이미지를 업로드하면 해당 이미지의 스타일과 톤을 유지하며 컷을 생성합니다.
                 </p>
 
                 {!styleReferenceImage ? (
