@@ -1880,7 +1880,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   };
   const requiredImageCount = useMemo(() => {
     const seconds = resolveRenderDurationSeconds();
-    return Math.max(1, Math.ceil(seconds / 4));
+    return Math.max(1, Math.ceil((seconds / 60) * 4));
   }, [renderDuration]);
   useEffect(() => {
     const seconds = resolveRenderDurationSeconds();
@@ -3776,15 +3776,15 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 )}
               </div>
 
-              {/* 4초당 1컷 이미지 생성 */}
+              {/* 1분당 4컷 이미지 생성 */}
               <div className="mt-8">
                 <p className="text-sm text-white/60 mb-4">
-                  영상 길이 {resolveRenderDurationSeconds()}초 기준으로 4초당 1컷, 총 {requiredImageCount}장을 생성합니다.
+                  영상 길이 {resolveRenderDurationSeconds()}초 기준으로 1분당 4컷, 총 {requiredImageCount}장을 생성합니다.
                 </p>
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                   <div className="inline-flex items-center gap-2 rounded-full border border-red-400/40 bg-red-500/10 px-3 py-1 text-xs font-semibold text-red-200">
                     컷 생성 모드
-                    <span className="text-white/70">4초당 1컷</span>
+                    <span className="text-white/70">1분당 4컷</span>
                   </div>
                   <button
                     type="button"
