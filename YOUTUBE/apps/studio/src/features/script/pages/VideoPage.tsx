@@ -3813,12 +3813,12 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 <p className="text-sm text-white/60 mb-4">
                   영상 길이 {resolveRenderDurationSeconds()}초 기준으로 1분당 4컷, 총 {requiredImageCount}장을 생성합니다.
                 </p>
-                <div className="mb-4 flex items-center justify-end">
+                <div className="mb-4">
                   <button
                     type="button"
                     onClick={handleGenerateAllCutImages}
                     disabled={isGeneratingAllCuts || Boolean(generatingImageChapter)}
-                    className="w-full sm:w-auto rounded-full border border-red-300 bg-red-600 px-6 py-2.5 text-sm font-bold text-white shadow-[0_10px_30px_rgba(239,68,68,0.35)] transition hover:bg-red-500 hover:shadow-[0_12px_34px_rgba(239,68,68,0.45)] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-red-600"
+                    className="w-full rounded-full border border-red-300 bg-red-600 px-6 py-2.5 text-sm font-bold text-white shadow-[0_10px_30px_rgba(239,68,68,0.35)] transition hover:bg-red-500 hover:shadow-[0_12px_34px_rgba(239,68,68,0.45)] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-red-600"
                   >
                     {isGeneratingAllCuts && batchGenerateProgress ? (
                       <span className="inline-flex items-center gap-2">
