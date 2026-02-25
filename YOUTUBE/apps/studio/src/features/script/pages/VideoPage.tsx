@@ -1194,24 +1194,11 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     setIsGeneratingAllCuts(true);
     setBatchGenerateProgress({ done: 0, total: pendingCuts.length });
     try {
-      const maxConcurrency = Math.min(2, pendingCuts.length);
-      let cursor = 0;
-      let done = 0;
-
-      const worker = async () => {
-        while (cursor < pendingCuts.length) {
-          const currentIndex = cursor;
-          cursor += 1;
-          const cut = pendingCuts[currentIndex];
-          await handleGenerateImage(cut);
-          done += 1;
-          setBatchGenerateProgress({ done, total: pendingCuts.length });
-        }
-      };
-
-      await Promise.all(
-        Array.from({ length: maxConcurrency }, () => worker())
-      );
+      for (let idx = 0; idx < pendingCuts.length; idx += 1) {
+        const cut = pendingCuts[idx];
+        await handleGenerateImage(cut);
+        setBatchGenerateProgress({ done: idx + 1, total: pendingCuts.length });
+      }
     } finally {
       setIsGeneratingAllCuts(false);
       setBatchGenerateProgress(null);
@@ -3998,6 +3985,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                             const cutImageSrc = chapterImages[cut.imageKey]
                               ? normalizeGeneratedImageSrc(chapterImages[cut.imageKey])
                               : "";
+                            const isGeneratingThisCut = generatingImageChapter === cut.imageKey;
                             return (
                               <div key={cut.imageKey} className="rounded-lg border border-white/10 bg-black/30 p-2">
                                 <div className="group/cut relative aspect-square overflow-hidden rounded-md border border-white/10 bg-black/40">
@@ -4034,6 +4022,12 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                       </p>
                                     </div>
                                   )}
+                                  {isGeneratingThisCut && (
+                                    <div className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-2 bg-black/60 backdrop-blur-[1px]">
+                                      <span className="h-3 w-3 rounded-full bg-red-300 animate-pulse" />
+                                      <p className="text-xs font-semibold text-red-100">이미지 생성 중...</p>
+                                    </div>
+                                  )}
                                 </div>
                                 <p className="mt-2 text-[11px] text-white/60">
                                   컷 {cut.localCutIndex + 1} · {cut.secondsFrom}초 ~ {cut.secondsTo}초
@@ -4054,7 +4048,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                     disabled={Boolean(generatingImageChapter)}
                                     className="rounded-md border border-red-400/50 bg-red-500/15 px-2 py-1.5 text-[11px] font-semibold text-red-100 hover:bg-red-500/25 disabled:opacity-50"
                                   >
-                                    {cutImageSrc ? "수정 재생성" : "이미지 생성"}
+                                    {isGeneratingThisCut ? "생성 중..." : cutImageSrc ? "수정 재생성" : "이미지 생성"}
                                   </button>
                                   <button
                                     type="button"
