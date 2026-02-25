@@ -614,6 +614,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [customCharacterStyle, setCustomCharacterStyle] = useState<string>("");
   const [customBackgroundStyle, setCustomBackgroundStyle] = useState<string>("");
   const [imageStyle, setImageStyle] = useState<"realistic" | "animation">("realistic"); // Derived/Synced
+  const [styleReferenceImage, setStyleReferenceImage] = useState<string | null>(null);
+  const [styleReferenceImageName, setStyleReferenceImageName] = useState("");
 
   const [chapterImages, setChapterImages] = useState<Record<string, string>>({});
   const [generatingImageChapter, setGeneratingImageChapter] = useState<string | null>(null);
@@ -1094,7 +1096,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         stylePrompt += `Background Style: ${backgroundStyle}. `;
       }
 
-      const fullPrompt = `${basePrompt}. ${chapterTitle}: ${contentSummary}. ${stylePrompt} High quality, detailed.`;
+      const fullPrompt = `${basePrompt}. ${chapterTitle}: ${contentSummary}. ${stylePrompt} High quality, detailed. No text, no letters, no numbers, no subtitles, no logos, no watermark.`;
 
       // Use regenerateStoryboardImage from geminiService
       // Note: We pass empty array for characters as VideoPage doesn't have full Character objects yet.
@@ -1105,7 +1107,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         geminiApiKey,
         imageStyle,
         false, // subtitleEnabled
-        null, // referenceImage
+        styleReferenceImage, // referenceImage
         renderRatio as AspectRatio
       );
 
@@ -1122,6 +1124,40 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     } finally {
       setGeneratingImageChapter(null);
     }
+  };
+
+  const handleStyleReferenceImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const maxBytes = 10 * 1024 * 1024;
+    if (file.size > maxBytes) {
+      alert("레퍼런스 이미지는 10MB 이하만 업로드할 수 있습니다.");
+      e.target.value = "";
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      alert("이미지 파일만 업로드할 수 있습니다.");
+      e.target.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = typeof reader.result === "string" ? reader.result : "";
+      if (!result) {
+        alert("이미지 로딩에 실패했습니다. 다시 시도해주세요.");
+        return;
+      }
+      setStyleReferenceImage(result);
+      setStyleReferenceImageName(file.name);
+    };
+    reader.onerror = () => {
+      alert("이미지 파일을 읽는 중 오류가 발생했습니다.");
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
   };
 
   const handleGenerateAllCutImages = async () => {
@@ -3673,6 +3709,48 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 <h3 className="text-red-300 font-medium mb-6 flex items-center text-xl">
                   이미지 스타일 선택
                 </h3>
+
+                <div className="mb-6 rounded-lg border border-white/10 bg-black/30 p-4">
+                  <p className="text-sm font-semibold text-white">스타일 레퍼런스 업로드 (선택)</p>
+                  <p className="mt-1 text-xs text-white/60">
+                    원하는 느낌의 사진을 업로드하면 색감/무드/톤을 참고해 컷 이미지를 생성합니다.
+                  </p>
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <label className="cursor-pointer rounded-lg border border-red-300/60 bg-red-500/15 px-3 py-1.5 text-xs font-semibold text-red-100 hover:bg-red-500/25">
+                      레퍼런스 이미지 업로드
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleStyleReferenceImageChange}
+                        className="hidden"
+                      />
+                    </label>
+                    {styleReferenceImage && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setStyleReferenceImage(null);
+                          setStyleReferenceImageName("");
+                        }}
+                        className="rounded-lg border border-white/20 bg-white/5 px-3 py-1.5 text-xs font-medium text-white/80 hover:bg-white/10"
+                      >
+                        레퍼런스 제거
+                      </button>
+                    )}
+                  </div>
+                  {styleReferenceImage && (
+                    <div className="mt-3">
+                      <div className="mb-2 text-[11px] text-white/60 truncate">
+                        적용 중: {styleReferenceImageName || "업로드된 레퍼런스"}
+                      </div>
+                      <img
+                        src={styleReferenceImage}
+                        alt="스타일 레퍼런스"
+                        className="h-24 w-24 rounded-lg border border-white/20 object-cover"
+                      />
+                    </div>
+                  )}
+                </div>
 
                 {/* 인물 스타일 */}
                 <div className="mb-6">

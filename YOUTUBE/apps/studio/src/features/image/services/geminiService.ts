@@ -81,14 +81,52 @@ const callTextModel = async (ai: GoogleGenAI, prompt: string): Promise<string> =
   return text;
 };
 
-const callImageModel = async (ai: GoogleGenAI, prompt: string): Promise<string> => {
+const parseReferenceImagePart = (referenceImage?: string | null) => {
+  const raw = typeof referenceImage === "string" ? referenceImage.trim() : "";
+  if (!raw) return null;
+
+  const dataUrlMatch = raw.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/i);
+  if (dataUrlMatch) {
+    return {
+      mimeType: dataUrlMatch[1],
+      data: dataUrlMatch[2].replace(/\s+/g, ""),
+    };
+  }
+
+  // Fallback: plain base64 image payload without data URL prefix.
+  if (!/^https?:\/\//i.test(raw)) {
+    return {
+      mimeType: "image/png",
+      data: raw.replace(/\s+/g, ""),
+    };
+  }
+
+  return null;
+};
+
+const callImageModel = async (
+  ai: GoogleGenAI,
+  prompt: string,
+  referenceImage?: string | null
+): Promise<string> => {
   let lastError: unknown = null;
+  const referenceImagePart = parseReferenceImagePart(referenceImage);
 
   for (const model of IMAGE_MODELS) {
     try {
       const res: any = await ai.models.generateContent({
         model,
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        contents: [
+          {
+            role: "user",
+            parts: [
+              { text: prompt },
+              ...(referenceImagePart
+                ? [{ inlineData: referenceImagePart }]
+                : []),
+            ],
+          },
+        ],
         config: {
           responseModalities: [Modality.TEXT, Modality.IMAGE],
         },
@@ -245,7 +283,7 @@ export const generateCharacters = async (
       compositionHint(photoComposition),
       `Create a consistent portrait for ${name}.`,
       `Details: ${description}`,
-      "No text overlay, no watermark.",
+      "No text, no letters, no numbers, no subtitles, no logos, no watermark.",
     ].join(" ");
 
     const image = await callImageModel(ai, imagePrompt);
@@ -274,7 +312,7 @@ export const regenerateCharacterImage = async (
     ratioHint(aspectRatio),
     `Create a consistent character portrait for ${name}.`,
     `Character details: ${description}`,
-    "No text overlay, no watermark.",
+    "No text, no letters, no numbers, no subtitles, no logos, no watermark.",
   ].join(" ");
 
   return callImageModel(ai, prompt);
@@ -320,12 +358,12 @@ export const generateStoryboard = async (
       referenceImage ? "Match the overall visual style with the provided reference image." : "",
       subtitleEnabled ? "Reserve clean lower space for subtitles." : "",
       `Character references:\n${characterContext(characters)}`,
-      "No text overlay, no watermark.",
+      "No text, no letters, no numbers, no subtitles, no logos, no watermark.",
     ]
       .filter(Boolean)
       .join(" ");
 
-    const image = await callImageModel(ai, prompt);
+    const image = await callImageModel(ai, prompt, referenceImage);
 
     results.push({
       id: `scene-${Date.now()}-${i}`,
@@ -357,12 +395,12 @@ export const regenerateStoryboardImage = async (
     `Character references:\n${characterContext(characters)}`,
     referenceImage ? "Maintain style consistency with the reference image." : "",
     subtitleEnabled ? "Reserve clean lower space for subtitles." : "",
-    "No text overlay, no watermark.",
+    "No text, no letters, no numbers, no subtitles, no logos, no watermark.",
   ]
     .filter(Boolean)
     .join(" ");
 
-  return callImageModel(ai, prompt);
+  return callImageModel(ai, prompt, referenceImage);
 };
 
 export const generateCameraAngles = async (
@@ -384,7 +422,7 @@ export const generateCameraAngles = async (
       ratioHint(aspectRatio),
       `Generate a ${angle} portrait variant.`,
       "Keep subject identity and styling consistent.",
-      "No text overlay, no watermark.",
+      "No text, no letters, no numbers, no subtitles, no logos, no watermark.",
     ].join(" ");
 
     const image = await callImageModel(ai, prompt);
