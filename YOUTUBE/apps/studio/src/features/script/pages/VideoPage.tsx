@@ -1098,16 +1098,20 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
       // Construct detailed style prompt
       let stylePrompt = "";
-      if (characterStyle === "custom") {
-        stylePrompt += `Character Style: ${customCharacterStyle}. `;
+      if (styleReferenceImage) {
+        stylePrompt += "Use only the uploaded reference image for visual style consistency. Ignore preset character/background style options. ";
       } else {
-        stylePrompt += `Character Style: ${characterStyle}. `;
-      }
+        if (characterStyle === "custom") {
+          stylePrompt += `Character Style: ${customCharacterStyle}. `;
+        } else {
+          stylePrompt += `Character Style: ${characterStyle}. `;
+        }
 
-      if (backgroundStyle === "custom") {
-        stylePrompt += `Background Style: ${customBackgroundStyle}. `;
-      } else {
-        stylePrompt += `Background Style: ${backgroundStyle}. `;
+        if (backgroundStyle === "custom") {
+          stylePrompt += `Background Style: ${customBackgroundStyle}. `;
+        } else {
+          stylePrompt += `Background Style: ${backgroundStyle}. `;
+        }
       }
 
       const fullPrompt = [
@@ -3826,23 +3830,29 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 <h3 className="text-red-300 font-medium mb-6 flex items-center text-xl">
                   이미지 스타일 선택
                 </h3>
+                {styleReferenceImage && (
+                  <p className="mb-4 rounded-lg border border-amber-300/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+                    참조 이미지 사용 중: 인물/배경 스타일 선택은 비활성화되며 업로드한 이미지 기준으로만 생성됩니다.
+                  </p>
+                )}
 
                 {/* 인물 스타일 */}
                 <div className="mb-6">
                   <div className="mb-3">
                     <h4 className="text-red-200 font-medium text-base">인물</h4>
                   </div>
-                  <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2">
+                  <div className={`grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2 ${styleReferenceImage ? "opacity-50" : ""}`}>
                     {characterStylesOptions.map((style) => {
                       const imgUrl = getCharacterStyleImage(style);
                       return (
                         <div key={style} className="relative group/preview">
                           <button
                             onClick={() => setCharacterStyle(style)}
+                            disabled={Boolean(styleReferenceImage)}
                             className={`relative w-full aspect-square rounded-lg font-medium text-xs transition-all duration-200 overflow-hidden ${characterStyle === style
                               ? "ring-2 ring-red-500 shadow-lg scale-[1.02]"
                               : "hover:ring-1 hover:ring-red-400"
-                              }`}
+                              } disabled:cursor-not-allowed disabled:hover:ring-0`}
                             style={{
                               backgroundImage: `url('${imgUrl}')`,
                               backgroundSize: "cover",
@@ -3868,8 +3878,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       type="text"
                       value={customCharacterStyle}
                       onChange={(e) => setCustomCharacterStyle(e.target.value)}
+                      disabled={Boolean(styleReferenceImage)}
                       placeholder="원하는 인물 스타일을 입력하세요 (예: 르네상스, 빅토리아 시대 등)"
-                      className="w-full p-3 bg-black/40 border border-white/20 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors mt-3 text-white text-sm"
+                      className="w-full p-3 bg-black/40 border border-white/20 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors mt-3 text-white text-sm disabled:cursor-not-allowed disabled:opacity-60"
                     />
                   )}
                 </div>
@@ -3879,17 +3890,18 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   <div className="mb-3">
                     <h4 className="text-red-200 font-medium text-base">배경 스타일</h4>
                   </div>
-                  <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2">
+                  <div className={`grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2 ${styleReferenceImage ? "opacity-50" : ""}`}>
                     {backgroundStylesOptions.map((style) => {
                       const imgUrl = getBackgroundStyleImage(style);
                       return (
                         <div key={style} className="relative group/preview">
                           <button
                             onClick={() => setBackgroundStyle(style)}
+                            disabled={Boolean(styleReferenceImage)}
                             className={`w-full aspect-square rounded-lg text-xs font-semibold transition-all border ${backgroundStyle === style
                               ? "border-red-400 ring-2 ring-red-400/70 text-white shadow-lg"
                               : "border-white/10 text-white/80 hover:border-red-300/60"
-                              } relative overflow-hidden p-0`}
+                              } relative overflow-hidden p-0 disabled:cursor-not-allowed disabled:hover:border-white/10`}
                             style={{
                               backgroundImage: `url('${imgUrl}')`,
                               backgroundSize: "cover",
@@ -3915,8 +3927,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       type="text"
                       value={customBackgroundStyle}
                       onChange={(e) => setCustomBackgroundStyle(e.target.value)}
+                      disabled={Boolean(styleReferenceImage)}
                       placeholder="원하는 배경/분위기를 입력하세요 (예: 우주 정거장, 열대 해변 등)"
-                      className="w-full p-3 bg-black/40 border border-white/20 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors mt-3 text-white text-sm"
+                      className="w-full p-3 bg-black/40 border border-white/20 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors mt-3 text-white text-sm disabled:cursor-not-allowed disabled:opacity-60"
                     />
                   )}
                 </div>
