@@ -75,8 +75,6 @@ const STORAGE_KEYS = {
   step: "video_project_step",
 };
 
-const VIDEO_IMAGE_SEED_KEY = "video_project_image_seed_script";
-
 const getNormalizedYoutubeUrl = (raw: string): string | null => {
   const trimmed = String(raw || "").trim();
   if (!trimmed) return null;
@@ -621,8 +619,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [generatingImageChapter, setGeneratingImageChapter] = useState<string | null>(null);
   const [isGeneratingAllCuts, setIsGeneratingAllCuts] = useState(false);
   const [batchGenerateProgress, setBatchGenerateProgress] = useState<{ done: number; total: number } | null>(null);
-  const [useConsistentSeed, setUseConsistentSeed] = useState(true);
-  const [imageSeed, setImageSeed] = useState<number>(Math.floor(Math.random() * 1000000));
 
   const [renderDuration, setRenderDuration] = useState(() =>
     getStoredString(STORAGE_KEYS.renderDuration, "60")
@@ -3739,48 +3735,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   이미지 스타일 선택
                 </h3>
 
-                <div className="mb-6 rounded-lg border border-white/10 bg-black/30 p-4">
-                  <p className="text-sm font-semibold text-white">스타일 레퍼런스 업로드 (선택)</p>
-                  <p className="mt-1 text-xs text-white/60">
-                    원하는 느낌의 사진을 업로드하면 색감/무드/톤을 참고해 컷 이미지를 생성합니다.
-                  </p>
-                  <div className="mt-3 flex flex-wrap items-center gap-2">
-                    <label className="cursor-pointer rounded-lg border border-red-300/60 bg-red-500/15 px-3 py-1.5 text-xs font-semibold text-red-100 hover:bg-red-500/25">
-                      레퍼런스 이미지 업로드
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleStyleReferenceImageChange}
-                        className="hidden"
-                      />
-                    </label>
-                    {styleReferenceImage && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setStyleReferenceImage(null);
-                          setStyleReferenceImageName("");
-                        }}
-                        className="rounded-lg border border-white/20 bg-white/5 px-3 py-1.5 text-xs font-medium text-white/80 hover:bg-white/10"
-                      >
-                        레퍼런스 제거
-                      </button>
-                    )}
-                  </div>
-                  {styleReferenceImage && (
-                    <div className="mt-3">
-                      <div className="mb-2 text-[11px] text-white/60 truncate">
-                        적용 중: {styleReferenceImageName || "업로드된 레퍼런스"}
-                      </div>
-                      <img
-                        src={styleReferenceImage}
-                        alt="스타일 레퍼런스"
-                        className="h-24 w-24 rounded-lg border border-white/20 object-cover"
-                      />
-                    </div>
-                  )}
-                </div>
-
                 {/* 인물 스타일 */}
                 <div className="mb-6">
                   <div className="flex items-center justify-between mb-3">
@@ -3884,34 +3838,51 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
               </div>
 
               {/* 일관성 유지 */}
-              <div className="space-y-2 pt-4 border-t border-white/10">
-                <label className="text-sm font-semibold text-white/70 flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={useConsistentSeed}
-                    onChange={(e) => {
-                      setUseConsistentSeed(e.target.checked);
-                      if (e.target.checked && !imageSeed) {
-                        setImageSeed(Math.floor(Math.random() * 1000000));
-                      }
-                    }}
-                    className="rounded bg-white/10 border-white/30 text-red-500 focus:ring-offset-0 focus:ring-red-500"
-                  />
-                  일관성 유지
-                </label>
+              <div className="space-y-3 pt-4 border-t border-white/10">
+                <h4 className="text-sm font-semibold text-white/80">일관성 유지 (선택)</h4>
                 <p className="text-xs text-white/50">
-                  {useConsistentSeed
-                    ? `모든 이미지가 유사한 스타일로 생성됩니다 (시드: ${imageSeed})`
-                    : '각 이미지가 독립적으로 생성됩니다'
-                  }
+                  /image 기능처럼 참조 이미지를 업로드하면 해당 이미지의 스타일과 톤을 유지하며 컷을 생성합니다.
                 </p>
-                {useConsistentSeed && (
-                  <button
-                    onClick={() => setImageSeed(Math.floor(Math.random() * 1000000))}
-                    className="text-xs text-red-300 hover:text-red-200 underline"
-                  >
-                    새로운 시드로 변경
-                  </button>
+
+                {!styleReferenceImage ? (
+                  <div className="rounded-lg border-2 border-dashed border-red-400/50 bg-red-900/10 p-4 text-center">
+                    <label className="cursor-pointer inline-flex flex-col items-center gap-1 text-red-200 hover:text-red-100">
+                      <span className="text-xs font-semibold">참조 이미지 업로드</span>
+                      <span className="text-[11px] text-red-200/70">클릭하여 이미지 선택</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleStyleReferenceImageChange}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                ) : (
+                  <div className="rounded-lg border border-white/10 bg-black/30 p-3">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={styleReferenceImage}
+                        alt="참조 이미지"
+                        className="h-16 w-16 rounded-lg border border-white/20 object-cover"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-xs text-white/80">
+                          {styleReferenceImageName || "업로드된 참조 이미지"}
+                        </p>
+                        <p className="mt-1 text-[11px] text-green-300">일관성 유지 적용 중</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setStyleReferenceImage(null);
+                          setStyleReferenceImageName("");
+                        }}
+                        className="rounded-lg border border-white/20 bg-white/5 px-3 py-1.5 text-xs font-medium text-white/80 hover:bg-white/10"
+                      >
+                        제거
+                      </button>
+                    </div>
+                  </div>
                 )}
               </div>
 
