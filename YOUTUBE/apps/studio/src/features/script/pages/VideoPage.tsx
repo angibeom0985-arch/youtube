@@ -616,6 +616,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [styleReferenceImageName, setStyleReferenceImageName] = useState("");
 
   const [chapterImages, setChapterImages] = useState<Record<string, string>>({});
+  const [cutEditPrompts, setCutEditPrompts] = useState<Record<string, string>>({});
+  const [previewImageModal, setPreviewImageModal] = useState<{ src: string; title: string } | null>(null);
   const [generatingImageChapter, setGeneratingImageChapter] = useState<string | null>(null);
   const [isGeneratingAllCuts, setIsGeneratingAllCuts] = useState(false);
   const [batchGenerateProgress, setBatchGenerateProgress] = useState<{ done: number; total: number } | null>(null);
@@ -1063,7 +1065,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       globalCutIndex: number;
       secondsFrom: number;
       secondsTo: number;
-    }
+    },
+    customPrompt?: string
   ) => {
     if (!geminiApiKey) {
       openSupportErrorDialog(
@@ -1108,6 +1111,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         `Chapter ${cut.chapterIndex + 1}: ${cut.chapterTitle}.`,
         `This is cut ${cut.localCutIndex + 1} (global cut ${cut.globalCutIndex + 1}), timeline ${cut.secondsFrom}s to ${cut.secondsTo}s.`,
         `Cut script context: ${contentSummary}.`,
+        customPrompt?.trim() ? `Additional revision request: ${customPrompt.trim()}.` : "",
         "Generate one still frame that matches this exact cut context only.",
         "Use concrete objects/actions from the cut script context; avoid generic repeated city/graph shots.",
         "Vary framing and action from previous/next cuts while keeping overall story continuity.",
@@ -1221,6 +1225,66 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     link.download = fileName;
     link.click();
     URL.revokeObjectURL(url);
+  };
+
+  const saveImageBySrc = async (src: string, fileName: string) => {
+    const normalized = normalizeGeneratedImageSrc(src);
+    if (!normalized) {
+      throw new Error("저장할 이미지가 없습니다.");
+    }
+    const response = await fetch(normalized);
+    const blob = await response.blob();
+    downloadBlob(blob, fileName);
+  };
+
+  const handleSaveCutImage = async (cut: {
+    imageKey: string;
+    chapterIndex: number;
+    localCutIndex: number;
+  }) => {
+    const imageSrc = chapterImages[cut.imageKey];
+    if (!imageSrc) {
+      alert("저장할 이미지가 없습니다. 먼저 이미지를 생성해주세요.");
+      return;
+    }
+
+    try {
+      const baseName = (projectTitle || "video").trim().replace(/[^\w\-가-힣]+/g, "_");
+      await saveImageBySrc(
+        imageSrc,
+        `${baseName}-chapter-${cut.chapterIndex + 1}-cut-${cut.localCutIndex + 1}.png`
+      );
+    } catch (error) {
+      console.error("이미지 저장 오류:", error);
+      alert("이미지 저장에 실패했습니다.");
+    }
+  };
+
+  const handleSaveAllCutImages = async () => {
+    const generatedCuts = allCuts.filter((cut) => Boolean(chapterImages[cut.imageKey]));
+    if (generatedCuts.length === 0) {
+      alert("저장할 이미지가 없습니다. 먼저 이미지를 생성해주세요.");
+      return;
+    }
+
+    try {
+      const baseName = (projectTitle || "video").trim().replace(/[^\w\-가-힣]+/g, "_");
+      for (let index = 0; index < generatedCuts.length; index += 1) {
+        const cut = generatedCuts[index];
+        const src = chapterImages[cut.imageKey];
+        if (!src) continue;
+        await saveImageBySrc(
+          src,
+          `${baseName}-chapter-${cut.chapterIndex + 1}-cut-${cut.localCutIndex + 1}.png`
+        );
+        if (index < generatedCuts.length - 1) {
+          await new Promise((resolve) => setTimeout(resolve, 120));
+        }
+      }
+    } catch (error) {
+      console.error("전체 이미지 저장 오류:", error);
+      alert("전체 이미지 저장 중 오류가 발생했습니다.");
+    }
   };
 
 
@@ -3883,7 +3947,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 <p className="text-sm text-white/60 mb-4">
                   영상 길이 {resolveRenderDurationSeconds()}초 기준으로 1분당 4컷, 총 {requiredImageCount}장을 생성합니다.
                 </p>
-                <div className="mb-4">
+                <div className="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
                   <button
                     type="button"
                     onClick={handleGenerateAllCutImages}
@@ -3904,6 +3968,14 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       withOptionalCreditLabel("전체 컷 이미지 생성", CREDIT_COSTS.GENERATE_IMAGE)
                     )}
                   </button>
+                  <button
+                    type="button"
+                    onClick={handleSaveAllCutImages}
+                    disabled={Object.keys(chapterImages).length === 0}
+                    className="w-full rounded-full border border-white/30 bg-white/10 px-6 py-2.5 text-sm font-bold text-white transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    전체 이미지 저장
+                  </button>
                 </div>
                 {chapterCutPlans.length > 0 ? (
                   chapterCutPlans.map((chapter) => (
@@ -3922,25 +3994,94 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                             이 챕터는 현재 영상 길이 배분에서 컷이 없습니다.
                           </div>
                         ) : (
-                          chapter.cuts.map((cut) => (
-                            <div key={cut.imageKey} className="aspect-square overflow-hidden rounded-lg border border-white/10 bg-black/30">
-                              {chapterImages[cut.imageKey] ? (
-                                <img
-                                  src={normalizeGeneratedImageSrc(chapterImages[cut.imageKey])}
-                                  alt={`챕터 ${chapter.chapterIndex + 1} 컷 ${cut.localCutIndex + 1} 이미지`}
-                                  className="h-full w-full object-cover"
-                                />
-                              ) : (
-                                <div className="flex h-full flex-col p-3">
-                                  <p className="text-xs font-semibold text-white">컷 {cut.localCutIndex + 1}</p>
-                                  <p className="mt-1 text-[11px] text-white/60">{cut.secondsFrom}초 ~ {cut.secondsTo}초</p>
-                                  <p className="mt-2 line-clamp-5 text-xs text-white/70">
-                                    {cut.content.slice(0, 120) || "장면 설명이 없습니다."}
-                                  </p>
+                          chapter.cuts.map((cut) => {
+                            const cutImageSrc = chapterImages[cut.imageKey]
+                              ? normalizeGeneratedImageSrc(chapterImages[cut.imageKey])
+                              : "";
+                            return (
+                              <div key={cut.imageKey} className="rounded-lg border border-white/10 bg-black/30 p-2">
+                                <div className="group/cut relative aspect-square overflow-hidden rounded-md border border-white/10 bg-black/40">
+                                  {cutImageSrc ? (
+                                    <>
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          setPreviewImageModal({
+                                            src: cutImageSrc,
+                                            title: `챕터 ${chapter.chapterIndex + 1} · 컷 ${cut.localCutIndex + 1}`,
+                                          })
+                                        }
+                                        className="h-full w-full"
+                                      >
+                                        <img
+                                          src={cutImageSrc}
+                                          alt={`챕터 ${chapter.chapterIndex + 1} 컷 ${cut.localCutIndex + 1} 이미지`}
+                                          className="h-full w-full object-cover"
+                                        />
+                                      </button>
+                                      <div className="pointer-events-none absolute bottom-full left-1/2 z-40 mb-2 -translate-x-1/2 opacity-0 scale-95 transition-all duration-200 group-hover/cut:opacity-100 group-hover/cut:scale-100">
+                                        <div className="w-[280px] aspect-square overflow-hidden rounded-xl border border-white/20 bg-black/90 shadow-2xl shadow-black/70">
+                                          <img src={cutImageSrc} alt="컷 미리보기" className="h-full w-full object-cover" />
+                                        </div>
+                                      </div>
+                                    </>
+                                  ) : (
+                                    <div className="flex h-full flex-col p-3">
+                                      <p className="text-xs font-semibold text-white">컷 {cut.localCutIndex + 1}</p>
+                                      <p className="mt-1 text-[11px] text-white/60">{cut.secondsFrom}초 ~ {cut.secondsTo}초</p>
+                                      <p className="mt-2 line-clamp-5 text-xs text-white/70">
+                                        {cut.content.slice(0, 120) || "장면 설명이 없습니다."}
+                                      </p>
+                                    </div>
+                                  )}
                                 </div>
-                              )}
-                            </div>
-                          ))
+                                <p className="mt-2 text-[11px] text-white/60">
+                                  컷 {cut.localCutIndex + 1} · {cut.secondsFrom}초 ~ {cut.secondsTo}초
+                                </p>
+                                <input
+                                  type="text"
+                                  value={cutEditPrompts[cut.imageKey] || ""}
+                                  onChange={(e) =>
+                                    setCutEditPrompts((prev) => ({ ...prev, [cut.imageKey]: e.target.value }))
+                                  }
+                                  placeholder="수정 프롬프트 입력 (예: 인물 표정 더 밝게)"
+                                  className="mt-2 w-full rounded-md border border-white/20 bg-black/40 px-2.5 py-2 text-xs text-white placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-red-400"
+                                />
+                                <div className="mt-2 grid grid-cols-3 gap-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleGenerateImage(cut, cutEditPrompts[cut.imageKey])}
+                                    disabled={Boolean(generatingImageChapter)}
+                                    className="rounded-md border border-red-400/50 bg-red-500/15 px-2 py-1.5 text-[11px] font-semibold text-red-100 hover:bg-red-500/25 disabled:opacity-50"
+                                  >
+                                    {cutImageSrc ? "수정 재생성" : "이미지 생성"}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      cutImageSrc &&
+                                      setPreviewImageModal({
+                                        src: cutImageSrc,
+                                        title: `챕터 ${chapter.chapterIndex + 1} · 컷 ${cut.localCutIndex + 1}`,
+                                      })
+                                    }
+                                    disabled={!cutImageSrc}
+                                    className="rounded-md border border-white/20 bg-white/5 px-2 py-1.5 text-[11px] font-semibold text-white/80 hover:bg-white/10 disabled:opacity-50"
+                                  >
+                                    크게 보기
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleSaveCutImage(cut)}
+                                    disabled={!cutImageSrc}
+                                    className="rounded-md border border-white/20 bg-white/5 px-2 py-1.5 text-[11px] font-semibold text-white/80 hover:bg-white/10 disabled:opacity-50"
+                                  >
+                                    저장
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })
                         )}
                       </div>
                     </div>
@@ -4337,6 +4478,37 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   <pre className="mt-2 whitespace-pre-wrap break-words text-[13px] leading-6 text-amber-100">{supportErrorDialog.reportText}</pre>
                   {supportCopyStatus && <p className="mt-2 text-xs text-amber-200">{supportCopyStatus}</p>}
                 </div>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
+      {previewImageModal && typeof document !== "undefined" &&
+        createPortal(
+          <div className="fixed inset-0 z-[100000]">
+            <button
+              type="button"
+              aria-label="이미지 확대 보기 닫기"
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+              onClick={() => setPreviewImageModal(null)}
+            />
+            <div className="absolute left-1/2 top-1/2 w-[min(92vw,980px)] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-white/20 bg-black/90 p-4 shadow-2xl">
+              <div className="mb-3 flex items-center justify-between">
+                <p className="text-sm font-semibold text-white/80">{previewImageModal.title}</p>
+                <button
+                  type="button"
+                  onClick={() => setPreviewImageModal(null)}
+                  className="rounded-full border border-white/30 px-3 py-1 text-xs font-semibold text-white/80 hover:bg-white/10"
+                >
+                  닫기
+                </button>
+              </div>
+              <div className="max-h-[78vh] overflow-auto rounded-xl border border-white/10 bg-black/60 p-2">
+                <img
+                  src={previewImageModal.src}
+                  alt={previewImageModal.title}
+                  className="mx-auto h-auto max-h-[72vh] w-auto max-w-full rounded-lg object-contain"
+                />
               </div>
             </div>
           </div>,
