@@ -3798,17 +3798,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
                 {/* 인물 스타일 */}
                 <div className="mb-6">
-                  <div className="flex items-center justify-between mb-3">
+                  <div className="mb-3">
                     <h4 className="text-red-200 font-medium text-base">인물</h4>
-                    <button
-                      onClick={() => setCharacterStyle("custom")}
-                      className={`py-1.5 px-4 rounded-lg font-medium text-xs transition-all duration-200 ${characterStyle === "custom"
-                        ? "bg-red-600 text-white shadow-lg scale-105"
-                        : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                        }`}
-                    >
-                      직접 입력
-                    </button>
                   </div>
                   <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2">
                     {characterStylesOptions.map((style) => {
@@ -3854,17 +3845,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
                 {/* 배경/분위기 스타일 */}
                 <div className="mb-6">
-                  <div className="flex items-center justify-between mb-3">
+                  <div className="mb-3">
                     <h4 className="text-red-200 font-medium text-base">배경 스타일</h4>
-                    <button
-                      onClick={() => setBackgroundStyle("custom")}
-                      className={`py-1.5 px-4 rounded-lg font-medium text-xs transition-all duration-200 ${backgroundStyle === "custom"
-                        ? "bg-red-600 text-white shadow-lg scale-105"
-                        : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                        }`}
-                    >
-                      직접 입력
-                    </button>
                   </div>
                   <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2">
                     {backgroundStylesOptions.map((style) => {
