@@ -602,6 +602,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     getStoredString(STORAGE_KEYS.imagePrompt, "")
   );
   const [isImagePromptFocused, setIsImagePromptFocused] = useState(false);
+  const [clearImagePromptOnFirstFocus, setClearImagePromptOnFirstFocus] = useState(true);
   const [chapterImagePrompts, setChapterImagePrompts] = useState<Record<number, string>>({});
   const [isGeneratingImagePrompt, setIsGeneratingImagePrompt] = useState(false);
   const [generatingPromptChapter, setGeneratingPromptChapter] = useState<number | null>(null);
@@ -3756,7 +3757,13 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 <textarea
                   value={imagePrompt}
                   onChange={(e) => setImagePrompt(e.target.value)}
-                  onFocus={() => setIsImagePromptFocused(true)}
+                  onFocus={() => {
+                    setIsImagePromptFocused(true);
+                    if (clearImagePromptOnFirstFocus) {
+                      setImagePrompt("");
+                      setClearImagePromptOnFirstFocus(false);
+                    }
+                  }}
                   onBlur={() => setIsImagePromptFocused(false)}
                   onPointerDown={(e) => e.stopPropagation()}
                   onMouseDown={(e) => e.stopPropagation()}
@@ -3765,7 +3772,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   onCut={(e) => e.stopPropagation()}
                   onPaste={(e) => e.stopPropagation()}
                   rows={4}
-                  className="w-full rounded-xl border border-white/20 bg-black/30 px-4 py-3 text-sm text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  className="w-full rounded-xl border border-white/20 bg-black/30 px-4 py-3 text-sm text-slate-300 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500"
                   placeholder={isImagePromptFocused ? "" : recommendedImagePrompt}
                   spellCheck={false}
                   autoComplete="off"
