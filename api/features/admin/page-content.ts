@@ -1,9 +1,10 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
+import { requireAdmin } from '../../../server/shared/adminAuth.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // CORS 헤더 설정
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  // CORS ?ㅻ뜑 ?ㅼ젙
+  res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
@@ -14,7 +15,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const { pageType } = req.query;
 
-    // pageType 검증
+    // pageType 寃利?
     if (!pageType || typeof pageType !== 'string') {
       return res.status(400).json({
         error: 'Invalid request',
@@ -22,7 +23,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    // 허용된 페이지 타입인지 확인
+    // ?덉슜???섏씠吏 ??낆씤吏 ?뺤씤
     const allowedPageTypes = ['api-guide-aistudio', 'api-guide-cloudconsole'];
     if (!allowedPageTypes.includes(pageType)) {
       return res.status(400).json({
@@ -31,9 +32,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    // 환경 변수 체크
+    // ?섍꼍 蹂??泥댄겕
     const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     console.log('Environment check:', {
       hasUrl: !!supabaseUrl,
@@ -53,12 +54,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    // Supabase 클라이언트 생성
+    // Supabase ?대씪?댁뼵???앹꽦
     const supabase = createClient(supabaseUrl, supabaseKey, {
       auth: { persistSession: false }
     });
 
-    // GET: 페이지 내용 불러오기
+    // GET: ?섏씠吏 ?댁슜 遺덈윭?ㅺ린
     if (req.method === 'GET') {
       console.log('=== GET Request ===');
       console.log('Querying guides table for pageType:', pageType);
@@ -75,7 +76,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         console.error('Database error:', JSON.stringify(error, null, 2));
         if (error.code === 'PGRST116') {
           console.log('No content found, returning empty');
-          // 데이터가 없는 경우 빈 내용 반환
+          // ?곗씠?곌? ?녿뒗 寃쎌슦 鍮??댁슜 諛섑솚
           return res.status(200).json({
             page_type: pageType,
             content: '',
@@ -101,9 +102,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    // POST: 페이지 내용 저장하기
+    // POST: ?섏씠吏 ?댁슜 ??ν븯湲?
     if (req.method === 'POST') {
       const { content, mode, username } = req.body;
+      const adminSession = requireAdmin(req);
+      if (!adminSession) {
+        return res.status(401).json({
+          error: 'unauthorized',
+          message: 'Admin authentication required'
+        });
+      }
 
       if (!content || typeof content !== 'string') {
         return res.status(400).json({
@@ -112,7 +120,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         });
       }
 
-      // 데이터 준비 (updated_at 명시적 설정)
+      // ?곗씠??以鍮?(updated_at 紐낆떆???ㅼ젙)
       const guideData = {
         page_type: pageType,
         data: {
@@ -123,7 +131,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         updated_at: new Date().toISOString()
       };
 
-      // UPSERT: 존재하면 업데이트, 없으면 생성
+      // UPSERT: 議댁옱?섎㈃ ?낅뜲?댄듃, ?놁쑝硫??앹꽦
       const { data, error } = await supabase
         .from('guides')
         .upsert(guideData, {
@@ -149,7 +157,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    // 지원하지 않는 메서드
+    // 吏?먰븯吏 ?딅뒗 硫붿꽌??
     return res.status(405).json({
       error: 'Method not allowed',
       message: 'Only GET and POST methods are supported'
