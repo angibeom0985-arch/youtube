@@ -620,6 +620,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [previewImageModal, setPreviewImageModal] = useState<{ src: string; title: string } | null>(null);
   const [generatingImageChapter, setGeneratingImageChapter] = useState<string | null>(null);
   const [isGeneratingAllCuts, setIsGeneratingAllCuts] = useState(false);
+  const [isBatchPaused, setIsBatchPaused] = useState(false);
   const [batchGenerateProgress, setBatchGenerateProgress] = useState<{ done: number; total: number } | null>(null);
 
   const [renderDuration, setRenderDuration] = useState(() =>
@@ -659,6 +660,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [renderingProgress, setRenderingProgress] = useState(0);
 
   const progressTimerRef = useRef<number | null>(null);
+  const stopBatchGenerationRef = useRef(false);
   const [characterColorMap, setCharacterColorMap] = useState<Map<string, string>>(new Map());
   const recommendedImagePrompt = useMemo(() => {
     const chapterText = chapterScripts.map((chapter) => chapter.content).join(" ");
@@ -1192,17 +1194,37 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     }
 
     setIsGeneratingAllCuts(true);
+    setIsBatchPaused(false);
+    stopBatchGenerationRef.current = false;
     setBatchGenerateProgress({ done: 0, total: pendingCuts.length });
+    let paused = false;
     try {
       for (let idx = 0; idx < pendingCuts.length; idx += 1) {
+        if (stopBatchGenerationRef.current) {
+          paused = true;
+          break;
+        }
         const cut = pendingCuts[idx];
         await handleGenerateImage(cut);
         setBatchGenerateProgress({ done: idx + 1, total: pendingCuts.length });
+        if (stopBatchGenerationRef.current) {
+          paused = true;
+          break;
+        }
       }
     } finally {
       setIsGeneratingAllCuts(false);
-      setBatchGenerateProgress(null);
+      setIsBatchPaused(paused);
+      if (!paused) {
+        setBatchGenerateProgress(null);
+      }
+      stopBatchGenerationRef.current = false;
     }
+  };
+
+  const handlePauseAllCutGeneration = () => {
+    if (!isGeneratingAllCuts) return;
+    stopBatchGenerationRef.current = true;
   };
 
   const downloadBlob = (blob: Blob, fileName: string) => {
@@ -3951,6 +3973,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                           ({Math.round((batchGenerateProgress.done / Math.max(1, batchGenerateProgress.total)) * 100)}%)
                         </span>
                       </span>
+                    ) : isBatchPaused ? (
+                      withOptionalCreditLabel("이어서 전체 컷 이미지 생성", CREDIT_COSTS.GENERATE_IMAGE)
                     ) : (
                       withOptionalCreditLabel("전체 컷 이미지 생성", CREDIT_COSTS.GENERATE_IMAGE)
                     )}
@@ -3964,6 +3988,26 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     전체 이미지 저장
                   </button>
                 </div>
+                {(isGeneratingAllCuts || isBatchPaused) && (
+                  <div className="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    <button
+                      type="button"
+                      onClick={handlePauseAllCutGeneration}
+                      disabled={!isGeneratingAllCuts}
+                      className="w-full rounded-full border border-amber-300/60 bg-amber-500/20 px-6 py-2 text-sm font-bold text-amber-100 transition hover:bg-amber-500/30 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      생성 멈추기
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleGenerateAllCutImages}
+                      disabled={isGeneratingAllCuts || !isBatchPaused}
+                      className="w-full rounded-full border border-emerald-300/60 bg-emerald-500/20 px-6 py-2 text-sm font-bold text-emerald-100 transition hover:bg-emerald-500/30 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      이어서 생성
+                    </button>
+                  </div>
+                )}
                 {chapterCutPlans.length > 0 ? (
                   chapterCutPlans.map((chapter) => (
                     <div key={chapter.chapterIndex} className="mt-6">
