@@ -1057,7 +1057,18 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     }
   };
 
-  const handleGenerateImage = async (imageKey: string, chapterTitle: string, chapterContent: string) => {
+  const handleGenerateImage = async (
+    cut: {
+      imageKey: string;
+      chapterTitle: string;
+      content: string;
+      chapterIndex: number;
+      localCutIndex: number;
+      globalCutIndex: number;
+      secondsFrom: number;
+      secondsTo: number;
+    }
+  ) => {
     if (!geminiApiKey) {
       openSupportErrorDialog(
         "API 키 설정 필요",
@@ -1076,10 +1087,10 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       return;
     }
 
-    setGeneratingImageChapter(imageKey);
+    setGeneratingImageChapter(cut.imageKey);
 
     try {
-      const contentSummary = chapterContent.slice(0, 300).replace(/\n/g, ' ');
+      const contentSummary = cut.content.slice(0, 500).replace(/\n/g, " ");
       const basePrompt = imagePrompt.trim() || recommendedImagePrompt;
 
       // Construct detailed style prompt
@@ -1096,7 +1107,18 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         stylePrompt += `Background Style: ${backgroundStyle}. `;
       }
 
-      const fullPrompt = `${basePrompt}. ${chapterTitle}: ${contentSummary}. ${stylePrompt} High quality, detailed. No text, no letters, no numbers, no subtitles, no logos, no watermark.`;
+      const fullPrompt = [
+        basePrompt,
+        `Chapter ${cut.chapterIndex + 1}: ${cut.chapterTitle}.`,
+        `This is cut ${cut.localCutIndex + 1} (global cut ${cut.globalCutIndex + 1}), timeline ${cut.secondsFrom}s to ${cut.secondsTo}s.`,
+        `Cut script context: ${contentSummary}.`,
+        "Generate one still frame that matches this exact cut context only.",
+        "Use concrete objects/actions from the cut script context; avoid generic repeated city/graph shots.",
+        "Vary framing and action from previous/next cuts while keeping overall story continuity.",
+        stylePrompt,
+        "High quality, detailed.",
+        "No text, no letters, no numbers, no subtitles, no logos, no watermark.",
+      ].join(" ");
 
       // Use regenerateStoryboardImage from geminiService
       // Note: We pass empty array for characters as VideoPage doesn't have full Character objects yet.
@@ -1116,7 +1138,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         throw new Error("유효한 이미지 데이터가 반환되지 않았습니다.");
       }
 
-      setChapterImages((prev) => ({ ...prev, [imageKey]: normalizedImageSrc }));
+      setChapterImages((prev) => ({ ...prev, [cut.imageKey]: normalizedImageSrc }));
 
     } catch (error) {
       console.error('이미지 생성 오류:', error);
@@ -1181,11 +1203,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
           const currentIndex = cursor;
           cursor += 1;
           const cut = pendingCuts[currentIndex];
-          await handleGenerateImage(
-            cut.imageKey,
-            cut.chapterTitle,
-            cut.content.substring(0, 300)
-          );
+          await handleGenerateImage(cut);
           done += 1;
           setBatchGenerateProgress({ done, total: pendingCuts.length });
         }
@@ -2308,21 +2326,32 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     let globalCutIndex = 0;
     const totalSeconds = resolveRenderDurationSeconds();
     return baseCuts.map((chapter) => {
-      const lines = chapter.content.split("\n").map((line) => line.trim()).filter(Boolean);
-      const fallback = lines.length ? lines : [chapter.title];
+      const sceneUnits = chapter.content
+        .split(/(?<=[.!?。！？])\s+|\n+/)
+        .map((unit) => unit.trim())
+        .filter(Boolean);
+      const fallback = sceneUnits.length ? sceneUnits : [chapter.content || chapter.title];
       const cuts = Array.from({ length: chapter.cuts }, (_, localCutIndex) => {
         const isLast = globalCutIndex === requiredImageCount - 1;
         const used = globalCutIndex * 4;
         const remain = Math.max(1, totalSeconds - used);
         const duration = isLast ? Math.min(4, remain) : 4;
         const imageKey = `chapter-${chapter.chapterIndex}-cut-${localCutIndex}`;
+        const sliceStart = Math.floor((localCutIndex * fallback.length) / Math.max(1, chapter.cuts));
+        const rawSliceEnd = Math.floor(((localCutIndex + 1) * fallback.length) / Math.max(1, chapter.cuts));
+        const sliceEnd = Math.max(sliceStart + 1, rawSliceEnd);
+        const cutSummary = fallback
+          .slice(sliceStart, sliceEnd)
+          .join(" ")
+          .trim()
+          .slice(0, 600);
         const cut = {
           globalCutIndex,
           localCutIndex,
           imageKey,
           secondsFrom: used,
           secondsTo: used + duration,
-          content: fallback[localCutIndex % fallback.length],
+          content: cutSummary || fallback[localCutIndex % fallback.length],
           chapterTitle: chapter.title,
         };
         globalCutIndex += 1;
