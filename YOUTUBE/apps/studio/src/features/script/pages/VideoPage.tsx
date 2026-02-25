@@ -3788,9 +3788,19 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     disabled={isGeneratingAllCuts || Boolean(generatingImageChapter)}
                     className="w-full sm:w-auto rounded-full border border-red-300 bg-red-600 px-6 py-2.5 text-sm font-bold text-white shadow-[0_10px_30px_rgba(239,68,68,0.35)] transition hover:bg-red-500 hover:shadow-[0_12px_34px_rgba(239,68,68,0.45)] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-red-600"
                   >
-                    {isGeneratingAllCuts && batchGenerateProgress
-                      ? `전체 생성 중... (${batchGenerateProgress.done}/${batchGenerateProgress.total})`
-                      : withOptionalCreditLabel("전체 컷 이미지 생성", CREDIT_COSTS.GENERATE_IMAGE)}
+                    {isGeneratingAllCuts && batchGenerateProgress ? (
+                      <span className="inline-flex items-center gap-2">
+                        <span className="h-2 w-2 rounded-full bg-white animate-pulse" />
+                        <span>
+                          전체 생성 중 {batchGenerateProgress.done}/{batchGenerateProgress.total}
+                        </span>
+                        <span className="text-white/80">
+                          ({Math.round((batchGenerateProgress.done / Math.max(1, batchGenerateProgress.total)) * 100)}%)
+                        </span>
+                      </span>
+                    ) : (
+                      withOptionalCreditLabel("전체 컷 이미지 생성", CREDIT_COSTS.GENERATE_IMAGE)
+                    )}
                   </button>
                 </div>
                 {chapterCutPlans.length > 0 ? (
