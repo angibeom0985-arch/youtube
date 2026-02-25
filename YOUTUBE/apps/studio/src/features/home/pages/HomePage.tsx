@@ -242,8 +242,8 @@ const HomePage: React.FC<HomePageProps> = ({
                   인기
                 </span>
                 <h2 className="mt-4 text-3xl font-black">영상 제작 스튜디오</h2>
-                <p className="mt-3 text-sm text-slate-100/80">
-                  대본 생성, 이미지 제작, 영상 패키징, 편집 체크리스트 통합.
+                <p className="mt-3 text-sm text-slate-100/80 truncate whitespace-nowrap overflow-hidden">
+                  대본부터 이미지와 편집 흐름까지 한 번에 제작할 수 있어요.
                 </p>
               </div>
               <div className="flex flex-col items-start gap-3 text-sm lg:items-end lg:text-right">
@@ -266,11 +266,8 @@ const HomePage: React.FC<HomePageProps> = ({
             <div className="flex items-start justify-between">
               <div>
                 <h2 className="mt-2 text-2xl font-bold">벤치마킹 영상 발굴</h2>
-                <p
-                  className="mt-3 text-sm text-slate-100/80 overflow-hidden"
-                  style={{ display: "-webkit-box", WebkitLineClamp: 2 as any, WebkitBoxOrient: "vertical" }}
-                >
-                  키워드 기반 영상 탐색, 채널 규모 대비 조회 효율 분석.
+                <p className="mt-3 text-sm text-slate-100/80 truncate whitespace-nowrap overflow-hidden">
+                  키워드로 영상을 찾고 채널 규모 대비 성과를 비교해요.
                 </p>
               </div>
             </div>
@@ -294,7 +291,7 @@ const HomePage: React.FC<HomePageProps> = ({
               <div>
                 <h2 className="mt-2 text-2xl font-bold">대본 생성</h2>
                 <p className="mt-3 text-sm text-slate-100/80 truncate whitespace-nowrap overflow-hidden">
-                  레퍼런스 대본 분석, 내 채널용 대본 구조화.
+                  레퍼런스를 분석해 내 채널에 맞는 대본으로 정리해요.
                 </p>
               </div>
             </div>
@@ -317,8 +314,8 @@ const HomePage: React.FC<HomePageProps> = ({
             <div className="flex items-start justify-between">
               <div>
                 <h2 className="mt-2 text-2xl font-bold">이미지 생성</h2>
-                <p className="mt-3 text-sm text-slate-100/80">
-                  대본 기반 이미지 생성, 스토리보드 구성.
+                <p className="mt-3 text-sm text-slate-100/80 truncate whitespace-nowrap overflow-hidden">
+                  대본을 바탕으로 컷 이미지를 만들고 스토리보드를 구성해요.
                 </p>
               </div>
             </div>
@@ -341,8 +338,8 @@ const HomePage: React.FC<HomePageProps> = ({
             <div className="flex items-start justify-between">
               <div>
                 <h2 className="mt-2 text-2xl font-bold">TTS 생성</h2>
-                <p className="mt-3 text-sm text-slate-100/80">
-                  대본 음성 변환, 나레이션 오디오 생성.
+                <p className="mt-3 text-sm text-slate-100/80 truncate whitespace-nowrap overflow-hidden">
+                  대본을 자연스러운 나레이션 음성으로 빠르게 변환해요.
                 </p>
               </div>
             </div>
