@@ -20,6 +20,8 @@ const MyPage: React.FC = () => {
   const [creditsLoading, setCreditsLoading] = useState(false);
   const [hasUserGeminiKey, setHasUserGeminiKey] = useState(false);
   const [couponBypassCredits, setCouponBypassCredits] = useState(false);
+  const [couponBypassExpiresAt, setCouponBypassExpiresAt] = useState<string | null>(null);
+  const [nowTick, setNowTick] = useState(Date.now());
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -90,6 +92,7 @@ const MyPage: React.FC = () => {
         setCredits(0);
         setHasUserGeminiKey(false);
         setCouponBypassCredits(false);
+        setCouponBypassExpiresAt(null);
         return;
       }
 
@@ -119,18 +122,35 @@ const MyPage: React.FC = () => {
         const userKey = typeof data?.gemini_api_key === "string" ? data.gemini_api_key.trim() : "";
         setHasUserGeminiKey(Boolean(userKey));
         setCouponBypassCredits(data?.coupon_bypass_credits === true);
+        setCouponBypassExpiresAt(
+          typeof data?.coupon_bypass_expires_at === "string" ? data.coupon_bypass_expires_at : null
+        );
       } else {
         setHasUserGeminiKey(false);
         setCouponBypassCredits(false);
+        setCouponBypassExpiresAt(null);
       }
     } catch (error) {
       console.error("Failed to fetch credit state:", error);
       setCredits(0);
       setHasUserGeminiKey(false);
       setCouponBypassCredits(false);
+      setCouponBypassExpiresAt(null);
     } finally {
       setCreditsLoading(false);
     }
+  };
+
+  const getCouponRemainingLabel = () => {
+    if (!couponBypassExpiresAt) return null;
+    const remainMs = new Date(couponBypassExpiresAt).getTime() - nowTick;
+    if (!Number.isFinite(remainMs) || remainMs <= 0) return "유효기간 만료";
+    const remainHours = Math.floor(remainMs / (1000 * 60 * 60));
+    const remainDays = Math.floor(remainHours / 24);
+    const remainHourRemainder = remainHours % 24;
+    if (remainDays > 0) return `${remainDays}일 ${remainHourRemainder}시간 남음`;
+    const remainMinutes = Math.max(0, Math.floor((remainMs % (1000 * 60 * 60)) / (1000 * 60)));
+    return `${remainHourRemainder}시간 ${remainMinutes}분 남음`;
   };
 
   useEffect(() => {
@@ -140,6 +160,11 @@ const MyPage: React.FC = () => {
     window.addEventListener("creditRefresh", handleCreditRefresh);
     return () => window.removeEventListener("creditRefresh", handleCreditRefresh);
   }, [user?.id]);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNowTick(Date.now()), 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   const handleApplyCoupon = async () => {
     const code = couponCode.trim();
@@ -264,6 +289,11 @@ const MyPage: React.FC = () => {
                         : "현재 모드: 쿠폰 적용됨 (본인 Gemini API 키 등록 필요)")
                     : "현재 모드: 기본 크레딧 모드 (서버 API 사용 시 요청별 차감)"}
                 </p>
+                {couponBypassCredits && (
+                  <p className="text-[11px] text-emerald-300 mt-1">
+                    남은 유효기간: {getCouponRemainingLabel() ?? "확인 불가"}
+                  </p>
+                )}
               </div>
 
               <button
@@ -394,6 +424,11 @@ const MyPage: React.FC = () => {
               </div>
               {couponMessage && (
                 <p className="text-sm mt-3 text-slate-300">{couponMessage}</p>
+              )}
+              {couponBypassExpiresAt && (
+                <p className="text-sm mt-2 text-emerald-300">
+                  현재 쿠폰 남은 유효기간: {getCouponRemainingLabel() ?? "확인 불가"}
+                </p>
               )}
             </div>
 

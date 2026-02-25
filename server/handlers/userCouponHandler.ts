@@ -52,6 +52,19 @@ export default async function userCouponHandler(req: VercelRequest, res: VercelR
   const whitelistRequired = process.env.COUPON_EMAIL_WHITELIST_REQUIRED !== "false";
   const normalizedEmail = String(user?.email || "").trim().toLowerCase();
   const normalizedCode = normalizeCouponCode(coupon.code);
+  const metadata = user.user_metadata || {};
+  const redeemedCouponsRaw = Array.isArray(metadata.redeemed_coupons)
+    ? metadata.redeemed_coupons.filter((item: unknown) => typeof item === "string")
+    : [];
+  const redeemedCoupons = redeemedCouponsRaw.map((item: string) => normalizeCouponCode(item));
+
+  // 할인 쿠폰은 사용자 기준 1회만 허용
+  if (redeemedCoupons.length > 0) {
+    return res.status(409).json({ message: "coupon_already_used" });
+  }
+  if (redeemedCoupons.includes(normalizedCode)) {
+    return res.status(409).json({ message: "coupon_already_used" });
+  }
 
   let lockedWhitelistId: string | null = null;
 
@@ -111,20 +124,13 @@ export default async function userCouponHandler(req: VercelRequest, res: VercelR
     }
   }
 
-  const metadata = user.user_metadata || {};
-  const redeemedCoupons = Array.isArray(metadata.redeemed_coupons)
-    ? metadata.redeemed_coupons.filter((item: unknown) => typeof item === "string")
-    : [];
-  if (redeemedCoupons.includes(coupon.code)) {
-    return res.status(409).json({ message: "coupon_already_used" });
-  }
   const now = new Date();
   const expiresAt = new Date(now);
   expiresAt.setMonth(expiresAt.getMonth() + COUPON_BYPASS_MONTHS);
 
   const nextMeta = {
     ...metadata,
-    redeemed_coupons: [...redeemedCoupons, coupon.code],
+    redeemed_coupons: [...redeemedCouponsRaw, coupon.code],
     coupon_bypass_credits: true,
     coupon_bypass_enabled_at: now.toISOString(),
     coupon_bypass_expires_at: expiresAt.toISOString(),
