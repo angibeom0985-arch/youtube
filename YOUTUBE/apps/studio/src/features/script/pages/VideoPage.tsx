@@ -3776,21 +3776,17 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 )}
               </div>
 
-              {/* 1분당 4컷 이미지 생성 */}
+              {/* 컷 이미지 생성 */}
               <div className="mt-8">
                 <p className="text-sm text-white/60 mb-4">
                   영상 길이 {resolveRenderDurationSeconds()}초 기준으로 1분당 4컷, 총 {requiredImageCount}장을 생성합니다.
                 </p>
-                <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-red-400/40 bg-red-500/10 px-3 py-1 text-xs font-semibold text-red-200">
-                    컷 생성 모드
-                    <span className="text-white/70">1분당 4컷</span>
-                  </div>
+                <div className="mb-4 flex items-center justify-end">
                   <button
                     type="button"
                     onClick={handleGenerateAllCutImages}
                     disabled={isGeneratingAllCuts || Boolean(generatingImageChapter)}
-                    className="rounded-full border border-red-400/50 bg-red-500/20 px-4 py-2 text-xs font-semibold text-red-100 hover:bg-red-500/30 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="w-full sm:w-auto rounded-full border border-red-300 bg-red-600 px-6 py-2.5 text-sm font-bold text-white shadow-[0_10px_30px_rgba(239,68,68,0.35)] transition hover:bg-red-500 hover:shadow-[0_12px_34px_rgba(239,68,68,0.45)] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-red-600"
                   >
                     {isGeneratingAllCuts && batchGenerateProgress
                       ? `전체 생성 중... (${batchGenerateProgress.done}/${batchGenerateProgress.total})`
