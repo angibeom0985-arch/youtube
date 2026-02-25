@@ -1734,12 +1734,8 @@ const App: React.FC<ImageAppProps> = ({
                           </button>
                           {/* 호버 시 큰 이미지 프리뷰 */}
                           <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-3 z-50 opacity-0 scale-90 group-hover/preview:opacity-100 group-hover/preview:scale-100 transition-all duration-300 ease-out">
-                            <div className="rounded-2xl overflow-hidden shadow-2xl shadow-black/60 border border-white/20 bg-black/80 backdrop-blur-sm">
-                              <img src={imgUrl} alt={style} className="w-[280px] h-[280px] object-cover" />
-                              <div className="px-4 py-3">
-                                <div className="text-white font-bold text-sm">{style}</div>
-                                <div className="text-white/60 text-xs mt-0.5">{styleDescriptions[style]}</div>
-                              </div>
+                            <div className="w-[280px] aspect-square rounded-2xl overflow-hidden shadow-2xl shadow-black/60 border border-white/20 bg-black/80 backdrop-blur-sm">
+                              <img src={imgUrl} alt={style} className="w-full h-full object-cover" />
                             </div>
                             <div className="absolute left-1/2 -translate-x-1/2 -bottom-2 w-4 h-4 bg-black/80 border-r border-b border-white/20 rotate-45"></div>
                           </div>
@@ -1842,12 +1838,8 @@ const App: React.FC<ImageAppProps> = ({
                           </button>
                           {/* 호버 시 큰 이미지 프리뷰 */}
                           <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-3 z-50 opacity-0 scale-90 group-hover/preview:opacity-100 group-hover/preview:scale-100 transition-all duration-300 ease-out">
-                            <div className="rounded-2xl overflow-hidden shadow-2xl shadow-black/60 border border-white/20 bg-black/80 backdrop-blur-sm">
-                              <img src={imgUrl} alt={style} className="w-[280px] h-[280px] object-cover" />
-                              <div className="px-4 py-3">
-                                <div className="text-white font-bold text-sm">{style}</div>
-                                <div className="text-white/60 text-xs mt-0.5">{styleDescriptions[style]}</div>
-                              </div>
+                            <div className="w-[280px] aspect-square rounded-2xl overflow-hidden shadow-2xl shadow-black/60 border border-white/20 bg-black/80 backdrop-blur-sm">
+                              <img src={imgUrl} alt={style} className="w-full h-full object-cover" />
                             </div>
                             <div className="absolute left-1/2 -translate-x-1/2 -bottom-2 w-4 h-4 bg-black/80 border-r border-b border-white/20 rotate-45"></div>
                           </div>

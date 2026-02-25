@@ -3753,9 +3753,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                             </div>
                           </button>
                           <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 opacity-0 scale-95 group-hover/preview:opacity-100 group-hover/preview:scale-100 transition-all duration-200">
-                            <div className="rounded-xl overflow-hidden shadow-2xl shadow-black/70 border border-white/20 bg-black/90">
-                              <img src={imgUrl} alt={style} className="w-[260px] h-[260px] object-cover" />
-                              <div className="px-3 py-2 text-white text-xs font-semibold">{style}</div>
+                            <div className="w-[260px] aspect-square rounded-xl overflow-hidden shadow-2xl shadow-black/70 border border-white/20 bg-black/90">
+                              <img src={imgUrl} alt={style} className="w-full h-full object-cover" />
                             </div>
                           </div>
                         </div>
@@ -3810,9 +3809,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                             </div>
                           </button>
                           <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 opacity-0 scale-95 group-hover/preview:opacity-100 group-hover/preview:scale-100 transition-all duration-200">
-                            <div className="rounded-xl overflow-hidden shadow-2xl shadow-black/70 border border-white/20 bg-black/90">
-                              <img src={imgUrl} alt={style} className="w-[260px] h-[260px] object-cover" />
-                              <div className="px-3 py-2 text-white text-xs font-semibold">{style}</div>
+                            <div className="w-[260px] aspect-square rounded-xl overflow-hidden shadow-2xl shadow-black/70 border border-white/20 bg-black/90">
+                              <img src={imgUrl} alt={style} className="w-full h-full object-cover" />
                             </div>
                           </div>
                         </div>
