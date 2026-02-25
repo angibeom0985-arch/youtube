@@ -1109,7 +1109,12 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         renderRatio as AspectRatio
       );
 
-      setChapterImages((prev) => ({ ...prev, [imageKey]: imageUrl }));
+      const normalizedImageSrc = normalizeGeneratedImageSrc(imageUrl);
+      if (!normalizedImageSrc) {
+        throw new Error("유효한 이미지 데이터가 반환되지 않았습니다.");
+      }
+
+      setChapterImages((prev) => ({ ...prev, [imageKey]: normalizedImageSrc }));
 
     } catch (error) {
       console.error('이미지 생성 오류:', error);
@@ -1131,11 +1136,28 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     setIsGeneratingAllCuts(true);
     setBatchGenerateProgress({ done: 0, total: pendingCuts.length });
     try {
-      for (let idx = 0; idx < pendingCuts.length; idx += 1) {
-        const cut = pendingCuts[idx];
-        await handleGenerateImage(cut.imageKey, cut.chapterTitle, cut.content.substring(0, 300));
-        setBatchGenerateProgress({ done: idx + 1, total: pendingCuts.length });
-      }
+      const maxConcurrency = Math.min(2, pendingCuts.length);
+      let cursor = 0;
+      let done = 0;
+
+      const worker = async () => {
+        while (cursor < pendingCuts.length) {
+          const currentIndex = cursor;
+          cursor += 1;
+          const cut = pendingCuts[currentIndex];
+          await handleGenerateImage(
+            cut.imageKey,
+            cut.chapterTitle,
+            cut.content.substring(0, 300)
+          );
+          done += 1;
+          setBatchGenerateProgress({ done, total: pendingCuts.length });
+        }
+      };
+
+      await Promise.all(
+        Array.from({ length: maxConcurrency }, () => worker())
+      );
     } finally {
       setIsGeneratingAllCuts(false);
       setBatchGenerateProgress(null);
@@ -1877,6 +1899,16 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const resolveRenderDurationSeconds = () => {
     const seconds = Number(renderDuration);
     return Number.isFinite(seconds) && seconds > 0 ? seconds : 60;
+  };
+  const normalizeGeneratedImageSrc = (rawImage: string) => {
+    const value = String(rawImage ?? "").trim();
+    if (!value) return "";
+    if (value.startsWith("data:image/")) return value;
+    if (value.startsWith("http://") || value.startsWith("https://")) return value;
+
+    const stripped = value.replace(/\s+/g, "");
+    const hasDataUriPrefix = /^data:image\/[a-zA-Z0-9.+-]+;base64,/i.test(stripped);
+    return hasDataUriPrefix ? stripped : `data:image/png;base64,${stripped}`;
   };
   const requiredImageCount = useMemo(() => {
     const seconds = resolveRenderDurationSeconds();
@@ -3824,7 +3856,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                             <div key={cut.imageKey} className="aspect-square overflow-hidden rounded-lg border border-white/10 bg-black/30">
                               {chapterImages[cut.imageKey] ? (
                                 <img
-                                  src={chapterImages[cut.imageKey]}
+                                  src={normalizeGeneratedImageSrc(chapterImages[cut.imageKey])}
                                   alt={`챕터 ${chapter.chapterIndex + 1} 컷 ${cut.localCutIndex + 1} 이미지`}
                                   className="h-full w-full object-cover"
                                 />
