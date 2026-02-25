@@ -794,7 +794,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
   // Sync imageStyle based on characterStyle
   useEffect(() => {
-    if (characterStyle === "애니메이션" || characterStyle === "웹툰") {
+    if (characterStyle === "애니메이션" || characterStyle === "웹툰" || characterStyle === "졸라맨") {
       setImageStyle("animation");
     } else {
       setImageStyle("realistic");
@@ -3624,14 +3624,12 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
           "애니메이션",
           "동물",
           "웹툰",
+          "졸라맨",
         ] as CharacterStyle[];
-        const characterStyleDescriptions: Record<CharacterStyle, string> = {
-          "실사 극대화": "초현실적이고 사진 같은 퀄리티의 실사 인물",
-          애니메이션: "밝고 화려한 애니메이션 스타일 캐릭터",
-          동물: "귀여운 동물 캐릭터로 변환",
-          웹툰: "깨끗한 선과 표현력이 풍부한 한국 웹툰 스타일",
-          custom: "",
-        };
+        const getCharacterStyleImage = (style: CharacterStyle) =>
+          style === "졸라맨"
+            ? "/stickman.png"
+            : `/${encodeURIComponent(style)}.png`;
 
         const backgroundStylesOptions = [
           "감성 멜로",
@@ -3651,25 +3649,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
           "창의적인",
           "조선시대",
         ] as BackgroundStyle[];
-        const backgroundStyleDescriptions: Record<BackgroundStyle, string> = {
-          "감성 멜로": "로맨틱하고 감성적인 따뜻한 분위기",
-          서부극: "거친 사막과 카우보이 배경",
-          "공포 스릴러": "미스터리하고 긴장감 있는 분위기",
-          사이버펑크: "네온사인이 가득한 미래 도시",
-          판타지: "마법적이고 신비로운 중세 배경",
-          미니멀: "깔끔하고 단순한 중성 톤 배경",
-          빈티지: "클래식하고 향수를 자아내는 배경",
-          모던: "현대적이고 세련된 도시 배경",
-          "1980년대": "80년대 레트로 패션과 분위기",
-          "2000년대": "2000년대 초반 감성과 스타일",
-          먹방: "맛있는 음식이 가득한 먹방 분위기",
-          귀여움: "귀엽고 사랑스러운 파스텔 감성",
-          AI: "미래지향적인 하이테크 AI 분위기",
-          괴이함: "독특하고 초현실적인 기묘한 분위기",
-          창의적인: "상상력 넘치는 독창적인 예술 분위기",
-          조선시대: "한옥과 전통 가옥이 어우러진 조선 분위기",
-          custom: "",
-        };
+        const getBackgroundStyleImage = (style: BackgroundStyle) =>
+          `/${encodeURIComponent(style === "AI" ? "ai" : style)}.png`;
 
         if (!chapterScripts || chapterScripts.length === 0) {
           return (
@@ -3749,31 +3730,37 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       직접 입력
                     </button>
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                    {characterStylesOptions.map((style) => (
-                      <div key={style} className="relative">
-                        <button
-                          onClick={() => setCharacterStyle(style)}
-                          className={`relative w-full aspect-square rounded-lg font-medium text-sm transition-all duration-200 overflow-hidden group ${characterStyle === style
-                            ? "ring-2 ring-red-500 shadow-lg scale-105"
-                            : "hover:scale-105 hover:ring-1 hover:ring-red-400"
-                            }`}
-                          style={{
-                            backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('/${style}.png')`,
-                            backgroundSize: 'cover',
-                            backgroundPosition: 'center'
-                          }}
-                        >
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
-                          <div className="relative h-full flex flex-col justify-end p-3 text-left">
-                            <div className="text-white font-bold text-sm mb-0.5">{style}</div>
-                            <div className="text-gray-200 text-xs leading-tight">
-                              {characterStyleDescriptions[style]}
+                  <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2">
+                    {characterStylesOptions.map((style) => {
+                      const imgUrl = getCharacterStyleImage(style);
+                      return (
+                        <div key={style} className="relative group/preview">
+                          <button
+                            onClick={() => setCharacterStyle(style)}
+                            className={`relative w-full aspect-square rounded-lg font-medium text-xs transition-all duration-200 overflow-hidden ${characterStyle === style
+                              ? "ring-2 ring-red-500 shadow-lg scale-[1.02]"
+                              : "hover:ring-1 hover:ring-red-400"
+                              }`}
+                            style={{
+                              backgroundImage: `url('${imgUrl}')`,
+                              backgroundSize: "cover",
+                              backgroundPosition: "center",
+                            }}
+                          >
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
+                            <div className="relative h-full flex items-end p-2 text-left">
+                              <div className="text-white font-semibold text-xs">{style}</div>
+                            </div>
+                          </button>
+                          <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 opacity-0 scale-95 group-hover/preview:opacity-100 group-hover/preview:scale-100 transition-all duration-200">
+                            <div className="rounded-xl overflow-hidden shadow-2xl shadow-black/70 border border-white/20 bg-black/90">
+                              <img src={imgUrl} alt={style} className="w-[260px] h-[260px] object-cover" />
+                              <div className="px-3 py-2 text-white text-xs font-semibold">{style}</div>
                             </div>
                           </div>
-                        </button>
-                      </div>
-                    ))}
+                        </div>
+                      );
+                    })}
                   </div>
                   {characterStyle === "custom" && (
                     <input
@@ -3800,30 +3787,37 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       직접 입력
                     </button>
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-3">
-                    {backgroundStylesOptions.map((style) => (
-                      <button
-                        key={style}
-                        onClick={() => setBackgroundStyle(style)}
-                        className={`w-full aspect-square rounded-lg text-xs font-semibold transition-all border-2 ${backgroundStyle === style
-                          ? "border-red-400 ring-2 ring-red-400/70 bg-red-600/60 text-white shadow-lg scale-105"
-                          : "border-transparent bg-white/10 text-white/70 hover:bg-white/20 hover:border-red-300/60"
-                          } relative overflow-hidden p-0`}
-                        style={{
-                          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('/${style === "AI" ? "ai" : style}.png')`,
-                          backgroundSize: 'cover',
-                          backgroundPosition: 'center'
-                        }}
-                      >
-                        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
-                        <div className="relative h-full flex flex-col justify-end p-3 text-left">
-                          <div className="text-white font-bold text-sm mb-0.5">{style}</div>
-                          <div className="text-white/70 text-[10px] leading-tight line-clamp-2">
-                            {backgroundStyleDescriptions[style]}
+                  <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2">
+                    {backgroundStylesOptions.map((style) => {
+                      const imgUrl = getBackgroundStyleImage(style);
+                      return (
+                        <div key={style} className="relative group/preview">
+                          <button
+                            onClick={() => setBackgroundStyle(style)}
+                            className={`w-full aspect-square rounded-lg text-xs font-semibold transition-all border ${backgroundStyle === style
+                              ? "border-red-400 ring-2 ring-red-400/70 text-white shadow-lg"
+                              : "border-white/10 text-white/80 hover:border-red-300/60"
+                              } relative overflow-hidden p-0`}
+                            style={{
+                              backgroundImage: `url('${imgUrl}')`,
+                              backgroundSize: "cover",
+                              backgroundPosition: "center",
+                            }}
+                          >
+                            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
+                            <div className="relative h-full flex items-end p-2 text-left">
+                              <div className="text-white font-semibold text-xs">{style}</div>
+                            </div>
+                          </button>
+                          <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 opacity-0 scale-95 group-hover/preview:opacity-100 group-hover/preview:scale-100 transition-all duration-200">
+                            <div className="rounded-xl overflow-hidden shadow-2xl shadow-black/70 border border-white/20 bg-black/90">
+                              <img src={imgUrl} alt={style} className="w-[260px] h-[260px] object-cover" />
+                              <div className="px-3 py-2 text-white text-xs font-semibold">{style}</div>
+                            </div>
                           </div>
                         </div>
-                      </button>
-                    ))}
+                      );
+                    })}
                   </div>
                   {backgroundStyle === "custom" && (
                     <input

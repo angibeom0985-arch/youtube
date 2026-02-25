@@ -1693,6 +1693,7 @@ const App: React.FC<ImageAppProps> = ({
                         "애니메이션",
                         "동물",
                         "웹툰",
+                        "졸라맨",
                       ] as CharacterStyle[]
                     ).map((style) => {
                       const styleDescriptions: Record<CharacterStyle, string> =
@@ -1702,9 +1703,12 @@ const App: React.FC<ImageAppProps> = ({
                         애니메이션: "?? 밝고 화려한 애니메이션 스타일 캐릭터",
                         동물: "?? 귀여운 동물 캐릭터로 변환",
                         웹툰: "??? 깨끗한 선과 표현력 풍부한 한국 웹툰 스타일",
+                        졸라맨: "?? 단순한 스틱맨 스타일 캐릭터",
                         custom: "",
                       };
-                      const imgUrl = `/${encodeURIComponent(style)}.png`;
+                      const imgUrl = style === "졸라맨"
+                        ? "/stickman.png"
+                        : `/${encodeURIComponent(style)}.png`;
 
                       return (
                         <div key={style} className="relative group/preview">

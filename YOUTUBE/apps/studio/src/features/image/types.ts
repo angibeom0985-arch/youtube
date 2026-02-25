@@ -40,6 +40,7 @@ export type CharacterStyle =
   | '애니메이션'
   | '동물'
   | '웹툰'
+  | '졸라맨'
   | 'custom';
 
 // 배경/분위기 스타일 타입
