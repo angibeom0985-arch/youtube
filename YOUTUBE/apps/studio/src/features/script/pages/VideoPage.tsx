@@ -615,6 +615,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [imageStyle, setImageStyle] = useState<"realistic" | "animation">("realistic"); // Derived/Synced
   const [styleReferenceImage, setStyleReferenceImage] = useState<string | null>(null);
   const [styleReferenceImageName, setStyleReferenceImageName] = useState("");
+  const [isReferenceDropActive, setIsReferenceDropActive] = useState(false);
 
   const [chapterImages, setChapterImages] = useState<Record<string, string>>({});
   const [cutEditPrompts, setCutEditPrompts] = useState<Record<string, string>>({});
@@ -1151,20 +1152,17 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     }
   };
 
-  const handleStyleReferenceImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const processStyleReferenceFile = (file: File) => {
     if (!file) return;
 
     const maxBytes = 10 * 1024 * 1024;
     if (file.size > maxBytes) {
       alert("레퍼런스 이미지는 10MB 이하만 업로드할 수 있습니다.");
-      e.target.value = "";
       return;
     }
 
     if (!file.type.startsWith("image/")) {
       alert("이미지 파일만 업로드할 수 있습니다.");
-      e.target.value = "";
       return;
     }
 
@@ -1182,7 +1180,40 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       alert("이미지 파일을 읽는 중 오류가 발생했습니다.");
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleStyleReferenceImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      processStyleReferenceFile(file);
+    }
     e.target.value = "";
+  };
+
+  const handleStyleReferencePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
+    const files = Array.from(e.clipboardData.files || []);
+    if (files.length === 0) return;
+    e.preventDefault();
+    const imageFile = files.find((file) => file.type.startsWith("image/"));
+    if (!imageFile) {
+      alert("클립보드에 이미지가 없습니다.");
+      return;
+    }
+    processStyleReferenceFile(imageFile);
+  };
+
+  const handleStyleReferenceDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsReferenceDropActive(false);
+    const files = Array.from(e.dataTransfer.files || []);
+    if (files.length === 0) return;
+    const imageFile = files.find((file) => file.type.startsWith("image/"));
+    if (!imageFile) {
+      alert("이미지 파일만 드롭할 수 있습니다.");
+      return;
+    }
+    processStyleReferenceFile(imageFile);
   };
 
   const handleGenerateAllCutImages = async () => {
@@ -3899,10 +3930,34 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 </p>
 
                 {!styleReferenceImage ? (
-                  <div className="rounded-lg border-2 border-dashed border-red-400/50 bg-red-900/10 p-4 text-center">
+                  <div
+                    className={`rounded-lg border-2 border-dashed p-4 text-center outline-none transition-colors ${
+                      isReferenceDropActive
+                        ? "border-red-300 bg-red-500/15"
+                        : "border-red-400/50 bg-red-900/10"
+                    }`}
+                    tabIndex={0}
+                    onPaste={handleStyleReferencePaste}
+                    onDragEnter={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIsReferenceDropActive(true);
+                    }}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIsReferenceDropActive(true);
+                    }}
+                    onDragLeave={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIsReferenceDropActive(false);
+                    }}
+                    onDrop={handleStyleReferenceDrop}
+                  >
                     <label className="cursor-pointer inline-flex flex-col items-center gap-1 text-red-200 hover:text-red-100">
                       <span className="text-xs font-semibold">참조 이미지 업로드</span>
-                      <span className="text-[11px] text-red-200/70">클릭하여 이미지 선택</span>
+                      <span className="text-[11px] text-red-200/70">클릭, 드래그 앤 드롭, 또는 붙여넣기(Ctrl+V)</span>
                       <input
                         type="file"
                         accept="image/*"
