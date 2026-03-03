@@ -624,7 +624,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [isReferenceDropActive, setIsReferenceDropActive] = useState(false);
 
   const [chapterImages, setChapterImages] = useState<Record<string, string>>({});
-  const [cutEditPrompts, setCutEditPrompts] = useState<Record<string, string>>({});
   const [previewImageModal, setPreviewImageModal] = useState<{ src: string; title: string } | null>(null);
   const [generatingImageChapter, setGeneratingImageChapter] = useState<string | null>(null);
   const [isGeneratingAllCuts, setIsGeneratingAllCuts] = useState(false);
@@ -1365,29 +1364,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     const response = await fetch(normalized);
     const blob = await response.blob();
     downloadBlob(blob, fileName);
-  };
-
-  const handleSaveCutImage = async (cut: {
-    imageKey: string;
-    chapterIndex: number;
-    localCutIndex: number;
-  }) => {
-    const imageSrc = chapterImages[cut.imageKey];
-    if (!imageSrc) {
-      alert("저장할 이미지가 없습니다. 먼저 이미지를 생성해주세요.");
-      return;
-    }
-
-    try {
-      const baseName = (projectTitle || "video").trim().replace(/[^\w\-가-힣]+/g, "_");
-      await saveImageBySrc(
-        imageSrc,
-        `${baseName}-chapter-${cut.chapterIndex + 1}-cut-${cut.localCutIndex + 1}.png`
-      );
-    } catch (error) {
-      console.error("이미지 저장 오류:", error);
-      alert("이미지 저장에 실패했습니다.");
-    }
   };
 
   const handleSaveAllCutImages = async () => {
@@ -3950,6 +3926,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
             )}
             <div className="mb-6 rounded-2xl border border-white/10 bg-black/30 p-6">
               <h3 className="text-lg font-bold text-white mb-4">이미지 생성 설정</h3>
+              <p className="mb-4 text-xs text-white/60">
+                영상 소스 생성은 페르소나 생성 이미지를 바탕으로, 앞서 만든 대본에 어울리는 움직임과 배경을 만드는 단계입니다.
+              </p>
 
               <div className="mt-6">
                 <label className="block text-xl font-bold text-white mb-3">
@@ -4299,48 +4278,14 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                     </div>
                                   )}
                                 </div>
-                                <p className="mt-2 text-[11px] text-white/60">
-                                  컷 {cut.localCutIndex + 1} · {cut.secondsFrom}초 ~ {cut.secondsTo}초
-                                </p>
-                                <input
-                                  type="text"
-                                  value={cutEditPrompts[cut.imageKey] || ""}
-                                  onChange={(e) =>
-                                    setCutEditPrompts((prev) => ({ ...prev, [cut.imageKey]: e.target.value }))
-                                  }
-                                  placeholder="수정 프롬프트 입력 (예: 인물 표정 더 밝게)"
-                                  className="mt-2 w-full rounded-md border border-white/20 bg-black/40 px-2.5 py-2 text-xs text-white placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-red-400"
-                                />
-                                <div className="mt-2 grid grid-cols-3 gap-1">
+                                <div className="mt-2">
                                   <button
                                     type="button"
-                                    onClick={() => handleGenerateImage(cut, cutEditPrompts[cut.imageKey])}
+                                    onClick={() => handleGenerateImage(cut)}
                                     disabled={personas.length === 0 || Boolean(generatingImageChapter)}
-                                    className="rounded-md border border-red-400/50 bg-red-500/15 px-2 py-1.5 text-[11px] font-semibold text-red-100 hover:bg-red-500/25 disabled:opacity-50"
+                                    className="w-full rounded-md border border-red-400/50 bg-red-500/15 px-2 py-1.5 text-[11px] font-semibold text-red-100 hover:bg-red-500/25 disabled:opacity-50"
                                   >
-                                    {isGeneratingThisCut ? "생성 중..." : cutImageSrc ? "수정 재생성" : "이미지 생성"}
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      cutImageSrc &&
-                                      setPreviewImageModal({
-                                        src: cutImageSrc,
-                                        title: `챕터 ${chapter.chapterIndex + 1} · 컷 ${cut.localCutIndex + 1}`,
-                                      })
-                                    }
-                                    disabled={!cutImageSrc}
-                                    className="rounded-md border border-white/20 bg-white/5 px-2 py-1.5 text-[11px] font-semibold text-white/80 hover:bg-white/10 disabled:opacity-50"
-                                  >
-                                    크게 보기
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleSaveCutImage(cut)}
-                                    disabled={!cutImageSrc}
-                                    className="rounded-md border border-white/20 bg-white/5 px-2 py-1.5 text-[11px] font-semibold text-white/80 hover:bg-white/10 disabled:opacity-50"
-                                  >
-                                    저장
+                                    {isGeneratingThisCut ? "생성 중..." : "이미지 생성"}
                                   </button>
                                 </div>
                               </div>
