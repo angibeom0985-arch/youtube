@@ -2521,12 +2521,12 @@ const App: React.FC<ImageAppProps> = ({
                 </h3>
                 <div className="grid grid-cols-2 gap-3">
                   {[
-                    { value: 'Front View' as CameraAngle, label: '정면', emoji: '정면', direction: '' },
-                    { value: 'Right Side View' as CameraAngle, label: '오른쪽 측면', emoji: '우측', direction: '(왼쪽을 바라봄)' },
-                    { value: 'Left Side View' as CameraAngle, label: '왼쪽 측면', emoji: '좌측', direction: '(오른쪽을 바라봄)' },
-                    { value: 'Back View' as CameraAngle, label: '뒷모습', emoji: '후면', direction: '' },
-                    { value: 'Full Body' as CameraAngle, label: '전신', emoji: '전신', direction: '' },
-                    { value: 'Close-up Face' as CameraAngle, label: '얼굴 근접', emoji: '근접', direction: '' },
+                    { value: 'Front View' as CameraAngle, label: '정면', emoji: '??'??'??'??'??'??'정면', direction: '' },
+                    { value: 'Right Side View' as CameraAngle, label: '오른쪽 측면', emoji: '??'??'??'??'??'??'우측', direction: '(왼쪽을 바라봄)' },
+                    { value: 'Left Side View' as CameraAngle, label: '왼쪽 측면', emoji: '??'??'??'??'??'??'좌측', direction: '(오른쪽을 바라봄)' },
+                    { value: 'Back View' as CameraAngle, label: '뒷모습', emoji: '??'??'??'??'??'??'후면', direction: '' },
+                    { value: 'Full Body' as CameraAngle, label: '전신', emoji: '??'??'??'??'??'??'전신', direction: '' },
+                    { value: 'Close-up Face' as CameraAngle, label: '얼굴 근접', emoji: '??'??'??'??'??'??'근접', direction: '' },
                   ].map((angle) => (
                     <label
                       key={angle.value}
@@ -2837,4 +2837,6 @@ const App: React.FC<ImageAppProps> = ({
 };
 
 export default App;
+
+
 
