@@ -337,19 +337,11 @@ const MyPage: React.FC = () => {
               <h3 className="font-bold text-white mb-4 flex items-center gap-2">
                 <FiZap className="text-emerald-400" /> 크레딧 관리
               </h3>
-              <div className="grid sm:grid-cols-2 gap-3">
+              <div>
                 <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4">
                   <p className="text-xs text-indigo-300">현재 보유 크레딧</p>
                   <p className="text-3xl font-black text-indigo-200 mt-1">
                     {creditsLoading ? "-" : (credits ?? 0).toLocaleString()}
-                  </p>
-                </div>
-                <div className="rounded-xl border border-white/10 bg-black/30 p-4">
-                  <p className="text-xs text-slate-400">차감 정책</p>
-                  <p className="text-sm text-slate-200 mt-2 leading-relaxed">
-                    기본: 서버 공용 API 사용 시 요청별 크레딧 차감
-                    <br />
-                    쿠폰 적용 후: 본인 API 키 등록 시 크레딧 차감 없음
                   </p>
                 </div>
               </div>
