@@ -1612,7 +1612,7 @@ const App: React.FC<ImageAppProps> = ({
             {(characters.length > 0 || videoSource.length > 0 || cameraAngles.length > 0) && (
               <div className="mt-4 bg-blue-900/20 border border-blue-500/50 rounded-lg p-3 max-w-2xl mx-auto">
                 <p className="text-blue-300 text-sm flex items-center justify-center">
-                  <span className="mr-2">안내</span>
+                  <span className="mr-2">🔔</span>
                   이전 작업이 복원되었습니다:
                   {characters.length > 0 && ` 페르소나 ${characters.length}개`}
                   {videoSource.length > 0 && ` | 영상소스 ${videoSource.length}개`}
@@ -1670,7 +1670,7 @@ const App: React.FC<ImageAppProps> = ({
               {/* 이미지 스타일 선택 */}
               <div className="mb-6 bg-blue-900/20 border border-blue-500/50 rounded-lg p-6">
                 <h3 className="text-blue-300 font-medium mb-6 flex items-center">
-                  <span className="mr-2">스타일</span>
+                  <span className="mr-2">🎨</span>
                   이미지 스타일 선택
                 </h3>
 
@@ -1678,7 +1678,7 @@ const App: React.FC<ImageAppProps> = ({
                 <div className="mb-6">
                   <div className="flex items-center justify-between mb-3">
                     <h4 className="text-blue-200 font-medium flex items-center text-sm">
-                      <span className="mr-2">인물</span>
+                      <span className="mr-2">👤</span>
                       인물 스타일
                     </h4>
                     <button
@@ -1763,7 +1763,7 @@ const App: React.FC<ImageAppProps> = ({
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <h4 className="text-blue-200 font-medium flex items-center text-sm">
-                      <span className="mr-2">배경</span>
+                      <span className="mr-2">🌆</span>
                       배경/분위기 스타일
                     </h4>
                     <button
@@ -1867,7 +1867,7 @@ const App: React.FC<ImageAppProps> = ({
               {/* 사진 설정 (구도 및 비율) */}
               <div className="mb-6 bg-blue-900/20 border border-blue-500/50 rounded-lg p-6">
                 <h3 className="text-blue-300 font-medium mb-4 flex items-center">
-                  <span className="mr-2">구도</span>
+                  <span className="mr-2">📐</span>
                   사진 설정
                 </h3>
 
@@ -1923,7 +1923,7 @@ const App: React.FC<ImageAppProps> = ({
               {/* 스타일 참조 이미지 업로드 (선택사항) */}
               <div className="mb-6 bg-blue-900/20 border border-blue-500/50 rounded-lg p-6">
                 <h3 className="text-blue-300 font-medium mb-4 flex items-center">
-                  <span className="mr-2">참조</span>
+                  <span className="mr-2">🖼️</span>
                   스타일 참조 이미지 (선택사항)
                 </h3>
                 <p className="text-gray-400 text-sm mb-4">
@@ -1934,7 +1934,7 @@ const App: React.FC<ImageAppProps> = ({
                 {!personaReferenceImage ? (
                   <label className="block w-full cursor-pointer">
                     <div className="border-2 border-dashed border-blue-500 rounded-lg p-8 text-center hover:border-blue-400 hover:bg-blue-900/10 transition-all">
-                      <div className="text-blue-300 text-4xl mb-3">이미지</div>
+                      <div className="text-blue-300 text-4xl mb-3">🖼️</div>
                       <p className="text-blue-200 font-medium mb-1">
                         참조 이미지 업로드
                       </p>
@@ -1980,7 +1980,7 @@ const App: React.FC<ImageAppProps> = ({
                       삭제
                     </button>
                     <p className="text-blue-400 text-sm mt-2 flex items-center">
-                      <span className="mr-2">완료</span>
+                      <span className="mr-2">✅</span>
                       참조 이미지가 업로드되었습니다
                     </p>
                   </div>
@@ -1991,7 +1991,7 @@ const App: React.FC<ImageAppProps> = ({
               <div className="mb-6 bg-blue-900/20 border border-blue-500/50 rounded-lg p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-blue-300 font-medium flex items-center">
-                    <span className="mr-2">프롬프트</span>
+                    <span className="mr-2">✍️</span>
                     커스텀 이미지 프롬프트 (선택사항)
                   </h3>
                   <button
@@ -2000,7 +2000,7 @@ const App: React.FC<ImageAppProps> = ({
                     }}
                     className="px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-semibold rounded-lg text-sm transition-all duration-200 transform hover:scale-105 flex items-center"
                   >
-                    <span className="mr-2">가이드</span>
+                    <span className="mr-2">💡</span>
                     내가 원하는 이미지 200% 뽑는 노하우
                   </button>
                 </div>
@@ -2187,7 +2187,7 @@ const App: React.FC<ImageAppProps> = ({
               {/* 일관성 유지 (선택사항) - 영상 소스 생성으로 이동 */}
               <div className="mb-6 bg-green-900/20 border border-green-500/50 rounded-lg p-6">
                 <h3 className="text-green-300 font-medium mb-3 flex items-center">
-                  <span className="mr-2">참조</span>
+                  <span className="mr-2">🖼️</span>
                   일관성 유지 (선택사항)
                 </h3>
                 <p className="text-green-200 text-sm mb-3">
@@ -2210,7 +2210,7 @@ const App: React.FC<ImageAppProps> = ({
                       htmlFor="referenceImageInput"
                       className="cursor-pointer flex flex-col items-center space-y-2 hover:text-green-300 transition-colors"
                     >
-                      <div className="text-3xl">이미지</div>
+                      <div className="text-3xl">🖼️</div>
                       <div className="text-green-300 font-medium">
                         참조 이미지 업로드
                       </div>
@@ -2261,7 +2261,7 @@ const App: React.FC<ImageAppProps> = ({
               {/* 생성 옵션 설정 */}
               <div className="mb-4 bg-green-900/20 border border-green-500/50 rounded-lg p-4">
                 <h3 className="text-green-300 font-medium mb-3 flex items-center">
-                  <span className="mr-2">옵션</span>
+                  <span className="mr-2">⚙️</span>
                   생성 옵션 설정
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -2454,7 +2454,7 @@ const App: React.FC<ImageAppProps> = ({
               {/* 이미지 업로드 섹션 */}
               <div className="mb-6 bg-orange-900/20 border border-orange-500/50 rounded-lg p-6">
                 <h3 className="text-orange-300 font-medium mb-3 flex items-center">
-                  <span className="mr-2">업로드</span>
+                  <span className="mr-2">📤</span>
                   분석할 원본 이미지 업로드
                 </h3>
                 <p className="text-orange-200 text-sm mb-3">
@@ -2474,7 +2474,7 @@ const App: React.FC<ImageAppProps> = ({
                       htmlFor="cameraAngleImageInput"
                       className="cursor-pointer flex flex-col items-center space-y-2 hover:text-orange-300 transition-colors"
                     >
-                      <div className="text-3xl">이미지</div>
+                      <div className="text-3xl">🖼️</div>
                       <div className="text-orange-300 font-medium">
                         원본 이미지 업로드
                       </div>
@@ -2516,17 +2516,17 @@ const App: React.FC<ImageAppProps> = ({
               {/* 앵글 선택 섹션 */}
               <div className="mb-6 bg-orange-900/20 border border-orange-500/50 rounded-lg p-6">
                 <h3 className="text-orange-300 font-medium mb-3 flex items-center">
-                  <span className="mr-2">앵글</span>
+                  <span className="mr-2">📷</span>
                   생성할 앵글 선택 ({selectedCameraAngles.length}/6)
                 </h3>
                 <div className="grid grid-cols-2 gap-3">
                   {[
-                    { value: 'Front View' as CameraAngle, label: '정면', emoji: '??'??'??'??'??'??'정면', direction: '' },
-                    { value: 'Right Side View' as CameraAngle, label: '오른쪽 측면', emoji: '??'??'??'??'??'??'우측', direction: '(왼쪽을 바라봄)' },
-                    { value: 'Left Side View' as CameraAngle, label: '왼쪽 측면', emoji: '??'??'??'??'??'??'좌측', direction: '(오른쪽을 바라봄)' },
-                    { value: 'Back View' as CameraAngle, label: '뒷모습', emoji: '??'??'??'??'??'??'후면', direction: '' },
-                    { value: 'Full Body' as CameraAngle, label: '전신', emoji: '??'??'??'??'??'??'전신', direction: '' },
-                    { value: 'Close-up Face' as CameraAngle, label: '얼굴 근접', emoji: '??'??'??'??'??'??'근접', direction: '' },
+                    { value: 'Front View' as CameraAngle, label: '정면', emoji: '🙂', direction: '' },
+                    { value: 'Right Side View' as CameraAngle, label: '오른쪽 측면', emoji: '➡️', direction: '(왼쪽을 바라봄)' },
+                    { value: 'Left Side View' as CameraAngle, label: '왼쪽 측면', emoji: '⬅️', direction: '(오른쪽을 바라봄)' },
+                    { value: 'Back View' as CameraAngle, label: '뒷모습', emoji: '🔙', direction: '' },
+                    { value: 'Full Body' as CameraAngle, label: '전신', emoji: '🧍', direction: '' },
+                    { value: 'Close-up Face' as CameraAngle, label: '얼굴 근접', emoji: '🔍', direction: '' },
                   ].map((angle) => (
                     <label
                       key={angle.value}
