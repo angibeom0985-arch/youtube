@@ -42,8 +42,8 @@ import ErrorNotice from "@/components/ErrorNotice";
 import type { AnalysisResult, NewPlan } from "@/types";
 import { analyzeTranscript, generateIdeas, generateNewPlan } from "@/services/geminiService";
 import { getVideoDetails } from "@/services/youtubeService";
-import { regenerateStoryboardImage } from "@/features/image/services/geminiService";
-import type { CharacterStyle, BackgroundStyle, AspectRatio } from "@/features/image/types";
+import { generateCharacters, regenerateStoryboardImage } from "@/features/image/services/geminiService";
+import type { CharacterStyle, BackgroundStyle, AspectRatio, Character, ImageStyle } from "@/features/image/types";
 
 
 import { ProgressTracker } from "@/components/ProgressIndicator";
@@ -119,7 +119,7 @@ const extractYoutubeVideoId = (url: string): string | null => {
   }
 };
 
-type StepId = "setup" | "script" | "tts" | "image" | "generate" | "render";
+type StepId = "setup" | "script" | "tts" | "persona" | "image" | "generate" | "render";
 type VideoFormat = "long" | "short";
 
 interface VideoPageProps {
@@ -378,6 +378,12 @@ const steps: Step[] = [
     icon: <FiMic />,
   },
   {
+    id: "persona",
+    label: "페르소나 생성",
+    description: "캐릭터 페르소나 생성",
+    icon: <FiImage />,
+  },
+  {
     id: "image",
     label: "이미지 생성",
     description: "스토리보드 기반 이미지 프롬프트 설정",
@@ -624,6 +630,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [isGeneratingAllCuts, setIsGeneratingAllCuts] = useState(false);
   const [isBatchPaused, setIsBatchPaused] = useState(false);
   const [batchGenerateProgress, setBatchGenerateProgress] = useState<{ done: number; total: number } | null>(null);
+  const [personas, setPersonas] = useState<Character[]>([]);
+  const [isGeneratingPersonas, setIsGeneratingPersonas] = useState(false);
+  const [personaError, setPersonaError] = useState("");
 
   const [renderDuration, setRenderDuration] = useState(() =>
     getStoredString(STORAGE_KEYS.renderDuration, "60")
@@ -692,6 +701,16 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     }
     return "스토리 중심의 시네마틱 연출, 주제를 강조하는 조명과 통일된 색감의 장면";
   }, [chapterScripts, generatedPlan, scriptDraft, selectedCategory]);
+
+  const personaSourceScript = useMemo(() => {
+    if (chapterScripts.length > 0) {
+      return chapterScripts
+        .map((chapter, idx) => `챕터 ${idx + 1}: ${chapter.title}\n${chapter.content}`)
+        .join("\n\n");
+    }
+    const generatedText = generatedPlan?.scriptWithCharacters?.map((line) => toScriptLineText(line)).join("\n") || "";
+    return generatedText || scriptDraft;
+  }, [chapterScripts, generatedPlan, scriptDraft]);
 
   // Audio playback state
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -1059,6 +1078,65 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     }
   };
 
+  const handleGeneratePersonas = async () => {
+    if (!geminiApiKey) {
+      openSupportErrorDialog(
+        "API 키 설정 필요",
+        "페르소나 생성",
+        new Error("API 키가 설정되지 않았습니다. 마이페이지에서 API 키를 등록해주세요.")
+      );
+      navigate("/mypage", {
+        replace: true,
+        state: { from: "/video", reason: "coupon_api_key_required" },
+      });
+      return;
+    }
+
+    const source = personaSourceScript.trim();
+    if (!source) {
+      setPersonaError("페르소나를 만들 대본이 없습니다. 먼저 대본을 준비해주세요.");
+      return;
+    }
+
+    const charged = await deductCredits(CREDIT_COSTS.GENERATE_IMAGE * 2);
+    if (!charged) {
+      return;
+    }
+
+    setPersonaError("");
+    setIsGeneratingPersonas(true);
+    try {
+      const generated = await generateCharacters(
+        source,
+        geminiApiKey,
+        imageStyle,
+        renderRatio as AspectRatio,
+        characterStyle === "custom" ? "custom" : (characterStyle as ImageStyle),
+        characterStyle === "custom" ? customCharacterStyle : "",
+        undefined,
+        undefined,
+        characterStyle,
+        backgroundStyle,
+        customCharacterStyle,
+        customBackgroundStyle,
+        styleReferenceImage
+      );
+
+      if (!generated.length) {
+        setPersonaError("페르소나 생성 결과가 비어 있습니다. 입력을 바꿔 다시 시도해주세요.");
+        return;
+      }
+
+      setPersonas(generated);
+    } catch (error) {
+      console.error("페르소나 생성 오류:", error);
+      const message = error instanceof Error ? error.message : "페르소나 생성 중 오류가 발생했습니다.";
+      setPersonaError(message);
+    } finally {
+      setIsGeneratingPersonas(false);
+    }
+  };
+
   const handleGenerateImage = async (
     cut: {
       imageKey: string;
@@ -1072,6 +1150,11 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     },
     customPrompt?: string
   ) => {
+    if (personas.length === 0) {
+      alert("먼저 페르소나를 생성해주세요.");
+      return;
+    }
+
     if (!geminiApiKey) {
       openSupportErrorDialog(
         "API 키 설정 필요",
@@ -1128,12 +1211,10 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         "No text, no letters, no numbers, no subtitles, no logos, no watermark.",
       ].join(" ");
 
-      // Use regenerateStoryboardImage from geminiService
-      // Note: We pass empty array for characters as VideoPage doesn't have full Character objects yet.
-      // We rely on the prompt to describe the scene.
+      // Use generated personas to keep character consistency per cut.
       const imageUrl = await regenerateStoryboardImage(
         fullPrompt,
-        [],
+        personas,
         geminiApiKey,
         imageStyle,
         false, // subtitleEnabled
@@ -1222,6 +1303,10 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
   const handleGenerateAllCutImages = async () => {
     if (isGeneratingAllCuts) return;
+    if (personas.length === 0) {
+      alert("먼저 페르소나를 생성해주세요.");
+      return;
+    }
 
     const pendingCuts = allCuts.filter((cut) => !chapterImages[cut.imageKey]);
     if (pendingCuts.length === 0) {
@@ -1816,6 +1901,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       `${normalizedBasePath}/video/setup`,
       `${normalizedBasePath}/video/script`,
       `${normalizedBasePath}/video/tts`,
+      `${normalizedBasePath}/video/persona`,
       `${normalizedBasePath}/video/image`,
       `${normalizedBasePath}/video/generate`,
       `${normalizedBasePath}/video/render`,
@@ -1897,6 +1983,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       if (scriptSubStep === 2) return Boolean(generatedPlan);
       if (scriptSubStep === 3) return true;
       return false;
+    }
+    if (currentStepId === "persona") {
+      return personas.length > 0;
     }
 
     // 나머지 단계는 항상 진행 가능
@@ -3727,6 +3816,70 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
           </div>
         );
       }
+      case "persona": {
+        if (!chapterScripts || chapterScripts.length === 0) {
+          return (
+            <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
+              <div className="rounded-2xl border border-white/10 bg-black/30 p-8 text-center">
+                <div className="text-4xl mb-4">안내</div>
+                <h3 className="text-xl font-bold text-white mb-2">대본이 없습니다</h3>
+                <p className="text-white/60">먼저 대본 생성 단계에서 대본을 작성해주세요.</p>
+                <button
+                  onClick={() => goToStep(1)}
+                  className="mt-6 px-6 py-3 rounded-xl bg-gradient-to-r from-red-700 to-red-500 text-white font-semibold hover:shadow-lg transition"
+                >
+                  대본 생성하러 가기
+                </button>
+              </div>
+            </div>
+          );
+        }
+
+        return (
+          <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
+            <div className="mb-6 rounded-2xl border border-red-300/30 bg-red-900/10 p-6">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-lg font-bold text-white">1단계: 페르소나 생성</h3>
+                  <p className="mt-1 text-xs text-white/60">
+                    컷 이미지 생성 전에 페르소나를 먼저 생성합니다.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleGeneratePersonas}
+                  disabled={isGeneratingPersonas}
+                  className="rounded-full border border-red-300 bg-red-600 px-5 py-2 text-sm font-bold text-white transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isGeneratingPersonas
+                    ? "페르소나 생성 중..."
+                    : withOptionalCreditLabel("페르소나 생성", CREDIT_COSTS.GENERATE_IMAGE * 2)}
+                </button>
+              </div>
+              {personaError && <p className="mt-3 text-xs text-red-200">{personaError}</p>}
+              {personas.length > 0 && (
+                <div className="mt-4">
+                  <p className="mb-2 text-xs font-semibold text-green-300">
+                    페르소나 {personas.length}개 생성 완료
+                  </p>
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+                    {personas.map((persona) => (
+                      <div key={persona.id} className="overflow-hidden rounded-lg border border-white/20 bg-black/30">
+                        <img
+                          src={normalizeGeneratedImageSrc(persona.image)}
+                          alt={persona.name}
+                          className="aspect-square w-full object-cover"
+                        />
+                        <p className="truncate px-2 py-1 text-[11px] text-white/80">{persona.name}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      }
       case "image": {
         const characterStylesOptions = [
           "실사 극대화",
@@ -3781,7 +3934,20 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
         return (
           <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
-            {/* 이미지 설정 */}
+            {personas.length === 0 && (
+              <div className="mb-6 rounded-2xl border border-amber-300/30 bg-amber-900/10 p-5">
+                <p className="text-sm text-amber-100">
+                  이미지 생성 전에 페르소나를 먼저 만들어주세요.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => goToStep(3)}
+                  className="mt-3 rounded-full border border-amber-300/60 bg-amber-500/20 px-4 py-1.5 text-xs font-bold text-amber-100 hover:bg-amber-500/30"
+                >
+                  페르소나 생성 단계로 이동
+                </button>
+              </div>
+            )}
             <div className="mb-6 rounded-2xl border border-white/10 bg-black/30 p-6">
               <h3 className="text-lg font-bold text-white mb-4">이미지 생성 설정</h3>
 
@@ -3968,7 +4134,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     }}
                     onDrop={handleStyleReferenceDrop}
                   >
-                    <label className="cursor-pointer inline-flex flex-col items-center gap-1 text-red-200 hover:text-red-100">
+                    <label className="flex w-full cursor-pointer flex-col items-center gap-1 py-4 text-red-200 hover:text-red-100">
                       <span className="text-xs font-semibold">참조 이미지 업로드</span>
                       <span className="text-[11px] text-red-200/70">클릭, 드래그 앤 드롭, 또는 붙여넣기(Ctrl+V)</span>
                       <input
@@ -4017,7 +4183,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   <button
                     type="button"
                     onClick={handleGenerateAllCutImages}
-                    disabled={isGeneratingAllCuts || Boolean(generatingImageChapter)}
+                    disabled={personas.length === 0 || isGeneratingAllCuts || Boolean(generatingImageChapter)}
                     className="w-full rounded-full border border-red-300 bg-red-600 px-6 py-2.5 text-sm font-bold text-white shadow-[0_10px_30px_rgba(239,68,68,0.35)] transition hover:bg-red-500 hover:shadow-[0_12px_34px_rgba(239,68,68,0.45)] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-red-600"
                   >
                     {isGeneratingAllCuts && batchGenerateProgress ? (
@@ -4045,6 +4211,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     전체 이미지 저장
                   </button>
                 </div>
+                {personas.length === 0 && (
+                  <p className="mb-4 text-xs text-amber-200">컷 이미지를 생성하려면 먼저 위에서 페르소나를 생성해주세요.</p>
+                )}
                 {(isGeneratingAllCuts || isBatchPaused) && (
                   <div className="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
                     <button
@@ -4146,7 +4315,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                   <button
                                     type="button"
                                     onClick={() => handleGenerateImage(cut, cutEditPrompts[cut.imageKey])}
-                                    disabled={Boolean(generatingImageChapter)}
+                                    disabled={personas.length === 0 || Boolean(generatingImageChapter)}
                                     className="rounded-md border border-red-400/50 bg-red-500/15 px-2 py-1.5 text-[11px] font-semibold text-red-100 hover:bg-red-500/25 disabled:opacity-50"
                                   >
                                     {isGeneratingThisCut ? "생성 중..." : cutImageSrc ? "수정 재생성" : "이미지 생성"}
