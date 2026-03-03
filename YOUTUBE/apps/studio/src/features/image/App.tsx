@@ -66,9 +66,9 @@ const App: React.FC<ImageAppProps> = ({
   const [apiKey, setApiKey] = useState("");
   const [couponBypassCredits, setCouponBypassCredits] = useState(false);
   const [couponGuardChecked, setCouponGuardChecked] = useState(false);
-  const formatCreditButtonLabel = useCallback(
-    (cost: number) =>
-      couponBypassCredits ? "본인 API 모드" : formatRawCreditButtonLabel(cost),
+  const withOptionalCreditLabel = useCallback(
+    (baseLabel: string, cost: number) =>
+      couponBypassCredits ? baseLabel : `${baseLabel} (${formatRawCreditButtonLabel(cost)})`,
     [couponBypassCredits]
   );
 
@@ -2076,7 +2076,7 @@ const App: React.FC<ImageAppProps> = ({
                     <span className="ml-2">페르소나 생성 중...</span>
                   </>
                 ) : (
-                  `페르소나 생성 (${formatCreditButtonLabel(CREDIT_COSTS.GENERATE_IMAGE * 2)})`
+                  withOptionalCreditLabel("페르소나 생성", CREDIT_COSTS.GENERATE_IMAGE * 2)
                 )}
               </button>
             </section>
@@ -2319,7 +2319,7 @@ const App: React.FC<ImageAppProps> = ({
                       <span className="ml-2">영상 소스 생성 중...</span>
                     </>
                   ) : (
-                    `영상 소스 생성 (${formatCreditButtonLabel(CREDIT_COSTS.GENERATE_IMAGE * Math.max(1, imageCount))})`
+                    withOptionalCreditLabel("영상 소스 생성", CREDIT_COSTS.GENERATE_IMAGE * Math.max(1, imageCount))
                   )}
                 </button>
                 {characters.length === 0 && !referenceImage && (
@@ -2389,7 +2389,7 @@ const App: React.FC<ImageAppProps> = ({
                           <span className="ml-2">생성 중...</span>
                         </>
                       ) : (
-                        `한 번 더 생성 (${formatCreditButtonLabel(CREDIT_COSTS.GENERATE_IMAGE * Math.max(1, imageCount))})`
+                        withOptionalCreditLabel("한 번 더 생성", CREDIT_COSTS.GENERATE_IMAGE * Math.max(1, imageCount))
                       )}
                     </button>
                     <button
@@ -2597,7 +2597,10 @@ const App: React.FC<ImageAppProps> = ({
                       : "bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 shadow-lg hover:shadow-xl transform hover:scale-105"
                       }`}
                   >
-                    선택한 {selectedCameraAngles.length}가지 앵글 생성하기 ({formatCreditButtonLabel(CREDIT_COSTS.GENERATE_IMAGE * Math.max(1, selectedCameraAngles.length))})
+                    {withOptionalCreditLabel(
+                      `선택한 ${selectedCameraAngles.length}가지 앵글 생성하기`,
+                      CREDIT_COSTS.GENERATE_IMAGE * Math.max(1, selectedCameraAngles.length)
+                    )}
                   </button>
 
                   {!apiKey && (
