@@ -362,7 +362,16 @@ const MyPage: React.FC = () => {
                   <FiRefreshCw className={creditsLoading ? "animate-spin" : ""} />
                   크레딧 새로고침
                 </button>
+                <Link
+                  to="/pricing"
+                  className="px-4 py-2 rounded-lg bg-amber-400 text-black text-sm font-bold hover:bg-amber-300 transition-colors"
+                >
+                  크레딧 구매
+                </Link>
               </div>
+              <p className="mt-3 text-xs text-amber-200/90">
+                크레딧이 부족하면 제작 흐름이 멈춥니다. 지금 충전해서 작업을 끊기지 않게 이어가세요.
+              </p>
             </div>
 
             {/* API Settings Section */}
