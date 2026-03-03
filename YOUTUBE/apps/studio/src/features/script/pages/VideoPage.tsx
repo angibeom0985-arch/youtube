@@ -3793,6 +3793,39 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         );
       }
       case "persona": {
+        const characterStylesOptions = [
+          "실사 극대화",
+          "애니메이션",
+          "동물",
+          "웹툰",
+          "졸라맨",
+        ] as CharacterStyle[];
+        const getCharacterStyleImage = (style: CharacterStyle) =>
+          style === "졸라맨"
+            ? "/stickman.png"
+            : `/${encodeURIComponent(style)}.png`;
+
+        const backgroundStylesOptions = [
+          "감성 멜로",
+          "서부극",
+          "공포 스릴러",
+          "사이버펑크",
+          "판타지",
+          "미니멀",
+          "빈티지",
+          "모던",
+          "1980년대",
+          "2000년대",
+          "먹방",
+          "귀여움",
+          "AI",
+          "괴이함",
+          "창의적인",
+          "조선시대",
+        ] as BackgroundStyle[];
+        const getBackgroundStyleImage = (style: BackgroundStyle) =>
+          `/${encodeURIComponent(style === "AI" ? "ai" : style)}.png`;
+
         if (!chapterScripts || chapterScripts.length === 0) {
           return (
             <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
@@ -3853,43 +3886,194 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 </div>
               )}
             </div>
+            <div className="mb-6 rounded-2xl border border-white/10 bg-black/30 p-6">
+              <h3 className="text-lg font-bold text-white mb-4">이미지 스타일 설정</h3>
+              <p className="mb-4 text-xs text-white/60">
+                페르소나 생성 전에 인물/배경 스타일을 먼저 선택해두면 이후 컷 이미지 생성 결과에 동일하게 반영됩니다.
+              </p>
+              <div className="mt-8 bg-black/30 border border-white/10 rounded-xl p-[clamp(1rem,2vw,1.4rem)]">
+                <h3 className="text-red-300 font-medium mb-6 flex items-center text-xl">
+                  이미지 스타일 선택
+                </h3>
+                {styleReferenceImage && (
+                  <p className="mb-4 rounded-lg border border-amber-300/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+                    참조 이미지 사용 중: 인물/배경 스타일 선택은 비활성화되며 업로드한 이미지 기준으로만 생성됩니다.
+                  </p>
+                )}
+
+                <div className="mb-6">
+                  <div className="mb-3">
+                    <h4 className="text-red-200 font-medium text-base">인물</h4>
+                  </div>
+                  <div className={`grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2 ${styleReferenceImage ? "opacity-50" : ""}`}>
+                    {characterStylesOptions.map((style) => {
+                      const imgUrl = getCharacterStyleImage(style);
+                      return (
+                        <div key={style} className="relative group/preview">
+                          <button
+                            onClick={() => setCharacterStyle(style)}
+                            disabled={Boolean(styleReferenceImage)}
+                            className={`relative w-full aspect-square rounded-lg font-medium text-xs transition-all duration-200 overflow-hidden ${characterStyle === style
+                              ? "ring-2 ring-red-500 shadow-lg scale-[1.02]"
+                              : "hover:ring-1 hover:ring-red-400"
+                              } disabled:cursor-not-allowed disabled:hover:ring-0`}
+                            style={{
+                              backgroundImage: `url('${imgUrl}')`,
+                              backgroundSize: "cover",
+                              backgroundPosition: "center",
+                            }}
+                          >
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
+                            <div className="relative h-full flex items-end p-2 text-left">
+                              <div className="text-white font-semibold text-xs">{style}</div>
+                            </div>
+                          </button>
+                          <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 opacity-0 scale-95 group-hover/preview:opacity-100 group-hover/preview:scale-100 transition-all duration-200">
+                            <div className="w-[260px] aspect-square rounded-xl overflow-hidden shadow-2xl shadow-black/70 border border-white/20 bg-black/90">
+                              <img src={imgUrl} alt={style} className="w-full h-full object-cover" />
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {characterStyle === "custom" && (
+                    <input
+                      type="text"
+                      value={customCharacterStyle}
+                      onChange={(e) => setCustomCharacterStyle(e.target.value)}
+                      disabled={Boolean(styleReferenceImage)}
+                      placeholder="원하는 인물 스타일을 입력하세요 (예: 르네상스, 빅토리아 시대 등)"
+                      className="w-full p-3 bg-black/40 border border-white/20 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors mt-3 text-white text-sm disabled:cursor-not-allowed disabled:opacity-60"
+                    />
+                  )}
+                </div>
+
+                <div className="mb-6">
+                  <div className="mb-3">
+                    <h4 className="text-red-200 font-medium text-base">배경 스타일</h4>
+                  </div>
+                  <div className={`grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2 ${styleReferenceImage ? "opacity-50" : ""}`}>
+                    {backgroundStylesOptions.map((style) => {
+                      const imgUrl = getBackgroundStyleImage(style);
+                      return (
+                        <div key={style} className="relative group/preview">
+                          <button
+                            onClick={() => setBackgroundStyle(style)}
+                            disabled={Boolean(styleReferenceImage)}
+                            className={`w-full aspect-square rounded-lg text-xs font-semibold transition-all border ${backgroundStyle === style
+                              ? "border-red-400 ring-2 ring-red-400/70 text-white shadow-lg"
+                              : "border-white/10 text-white/80 hover:border-red-300/60"
+                              } relative overflow-hidden p-0 disabled:cursor-not-allowed disabled:hover:border-white/10`}
+                            style={{
+                              backgroundImage: `url('${imgUrl}')`,
+                              backgroundSize: "cover",
+                              backgroundPosition: "center",
+                            }}
+                          >
+                            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
+                            <div className="relative h-full flex items-end p-2 text-left">
+                              <div className="text-white font-semibold text-xs">{style}</div>
+                            </div>
+                          </button>
+                          <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 opacity-0 scale-95 group-hover/preview:opacity-100 group-hover/preview:scale-100 transition-all duration-200">
+                            <div className="w-[260px] aspect-square rounded-xl overflow-hidden shadow-2xl shadow-black/70 border border-white/20 bg-black/90">
+                              <img src={imgUrl} alt={style} className="w-full h-full object-cover" />
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {backgroundStyle === "custom" && (
+                    <input
+                      type="text"
+                      value={customBackgroundStyle}
+                      onChange={(e) => setCustomBackgroundStyle(e.target.value)}
+                      disabled={Boolean(styleReferenceImage)}
+                      placeholder="원하는 배경/분위기를 입력하세요 (예: 우주 정거장, 열대 해변 등)"
+                      className="w-full p-3 bg-black/40 border border-white/20 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors mt-3 text-white text-sm disabled:cursor-not-allowed disabled:opacity-60"
+                    />
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-3 pt-4 border-t border-white/10">
+                <h4 className="text-sm font-semibold text-white/80">스타일 참조 이미지 (선택)</h4>
+                <p className="text-xs text-white/50">
+                  참조 이미지를 업로드하면 해당 이미지의 스타일과 톤을 유지하고 컷을 생성합니다.
+                </p>
+
+                {!styleReferenceImage ? (
+                  <div
+                    className={`rounded-lg border-2 border-dashed p-4 text-center outline-none transition-colors ${
+                      isReferenceDropActive
+                        ? "border-red-300 bg-red-500/15"
+                        : "border-red-400/50 bg-red-900/10"
+                    }`}
+                    tabIndex={0}
+                    onPaste={handleStyleReferencePaste}
+                    onDragEnter={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIsReferenceDropActive(true);
+                    }}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIsReferenceDropActive(true);
+                    }}
+                    onDragLeave={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIsReferenceDropActive(false);
+                    }}
+                    onDrop={handleStyleReferenceDrop}
+                  >
+                    <label className="flex w-full cursor-pointer flex-col items-center gap-1 py-4 text-red-200 hover:text-red-100">
+                      <span className="text-xs font-semibold">참조 이미지 업로드</span>
+                      <span className="text-[11px] text-red-200/70">클릭, 드래그 앤 드롭, 또는 붙여넣기(Ctrl+V)</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleStyleReferenceImageChange}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                ) : (
+                  <div className="rounded-lg border border-white/10 bg-black/30 p-3">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={styleReferenceImage}
+                        alt="참조 이미지"
+                        className="h-16 w-16 rounded-lg border border-white/20 object-cover"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-xs text-white/80">
+                          {styleReferenceImageName || "업로드된 참조 이미지"}
+                        </p>
+                        <p className="mt-1 text-[11px] text-green-300">스타일 참조 적용 중</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setStyleReferenceImage(null);
+                          setStyleReferenceImageName("");
+                        }}
+                        className="rounded-lg border border-white/20 bg-white/5 px-3 py-1.5 text-xs font-medium text-white/80 hover:bg-white/10"
+                      >
+                        제거
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         );
       }
       case "image": {
-        const characterStylesOptions = [
-          "실사 극대화",
-          "애니메이션",
-          "동물",
-          "웹툰",
-          "졸라맨",
-        ] as CharacterStyle[];
-        const getCharacterStyleImage = (style: CharacterStyle) =>
-          style === "졸라맨"
-            ? "/stickman.png"
-            : `/${encodeURIComponent(style)}.png`;
-
-        const backgroundStylesOptions = [
-          "감성 멜로",
-          "서부극",
-          "공포 스릴러",
-          "사이버펑크",
-          "판타지",
-          "미니멀",
-          "빈티지",
-          "모던",
-          "1980년대",
-          "2000년대",
-          "먹방",
-          "귀여움",
-          "AI",
-          "괴이함",
-          "창의적인",
-          "조선시대",
-        ] as BackgroundStyle[];
-        const getBackgroundStyleImage = (style: BackgroundStyle) =>
-          `/${encodeURIComponent(style === "AI" ? "ai" : style)}.png`;
-
         if (!chapterScripts || chapterScripts.length === 0) {
           return (
             <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
@@ -3971,189 +4155,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
               </div>
 
               {/* 이미지 스타일 선택 */}
-              <div className="mt-8 bg-black/30 border border-white/10 rounded-xl p-[clamp(1rem,2vw,1.4rem)]">
-                <h3 className="text-red-300 font-medium mb-6 flex items-center text-xl">
-                  이미지 스타일 선택
-                </h3>
-                {styleReferenceImage && (
-                  <p className="mb-4 rounded-lg border border-amber-300/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
-                    참조 이미지 사용 중: 인물/배경 스타일 선택은 비활성화되며 업로드한 이미지 기준으로만 생성됩니다.
-                  </p>
-                )}
-
-                {/* 인물 스타일 */}
-                <div className="mb-6">
-                  <div className="mb-3">
-                    <h4 className="text-red-200 font-medium text-base">인물</h4>
-                  </div>
-                  <div className={`grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2 ${styleReferenceImage ? "opacity-50" : ""}`}>
-                    {characterStylesOptions.map((style) => {
-                      const imgUrl = getCharacterStyleImage(style);
-                      return (
-                        <div key={style} className="relative group/preview">
-                          <button
-                            onClick={() => setCharacterStyle(style)}
-                            disabled={Boolean(styleReferenceImage)}
-                            className={`relative w-full aspect-square rounded-lg font-medium text-xs transition-all duration-200 overflow-hidden ${characterStyle === style
-                              ? "ring-2 ring-red-500 shadow-lg scale-[1.02]"
-                              : "hover:ring-1 hover:ring-red-400"
-                              } disabled:cursor-not-allowed disabled:hover:ring-0`}
-                            style={{
-                              backgroundImage: `url('${imgUrl}')`,
-                              backgroundSize: "cover",
-                              backgroundPosition: "center",
-                            }}
-                          >
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
-                            <div className="relative h-full flex items-end p-2 text-left">
-                              <div className="text-white font-semibold text-xs">{style}</div>
-                            </div>
-                          </button>
-                          <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 opacity-0 scale-95 group-hover/preview:opacity-100 group-hover/preview:scale-100 transition-all duration-200">
-                            <div className="w-[260px] aspect-square rounded-xl overflow-hidden shadow-2xl shadow-black/70 border border-white/20 bg-black/90">
-                              <img src={imgUrl} alt={style} className="w-full h-full object-cover" />
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  {characterStyle === "custom" && (
-                    <input
-                      type="text"
-                      value={customCharacterStyle}
-                      onChange={(e) => setCustomCharacterStyle(e.target.value)}
-                      disabled={Boolean(styleReferenceImage)}
-                      placeholder="원하는 인물 스타일을 입력하세요 (예: 르네상스, 빅토리아 시대 등)"
-                      className="w-full p-3 bg-black/40 border border-white/20 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors mt-3 text-white text-sm disabled:cursor-not-allowed disabled:opacity-60"
-                    />
-                  )}
-                </div>
-
-                {/* 배경/분위기 스타일 */}
-                <div className="mb-6">
-                  <div className="mb-3">
-                    <h4 className="text-red-200 font-medium text-base">배경 스타일</h4>
-                  </div>
-                  <div className={`grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2 ${styleReferenceImage ? "opacity-50" : ""}`}>
-                    {backgroundStylesOptions.map((style) => {
-                      const imgUrl = getBackgroundStyleImage(style);
-                      return (
-                        <div key={style} className="relative group/preview">
-                          <button
-                            onClick={() => setBackgroundStyle(style)}
-                            disabled={Boolean(styleReferenceImage)}
-                            className={`w-full aspect-square rounded-lg text-xs font-semibold transition-all border ${backgroundStyle === style
-                              ? "border-red-400 ring-2 ring-red-400/70 text-white shadow-lg"
-                              : "border-white/10 text-white/80 hover:border-red-300/60"
-                              } relative overflow-hidden p-0 disabled:cursor-not-allowed disabled:hover:border-white/10`}
-                            style={{
-                              backgroundImage: `url('${imgUrl}')`,
-                              backgroundSize: "cover",
-                              backgroundPosition: "center",
-                            }}
-                          >
-                            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
-                            <div className="relative h-full flex items-end p-2 text-left">
-                              <div className="text-white font-semibold text-xs">{style}</div>
-                            </div>
-                          </button>
-                          <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 opacity-0 scale-95 group-hover/preview:opacity-100 group-hover/preview:scale-100 transition-all duration-200">
-                            <div className="w-[260px] aspect-square rounded-xl overflow-hidden shadow-2xl shadow-black/70 border border-white/20 bg-black/90">
-                              <img src={imgUrl} alt={style} className="w-full h-full object-cover" />
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  {backgroundStyle === "custom" && (
-                    <input
-                      type="text"
-                      value={customBackgroundStyle}
-                      onChange={(e) => setCustomBackgroundStyle(e.target.value)}
-                      disabled={Boolean(styleReferenceImage)}
-                      placeholder="원하는 배경/분위기를 입력하세요 (예: 우주 정거장, 열대 해변 등)"
-                      className="w-full p-3 bg-black/40 border border-white/20 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors mt-3 text-white text-sm disabled:cursor-not-allowed disabled:opacity-60"
-                    />
-                  )}
-                </div>
-              </div>
-
-              {/* 일관성 유지 */}
-              <div className="space-y-3 pt-4 border-t border-white/10">
-                <h4 className="text-sm font-semibold text-white/80">일관성 유지 (선택)</h4>
-                <p className="text-xs text-white/50">
-                  참조 이미지를 업로드하면 해당 이미지의 스타일과 톤을 유지하며 컷을 생성합니다.
-                </p>
-
-                {!styleReferenceImage ? (
-                  <div
-                    className={`rounded-lg border-2 border-dashed p-4 text-center outline-none transition-colors ${
-                      isReferenceDropActive
-                        ? "border-red-300 bg-red-500/15"
-                        : "border-red-400/50 bg-red-900/10"
-                    }`}
-                    tabIndex={0}
-                    onPaste={handleStyleReferencePaste}
-                    onDragEnter={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setIsReferenceDropActive(true);
-                    }}
-                    onDragOver={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setIsReferenceDropActive(true);
-                    }}
-                    onDragLeave={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setIsReferenceDropActive(false);
-                    }}
-                    onDrop={handleStyleReferenceDrop}
-                  >
-                    <label className="flex w-full cursor-pointer flex-col items-center gap-1 py-4 text-red-200 hover:text-red-100">
-                      <span className="text-xs font-semibold">참조 이미지 업로드</span>
-                      <span className="text-[11px] text-red-200/70">클릭, 드래그 앤 드롭, 또는 붙여넣기(Ctrl+V)</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleStyleReferenceImageChange}
-                        className="hidden"
-                      />
-                    </label>
-                  </div>
-                ) : (
-                  <div className="rounded-lg border border-white/10 bg-black/30 p-3">
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={styleReferenceImage}
-                        alt="참조 이미지"
-                        className="h-16 w-16 rounded-lg border border-white/20 object-cover"
-                      />
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-xs text-white/80">
-                          {styleReferenceImageName || "업로드된 참조 이미지"}
-                        </p>
-                        <p className="mt-1 text-[11px] text-green-300">일관성 유지 적용 중</p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setStyleReferenceImage(null);
-                          setStyleReferenceImageName("");
-                        }}
-                        className="rounded-lg border border-white/20 bg-white/5 px-3 py-1.5 text-xs font-medium text-white/80 hover:bg-white/10"
-                      >
-                        제거
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* 컷 이미지 생성 */}
               <div className="mt-8">
                 <p className="text-sm text-white/60 mb-4">
                   영상 길이 {resolveRenderDurationSeconds()}초 기준으로 1분당 4컷, 총 {requiredImageCount}장을 생성합니다.
