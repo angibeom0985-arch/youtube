@@ -16,6 +16,8 @@ type VideoResult = {
   channelTitle: string;
   thumbnail: string;
   views: number;
+  likes: number;
+  comments: number;
   subscribers: number;
   durationLabel: string;
   durationSeconds: number;
@@ -626,6 +628,7 @@ const BenchmarkingPage: React.FC = () => {
                     {item.title}
                   </a>
                   <div className="text-sm text-purple-100/70 mt-1">{item.channelTitle} · 조회수 {item.views.toLocaleString()} · 구독자 {item.subscribers.toLocaleString()}</div>
+                  <div className="text-sm text-purple-100/70 mt-1">좋아요 {(item.likes || 0).toLocaleString()} · 댓글 {(item.comments || 0).toLocaleString()}</div>
                 </div>
               </div>
             </div>

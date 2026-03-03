@@ -78,6 +78,8 @@ interface VideoResult {
   durationSeconds: number;
   durationLabel: string;
   views: number;
+  likes: number;
+  comments: number;
   subscribers: number;
   contribution: number;
   link: string;
@@ -289,6 +291,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const snippet = item.snippet || {};
 
         const viewCount = Number(stats.viewCount || 0);
+        const likeCount = Number(stats.likeCount || 0);
+        const commentCount = Number(stats.commentCount || 0);
         const channelId = videoMeta[videoId]?.channelId || "";
         const subs = Number(channelSubs[channelId] || 0);
         const durationSeconds = parseDurationToSeconds(content.duration);
@@ -316,6 +320,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           durationSeconds,
           durationLabel: formatDuration(durationSeconds),
           views: viewCount,
+          likes: likeCount,
+          comments: commentCount,
           subscribers: subs,
           contribution,
           link: `https://www.youtube.com/watch?v=${videoId}`,
