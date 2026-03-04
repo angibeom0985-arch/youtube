@@ -449,8 +449,8 @@ const TtsPage: React.FC = () => {
 
             {/* Acting Prompt Section */}
             <div className={`border rounded-2xl p-6 transition-all duration-500 ${useAIActing ? 'bg-emerald-900/10 border-emerald-500/40 shadow-[0_0_20px_rgba(16,185,129,0.1)]' : 'bg-white/5 border-white/10'}`}>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div className="mb-4 flex flex-wrap items-start justify-between gap-3 sm:flex-nowrap">
+                <div className="flex min-w-0 flex-1 items-center gap-3">
                   <div className={`p-2 rounded-xl ${useAIActing ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'bg-slate-800 text-slate-400'} flex-shrink-0`}>
                     <FiCpu size={20} />
                   </div>
@@ -461,7 +461,7 @@ const TtsPage: React.FC = () => {
                 </div>
                 <button
                   onClick={() => setUseAIActing(!useAIActing)}
-                  className={`relative h-6 w-12 rounded-full transition-colors focus:outline-none flex-shrink-0 ml-4 ${useAIActing ? 'bg-emerald-500' : 'bg-slate-700'}`}
+                  className={`relative h-6 w-12 flex-shrink-0 rounded-full transition-colors focus:outline-none ${useAIActing ? 'bg-emerald-500' : 'bg-slate-700'}`}
                 >
                   <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${useAIActing ? 'translate-x-[1.75rem]' : 'translate-x-1'}`} />
                 </button>
@@ -469,18 +469,18 @@ const TtsPage: React.FC = () => {
 
               {useAIActing && (
                 <div className="mt-4 animate-fadeIn">
-                  <div className="flex gap-2 mb-2">
+                  <div className="mb-2 flex flex-col gap-2 sm:flex-row">
                     <textarea
                       value={actingPrompt}
                       onChange={(e) => setActingPrompt(e.target.value)}
                       placeholder="예: 뉴스 앵커처럼 신뢰감 있게, 슬픈 드라마 주인공처럼 애절하게 (비워두면 대본 분석하여 자동 완성)"
-                      className="flex-1 bg-black/40 border border-emerald-500/20 rounded-xl p-4 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 transition-all leading-relaxed"
+                      className="min-w-0 flex-1 rounded-xl border border-emerald-500/20 bg-black/40 p-4 text-sm leading-relaxed text-white placeholder:text-slate-600 transition-all focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400"
                       rows={2}
                     />
                     <button
                       onClick={handleAutoGeneratePrompt}
                       disabled={generatingPrompt || !text.trim()}
-                      className="px-4 py-2 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-100 rounded-xl text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed self-start"
+                      className="self-start rounded-xl border border-emerald-500/40 bg-emerald-600/20 px-4 py-2 text-sm font-medium text-emerald-100 transition-all hover:bg-emerald-600/30 disabled:cursor-not-allowed disabled:opacity-50 sm:self-auto"
                       title="대본을 분석하여 연기 톤 자동 완성"
                     >
                       {generatingPrompt ? "분석 중..." : "자동 완성"}

@@ -104,19 +104,19 @@ const toTtsErrorMessage = (raw: string): string => {
 // We use pitch and rate combinations to create distinct "virtual personas" from these base models.
 const voiceOptions = [
   // --- 여성 (Female) ---
-  { value: "ko-KR-Neural2-A", label: "지수 (차분한 어조)", gender: "female", type: "Neural2", lang: "ko", presetPitch: 1.2, presetRate: 0.98 },
-  { value: "ko-KR-Wavenet-A", label: "지윤 (안정적인 설명)", gender: "female", type: "Wavenet", lang: "ko", presetPitch: 0.0, presetRate: 1.0 },
-  { value: "ko-KR-Standard-A", label: "미정 (명확한 정보전달)", gender: "female", type: "Standard", lang: "ko", presetPitch: -1.0, presetRate: 0.95 },
-  { value: "ko-KR-Neural2-B", label: "유진 (밝고 경쾌한 리포터)", gender: "female", type: "Neural2", lang: "ko", presetPitch: 2.6, presetRate: 1.05 },
-  { value: "ko-KR-Wavenet-B", label: "소희 (발랄한 브이로그)", gender: "female", type: "Wavenet", lang: "ko", presetPitch: 3.0, presetRate: 1.08 },
-  
+  { value: "ko-KR-Neural2-A", label: "지수 (차분한 어조)", gender: "female", type: "Neural2", lang: "ko", presetPitch: 0.0, presetRate: 1.0 },
+  { value: "ko-KR-Wavenet-A", label: "지윤 (안정적인 설명)", gender: "female", type: "Wavenet", lang: "ko", presetPitch: -5.0, presetRate: 0.90 },
+  { value: "ko-KR-Standard-A", label: "미정 (명확한 정보전달)", gender: "female", type: "Standard", lang: "ko", presetPitch: 5.0, presetRate: 1.15 },
+  { value: "ko-KR-Neural2-B", label: "유진 (밝고 경쾌한 리포터)", gender: "female", type: "Neural2", lang: "ko", presetPitch: 4.0, presetRate: 1.10 },
+  { value: "ko-KR-Wavenet-B", label: "소희 (발랄한 브이로그)", gender: "female", type: "Wavenet", lang: "ko", presetPitch: -4.0, presetRate: 0.95 },
+
   // --- 남성 (Male) ---
-  { value: "ko-KR-Neural2-C", label: "민우 (신뢰감 있는 나레이션)", gender: "male", type: "Neural2", lang: "ko", presetPitch: -1.8, presetRate: 0.98 },
-  { value: "ko-KR-Wavenet-C", label: "지훈 (권위 있는 프레젠테이션)", gender: "male", type: "Wavenet", lang: "ko", presetPitch: -1.2, presetRate: 1.02 },
-  { value: "ko-KR-Standard-C", label: "재훈 (발랄한 진행)", gender: "male", type: "Standard", lang: "ko", presetPitch: -0.6, presetRate: 1.1 },
-  { value: "ko-KR-Wavenet-D", label: "태양 (활기찬 예능/광고)", gender: "male", type: "Wavenet", lang: "ko", presetPitch: -0.4, presetRate: 1.08 },
-  { value: "ko-KR-Standard-D", label: "준서 (차분한 다큐멘터리)", gender: "male", type: "Standard", lang: "ko", presetPitch: -2.8, presetRate: 0.94 },
-  
+  { value: "ko-KR-Neural2-C", label: "민우 (신뢰감 있는 나레이션)", gender: "male", type: "Neural2", lang: "ko", presetPitch: 0.0, presetRate: 1.0 },
+  { value: "ko-KR-Wavenet-C", label: "지훈 (권위 있는 프레젠테이션)", gender: "male", type: "Wavenet", lang: "ko", presetPitch: -6.0, presetRate: 0.85 },
+  { value: "ko-KR-Standard-C", label: "재훈 (발랄한 진행)", gender: "male", type: "Standard", lang: "ko", presetPitch: 6.0, presetRate: 1.20 },
+  { value: "ko-KR-Wavenet-D", label: "태양 (활기찬 예능/광고)", gender: "male", type: "Wavenet", lang: "ko", presetPitch: 4.5, presetRate: 1.15 },
+  { value: "ko-KR-Standard-D", label: "준서 (차분한 다큐멘터리)", gender: "male", type: "Standard", lang: "ko", presetPitch: -5.5, presetRate: 0.90 },
+
   // --- 외국어 (Foreign) ---
   { value: "en-US-Neural2-F", label: "Sarah", gender: "female", type: "Neural2", lang: "en" },
   { value: "en-US-Neural2-D", label: "John", gender: "male", type: "Neural2", lang: "en" },

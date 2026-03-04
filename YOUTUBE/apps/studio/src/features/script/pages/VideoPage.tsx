@@ -178,25 +178,25 @@ type SupportErrorDialog = {
 
 // 확장된 목소리 옵션 (모달용)
 const allVoiceOptions: ExtendedVoiceOption[] = [
-  { name: "민준", label: "신뢰 나레이션", tone: "신뢰감 있는 다큐 스타일", category: "남성", model: "Neural2", googleVoice: "ko-KR-Neural2-C", ssmlGender: "MALE", rate: 0.98, pitch: -1.8, tags: ["신뢰감 있는", "나레이션용"], sampleText: "핵심 데이터부터 차분하게 정리해 드리겠습니다." },
-  { name: "지훈", label: "권위 비즈니스", tone: "프로페셔널 프레젠테이션", category: "남성", model: "Wavenet", googleVoice: "ko-KR-Wavenet-C", ssmlGender: "MALE", rate: 1.02, pitch: -1.2, tags: ["권위 있는", "광고/홍보"], sampleText: "실무에 바로 적용할 전략 세 가지를 말씀드리겠습니다." },
-  { name: "도현", label: "권위 해설", tone: "정중한 해설 톤", category: "남성", model: "Standard", googleVoice: "ko-KR-Standard-C", ssmlGender: "MALE", rate: 0.96, pitch: -2.4, tags: ["권위 있는", "나레이션용"], sampleText: "지금부터 핵심 포인트를 순서대로 짚어보겠습니다." },
-  { name: "태양", label: "발랄 에너지", tone: "활기찬 진행 톤", category: "남성", model: "Wavenet", googleVoice: "ko-KR-Wavenet-D", ssmlGender: "MALE", rate: 1.08, pitch: -0.4, tags: ["발랄한", "광고/홍보"], sampleText: "오늘 영상 진짜 알찬 정보 많으니 끝까지 함께해 주세요!" },
-  { name: "준서", label: "차분 다큐", tone: "깊이 있는 내레이션", category: "남성", model: "Standard", googleVoice: "ko-KR-Standard-D", ssmlGender: "MALE", rate: 0.94, pitch: -2.8, tags: ["차분한", "나레이션용"], sampleText: "데이터를 바탕으로 변화의 흐름을 천천히 살펴보겠습니다." },
-  { name: "동현", label: "신뢰 강연", tone: "리더십 강연 톤", category: "남성", model: "Neural2", googleVoice: "ko-KR-Neural2-C", ssmlGender: "MALE", rate: 1.0, pitch: -1.0, tags: ["신뢰감 있는", "권위 있는"], sampleText: "지금 실행하면 결과가 달라집니다. 방법을 알려드리죠." },
-  { name: "상호", label: "차분 설명", tone: "따뜻한 해설 톤", category: "남성", model: "Wavenet", googleVoice: "ko-KR-Wavenet-D", ssmlGender: "MALE", rate: 0.92, pitch: -3.2, tags: ["차분한", "나레이션용"], sampleText: "복잡한 내용을 쉽고 안정적으로 정리해드리겠습니다." },
-  { name: "재훈", label: "발랄 진행", tone: "경쾌한 진행", category: "남성", model: "Standard", googleVoice: "ko-KR-Standard-C", ssmlGender: "MALE", rate: 1.1, pitch: -0.6, tags: ["발랄한", "광고/홍보"], sampleText: "이 꿀팁들, 바로 써먹을 수 있게 빠르게 알려드릴게요!" },
-  { name: "성민", label: "권위 조언", tone: "묵직한 조언 톤", category: "남성", model: "Standard", googleVoice: "ko-KR-Standard-D", ssmlGender: "MALE", rate: 0.9, pitch: -3.6, tags: ["권위 있는", "신뢰감 있는"], sampleText: "경험에서 나온 현실적인 조언을 전해드리겠습니다." },
+  { name: "민준", label: "신뢰 나레이션", tone: "신뢰감 있는 다큐 스타일", category: "남성", model: "Neural2", googleVoice: "ko-KR-Neural2-C", ssmlGender: "MALE", rate: 0.95, pitch: -6.0, tags: ["신뢰감 있는", "나레이션용"], sampleText: "핵심 데이터부터 차분하게 정리해 드리겠습니다." },
+  { name: "지훈", label: "권위 비즈니스", tone: "프로페셔널 프레젠테이션", category: "남성", model: "Wavenet", googleVoice: "ko-KR-Wavenet-C", ssmlGender: "MALE", rate: 1.0, pitch: 0.0, tags: ["권위 있는", "광고/홍보"], sampleText: "실무에 바로 적용할 전략 세 가지를 말씀드리겠습니다." },
+  { name: "도현", label: "권위 해설", tone: "정중한 해설 톤", category: "남성", model: "Standard", googleVoice: "ko-KR-Standard-C", ssmlGender: "MALE", rate: 0.85, pitch: -8.0, tags: ["권위 있는", "나레이션용"], sampleText: "지금부터 핵심 포인트를 순서대로 짚어보겠습니다." },
+  { name: "태양", label: "발랄 에너지", tone: "활기찬 진행 톤", category: "남성", model: "Wavenet", googleVoice: "ko-KR-Wavenet-D", ssmlGender: "MALE", rate: 1.15, pitch: 5.0, tags: ["발랄한", "광고/홍보"], sampleText: "오늘 영상 진짜 알찬 정보 많으니 끝까지 함께해 주세요!" },
+  { name: "준서", label: "차분 다큐", tone: "깊이 있는 내레이션", category: "남성", model: "Standard", googleVoice: "ko-KR-Standard-D", ssmlGender: "MALE", rate: 0.90, pitch: -5.0, tags: ["차분한", "나레이션용"], sampleText: "데이터를 바탕으로 변화의 흐름을 천천히 살펴보겠습니다." },
+  { name: "동현", label: "신뢰 강연", tone: "리더십 강연 톤", category: "남성", model: "Neural2", googleVoice: "ko-KR-Neural2-C", ssmlGender: "MALE", rate: 1.05, pitch: -3.0, tags: ["신뢰감 있는", "권위 있는"], sampleText: "지금 실행하면 결과가 달라집니다. 방법을 알려드리죠." },
+  { name: "상호", label: "차분 설명", tone: "따뜻한 해설 톤", category: "남성", model: "Wavenet", googleVoice: "ko-KR-Wavenet-D", ssmlGender: "MALE", rate: 0.85, pitch: -7.0, tags: ["차분한", "나레이션용"], sampleText: "복잡한 내용을 쉽고 안정적으로 정리해드리겠습니다." },
+  { name: "재훈", label: "발랄 진행", tone: "경쾌한 진행", category: "남성", model: "Standard", googleVoice: "ko-KR-Standard-C", ssmlGender: "MALE", rate: 1.20, pitch: 7.0, tags: ["발랄한", "광고/홍보"], sampleText: "이 꿀팁들, 바로 써먹을 수 있게 빠르게 알려드릴게요!" },
+  { name: "성민", label: "권위 조언", tone: "묵직한 조언 톤", category: "남성", model: "Standard", googleVoice: "ko-KR-Standard-D", ssmlGender: "MALE", rate: 0.80, pitch: -9.0, tags: ["권위 있는", "신뢰감 있는"], sampleText: "경험에서 나온 현실적인 조언을 전해드리겠습니다." },
 
-  { name: "서연", label: "차분 아나운서", tone: "차분한 뉴스 톤", category: "여성", model: "Wavenet", googleVoice: "ko-KR-Wavenet-A", ssmlGender: "FEMALE", rate: 0.98, pitch: 1.2, tags: ["차분한", "나레이션용"], sampleText: "오늘 영상의 주요 내용을 정확하고 또렷하게 전달해 드립니다." },
-  { name: "유나", label: "발랄 친근", tone: "밝고 친근한 진행", category: "여성", model: "Neural2", googleVoice: "ko-KR-Neural2-A", ssmlGender: "FEMALE", rate: 1.06, pitch: 2.6, tags: ["발랄한", "광고/홍보"], sampleText: "반가워요. 오늘도 재미있고 유익한 내용으로 준비했어요." },
-  { name: "혜진", label: "신뢰 라디오", tone: "안정적인 라디오 톤", category: "여성", model: "Neural2", googleVoice: "ko-KR-Neural2-B", ssmlGender: "FEMALE", rate: 0.96, pitch: 0.8, tags: ["신뢰감 있는", "차분한"], sampleText: "처음 보는 분도 이해하기 쉽게 차근차근 설명해 드릴게요." },
-  { name: "소희", label: "발랄 라이브", tone: "생동감 있는 리액션", category: "여성", model: "Wavenet", googleVoice: "ko-KR-Wavenet-B", ssmlGender: "FEMALE", rate: 1.08, pitch: 3.0, tags: ["발랄한", "광고/홍보"], sampleText: "지금부터 분위기 올려서 핵심만 시원하게 전달하겠습니다!" },
-  { name: "하늘", label: "차분 가이드", tone: "명상 가이드 톤", category: "여성", model: "Standard", googleVoice: "ko-KR-Standard-A", ssmlGender: "FEMALE", rate: 0.94, pitch: 1.6, tags: ["차분한", "나레이션용"], sampleText: "호흡을 고르고 중요한 포인트에 집중해 보겠습니다." },
-  { name: "수아", label: "발랄 쇼호스트", tone: "쇼핑호스트 스타일", category: "여성", model: "Standard", googleVoice: "ko-KR-Standard-B", ssmlGender: "FEMALE", rate: 1.1, pitch: 3.4, tags: ["발랄한", "광고/홍보"], sampleText: "오늘 영상, 바로 써먹을 수 있는 팁만 골라서 보여드릴게요." },
-  { name: "예린", label: "신뢰 브이로그", tone: "가벼운 브이로그 톤", category: "여성", model: "Wavenet", googleVoice: "ko-KR-Wavenet-B", ssmlGender: "FEMALE", rate: 1.04, pitch: 2.4, tags: ["신뢰감 있는", "발랄한"], sampleText: "편하게 보시고 필요한 부분만 쏙 가져가세요." },
-  { name: "미정", label: "권위 설명", tone: "안정적 설명 톤", category: "여성", model: "Standard", googleVoice: "ko-KR-Standard-A", ssmlGender: "FEMALE", rate: 0.92, pitch: 1.0, tags: ["권위 있는", "차분한"], sampleText: "복잡한 내용을 간단한 예시로 명확하게 정리해 드립니다." },
-  { name: "순자", label: "차분 스토리", tone: "따뜻한 이야기 톤", category: "여성", model: "Neural2", googleVoice: "ko-KR-Neural2-B", ssmlGender: "FEMALE", rate: 0.9, pitch: 0.4, tags: ["차분한", "나레이션용"], sampleText: "오래 사랑받는 콘텐츠의 공통점을 따뜻하게 들려드릴게요." },
+  { name: "서연", label: "차분 아나운서", tone: "차분한 뉴스 톤", category: "여성", model: "Wavenet", googleVoice: "ko-KR-Wavenet-A", ssmlGender: "FEMALE", rate: 1.0, pitch: 0.0, tags: ["차분한", "나레이션용"], sampleText: "오늘 영상의 주요 내용을 정확하고 또렷하게 전달해 드립니다." },
+  { name: "유나", label: "발랄 친근", tone: "밝고 친근한 진행", category: "여성", model: "Neural2", googleVoice: "ko-KR-Neural2-A", ssmlGender: "FEMALE", rate: 1.15, pitch: 5.0, tags: ["발랄한", "광고/홍보"], sampleText: "반가워요. 오늘도 재미있고 유익한 내용으로 준비했어요." },
+  { name: "혜진", label: "신뢰 라디오", tone: "안정적인 라디오 톤", category: "여성", model: "Neural2", googleVoice: "ko-KR-Neural2-B", ssmlGender: "FEMALE", rate: 0.90, pitch: -4.0, tags: ["신뢰감 있는", "차분한"], sampleText: "처음 보는 분도 이해하기 쉽게 차근차근 설명해 드릴게요." },
+  { name: "소희", label: "발랄 라이브", tone: "생동감 있는 리액션", category: "여성", model: "Wavenet", googleVoice: "ko-KR-Wavenet-B", ssmlGender: "FEMALE", rate: 1.20, pitch: 6.0, tags: ["발랄한", "광고/홍보"], sampleText: "지금부터 분위기 올려서 핵심만 시원하게 전달하겠습니다!" },
+  { name: "하늘", label: "차분 가이드", tone: "명상 가이드 톤", category: "여성", model: "Standard", googleVoice: "ko-KR-Standard-A", ssmlGender: "FEMALE", rate: 0.85, pitch: -6.0, tags: ["차분한", "나레이션용"], sampleText: "호흡을 고르고 중요한 포인트에 집중해 보겠습니다." },
+  { name: "수아", label: "발랄 쇼호스트", tone: "쇼핑호스트 스타일", category: "여성", model: "Standard", googleVoice: "ko-KR-Standard-B", ssmlGender: "FEMALE", rate: 1.25, pitch: 8.0, tags: ["발랄한", "광고/홍보"], sampleText: "오늘 영상, 바로 써먹을 수 있는 팁만 골라서 보여드릴게요." },
+  { name: "예린", label: "신뢰 브이로그", tone: "가벼운 브이로그 톤", category: "여성", model: "Wavenet", googleVoice: "ko-KR-Wavenet-B", ssmlGender: "FEMALE", rate: 1.05, pitch: 2.0, tags: ["신뢰감 있는", "발랄한"], sampleText: "편하게 보시고 필요한 부분만 쏙 가져가세요." },
+  { name: "미정", label: "권위 설명", tone: "안정적 설명 톤", category: "여성", model: "Standard", googleVoice: "ko-KR-Standard-A", ssmlGender: "FEMALE", rate: 0.95, pitch: -2.0, tags: ["권위 있는", "차분한"], sampleText: "복잡한 내용을 간단한 예시로 명확하게 정리해 드립니다." },
+  { name: "순자", label: "차분 스토리", tone: "따뜻한 이야기 톤", category: "여성", model: "Neural2", googleVoice: "ko-KR-Neural2-B", ssmlGender: "FEMALE", rate: 0.80, pitch: -8.0, tags: ["차분한", "나레이션용"], sampleText: "오래 사랑받는 콘텐츠의 공통점을 따뜻하게 들려드릴게요." },
 
   // ko-KR Studio 단일 보이스는 현재 공식 표에서 확인되지 않아 Standard로 안전 폴백됩니다.
   { name: "서윤", label: "Studio 뉴스", tone: "방송형 차분 톤", category: "여성", model: "Studio", googleVoice: "ko-KR-Studio-A", ssmlGender: "FEMALE", rate: 1.0, pitch: 1.0, tags: ["차분한", "권위 있는"], sampleText: "스튜디오 톤으로 또렷한 뉴스 전달감을 제공합니다.", availability: "fallback", fallbackVoice: "ko-KR-Standard-A" },
@@ -332,8 +332,8 @@ const SortableCategoryChip: React.FC<SortableCategoryChipProps> = ({
       {...listeners}
       onClick={() => onSelect(category)}
       className={`rounded-full border px-3 py-2 text-xs font-semibold transition cursor-grab active:cursor-grabbing touch-none ${isSelected
-          ? "border-red-400 bg-red-500/15 text-red-200"
-          : "border-white/15 bg-black/30 text-white/70 hover:border-white/30"
+        ? "border-red-400 bg-red-500/15 text-red-200"
+        : "border-white/15 bg-black/30 text-white/70 hover:border-white/30"
         }`}
       title="드래그해서 순서 변경"
     >
@@ -3663,19 +3663,19 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                               onClick={(e) => e.stopPropagation()}
                             >
                               <div className="sticky top-0 bg-gradient-to-br from-zinc-900 to-zinc-800 border-b border-white/10 px-6 py-4 flex items-center justify-between z-10">
-                              <div>
-                                <h3 className="text-xl font-bold text-white">TTS 선택</h3>
-                                <p className="text-xs text-white/60 mt-1">{sanitizeCorruptedText(chapter.title, `챕터 ${index + 1}`)}</p>
+                                <div>
+                                  <h3 className="text-xl font-bold text-white">TTS 선택</h3>
+                                  <p className="text-xs text-white/60 mt-1">{sanitizeCorruptedText(chapter.title, `챕터 ${index + 1}`)}</p>
+                                </div>
+                                <button
+                                  onClick={() => setShowVoiceModal(false)}
+                                  className="p-2 rounded-full hover:bg-white/10 transition-colors"
+                                >
+                                  <svg className="w-5 h-5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                  </svg>
+                                </button>
                               </div>
-                              <button
-                                onClick={() => setShowVoiceModal(false)}
-                                className="p-2 rounded-full hover:bg-white/10 transition-colors"
-                              >
-                                <svg className="w-5 h-5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                              </button>
-                            </div>
 
                               <div className="h-[calc(100%-78px)] overflow-y-auto p-6 space-y-4">
                                 <div className="rounded-xl border border-white/10 bg-black/30 p-3 space-y-3">
@@ -3746,11 +3746,10 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                           e.stopPropagation();
                                           toggleFavoriteVoice(voice.name);
                                         }}
-                                        className={`flex-shrink-0 w-8 h-8 rounded-full border transition ${
-                                          isFavoriteVoice(voice.name)
+                                        className={`flex-shrink-0 w-8 h-8 rounded-full border transition ${isFavoriteVoice(voice.name)
                                             ? "border-amber-300 bg-amber-500/25 text-amber-200"
                                             : "border-white/20 bg-white/5 text-white/70 hover:border-amber-300/50"
-                                        }`}
+                                          }`}
                                         title={isFavoriteVoice(voice.name) ? "즐겨찾기 해제" : "즐겨찾기 등록"}
                                       >
                                         {isFavoriteVoice(voice.name) ? "★" : "☆"}
@@ -4025,11 +4024,10 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
                 {!styleReferenceImage ? (
                   <div
-                    className={`rounded-lg border-2 border-dashed p-4 text-center outline-none transition-colors ${
-                      isReferenceDropActive
+                    className={`rounded-lg border-2 border-dashed p-4 text-center outline-none transition-colors ${isReferenceDropActive
                         ? "border-red-300 bg-red-500/15"
                         : "border-red-400/50 bg-red-900/10"
-                    }`}
+                      }`}
                     tabIndex={0}
                     onPaste={handleStyleReferencePaste}
                     onDragEnter={(e) => {
