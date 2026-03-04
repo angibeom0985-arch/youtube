@@ -1,4 +1,4 @@
-
+﻿
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
@@ -2183,7 +2183,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         title: "지금 할 일",
         items: [
           "롱폼 또는 숏폼 카드 중 하나를 선택하세요.",
-          "선택이 끝나면 하단의 `다음 단계` 버튼을 누르세요.",
+          "선택이 끝나면 하단의 다음 단계 버튼을 누르세요.",
         ],
       };
     }
@@ -2193,9 +2193,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         return {
           title: "대본 입력 순서",
           items: [
-            "벤치마킹할 원본 대본을 `대본 내용` 칸에 붙여넣으세요.",
+            "벤치마킹할 원본 대본을 대본 내용 칸에 붙여넣으세요.",
             "필요하면 제목/카테고리/길이를 먼저 설정하세요.",
-            "`다음 단계`를 눌러 분석 단계로 이동하세요.",
+            "다음 단계를 눌러 분석 단계로 이동하세요.",
           ],
         };
       }
@@ -2205,7 +2205,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
           items: [
             "2단계에 진입하면 대본 구조 분석이 자동으로 시작됩니다.",
             "분석과 추천 주제가 생성될 때까지 기다리세요.",
-            "완료되면 `다음 단계`를 눌러 주제 선택으로 이동하세요.",
+            "완료되면 다음 단계를 눌러 주제 선택으로 이동하세요.",
           ],
         };
       }
@@ -2215,7 +2215,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
           items: [
             "영상 길이와 대본 스타일을 먼저 선택하세요.",
             "추천 주제를 선택하거나 직접 주제를 입력하세요.",
-            "선택이 끝나면 하단 `다음 단계` 버튼을 눌러 대본 생성을 시작하세요.",
+            "선택이 끝나면 하단 다음 단계 버튼을 눌러 대본 생성을 시작하세요.",
           ],
         };
       }
@@ -2224,7 +2224,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         items: [
           "생성된 대본 내용을 챕터별로 확인하세요.",
           "필요하면 챕터별/전체 대본 다운로드를 누르세요.",
-          "작업이 끝나면 하단 `다음 단계`로 이동하세요.",
+          "작업이 끝나면 하단 다음 단계로 이동하세요.",
         ],
       };
     }
@@ -2235,7 +2235,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         items: [
           "챕터별 음성을 선택하고 필요한 경우 미리듣기를 하세요.",
           "대본을 확인한 뒤 음성 생성 버튼을 눌러 저장하세요.",
-          "완료 후 `다음 단계`로 이동하세요.",
+          "완료 후 다음 단계로 이동하세요.",
         ],
       };
     }
@@ -2244,9 +2244,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       return {
         title: "페르소나 생성 순서",
         items: [
-          "대본 내용을 확인한 뒤 `페르소나 생성` 버튼을 누르세요.",
+          "대본 내용을 확인한 뒤 페르소나 생성 버튼을 누르세요.",
           "생성된 페르소나 이미지를 확인하세요.",
-          "완료 후 `다음 단계`로 이동하세요.",
+          "완료 후 다음 단계로 이동하세요.",
         ],
       };
     }
@@ -2256,8 +2256,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         title: "이미지 생성 순서",
         items: [
           "챕터/컷별 장면 내용을 확인하세요.",
-          "`이미지 생성` 또는 `전체 컷 이미지 생성`을 눌러 이미지를 만드세요.",
-          "필요 시 `전체 이미지 저장` 후 다음 단계로 이동하세요.",
+          "이미지 생성 또는 전체 컷 이미지 생성을 눌러 이미지를 만드세요.",
+          "필요 시 전체 이미지 저장 후 다음 단계로 이동하세요.",
         ],
       };
     }
@@ -2267,7 +2267,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         title: "영상 생성 순서",
         items: [
           "영상 프롬프트를 입력하세요.",
-          "`영상 생성하기` 또는 `영상 생성 요청하기` 버튼을 누르세요.",
+          "영상 생성하기 또는 영상 생성 요청하기 버튼을 누르세요.",
           "결과 미리보기를 확인한 뒤 다음 단계로 이동하세요.",
         ],
       };
@@ -5015,5 +5015,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 };
 
 export default VideoPage;
+
 
 
