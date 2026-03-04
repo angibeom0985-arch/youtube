@@ -4879,7 +4879,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       <span className="mt-[1px] inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-red-200/40 bg-red-500/20 text-xs font-bold text-red-100">
                         {index + 1}
                       </span>
-                      <span>{item}</span>
+                      <span>{item.replace(/[`"'‘’“”]/g, "")}</span>
                     </div>
                   ))}
                 </div>
