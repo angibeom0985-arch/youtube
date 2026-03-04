@@ -149,7 +149,7 @@ const voiceOptions = [
 ];
 
 type VoiceModel = "Neural2" | "Wavenet" | "Standard" | "Studio";
-type VoiceGender = "남성" | "여성";
+type VoiceGender = "남성" | "여성" | "중성";
 type VoiceTag =
   | "신뢰감 있는"
   | "발랄한"
@@ -172,8 +172,6 @@ type ExtendedVoiceOption = {
   pitch: number;
   tags: VoiceTag[];
   sampleText: string;
-  availability?: "available" | "fallback";
-  fallbackVoice?: string;
 };
 
 type SupportErrorDialog = {
@@ -182,6 +180,19 @@ type SupportErrorDialog = {
   message: string;
   troubleshooting: string[];
   reportText: string;
+};
+
+const getCloudVoiceFeature = (suffix: string): string => {
+  const key = String(suffix || "").toUpperCase();
+  return key === "A"
+    ? "차분한 안내형"
+    : key === "B"
+      ? "밝은 진행형"
+      : key === "C"
+        ? "신뢰 해설형"
+        : key === "D"
+          ? "묵직한 다큐형"
+          : "균형형 내레이션";
 };
 
 // 확장된 목소리 옵션 (모달용)
@@ -206,11 +217,6 @@ const allVoiceOptions: ExtendedVoiceOption[] = [
   { name: "미정", label: "권위 설명", tone: "안정적 설명 톤", category: "여성", model: "Standard", googleVoice: "ko-KR-Standard-A", ssmlGender: "FEMALE", rate: 0.95, pitch: -2.0, tags: ["권위 있는", "차분한"], sampleText: "복잡한 내용을 간단한 예시로 명확하게 정리해 드립니다." },
   { name: "순자", label: "차분 스토리", tone: "따뜻한 이야기 톤", category: "여성", model: "Neural2", googleVoice: "ko-KR-Neural2-B", ssmlGender: "FEMALE", rate: 0.80, pitch: -8.0, tags: ["차분한", "나레이션용"], sampleText: "오래 사랑받는 콘텐츠의 공통점을 따뜻하게 들려드릴게요." },
 
-  // ko-KR Studio 단일 보이스는 현재 공식 표에서 확인되지 않아 Standard로 안전 폴백됩니다.
-  { name: "서윤", label: "Studio 뉴스", tone: "방송형 차분 톤", category: "여성", model: "Studio", googleVoice: "ko-KR-Studio-A", ssmlGender: "FEMALE", rate: 1.0, pitch: 1.0, tags: ["차분한", "권위 있는"], sampleText: "스튜디오 톤으로 또렷한 뉴스 전달감을 제공합니다.", availability: "fallback", fallbackVoice: "ko-KR-Standard-A" },
-  { name: "지안", label: "Studio 내레이션", tone: "깊이 있는 도큐 톤", category: "여성", model: "Studio", googleVoice: "ko-KR-Studio-B", ssmlGender: "FEMALE", rate: 0.96, pitch: 0.8, tags: ["신뢰감 있는", "나레이션용"], sampleText: "차분한 흐름으로 내용 몰입도를 높여드리겠습니다.", availability: "fallback", fallbackVoice: "ko-KR-Standard-B" },
-  { name: "건우", label: "Studio 브리핑", tone: "권위 있는 브리핑 톤", category: "남성", model: "Studio", googleVoice: "ko-KR-Studio-C", ssmlGender: "MALE", rate: 0.98, pitch: -1.2, tags: ["권위 있는", "신뢰감 있는"], sampleText: "핵심 사실을 중심으로 명확하게 브리핑하겠습니다.", availability: "fallback", fallbackVoice: "ko-KR-Standard-C" },
-  { name: "시우", label: "Studio 광고", tone: "고급 광고 내레이션", category: "남성", model: "Studio", googleVoice: "ko-KR-Studio-D", ssmlGender: "MALE", rate: 1.04, pitch: -0.4, tags: ["광고/홍보", "발랄한"], sampleText: "고급스러운 톤으로 브랜드 메시지를 전달해드립니다.", availability: "fallback", fallbackVoice: "ko-KR-Standard-D" },
 ];
 
 const escapeSsmlText = (text: string): string =>
@@ -301,9 +307,22 @@ const mapCloudVoiceToExtendedOption = (voice: any): ExtendedVoiceOption | null =
   if (!googleVoice || !langCode.startsWith("ko")) return null;
 
   const ssmlGenderRaw = String(voice?.ssmlGender || "").toUpperCase();
+  const letterMatch = googleVoice.match(/-([A-D])$/i);
+  const suffixLetter = letterMatch?.[1]?.toUpperCase() || "";
+  const inferredGender: SsmlGender =
+    suffixLetter === "B" || suffixLetter === "C"
+      ? "MALE"
+      : suffixLetter === "A" || suffixLetter === "D"
+        ? "FEMALE"
+        : "NEUTRAL";
   const ssmlGender: SsmlGender =
-    ssmlGenderRaw === "MALE" ? "MALE" : ssmlGenderRaw === "FEMALE" ? "FEMALE" : "NEUTRAL";
-  const category: VoiceGender = ssmlGender === "MALE" ? "남성" : "여성";
+    ssmlGenderRaw === "MALE"
+      ? "MALE"
+      : ssmlGenderRaw === "FEMALE"
+        ? "FEMALE"
+        : inferredGender;
+  const category: VoiceGender =
+    ssmlGender === "MALE" ? "남성" : ssmlGender === "FEMALE" ? "여성" : "중성";
   const model: VoiceModel =
     googleVoice.includes("Neural2")
       ? "Neural2"
@@ -313,19 +332,21 @@ const mapCloudVoiceToExtendedOption = (voice: any): ExtendedVoiceOption | null =
           ? "Studio"
           : "Standard";
   const suffix = googleVoice.split("-").pop() || googleVoice;
-  const compactName = `클라우드 ${suffix}`.replace(/[^0-9A-Za-z가-힣\s]/g, "").trim();
-  const name = compactName || googleVoice;
+  const compactSuffix = String(suffix).replace(/[^0-9A-Za-z가-힣]/g, "").trim();
+  const baseName = `클라우드 ${compactSuffix || googleVoice}`.trim();
+  const name = baseName || googleVoice;
+  const feature = getCloudVoiceFeature(suffix);
 
   return {
     name,
-    label: `${category} ${model} ${suffix}`,
-    tone: "Google Cloud 실시간 음성",
+    label: feature,
+    tone: feature,
     category,
     model,
     googleVoice,
     ssmlGender,
     rate: 1.0,
-    pitch: ssmlGender === "MALE" ? -1.5 : 1.5,
+    pitch: ssmlGender === "MALE" ? -1.5 : ssmlGender === "FEMALE" ? 1.5 : 0,
     tags: ["나레이션용"],
     sampleText: "안녕하세요. Google Cloud 음성 샘플입니다.",
   };
@@ -1675,7 +1696,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
   const ENABLE_BROWSER_TTS_FALLBACK = false;
   const PREVIEW_FALLBACK_DELAY_MS = 900;
-  const strictVoiceProfileMap: Record<string, { voice: string; ssmlGender: SsmlGender; rate: number; pitch: number; fallbackVoice?: string }> =
+  const strictVoiceProfileMap: Record<string, { voice: string; ssmlGender: SsmlGender; rate: number; pitch: number }> =
     useMemo(
       () =>
         Object.fromEntries(
@@ -1686,14 +1707,13 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
               ssmlGender: voice.ssmlGender,
               rate: voice.rate,
               pitch: voice.pitch,
-              fallbackVoice: voice.fallbackVoice,
             },
           ])
         ),
       [availableVoiceOptions]
     );
   const stripGenderPrefix = (label: string): string =>
-    String(label || "").replace(/^(?:\uB0A8\uC131|\uC5EC\uC131)\s*/, "").trim();
+    String(label || "").replace(/^(?:\uB0A8\uC131|\uC5EC\uC131|\uC911\uC131)\s*/, "").trim();
   const resolveAvailableVoiceMeta = useCallback(
     (voiceName: string) => availableVoiceOptions.find((voice) => voice.name === voiceName) || null,
     [availableVoiceOptions]
@@ -1838,7 +1858,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       : (voiceStyleMap[voiceName] || { rate: 1, pitch: 0 });
     const isMaleVoice = maleVoiceNames.test(voiceName);
     const adjustedPitch = style.pitch !== 0 ? style.pitch : (isMaleVoice ? -2 : 2);
-    utterance.rate = Math.min(1.4, Math.max(0.8, ttsSpeed * style.rate));
+    utterance.rate = Math.min(2.0, Math.max(0.8, ttsSpeed * style.rate));
     utterance.pitch = Math.min(2, Math.max(0, 1 + adjustedPitch * 0.15));
 
     const voices = synth.getVoices();
@@ -1970,7 +1990,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
             ssml,
             voice: googleVoice,
             ssmlGender,
-            speakingRate: Math.min(1.4, Math.max(0.8, presetAdjustedRate)),
+            speakingRate: Math.min(2.0, Math.max(0.8, presetAdjustedRate)),
             pitch: presetAdjustedPitch,
             preview: true,
           }),
@@ -4027,14 +4047,21 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       <optgroup label="남성">
                         {availableVoiceOptions.filter(v => v.category === "남성").map((voice) => (
                           <option key={voice.name} value={voice.name}>
-                            {voice.name} · {stripGenderPrefix(voice.label)}
+                            {voice.name} · {voice.tone}
                           </option>
                         ))}
                       </optgroup>
                       <optgroup label="여성">
                         {availableVoiceOptions.filter(v => v.category === "여성").map((voice) => (
                           <option key={voice.name} value={voice.name}>
-                            {voice.name} · {stripGenderPrefix(voice.label)}
+                            {voice.name} · {voice.tone}
+                          </option>
+                        ))}
+                      </optgroup>
+                      <optgroup label="중성">
+                        {availableVoiceOptions.filter(v => v.category === "중성").map((voice) => (
+                          <option key={voice.name} value={voice.name}>
+                            {voice.name} · {voice.tone}
                           </option>
                         ))}
                       </optgroup>
@@ -4158,7 +4185,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                   >
                                     {availableVoiceOptions.map((voice) => (
                                       <option key={voice.name} value={voice.name}>
-                                        {voice.name} · {stripGenderPrefix(voice.label)}
+                                        {voice.name} · {voice.tone}
                                       </option>
                                     ))}
                                   </select>
@@ -4186,7 +4213,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                             <input
                               type="range"
                               min={0.7}
-                              max={1.3}
+                              max={2.0}
                               step={0.1}
                               value={ttsSpeed}
                               onChange={(e) => setTtsSpeed(Number(e.target.value))}
@@ -4277,7 +4304,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                               <div className="h-[calc(100%-78px)] overflow-y-auto p-6 space-y-4">
                                 <div className="rounded-xl border border-white/10 bg-black/30 p-3 space-y-3">
                                   <div className="flex flex-wrap gap-2">
-                                    {(["전체", "남성", "여성"] as const).map((gender) => (
+                                    {(["전체", "남성", "여성", "중성"] as const).map((gender) => (
                                       <button
                                         key={gender}
                                         type="button"
@@ -4353,16 +4380,15 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                       </button>
                                       <div className="flex-1 text-left min-w-0">
                                         <p className="text-base font-bold text-white group-hover:text-red-300 transition-colors">{voice.name}</p>
-                                        <p className="text-xs text-white/60 mt-0.5 truncate">{stripGenderPrefix(voice.label)} · {voice.tone}</p>
+                                        <p className="text-xs text-white/60 mt-0.5 truncate">
+                                          {stripGenderPrefix(voice.label) === voice.tone
+                                            ? voice.tone
+                                            : `${stripGenderPrefix(voice.label)} · ${voice.tone}`}
+                                        </p>
                                         <div className="mt-1 flex flex-wrap gap-1">
                                           <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white/70">{voice.category}</span>
                                           <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white/70">{voice.model}</span>
                                           <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white/70">{resolveVoicePreset(voice)}</span>
-                                          {voice.availability === "fallback" && (
-                                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-200">
-                                              자동 폴백
-                                            </span>
-                                          )}
                                         </div>
                                       </div>
                                     </button>
