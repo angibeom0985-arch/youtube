@@ -3191,7 +3191,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         />
                       )}
 
-                      {showAnalysisDetails && scriptAnalysis?.scriptStructure && (
+                      {scriptAnalysis?.scriptStructure && (
                         <div className="rounded-2xl border border-white/10 bg-black/30 p-5 text-sm text-white/70">
                           <div className="mb-4 pb-3 border-b border-white/10">
                             <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
