@@ -802,6 +802,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [rendering, setRendering] = useState(false);
   const [renderingStatus, setRenderingStatus] = useState<string | null>(null);
   const [renderingProgress, setRenderingProgress] = useState(0);
+  const [isExportingSrt, setIsExportingSrt] = useState(false);
+  const [isExportingTtsMp3, setIsExportingTtsMp3] = useState(false);
   const [videoPrompt, setVideoPrompt] = useState("");
   const [isGeneratingVideo, setIsGeneratingVideo] = useState(false);
   const [generatedVideoUrl, setGeneratedVideoUrl] = useState("");
@@ -1702,6 +1704,123 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     downloadBlob(new Blob([content], { type: "text/plain;charset=utf-8" }),
       `${projectTitle || "video"}-edit-notes.txt`
     );
+  };
+
+  const formatSrtTimestamp = (ms: number): string => {
+    const safe = Math.max(0, Math.floor(ms));
+    const hours = Math.floor(safe / 3600000);
+    const minutes = Math.floor((safe % 3600000) / 60000);
+    const seconds = Math.floor((safe % 60000) / 1000);
+    const millis = safe % 1000;
+    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")},${String(millis).padStart(3, "0")}`;
+  };
+
+  const buildSubtitleLines = (): string[] => {
+    const chapterLines = chapterScripts
+      .flatMap((chapter) =>
+        String(chapter.content || "")
+          .split(/\r?\n/)
+          .map((line) => stripNarrationPrefix(line).trim())
+          .filter(Boolean)
+      );
+    if (chapterLines.length > 0) return chapterLines;
+    return String(ttsScript || "")
+      .split(/\r?\n/)
+      .map((line) => stripNarrationPrefix(line).trim())
+      .filter(Boolean);
+  };
+
+  const handleDownloadSrt = () => {
+    const lines = buildSubtitleLines();
+    if (lines.length === 0) {
+      alert("SRT로 변환할 대본이 없습니다.");
+      return;
+    }
+
+    setIsExportingSrt(true);
+    try {
+      const totalDurationMs = Math.max(10000, Number(renderDuration || 0) * 1000 || 60000);
+      const weights = lines.map((line) => Math.max(1, line.replace(/\s+/g, "").length));
+      const totalWeight = weights.reduce((sum, w) => sum + w, 0) || 1;
+      const minCueMs = 1200;
+
+      const rawDurations = weights.map((w) => Math.max(minCueMs, (totalDurationMs * w) / totalWeight));
+      const rawTotal = rawDurations.reduce((sum, d) => sum + d, 0) || totalDurationMs;
+      const scale = totalDurationMs / rawTotal;
+      const durations = rawDurations.map((d) => Math.max(minCueMs, Math.floor(d * scale)));
+
+      let cursor = 0;
+      const cues = lines.map((line, idx) => {
+        const start = cursor;
+        const end = idx === lines.length - 1 ? totalDurationMs : Math.min(totalDurationMs, start + durations[idx]);
+        cursor = end;
+        return `${idx + 1}\n${formatSrtTimestamp(start)} --> ${formatSrtTimestamp(end)}\n${line}\n`;
+      });
+
+      const baseName = (projectTitle || "video").trim().replace(/[^\w\-가-힣]+/g, "_");
+      downloadBlob(
+        new Blob([cues.join("\n")], { type: "application/x-subrip;charset=utf-8" }),
+        `${baseName || "video"}-subtitle.srt`
+      );
+    } finally {
+      setIsExportingSrt(false);
+    }
+  };
+
+  const handleDownloadTtsMp3 = async () => {
+    const text = buildSubtitleLines().join(" ").replace(/\s+/g, " ").trim();
+    if (!text) {
+      alert("MP3로 생성할 대본이 없습니다.");
+      return;
+    }
+
+    setIsExportingTtsMp3(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error("로그인이 필요합니다.");
+      }
+
+      const strictProfile = strictVoiceProfileMap[selectedVoice];
+      const voice = strictProfile?.voice || "ko-KR-Standard-A";
+      const ssmlGender = strictProfile?.ssmlGender || "FEMALE";
+      const speakingRate = Math.min(2.0, Math.max(0.8, ttsSpeed * (strictProfile?.rate || 1)));
+      const pitch = strictProfile?.pitch || 0;
+
+      const response = await fetch("/api/tts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          text,
+          voice,
+          ssmlGender,
+          speakingRate,
+          pitch,
+          preview: false,
+        }),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok || !payload?.audioContent) {
+        throw new Error(String(payload?.message || "mp3_generation_failed"));
+      }
+
+      const binary = atob(String(payload.audioContent));
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i += 1) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      const baseName = (projectTitle || "video").trim().replace(/[^\w\-가-힣]+/g, "_");
+      downloadBlob(new Blob([bytes], { type: "audio/mpeg" }), `${baseName || "video"}-tts.mp3`);
+    } catch (error) {
+      console.error("MP3 생성 오류:", error);
+      alert("MP3 생성 중 오류가 발생했습니다. API 키/권한을 확인해 주세요.");
+    } finally {
+      setIsExportingTtsMp3(false);
+    }
   };
 
   const handleGenerateTts = () => {
@@ -5342,6 +5461,24 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         >
                           편집 노트 다운로드
                         </button>
+                        <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                          <button
+                            type="button"
+                            onClick={handleDownloadSrt}
+                            disabled={isExportingSrt}
+                            className="rounded-lg border border-cyan-500/60 bg-cyan-500/10 px-3 py-2 text-xs font-semibold text-cyan-100 hover:bg-cyan-500/20 disabled:opacity-60"
+                          >
+                            {isExportingSrt ? "SRT 생성 중..." : "자막 SRT 다운로드"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleDownloadTtsMp3}
+                            disabled={isExportingTtsMp3}
+                            className="rounded-lg border border-emerald-500/60 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-100 hover:bg-emerald-500/20 disabled:opacity-60"
+                          >
+                            {isExportingTtsMp3 ? "MP3 생성 중..." : "TTS MP3 다운로드"}
+                          </button>
+                        </div>
                       </div>
 
                       <div className="rounded-xl border border-slate-700 bg-[#0f1728] p-3">
