@@ -3645,8 +3645,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                       <div className="space-y-3 max-h-[400px] overflow-y-auto p-3 bg-black/40 rounded-lg">
                                         {chapter.script.map((line, lineIndex) => (
                                           <div key={`${chapter.id}-${lineIndex}`}>
-                                            <div className="flex items-start gap-3">
-                                              <div className="w-24 flex-shrink-0 pt-0.5">
+                                            <div className="grid grid-cols-1 gap-2 rounded-lg border border-white/10 bg-black/30 p-2 sm:grid-cols-[130px_minmax(0,1fr)] sm:gap-0">
+                                              <div className="rounded-md bg-white/5 px-3 py-2 sm:rounded-none sm:bg-transparent sm:px-2 sm:py-1">
                                                 <span className={`font-bold text-sm ${characterColorMap.get(line.character) || "text-orange-400"}`}>
                                                   {line.character}
                                                 </span>
@@ -3656,7 +3656,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                                   </div>
                                                 )}
                                               </div>
-                                              <div className="flex-1 text-sm text-white/90 leading-relaxed">
+                                              <div className="border-t border-white/10 pt-2 text-sm text-white/90 leading-relaxed whitespace-pre-wrap sm:border-t-0 sm:border-l sm:border-white/10 sm:pl-4 sm:pt-0">
                                                 {line.line}
                                               </div>
                                             </div>
@@ -3730,8 +3730,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                               <div className="space-y-3 max-h-[500px] overflow-y-auto p-3 bg-black/40 rounded-lg">
                                 {generatedPlan.scriptWithCharacters.map((line, lineIndex) => (
                                   <div key={`script-${lineIndex}`}>
-                                    <div className="flex items-start gap-3">
-                                      <div className="w-24 flex-shrink-0 pt-0.5">
+                                    <div className="grid grid-cols-1 gap-2 rounded-lg border border-white/10 bg-black/30 p-2 sm:grid-cols-[130px_minmax(0,1fr)] sm:gap-0">
+                                      <div className="rounded-md bg-white/5 px-3 py-2 sm:rounded-none sm:bg-transparent sm:px-2 sm:py-1">
                                         <span className={`font-bold text-sm ${characterColorMap.get(line.character) || "text-orange-400"}`}>
                                           {line.character}
                                         </span>
@@ -3741,7 +3741,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                           </div>
                                         )}
                                       </div>
-                                      <div className="flex-1 text-sm text-white/90 leading-relaxed">
+                                      <div className="border-t border-white/10 pt-2 text-sm text-white/90 leading-relaxed whitespace-pre-wrap sm:border-t-0 sm:border-l sm:border-white/10 sm:pl-4 sm:pt-0">
                                         {line.line}
                                       </div>
                                     </div>
