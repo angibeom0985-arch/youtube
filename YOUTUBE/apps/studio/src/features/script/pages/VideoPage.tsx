@@ -704,6 +704,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
   const progressTimerRef = useRef<number | null>(null);
   const stopBatchGenerationRef = useRef(false);
+  const autoAnalyzeKeyRef = useRef("");
   const [characterColorMap, setCharacterColorMap] = useState<Map<string, string>>(new Map());
   const recommendedImagePrompt = useMemo(() => {
     const chapterText = chapterScripts.map((chapter) => chapter.content).join(" ");
@@ -2471,6 +2472,22 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       setAnalyzeProgress({ ...analyzeProgress, currentStep: 0 });
     }
   };
+
+  useEffect(() => {
+    const isScriptAnalyzeStep = steps[currentStep]?.id === "script" && scriptSubStep === 1;
+    if (!isScriptAnalyzeStep) {
+      autoAnalyzeKeyRef.current = "";
+      return;
+    }
+    if (isAnalyzingScript) return;
+    if (!scriptDraft.trim()) return;
+
+    const analysisKey = `${selectedCategory}::${scriptTitle}::${scriptDraft.trim()}`;
+    if (autoAnalyzeKeyRef.current === analysisKey) return;
+
+    autoAnalyzeKeyRef.current = analysisKey;
+    void handleAnalyzeScript({ autoAdvance: false, showDetails: true });
+  }, [currentStep, scriptSubStep, isAnalyzingScript, scriptDraft, selectedCategory, scriptTitle, scriptAnalysis]);
   const ensureChaptersByLength = (plan: NewPlan): NewPlan => {
     const minutes = resolveScriptLengthValue();
     const targetChapters = getTargetChapters(minutes);
@@ -3092,25 +3109,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 {/* Step 1: 대본 분석 */}
                 {scriptSubStep === 1 && (
                   <>
-                    {/* 대본 분석 버튼 및 결과 */}
                     <div className="space-y-3">
-                      <div className="grid gap-2 sm:grid-cols-2">
-                        <button
-                          type="button"
-                          onClick={() => handleAnalyzeScript({ autoAdvance: true, showDetails: false })}
-                          disabled={isAnalyzingScript || !isScriptStepReady(0)}
-                          className="w-full rounded-full bg-gradient-to-r from-red-700 to-red-500 px-5 py-2 text-sm font-semibold text-white shadow-[0_8px_16px_rgba(239,68,68,0.45)] hover:from-red-600 hover:to-red-500 transition-all disabled:opacity-60"
-                        >
-                          {isAnalyzingScript ? "주제 추천 준비 중..." : withOptionalCreditLabel("빠르게 주제 추천", CREDIT_COSTS.ANALYZE_TRANSCRIPT + CREDIT_COSTS.GENERATE_IDEAS)}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleAnalyzeScript({ autoAdvance: false, showDetails: true })}
-                          disabled={isAnalyzingScript || !isScriptStepReady(0)}
-                          className="w-full rounded-full border border-white/20 bg-black/40 px-5 py-2 text-sm font-semibold text-white/80 hover:bg-white/10 transition-all disabled:opacity-60"
-                        >
-                          {isAnalyzingScript ? "구조 분석 중..." : withOptionalCreditLabel("대본 구조 분석 보기", CREDIT_COSTS.ANALYZE_TRANSCRIPT + CREDIT_COSTS.GENERATE_IDEAS)}
-                        </button>
+                      <div className="rounded-xl border border-red-400/25 bg-red-500/10 px-4 py-3 text-sm text-red-100/90">
+                        이 단계는 자동으로 대본 구조를 분석합니다. 분석이 완료되면 다음 단계로 이동하세요.
                       </div>
 
                       {isAnalyzingScript && (
