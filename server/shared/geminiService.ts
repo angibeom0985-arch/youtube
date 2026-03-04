@@ -245,6 +245,38 @@ const reformatTopicSchema = {
   required: ["reformattedTopic"],
 };
 
+const normalizeIdeaList = (items: unknown): string[] => {
+  if (!Array.isArray(items)) return [];
+  const normalized = items
+    .map((item) => String(item || "").replace(/^["'\-\d\.\)\s]+/, "").trim())
+    .filter((item) => item.length > 0)
+    .slice(0, 6);
+  return Array.from(new Set(normalized));
+};
+
+const extractIdeasFromLooseText = (text: string): string[] => {
+  const trimmed = (text || "").trim();
+  if (!trimmed) return [];
+
+  // 1) JSON 블록 내 ideas 배열 우선 추출
+  const ideasMatch = trimmed.match(/"ideas"\s*:\s*\[([\s\S]*?)\]/i);
+  if (ideasMatch) {
+    const quoted = ideasMatch[1].match(/"([^"]+)"/g) || [];
+    const fromQuoted = normalizeIdeaList(quoted.map((q) => q.replace(/^"|"$/g, "")));
+    if (fromQuoted.length >= 3) return fromQuoted;
+  }
+
+  // 2) 일반 줄 목록 추출
+  const lines = trimmed
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .map((line) => line.replace(/^[-*]\s*/, ""))
+    .map((line) => line.replace(/^\d+\s*[\.\)]\s*/, ""))
+    .filter((line) => line.length > 3)
+    .filter((line) => !/^\{|\}$|^\[|\]$|^"ideas"\s*:/.test(line));
+  return normalizeIdeaList(lines);
+};
+
 export const analyzeTranscript = async (
   transcript: string,
   category: string,
@@ -398,19 +430,18 @@ export const generateIdeas = async (
 ): Promise<string[]> => {
   const maxRetries = 2;
   let lastError: any = null;
+  const analysisString = JSON.stringify(
+    {
+      keywords: analysis.keywords,
+      intent: analysis.intent,
+    },
+    null,
+    2
+  );
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       const ai = createAI(apiKey);
-
-      const analysisString = JSON.stringify(
-        {
-          keywords: analysis.keywords,
-          intent: analysis.intent,
-        },
-        null,
-        2
-      );
 
       const isShoppingReview = category === "쇼핑 리뷰";
       const keywordInstruction = userKeyword
@@ -478,50 +509,62 @@ export const generateIdeas = async (
           await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1))); // 지수 백오프
           continue;
         }
-
+        const recoveredIdeas = extractIdeasFromLooseText(jsonText);
+        if (recoveredIdeas.length >= 3) {
+          console.log(`[generateIdeas] JSON 불완전 응답에서 아이디어 복구 성공: ${recoveredIdeas.length}개`);
+          return recoveredIdeas;
+        }
         throw new Error(`JSON_INCOMPLETE: AI 응답이 불완전합니다. 잠시 후 다시 시도해주세요.`);
       }
 
       try {
         const result = JSON.parse(jsonText);
         console.log(`[generateIdeas] 성공 - ${result.ideas?.length || 0}개 아이디어 생성`);
+        const parsedIdeas = normalizeIdeaList(result.ideas);
+        if (parsedIdeas.length >= 3) {
+          if (titleFormat) {
+            try {
+              const formatPrompt = `다음은 영상 주제 아이디어 목록입니다. 아래 예시 제목의 말투/리듬/문장 구조/기호 사용을 "형식"만 참고하여 각 아이디어를 제목으로 다시 작성해주세요.\n\n요구사항:\n- 의미는 유지하되 문장 표현은 새로 쓰세요.\n- 예시 제목을 그대로 복붙하거나 1:1 치환하지 마세요.\n- 예시 제목에서 6자 이상 연속으로 그대로 가져오지 마세요.\n- 아이디어의 순서와 개수는 그대로 유지하세요.\n- 결과는 JSON 형식으로만 반환하세요.\n\n예시 제목:\n${titleFormat}\n\n아이디어 목록:\n${parsedIdeas.map((idea: string, index: number) => `${index + 1}. ${idea}`).join("\n")}`;
 
-        if (titleFormat && Array.isArray(result.ideas) && result.ideas.length > 0) {
-          try {
-            const formatPrompt = `다음은 영상 주제 아이디어 목록입니다. 아래 예시 제목의 말투/리듬/문장 구조/기호 사용을 "형식"만 참고하여 각 아이디어를 제목으로 다시 작성해주세요.\n\n요구사항:\n- 의미는 유지하되 문장 표현은 새로 쓰세요.\n- 예시 제목을 그대로 복붙하거나 1:1 치환하지 마세요.\n- 예시 제목에서 6자 이상 연속으로 그대로 가져오지 마세요.\n- 아이디어의 순서와 개수는 그대로 유지하세요.\n- 결과는 JSON 형식으로만 반환하세요.\n\n예시 제목:\n${titleFormat}\n\n아이디어 목록:\n${result.ideas.map((idea: string, index: number) => `${index + 1}. ${idea}`).join("\n")}`;
+              const formatResponse = await ai.models.generateContent({
+                model: "gemini-2.5-flash",
+                contents: formatPrompt,
+                config: {
+                  systemInstruction:
+                    "You are a Korean YouTube title editor. Output JSON only. Do not copy the example title.",
+                  responseMimeType: "application/json",
+                  responseSchema: formattedIdeasSchema,
+                  maxOutputTokens: 2048,
+                  temperature: 0.5,
+                },
+              });
 
-            const formatResponse = await ai.models.generateContent({
-              model: "gemini-2.5-flash",
-              contents: formatPrompt,
-              config: {
-                systemInstruction:
-                  "You are a Korean YouTube title editor. Output JSON only. Do not copy the example title.",
-                responseMimeType: "application/json",
-                responseSchema: formattedIdeasSchema,
-                maxOutputTokens: 2048,
-                temperature: 0.5,
-              },
-            });
-
-            const formatJson = formatResponse.text.trim();
-            if (formatJson) {
-              const formatted = JSON.parse(formatJson);
-              if (Array.isArray(formatted.ideas) && formatted.ideas.length === result.ideas.length) {
-                return formatted.ideas as string[];
+              const formatJson = formatResponse.text.trim();
+              if (formatJson) {
+                const formatted = JSON.parse(formatJson);
+                const formattedIdeas = normalizeIdeaList(formatted.ideas);
+                if (formattedIdeas.length === parsedIdeas.length) {
+                  return formattedIdeas;
+                }
               }
+            } catch (formatError) {
+              console.warn("Idea formatting failed, fallback to raw ideas.", formatError);
             }
-          } catch (formatError) {
-            console.warn("Idea formatting failed, fallback to raw ideas.", formatError);
           }
+          return parsedIdeas;
         }
-
-        return result.ideas as string[];
+        throw new Error("IDEAS_EMPTY: 아이디어 배열이 비어 있습니다");
       } catch (parseError: any) {
         console.error('JSON Parse Error:', {
           attempt: attempt + 1,
           error: parseError.message,
           jsonText: jsonText.substring(0, 200)
         });
+        const recoveredIdeas = extractIdeasFromLooseText(jsonText);
+        if (recoveredIdeas.length >= 3) {
+          console.log(`[generateIdeas] 파싱 실패 응답에서 아이디어 복구 성공: ${recoveredIdeas.length}개`);
+          return recoveredIdeas;
+        }
 
         // 마지막 시도가 아니면 재시도
         if (attempt < maxRetries) {
@@ -562,6 +605,38 @@ export const generateIdeas = async (
   // 모든 재시도 실패
   const error = lastError || new Error('알 수 없는 오류');
   console.error("Error generating ideas (모든 재시도 실패):", error);
+
+  // 최종 폴백: 스키마 없이 텍스트로 아이디어 재생성 시도
+  try {
+    const ai = createAI(apiKey);
+    const backupPrompt = `아래 분석을 바탕으로 한국어 영상 주제 아이디어 6개를 생성하세요.
+- 줄바꿈으로만 출력하세요.
+- 각 줄은 1개의 아이디어 제목만 작성하세요.
+- 번호/불릿/JSON/코드블록 금지.
+- 기존 대본의 핵심 소재를 그대로 재사용하지 마세요.
+${userKeyword ? `- "${userKeyword}"와 밀접한 주제를 포함하세요.` : ""}
+${titleFormat ? `- 제목 톤은 다음 예시의 말투를 참고하세요: ${titleFormat}` : ""}
+
+분석:
+${analysisString}`;
+
+    const backupResponse = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: backupPrompt,
+      config: {
+        maxOutputTokens: 768,
+        temperature: 0.7,
+      },
+    });
+    const backupText = backupResponse.text?.trim() || "";
+    const backupIdeas = extractIdeasFromLooseText(backupText);
+    if (backupIdeas.length >= 3) {
+      console.log(`[generateIdeas] 최종 폴백 성공: ${backupIdeas.length}개`);
+      return backupIdeas;
+    }
+  } catch (backupError) {
+    console.warn("[generateIdeas] 최종 폴백 실패", backupError);
+  }
 
   let userMessage = "[오류] 아이디어 생성 중 오류가 발생했습니다.\n\n";
 
