@@ -24,9 +24,17 @@ type Plan = {
   anchorPriceKrw?: number;
 };
 
+type FeatureCostRow = {
+  key: string;
+  label: string;
+  credits: number;
+  unit?: string;
+};
+
 const ASSUMED_IMAGE_GENERATIONS_PER_VIDEO = 6;
 const ASSUMED_TTS_CHARS_PER_VIDEO = 1200;
 const ASSUMED_REVENUE_PER_VIDEO_KRW = 80000;
+const API_COST_MARGIN = 1.35;
 
 const CREDIT_BREAKDOWN = [
   { key: "search", label: "벤치마킹 검색", cost: CREDIT_COSTS.SEARCH },
@@ -47,6 +55,28 @@ const CREDIT_BREAKDOWN = [
     cost: (ASSUMED_TTS_CHARS_PER_VIDEO / 10) * CREDIT_COSTS.TTS_PER_10_CHARS,
   },
 ];
+
+const FEATURE_COST_ROWS: FeatureCostRow[] = [
+  { key: "search", label: "벤치마킹 검색", credits: CREDIT_COSTS.SEARCH, unit: "1회" },
+  {
+    key: "analysis_ideas",
+    label: "대본 분석 + 주제 추천",
+    credits: CREDIT_COSTS.ANALYZE_TRANSCRIPT + CREDIT_COSTS.GENERATE_IDEAS,
+    unit: "1회",
+  },
+  { key: "reformat", label: "주제 형식 변환", credits: CREDIT_COSTS.REFORMAT_TOPIC, unit: "1회" },
+  { key: "script", label: "대본 생성", credits: CREDIT_COSTS.GENERATE_SCRIPT, unit: "1회" },
+  { key: "image", label: "이미지 생성", credits: CREDIT_COSTS.GENERATE_IMAGE, unit: "1컷" },
+  { key: "tts", label: "TTS 생성", credits: CREDIT_COSTS.TTS_PER_10_CHARS, unit: "10자" },
+].filter((row) => row.credits > 0);
+
+const API_RAW_COST_KRW: Record<string, number> = {
+  search: 58,
+  analysis_ideas: 26,
+  script: 128,
+  image: 74,
+  tts: 11,
+};
 
 const VIDEO_CREDIT_COST = CREDIT_BREAKDOWN.reduce((sum, item) => sum + item.cost, 0);
 
@@ -89,11 +119,13 @@ const getPlanMetrics = (plan: Plan) => {
   const estimatedRevenue = estimatedVideos * ASSUMED_REVENUE_PER_VIDEO_KRW;
   const estimatedProfit = estimatedRevenue - plan.monthlyPriceKrw;
   const costPerCredit = plan.monthlyPriceKrw / plan.credits;
+  const creditsPer1000Won = (plan.credits / plan.monthlyPriceKrw) * 1000;
   return {
     estimatedVideos,
     estimatedRevenue,
     estimatedProfit,
     costPerCredit,
+    creditsPer1000Won,
   };
 };
 
@@ -244,6 +276,9 @@ const PricePage: React.FC = () => {
                       <p className="rounded-lg bg-emerald-500/15 px-3 py-2 text-emerald-100">
                         1크레딧 단가: <span className="font-black text-white">{m.costPerCredit.toFixed(1)}원</span>
                       </p>
+                      <p className="rounded-lg bg-indigo-500/15 px-3 py-2 text-indigo-100">
+                        1,000원당: <span className="font-black text-white">{m.creditsPer1000Won.toFixed(1)}크레딧</span>
+                      </p>
                     </div>
 
                     <button
@@ -261,6 +296,50 @@ const PricePage: React.FC = () => {
               })}
             </div>
           </article>
+        </section>
+
+        <section className="mt-8 rounded-3xl border border-white/10 bg-slate-900/70 p-6 shadow-[0_24px_60px_rgba(2,6,23,0.45)]">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-xl font-black text-white">기능별 크레딧 / API 원가 환산</h2>
+            <p className="text-xs text-slate-300">0크레딧 기능은 자동 제외됨</p>
+          </div>
+
+          <div className="mt-4 overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead>
+                <tr className="border-b border-white/10 text-left text-xs uppercase tracking-wide text-slate-400">
+                  <th className="px-3 py-2">기능</th>
+                  <th className="px-3 py-2">기준</th>
+                  <th className="px-3 py-2">현재 크레딧</th>
+                  <th className="px-3 py-2">API 원가(추정)</th>
+                  <th className="px-3 py-2">권장 크레딧</th>
+                </tr>
+              </thead>
+              <tbody>
+                {FEATURE_COST_ROWS.map((row) => {
+                  const rawCost = API_RAW_COST_KRW[row.key] ?? 0;
+                  const recommendedCredits = Math.max(1, Math.ceil((rawCost * API_COST_MARGIN) / (89000 / 5400)));
+                  return (
+                    <tr key={row.key} className="border-b border-white/5 text-slate-200">
+                      <td className="px-3 py-2 font-semibold text-white">{row.label}</td>
+                      <td className="px-3 py-2 text-slate-300">{row.unit || "-"}</td>
+                      <td className="px-3 py-2">{row.credits.toLocaleString()}크레딧</td>
+                      <td className="px-3 py-2">{formatWon(rawCost)}</td>
+                      <td className="px-3 py-2">
+                        <span className="rounded-full bg-emerald-500/15 px-2 py-1 text-xs font-bold text-emerald-100">
+                          {recommendedCredits.toLocaleString()}크레딧
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          <p className="mt-3 text-xs text-slate-400">
+            원가 계산 기준: API 실비 추정치 + 운영 마진 {Math.round((API_COST_MARGIN - 1) * 100)}%.
+          </p>
         </section>
 
         <section className="mt-8 rounded-3xl border border-white/10 bg-slate-900/70 p-6 shadow-[0_24px_60px_rgba(2,6,23,0.45)]">
