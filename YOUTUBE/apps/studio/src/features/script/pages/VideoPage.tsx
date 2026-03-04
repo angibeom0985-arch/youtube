@@ -40,7 +40,12 @@ import type { User } from "@supabase/supabase-js";
 import HomeBackButton from "@/components/HomeBackButton";
 import ErrorNotice from "@/components/ErrorNotice";
 import type { AnalysisResult, NewPlan } from "@/types";
-import { analyzeTranscript, generateIdeas, generateNewPlan } from "@/services/geminiService";
+import {
+  analyzeTranscript,
+  generateIdeas,
+  generateChapterOutline,
+  generateChapterScript,
+} from "@/services/geminiService";
 import { getVideoDetails } from "@/services/youtubeService";
 import { generateVideo } from "@/services/videoService";
 import { generateCharacters, regenerateStoryboardImage } from "@/features/image/services/geminiService";
@@ -2410,16 +2415,39 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       setGenerateProgress(prev => ({ ...prev, currentStep: 0 }));
       await new Promise(resolve => setTimeout(resolve, 300)); // UI 업데이트를 위한 짧은 지연
 
-      // Step 2: 콘텐츠 생성
+      // Step 2: 콘텐츠 생성 (/script 페이지와 동일한 챕터 파이프라인)
       setGenerateProgress(prev => ({ ...prev, currentStep: 1 }));
-      const plan = await generateNewPlan(
+      const chapterScriptStyle = scriptStyle === "narration" ? "나레이션 버전" : "대화 버전";
+      const outline = await generateChapterOutline(
         scriptAnalysis,
         selectedTopic,
         formatScriptLengthLabel(),
         selectedCategory,
         undefined,
-        scriptStyle
+        chapterScriptStyle
       );
+      const chapters = outline.chapters || [];
+      const chapterScripts = [];
+      for (let index = 0; index < chapters.length; index += 1) {
+        const chapter = chapters[index];
+        const script = await generateChapterScript(
+          chapter,
+          outline.characters || [],
+          selectedTopic,
+          selectedCategory,
+          chapters,
+          chapterScriptStyle
+        );
+        chapterScripts.push({
+          ...chapter,
+          script,
+        });
+      }
+      const plan: NewPlan = {
+        newIntent: outline.newIntent || [],
+        characters: outline.characters || [],
+        chapters: chapterScripts,
+      };
 
       // Step 3: AI 응답 정제 (마크다운 기호 제거)
       setGenerateProgress(prev => ({ ...prev, currentStep: 2 }));

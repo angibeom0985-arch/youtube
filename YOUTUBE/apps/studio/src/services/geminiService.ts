@@ -1,4 +1,10 @@
-﻿import type { AnalysisResult, NewPlan } from "../types";
+﻿import type {
+  AnalysisResult,
+  NewPlan,
+  Chapter,
+  ScriptLine,
+  StructuredContent,
+} from "../types";
 import { getClientFingerprint } from "./abuseService";
 import { supabase } from "./supabase";
 
@@ -120,7 +126,46 @@ export const generateNewPlan = async (
   });
 };
 
-export const generateSsml = async (
+export const generateChapterOutline = async (
+  analysis: AnalysisResult,
+  newKeyword: string,
+  length: string,
+  category: string,
+  vlogType?: string,
+  scriptStyle?: string
+): Promise<{ chapters: Chapter[]; characters: string[]; newIntent: StructuredContent[] }> => {
+  return callGemini<{ chapters: Chapter[]; characters: string[]; newIntent: StructuredContent[] }>(
+    "generateChapterOutline",
+    {
+      analysis,
+      newKeyword,
+      length,
+      category,
+      vlogType,
+      scriptStyle,
+    }
+  );
+};
+
+export const generateChapterScript = async (
+  chapter: Chapter,
+  characters: string[],
+  newKeyword: string,
+  category: string,
+  allChapters: Chapter[],
+  scriptStyle?: string
+): Promise<ScriptLine[]> => {
+  const data = await callGemini<{ script: ScriptLine[] }>("generateChapterScript", {
+    chapter,
+    characters,
+    newKeyword,
+    category,
+    allChapters,
+    scriptStyle,
+  });
+  return data.script;
+};
+export const generateSsml = async (
   text: string,
   prompt: string
 ): Promise<string> => {
@@ -139,4 +184,5 @@ export const generateActingPrompt = async (
   });
   return data.prompt;
 };
+
 
