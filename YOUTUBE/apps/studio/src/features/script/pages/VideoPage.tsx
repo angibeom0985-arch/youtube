@@ -4944,7 +4944,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   <h2 className="mt-2 text-[clamp(1.6rem,2.6vw,2.2rem)] font-bold text-white">
                     {activeStep.label}
                   </h2>
-                  <p className="mt-2 text-[clamp(0.9rem,1.5vw,1.05rem)] text-white/70 text-right">
+                  <p className="mt-2 text-[clamp(0.9rem,1.5vw,1.05rem)] text-white/70 text-left">
                     {activeStep.description}
                   </p>
                 </div>
@@ -4973,24 +4973,24 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
             <div className="p-[clamp(1.5rem,3vw,2.5rem)]">{renderStepContent()}</div>
 
             <div className="border-t border-white/10 p-[clamp(1.2rem,2.5vw,2rem)]">
-              <div className="mb-2 rounded-2xl border border-white/10 bg-black/30 px-4 py-3">
-                <center>
+              <div className="mb-2 overflow-hidden rounded-2xl border border-white/10 bg-black/30 px-2 py-2 sm:px-3">
+                <div className="mx-auto h-[72px] w-full max-w-[920px] sm:h-[90px] md:h-[100px]">
                   <ins
-                    className="adsbygoogle"
+                    className="adsbygoogle block h-full w-full"
                     style={{ display: "block" }}
                     data-ad-client="ca-pub-2686975437928535"
                     data-ad-slot="3672059148"
-                    data-ad-format="auto"
-                    data-full-width-responsive="true"
+                    data-ad-format="horizontal"
+                    data-full-width-responsive="false"
                   />
-                </center>
+                </div>
               </div>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <button
                   type="button"
                   onClick={handlePrev}
                   disabled={!canGoPrev}
-                  className="inline-flex items-center justify-center gap-2 rounded-full border border-white/20 px-6 py-3 text-base font-semibold text-white/70 transition hover:border-white/40 disabled:opacity-40 hover:scale-105 active:scale-95"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/20 px-6 py-3 text-base font-semibold text-white/70 transition hover:border-white/40 disabled:opacity-40 hover:scale-105 active:scale-95 sm:w-auto"
                 >
                   <FiChevronLeft size={20} /> 이전 단계
                 </button>
@@ -4998,7 +4998,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   type="button"
                   onClick={handleNext}
                   disabled={!canGoNext}
-                  className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-red-600 to-red-500 px-8 py-3 text-base font-semibold text-white shadow-[0_10px_20px_rgba(220,38,38,0.4)] transition hover:translate-x-0.5 disabled:opacity-40 hover:scale-105 active:scale-95"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-red-600 to-red-500 px-8 py-3 text-base font-semibold text-white shadow-[0_10px_20px_rgba(220,38,38,0.4)] transition hover:translate-x-0.5 disabled:opacity-40 hover:scale-105 active:scale-95 sm:w-auto"
                 >
                   다음 단계 <FiChevronRight size={20} />
                 </button>
