@@ -207,19 +207,21 @@ const hashText = (value: string): number => {
 
 const getCloudVoiceKoreanName = (googleVoice: string, gender: VoiceGender): string => {
   const seed = hashText(googleVoice);
-  const maleFirst = ["강", "건", "도", "민", "서", "성", "시", "우", "재", "준", "진", "태", "하", "현"];
-  const maleSecond = ["건", "권", "민", "석", "성", "우", "윤", "준", "진", "호", "혁", "환", "현", "훈"];
-  const femaleFirst = ["가", "나", "다", "라", "미", "서", "소", "수", "아", "예", "유", "윤", "지", "하"];
-  const femaleSecond = ["나", "린", "라", "리", "민", "빈", "서", "아", "연", "윤", "은", "진", "하", "혜"];
-  const neutralFirst = ["가", "다", "라", "민", "보", "새", "시", "온", "주", "하", "한", "해"];
-  const neutralSecond = ["결", "나", "담", "람", "별", "빛", "솔", "온", "율", "이", "찬", "해"];
+  const maleFirst = ["강", "건", "도", "민", "서", "성", "시", "우", "윤", "재", "준", "진", "태", "하", "현", "호"];
+  const maleMiddle = ["기", "도", "민", "석", "선", "수", "승", "우", "윤", "준", "진", "찬", "환", "혁", "현", "훈"];
+  const femaleFirst = ["가", "나", "다", "라", "미", "서", "소", "수", "아", "예", "유", "윤", "이", "지", "채", "하"];
+  const femaleMiddle = ["나", "다", "라", "린", "리", "민", "빈", "서", "아", "연", "윤", "은", "진", "채", "하", "혜"];
+  const neutralFirst = ["가", "다", "라", "민", "보", "새", "서", "시", "온", "주", "진", "하", "한", "해", "현", "율"];
+  const neutralMiddle = ["결", "나", "담", "람", "별", "빛", "솔", "온", "율", "이", "재", "찬", "하", "해", "현", "린"];
+  const lastPool = ["나", "늘", "담", "린", "서", "아", "연", "온", "윤", "은", "진", "찬", "하", "해", "현", "호"];
 
   const firstPool = gender === "남성" ? maleFirst : gender === "여성" ? femaleFirst : neutralFirst;
-  const secondPool = gender === "남성" ? maleSecond : gender === "여성" ? femaleSecond : neutralSecond;
+  const middlePool = gender === "남성" ? maleMiddle : gender === "여성" ? femaleMiddle : neutralMiddle;
 
   const first = firstPool[seed % firstPool.length];
-  const second = secondPool[(seed >>> 8) % secondPool.length];
-  return `클라우드 ${first}${second}`;
+  const middle = middlePool[(seed >>> 8) % middlePool.length];
+  const last = lastPool[(seed >>> 16) % lastPool.length];
+  return `${first}${middle}${last}`;
 };
 
 // 확장된 목소리 옵션 (모달용)
