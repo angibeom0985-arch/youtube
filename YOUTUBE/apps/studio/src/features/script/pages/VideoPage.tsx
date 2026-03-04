@@ -1292,7 +1292,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     }
   };
 
-  const handleGeneratePersonas = async () => {
+  const handleGeneratePersonas = async (): Promise<boolean> => {
     if (!geminiApiKey) {
       openSupportErrorDialog(
         "API 키 설정 필요",
@@ -1303,18 +1303,18 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         replace: true,
         state: { from: "/video", reason: "coupon_api_key_required" },
       });
-      return;
+      return false;
     }
 
     const source = personaSourceScript.trim();
     if (!source) {
       setPersonaError("페르소나를 만들 대본이 없습니다. 먼저 대본을 준비해주세요.");
-      return;
+      return false;
     }
 
     const charged = await deductCredits(CREDIT_COSTS.GENERATE_IMAGE * 2);
     if (!charged) {
-      return;
+      return false;
     }
 
     setPersonaError("");
@@ -1338,14 +1338,16 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
       if (!generated.length) {
         setPersonaError("페르소나 생성 결과가 비어 있습니다. 입력을 바꿔 다시 시도해주세요.");
-        return;
+        return false;
       }
 
       setPersonas(generated);
+      return true;
     } catch (error) {
       console.error("페르소나 생성 오류:", error);
       const message = error instanceof Error ? error.message : "페르소나 생성 중 오류가 발생했습니다.";
       setPersonaError(message);
+      return false;
     } finally {
       setIsGeneratingPersonas(false);
     }
@@ -2442,7 +2444,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       return false;
     }
     if (currentStepId === "image") {
-      if (imageSubStep === 0) return personas.length > 0;
+      if (imageSubStep === 0) return !isGeneratingPersonas;
       if (imageSubStep === 1) return Object.keys(chapterImages).length > 0;
       return true;
     }
@@ -2527,6 +2529,10 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       }
     }
     if (steps[currentStep].id === "image") {
+      if (imageSubStep === 0 && personas.length === 0) {
+        const created = await handleGeneratePersonas();
+        if (!created) return;
+      }
       if (imageSubStep < 2) {
         setImageSubStep((prev) => Math.min(prev + 1, 2));
         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -4675,7 +4681,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
           { title: "3단계", label: "결과 확인" },
         ];
         const renderImageSubStepHeader = () => (
-          <div className="mb-6 rounded-2xl border border-white/10 bg-black/30 p-4">
+          <div className="mb-4 rounded-2xl border border-white/10 bg-black/30 p-3">
             <div className="flex flex-wrap items-center gap-2">
               {imageSubSteps.map((step, index) => (
                 <React.Fragment key={step.title}>
@@ -4695,9 +4701,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 </React.Fragment>
               ))}
             </div>
-            <p className="mt-3 text-xs text-white/60">
-              현재 단계: <span className="text-red-300 font-semibold">{imageSubSteps[imageSubStep].label}</span>
-            </p>
           </div>
         );
         if (!chapterScripts || chapterScripts.length === 0) {
@@ -4720,26 +4723,21 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
         if (imageSubStep === 0) {
           return (
-            <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
+            <div className="mt-2">
               {renderImageSubStepHeader()}
               <div className="mb-6 rounded-2xl border border-red-300/30 bg-red-900/10 p-6">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <h3 className="text-lg font-bold text-white">1단계: 페르소나 생성</h3>
                     <p className="mt-1 text-xs text-white/60">
-                      컷 이미지 생성 전에 페르소나를 먼저 생성합니다.
+                      하단 '다음 단계'를 누르면 페르소나가 자동 생성됩니다.
                     </p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleGeneratePersonas}
-                    disabled={isGeneratingPersonas}
-                    className="rounded-full border border-red-300 bg-red-600 px-5 py-2 text-sm font-bold text-white transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {isGeneratingPersonas
-                      ? "페르소나 생성 중..."
-                      : withOptionalCreditLabel("페르소나 생성", CREDIT_COSTS.GENERATE_IMAGE * 2)}
-                  </button>
+                  {isGeneratingPersonas && (
+                    <span className="rounded-full border border-red-300 bg-red-600/80 px-4 py-1.5 text-xs font-bold text-white">
+                      페르소나 생성 중...
+                    </span>
+                  )}
                 </div>
                 {personaError && <p className="mt-3 text-xs text-red-200">{personaError}</p>}
                 {personas.length > 0 && (
@@ -4765,10 +4763,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
               <div className="mb-6 rounded-2xl border border-white/10 bg-black/30 p-6">
                 <h3 className="text-lg font-bold text-white mb-4">이미지 스타일 설정</h3>
-                <p className="mb-4 text-xs text-white/60">
-                  인물/배경 스타일을 먼저 정하면 이후 컷 이미지에 동일하게 반영됩니다.
-                </p>
-
                 <div className="mt-8 bg-black/30 border border-white/10 rounded-xl p-[clamp(1rem,2vw,1.4rem)]">
                   <h3 className="text-red-300 font-medium mb-6 flex items-center text-xl">
                     이미지 스타일 선택
@@ -4917,7 +4911,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
           const generatedCount = Object.keys(chapterImages).length;
           const missingCount = Math.max(requiredImageCount - generatedCount, 0);
           return (
-            <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
+            <div className="mt-2">
               {renderImageSubStepHeader()}
               <div className="rounded-2xl border border-white/10 bg-black/30 p-6">
                 <div className="flex flex-wrap items-center justify-between gap-3">
@@ -4987,7 +4981,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         }
 
         return (
-          <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
+          <div className="mt-2">
             {renderImageSubStepHeader()}
             {personas.length === 0 && (
               <div className="mb-6 rounded-2xl border border-amber-300/30 bg-amber-900/10 p-5">
