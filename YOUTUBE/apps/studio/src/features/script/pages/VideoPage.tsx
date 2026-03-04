@@ -2439,14 +2439,12 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       // Step 2: 핵심 키워드 추출 (이미 analysis에 포함됨)
       setAnalyzeProgress(prev => ({ ...prev, currentStep: 1 }));
 
-      // Step 3: 추천 주제 생성 (제목 형식 반영)
+      // Step 3: 추천 주제 생성 (소재 중심)
       setAnalyzeProgress(prev => ({ ...prev, currentStep: 2 }));
-      const titleFormatForIdeas = (scriptTitle || projectTitle).trim();
       const ideas = await generateIdeas(
         analysis,
         selectedCategory,
-        undefined,
-        titleFormatForIdeas || undefined
+        undefined
       );
       setScriptIdeas(ideas);
       if (ideas.length > 0) {
@@ -3311,28 +3309,13 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                               <span>입력</span>
                               또는 직접 주제 입력
                             </label>
-                            <div className="flex gap-2">
-                              <input
-                                type="text"
-                                value={selectedTopic}
-                                onChange={(e) => setSelectedTopic(e.target.value)}
-                                placeholder="원하는 주제를 직접 입력하세요 (예: 경제 위기 속에서 살아남는 방법)"
-                                className="flex-1 rounded-xl border border-white/20 bg-black/40 px-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-red-500"
-                              />
-                              <button
-                                onClick={handleReformatTopic}
-                                disabled={isReformattingTopic || !selectedTopic.trim() || !scriptTitle.trim()}
-                                className="px-4 py-3 rounded-xl bg-gradient-to-r from-red-600 to-red-500 text-white text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition"
-                                title="영상 제목 형식으로 변환"
-                              >
-                                {isReformattingTopic ? "변환 중..." : withOptionalCreditLabel("형식 변환", CREDIT_COSTS.REFORMAT_TOPIC)}
-                              </button>
-                            </div>
-                            {scriptTitle.trim() && (
-                              <p className="text-xs text-white/50">
-                                '{scriptTitle}' 영상 제목 형식으로 변환됩니다
-                              </p>
-                            )}
+                            <input
+                              type="text"
+                              value={selectedTopic}
+                              onChange={(e) => setSelectedTopic(e.target.value)}
+                              placeholder="원하는 주제를 직접 입력하세요 (예: 경제 위기 속에서 살아남는 방법)"
+                              className="w-full rounded-xl border border-white/20 bg-black/40 px-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-red-500"
+                            />
                           </div>
                         </div>
                       ) : (
@@ -3369,28 +3352,13 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                               <span>입력</span>
                               또는 직접 주제 입력
                             </label>
-                            <div className="flex gap-2">
-                              <input
-                                type="text"
-                                value={selectedTopic && !scriptIdeas.includes(selectedTopic) ? selectedTopic : ''}
-                                onChange={(e) => setSelectedTopic(e.target.value)}
-                                placeholder="원하는 주제를 직접 입력하세요 (예: 경제 위기 속에서 살아남는 방법)"
-                                className="flex-1 rounded-xl border border-white/20 bg-black/40 px-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-red-500"
-                              />
-                              <button
-                                onClick={handleReformatTopic}
-                                disabled={isReformattingTopic || !selectedTopic.trim() || !scriptTitle.trim()}
-                                className="px-4 py-3 rounded-xl bg-gradient-to-r from-red-600 to-red-500 text-white text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition"
-                                title="영상 제목 형식으로 변환"
-                              >
-                                {isReformattingTopic ? "변환 중..." : withOptionalCreditLabel("형식 변환", CREDIT_COSTS.REFORMAT_TOPIC)}
-                              </button>
-                            </div>
-                            {scriptTitle.trim() && (
-                              <p className="text-xs text-white/50">
-                                '{scriptTitle}' 영상 제목 형식으로 변환됩니다
-                              </p>
-                            )}
+                            <input
+                              type="text"
+                              value={selectedTopic && !scriptIdeas.includes(selectedTopic) ? selectedTopic : ''}
+                              onChange={(e) => setSelectedTopic(e.target.value)}
+                              placeholder="원하는 주제를 직접 입력하세요 (예: 경제 위기 속에서 살아남는 방법)"
+                              className="w-full rounded-xl border border-white/20 bg-black/40 px-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-red-500"
+                            />
                             {selectedTopic && !scriptIdeas.includes(selectedTopic) && (
                               <p className="text-xs text-red-300 flex items-center gap-1">
                                 <span>참고</span>
