@@ -2487,6 +2487,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     }
     if (isAnalyzingScript) return;
     if (!scriptDraft.trim()) return;
+    if (scriptAnalysis) return;
 
     const analysisKey = `${selectedCategory}::${scriptTitle}::${scriptDraft.trim()}`;
     if (autoAnalyzeKeyRef.current === analysisKey) return;
