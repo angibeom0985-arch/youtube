@@ -277,6 +277,37 @@ const extractIdeasFromLooseText = (text: string): string[] => {
   return normalizeIdeaList(lines);
 };
 
+const buildDeterministicIdeas = (
+  analysis: AnalysisResult,
+  category: string,
+  userKeyword?: string,
+  titleFormat?: string
+): string[] => {
+  const seed = normalizeIdeaList([
+    ...(analysis.keywords || []),
+    ...(analysis.intent || []).map((item) => item?.title || ""),
+    ...(analysis.intent || []).map((item) => item?.description || ""),
+    userKeyword || "",
+  ]).slice(0, 10);
+
+  const core = seed.length ? seed : ["핵심 주제", "실전 사례", "비교 분석", "실수 방지", "로드맵", "체크리스트"];
+  const templates = [
+    `${core[0] || "핵심 주제"}의 숨은 원리와 실제 적용법`,
+    `${core[1] || "실전 사례"}로 보는 ${category} 성공 패턴`,
+    `${core[2] || "비교 분석"} 중심으로 정리한 핵심 포인트`,
+    `${core[3] || "실수 방지"}를 위한 실전 가이드`,
+    `${core[4] || "로드맵"} 기반 단계별 실행 전략`,
+    `${core[5] || "체크리스트"}로 완성하는 결과 중심 설계`,
+  ];
+
+  const ideas = normalizeIdeaList(templates);
+  if (titleFormat && ideas.length) {
+    // 제목 형식 예시가 있을 때는 첫 줄에 형식 반영 힌트 키워드만 약하게 반영
+    ideas[0] = `${ideas[0]} (${String(titleFormat).slice(0, 14).trim()} 톤)`;
+  }
+  return ideas.slice(0, 6);
+};
+
 export const analyzeTranscript = async (
   transcript: string,
   category: string,
@@ -636,6 +667,21 @@ ${analysisString}`;
     }
   } catch (backupError) {
     console.warn("[generateIdeas] 최종 폴백 실패", backupError);
+  }
+
+  // JSON 계열 오류는 최종적으로 로컬 규칙 기반 아이디어를 반환해 UX 단절을 방지
+  const finalErrorMessage = String(error?.message || "");
+  if (
+    finalErrorMessage.includes("JSON_INCOMPLETE") ||
+    finalErrorMessage.includes("JSON_PARSE_ERROR") ||
+    finalErrorMessage.includes("EMPTY_RESPONSE") ||
+    finalErrorMessage.includes("Unexpected end of JSON")
+  ) {
+    const deterministicIdeas = buildDeterministicIdeas(analysis, category, userKeyword, titleFormat);
+    if (deterministicIdeas.length >= 3) {
+      console.log(`[generateIdeas] 로컬 규칙 폴백 반환: ${deterministicIdeas.length}개`);
+      return deterministicIdeas;
+    }
   }
 
   let userMessage = "[오류] 아이디어 생성 중 오류가 발생했습니다.\n\n";
