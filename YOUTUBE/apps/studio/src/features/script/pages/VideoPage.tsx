@@ -706,6 +706,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const progressTimerRef = useRef<number | null>(null);
   const stopBatchGenerationRef = useRef(false);
   const autoAnalyzeKeyRef = useRef("");
+  const refreshIdeasRequestIdRef = useRef(0);
+  const refreshIdeasInFlightRef = useRef(false);
   const [characterColorMap, setCharacterColorMap] = useState<Map<string, string>>(new Map());
   const recommendedImagePrompt = useMemo(() => {
     const chapterText = chapterScripts.map((chapter) => chapter.content).join(" ");
@@ -2497,18 +2499,57 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     if (!scriptAnalysis || isAnalyzingScript || isRefreshingIdeas) return;
     setScriptError("");
     setIsRefreshingIdeas(true);
+
+    // 1) 즉시 체감 반응: 기존 추천 목록을 빠르게 재정렬/순환해 바로 갱신
+    const quickIdeas = (() => {
+      if (!scriptIdeas.length) return [];
+      const seed = Date.now() % scriptIdeas.length;
+      const rotated = scriptIdeas.map((_, index) => scriptIdeas[(index + seed) % scriptIdeas.length]);
+      return rotated.map((idea, index) => {
+        const suffixes = [
+          "실전 적용 포인트",
+          "핵심 구조 해부",
+          "수익화 시나리오",
+          "비용 절감 전략",
+          "리스크 관리 포인트",
+          "현장 실행 가이드",
+        ];
+        const base = idea.replace(/\s*[-|:]\s*.*$/, "").trim();
+        return `${base} ${suffixes[index % suffixes.length]}`;
+      });
+    })();
+
+    if (quickIdeas.length > 0) {
+      setScriptIdeas(quickIdeas);
+      setSelectedTopic(quickIdeas[0]);
+      // 즉시 UI 잠금 해제해서 버튼 체감 지연 제거
+      setTimeout(() => setIsRefreshingIdeas(false), 250);
+    }
+
+    // 2) 서버 추천은 백그라운드 갱신 (이미 요청 중이면 중복 요청 방지)
+    if (refreshIdeasInFlightRef.current) return;
+    refreshIdeasInFlightRef.current = true;
+    const requestId = ++refreshIdeasRequestIdRef.current;
+
     try {
       setAnalyzeProgress((prev) => ({ ...prev, currentStep: 2 }));
       const ideas = await generateIdeas(scriptAnalysis, selectedCategory, undefined);
-      setScriptIdeas(ideas);
+      if (refreshIdeasRequestIdRef.current !== requestId) return;
       if (ideas.length > 0) {
+        setScriptIdeas(ideas);
         setSelectedTopic(ideas[0]);
       }
     } catch (error) {
+      if (refreshIdeasRequestIdRef.current !== requestId) return;
       const errorMessage = error instanceof Error ? error.message : "추천 주제 생성에 실패했습니다.";
-      setScriptError(errorMessage);
+      if (!quickIdeas.length) {
+        setScriptError(errorMessage);
+      }
     } finally {
-      setIsRefreshingIdeas(false);
+      if (refreshIdeasRequestIdRef.current === requestId) {
+        setIsRefreshingIdeas(false);
+      }
+      refreshIdeasInFlightRef.current = false;
     }
   };
 
