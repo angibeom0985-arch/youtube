@@ -23,6 +23,8 @@ const toUserMessage = (raw: string): string => {
   }
 
   if (lower.includes("rate_limit")) return "요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.";
+  if (lower.includes("daily_limit")) return "일일 요청 한도에 도달했습니다. 내일 다시 시도해 주세요.";
+  if (lower.includes("usage_limit")) return "사용량 제한에 도달했습니다. 잠시 후 다시 시도해 주세요.";
   if (lower.includes("auth_required")) return "로그인이 필요합니다.";
   if (lower.includes("missing_api_key")) return "서버 API 설정 오류입니다. 관리자에게 문의해 주세요.";
   if (lower.includes("coupon_user_key_required")) {

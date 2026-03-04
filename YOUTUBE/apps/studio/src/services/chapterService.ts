@@ -18,6 +18,12 @@ const toUserMessage = (raw: string): string => {
   if (lower.includes("rate_limit")) {
     return "요청이 너무 많습니다. 잠시 후 다시 시도해주세요.";
   }
+  if (lower.includes("daily_limit")) {
+    return "일일 요청 한도에 도달했습니다. 내일 다시 시도해 주세요.";
+  }
+  if (lower.includes("usage_limit")) {
+    return "사용량 제한에 도달했습니다. 잠시 후 다시 시도해 주세요.";
+  }
   if (lower.includes("missing_api_key")) {
     return "서버 설정 오류가 발생했습니다. 관리자에게 문의해주세요.";
   }

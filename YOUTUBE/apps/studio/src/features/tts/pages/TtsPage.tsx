@@ -95,6 +95,7 @@ const toTtsErrorMessage = (raw: string): string => {
   if (code.includes("coupon_user_key_required")) {
     return "할인 쿠폰 모드에서는 마이페이지에 본인 Google Cloud API 키를 먼저 등록해야 합니다.";
   }
+  if (code.includes("daily_limit")) return "일일 요청 한도에 도달했습니다. 내일 다시 시도해 주세요.";
   if (code.includes("usage_limit")) return "사용량 제한에 도달했습니다. 잠시 후 다시 시도해 주세요.";
   return raw;
 };
