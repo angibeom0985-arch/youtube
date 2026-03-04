@@ -1774,6 +1774,19 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     if (voiceTagFilter !== "전체" && !voice.tags.includes(voiceTagFilter)) return false;
     return true;
   });
+  const voiceModalSections = useMemo(() => {
+    if (voiceGenderFilter !== "전체") {
+      return [{ key: "filtered", title: "", voices: filteredVoiceModalOptions }];
+    }
+    const order: VoiceGender[] = ["남성", "여성", "중성"];
+    return order
+      .map((gender) => ({
+        key: gender,
+        title: gender,
+        voices: filteredVoiceModalOptions.filter((voice) => voice.category === gender),
+      }))
+      .filter((section) => section.voices.length > 0);
+  }, [filteredVoiceModalOptions, voiceGenderFilter]);
   const buildTroubleshootingSteps = (message: string): string[] => {
     const normalized = String(message || "").toLowerCase();
     if (normalized.includes("api key") || normalized.includes("invalid_api_key")) {
@@ -4355,68 +4368,77 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                 </div>
 
                                 <div className="space-y-2">
-                                  {filteredVoiceModalOptions.map((voice) => (
-                                    <button
-                                      key={voice.name}
-                                      onClick={() => {
-                                        if (currentChapterForVoice !== null) {
-                                          setChapterVoices({ ...chapterVoices, [currentChapterForVoice]: voice.name });
-                                          playPreviewAudio(currentChapterForVoice, voice.name, voice.sampleText);
-                                        }
-                                        setShowVoiceModal(false);
-                                      }}
-                                      className="w-full rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-white/0 hover:from-red-500/20 hover:to-red-500/10 hover:border-red-400/50 transition-all group p-3 flex items-center gap-3"
-                                    >
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          if (currentChapterForVoice !== null) {
-                                            playPreviewAudio(currentChapterForVoice, voice.name, voice.sampleText);
-                                          }
-                                        }}
-                                        className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-all ${playingChapter === currentChapterForVoice && playingVoice === voice.name
-                                          ? "bg-red-500 shadow-lg"
-                                          : "bg-white/10 hover:bg-red-500/50"
-                                          }`}
-                                        title={playingChapter === currentChapterForVoice && playingVoice === voice.name ? "정지" : "미리듣기"}
-                                      >
-                                        {playingChapter === currentChapterForVoice && playingVoice === voice.name ? (
-                                          <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
-                                          </svg>
-                                        ) : (
-                                          <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M8 5v14l11-7z" />
-                                          </svg>
-                                        )}
-                                      </button>
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          toggleFavoriteVoice(voice.name);
-                                        }}
-                                        className={`flex-shrink-0 w-8 h-8 rounded-full border transition ${isFavoriteVoice(voice.name)
-                                            ? "border-amber-300 bg-amber-500/25 text-amber-200"
-                                            : "border-white/20 bg-white/5 text-white/70 hover:border-amber-300/50"
-                                          }`}
-                                        title={isFavoriteVoice(voice.name) ? "즐겨찾기 해제" : "즐겨찾기 등록"}
-                                      >
-                                        {isFavoriteVoice(voice.name) ? "★" : "☆"}
-                                      </button>
-                                      <div className="flex-1 text-left min-w-0">
-                                        <p className="text-base font-bold text-white group-hover:text-red-300 transition-colors">{voice.name}</p>
-                                        <p className="text-xs text-white/60 mt-0.5 truncate">
-                                          {stripGenderPrefix(voice.label) === voice.tone
-                                            ? voice.tone
-                                            : `${stripGenderPrefix(voice.label)} · ${voice.tone}`}
-                                        </p>
-                                        <div className="mt-1 flex flex-wrap gap-1">
-                                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white/70">{voice.category}</span>
-                                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white/70">{voice.model}</span>
-                                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white/70">{resolveVoicePreset(voice)}</span>
+                                  {voiceModalSections.map((section) => (
+                                    <div key={section.key} className="space-y-2">
+                                      {voiceGenderFilter === "전체" && (
+                                        <div className="px-1 pb-1 pt-2 text-xs font-semibold tracking-wide text-white/55">
+                                          {section.title}
                                         </div>
-                                      </div>
-                                    </button>
+                                      )}
+                                      {section.voices.map((voice) => (
+                                        <button
+                                          key={voice.name}
+                                          onClick={() => {
+                                            if (currentChapterForVoice !== null) {
+                                              setChapterVoices({ ...chapterVoices, [currentChapterForVoice]: voice.name });
+                                              playPreviewAudio(currentChapterForVoice, voice.name, voice.sampleText);
+                                            }
+                                            setShowVoiceModal(false);
+                                          }}
+                                          className="w-full rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-white/0 hover:from-red-500/20 hover:to-red-500/10 hover:border-red-400/50 transition-all group p-3 flex items-center gap-3"
+                                        >
+                                          <button
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              if (currentChapterForVoice !== null) {
+                                                playPreviewAudio(currentChapterForVoice, voice.name, voice.sampleText);
+                                              }
+                                            }}
+                                            className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-all ${playingChapter === currentChapterForVoice && playingVoice === voice.name
+                                              ? "bg-red-500 shadow-lg"
+                                              : "bg-white/10 hover:bg-red-500/50"
+                                              }`}
+                                            title={playingChapter === currentChapterForVoice && playingVoice === voice.name ? "정지" : "미리듣기"}
+                                          >
+                                            {playingChapter === currentChapterForVoice && playingVoice === voice.name ? (
+                                              <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
+                                              </svg>
+                                            ) : (
+                                              <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M8 5v14l11-7z" />
+                                              </svg>
+                                            )}
+                                          </button>
+                                          <button
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              toggleFavoriteVoice(voice.name);
+                                            }}
+                                            className={`flex-shrink-0 w-8 h-8 rounded-full border transition ${isFavoriteVoice(voice.name)
+                                                ? "border-amber-300 bg-amber-500/25 text-amber-200"
+                                                : "border-white/20 bg-white/5 text-white/70 hover:border-amber-300/50"
+                                              }`}
+                                            title={isFavoriteVoice(voice.name) ? "즐겨찾기 해제" : "즐겨찾기 등록"}
+                                          >
+                                            {isFavoriteVoice(voice.name) ? "★" : "☆"}
+                                          </button>
+                                          <div className="flex-1 text-left min-w-0">
+                                            <p className="text-base font-bold text-white group-hover:text-red-300 transition-colors">{voice.name}</p>
+                                            <p className="text-xs text-white/60 mt-0.5 truncate">
+                                              {stripGenderPrefix(voice.label) === voice.tone
+                                                ? voice.tone
+                                                : `${stripGenderPrefix(voice.label)} · ${voice.tone}`}
+                                            </p>
+                                            <div className="mt-1 flex flex-wrap gap-1">
+                                              <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white/70">{voice.category}</span>
+                                              <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white/70">{voice.model}</span>
+                                              <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white/70">{resolveVoicePreset(voice)}</span>
+                                            </div>
+                                          </div>
+                                        </button>
+                                      ))}
+                                    </div>
                                   ))}
                                   {filteredVoiceModalOptions.length === 0 && (
                                     <div className="rounded-xl border border-white/10 bg-black/20 p-4 text-sm text-white/60">
