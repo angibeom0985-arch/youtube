@@ -2479,6 +2479,14 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     }
   };
 
+  const handleReanalyzeScript = () => {
+    if (isAnalyzingScript || !scriptDraft.trim()) return;
+    autoAnalyzeKeyRef.current = "";
+    setScriptError("");
+    setShowAnalysisDetails(true);
+    void handleAnalyzeScript({ autoAdvance: false, showDetails: true });
+  };
+
   useEffect(() => {
     const isScriptAnalyzeStep = steps[currentStep]?.id === "script" && scriptSubStep === 1;
     if (!isScriptAnalyzeStep) {
@@ -3118,7 +3126,17 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   <>
                     <div className="space-y-3">
                       <div className="rounded-xl border border-red-400/25 bg-red-500/10 px-4 py-3 text-sm text-red-100/90">
-                        이 단계는 자동으로 대본 구조를 분석합니다. 분석이 완료되면 다음 단계로 이동하세요.
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <span>이 단계는 자동으로 대본 구조를 분석합니다. 분석이 완료되면 다음 단계로 이동하세요.</span>
+                          <button
+                            type="button"
+                            onClick={handleReanalyzeScript}
+                            disabled={isAnalyzingScript || !scriptDraft.trim()}
+                            className="rounded-full border border-red-300/60 bg-red-500/15 px-3 py-1 text-xs font-semibold text-red-100 transition hover:bg-red-500/25 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            다시 분석
+                          </button>
+                        </div>
                       </div>
 
                       {isAnalyzingScript && (
