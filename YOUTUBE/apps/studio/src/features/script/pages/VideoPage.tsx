@@ -213,11 +213,6 @@ const allVoiceOptions: ExtendedVoiceOption[] = [
   { name: "시우", label: "Studio 광고", tone: "고급 광고 내레이션", category: "남성", model: "Studio", googleVoice: "ko-KR-Studio-D", ssmlGender: "MALE", rate: 1.04, pitch: -0.4, tags: ["광고/홍보", "발랄한"], sampleText: "고급스러운 톤으로 브랜드 메시지를 전달해드립니다.", availability: "fallback", fallbackVoice: "ko-KR-Standard-D" },
 ];
 
-const resolveVoiceMeta = (voiceName: string) =>
-  allVoiceOptions.find((voice) => voice.name === voiceName) ||
-  voiceOptions.find((voice) => voice.name === voiceName) ||
-  null;
-
 const escapeSsmlText = (text: string): string =>
   String(text || "")
     .replace(/&/g, "&amp;")
@@ -298,6 +293,42 @@ const extractGoogleCloudApiKey = (raw: unknown): string => {
   }
 
   return "";
+};
+
+const mapCloudVoiceToExtendedOption = (voice: any): ExtendedVoiceOption | null => {
+  const googleVoice = String(voice?.name || "").trim();
+  const langCode = String(voice?.languageCodes?.[0] || "").trim().toLowerCase();
+  if (!googleVoice || !langCode.startsWith("ko")) return null;
+
+  const ssmlGenderRaw = String(voice?.ssmlGender || "").toUpperCase();
+  const ssmlGender: SsmlGender =
+    ssmlGenderRaw === "MALE" ? "MALE" : ssmlGenderRaw === "FEMALE" ? "FEMALE" : "NEUTRAL";
+  const category: VoiceGender = ssmlGender === "MALE" ? "남성" : "여성";
+  const model: VoiceModel =
+    googleVoice.includes("Neural2")
+      ? "Neural2"
+      : googleVoice.includes("Wavenet")
+        ? "Wavenet"
+        : googleVoice.includes("Studio")
+          ? "Studio"
+          : "Standard";
+  const suffix = googleVoice.split("-").pop() || googleVoice;
+  const compactName = `클라우드 ${suffix}`.replace(/[^0-9A-Za-z가-힣\s]/g, "").trim();
+  const name = compactName || googleVoice;
+
+  return {
+    name,
+    label: `${category} ${model} ${suffix}`,
+    tone: "Google Cloud 실시간 음성",
+    category,
+    model,
+    googleVoice,
+    ssmlGender,
+    rate: 1.0,
+    pitch: ssmlGender === "MALE" ? -1.5 : 1.5,
+    tags: ["나레이션용"],
+    sampleText: "안녕하세요. Google Cloud 음성 샘플입니다.",
+  };
 };
 
 const sanitizeCorruptedText = (value: unknown, fallback = ""): string => {
@@ -570,7 +601,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     if (!Array.isArray(stored)) return defaults;
     const validNames = stored.filter(
       (name): name is string =>
-        typeof name === "string" && allVoiceOptions.some((voice) => voice.name === name)
+        typeof name === "string" && name.trim().length > 0
     );
     const unique = Array.from(new Set(validNames));
     return unique.length > 0 ? unique : defaults;
@@ -590,6 +621,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [lineVoices, setLineVoices] = useState<Record<string, string>>(() =>
     getStoredJson(STORAGE_KEYS.ttsLineVoices, {})
   );
+  const [availableVoiceOptions, setAvailableVoiceOptions] = useState<ExtendedVoiceOption[]>(allVoiceOptions);
+  const [isLoadingCloudVoices, setIsLoadingCloudVoices] = useState(false);
   const [chapterScripts, setChapterScripts] = useState<Array<{ title: string; content: string }>>(() =>
     getStoredJson(STORAGE_KEYS.ttsChapters, [])
   );
@@ -861,6 +894,52 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       state: { from: "/video", reason: "coupon_api_key_required" },
     });
   }, [couponBypassCredits, couponGuardChecked, geminiApiKey, cloudConsoleApiKey, navigate]);
+
+  useEffect(() => {
+    const loadCloudVoices = async () => {
+      if (!cloudConsoleApiKey.trim()) {
+        setAvailableVoiceOptions(allVoiceOptions);
+        return;
+      }
+
+      setIsLoadingCloudVoices(true);
+      try {
+        const response = await fetch(`https://texttospeech.googleapis.com/v1/voices?key=${cloudConsoleApiKey.trim()}`);
+        const payload = await response.json().catch(() => null);
+        if (!response.ok || !Array.isArray(payload?.voices)) {
+          setAvailableVoiceOptions(allVoiceOptions);
+          return;
+        }
+
+        const cloudKoreanVoices = payload.voices
+          .map((voice: any) => mapCloudVoiceToExtendedOption(voice))
+          .filter((voice: ExtendedVoiceOption | null): voice is ExtendedVoiceOption => Boolean(voice));
+
+        const byGoogleVoice = new Map<string, ExtendedVoiceOption>();
+        [...allVoiceOptions, ...cloudKoreanVoices].forEach((voice) => {
+          if (!byGoogleVoice.has(voice.googleVoice)) {
+            byGoogleVoice.set(voice.googleVoice, voice);
+          }
+        });
+
+        const merged = Array.from(byGoogleVoice.values());
+        setAvailableVoiceOptions(merged);
+      } catch (error) {
+        console.error("클라우드 음성 목록 로드 실패:", error);
+        setAvailableVoiceOptions(allVoiceOptions);
+      } finally {
+        setIsLoadingCloudVoices(false);
+      }
+    };
+
+    void loadCloudVoices();
+  }, [cloudConsoleApiKey]);
+
+  useEffect(() => {
+    if (!availableVoiceOptions.some((voice) => voice.name === selectedVoice)) {
+      setSelectedVoice(availableVoiceOptions[0]?.name || voiceOptions[0].name);
+    }
+  }, [availableVoiceOptions, selectedVoice]);
 
   // Sync imageStyle based on characterStyle
   useEffect(() => {
@@ -1554,33 +1633,45 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     setRenderingStatus("AI 음성 출력을 준비했습니다.");
   };
 
-  const voiceStyleMap: Record<string, { rate: number; pitch: number }> = Object.fromEntries(
-    allVoiceOptions.map((voice) => [voice.name, { rate: voice.rate, pitch: voice.pitch }])
+  const voiceStyleMap: Record<string, { rate: number; pitch: number }> = useMemo(
+    () =>
+      Object.fromEntries(
+        availableVoiceOptions.map((voice) => [voice.name, { rate: voice.rate, pitch: voice.pitch }])
+      ),
+    [availableVoiceOptions]
   );
 
   const ENABLE_BROWSER_TTS_FALLBACK = false;
   const PREVIEW_FALLBACK_DELAY_MS = 900;
   const strictVoiceProfileMap: Record<string, { voice: string; ssmlGender: SsmlGender; rate: number; pitch: number; fallbackVoice?: string }> =
-    Object.fromEntries(
-      allVoiceOptions.map((voice) => [
-        voice.name,
-        {
-          voice: voice.googleVoice,
-          ssmlGender: voice.ssmlGender,
-          rate: voice.rate,
-          pitch: voice.pitch,
-          fallbackVoice: voice.fallbackVoice,
-        },
-      ])
+    useMemo(
+      () =>
+        Object.fromEntries(
+          availableVoiceOptions.map((voice) => [
+            voice.name,
+            {
+              voice: voice.googleVoice,
+              ssmlGender: voice.ssmlGender,
+              rate: voice.rate,
+              pitch: voice.pitch,
+              fallbackVoice: voice.fallbackVoice,
+            },
+          ])
+        ),
+      [availableVoiceOptions]
     );
   const stripGenderPrefix = (label: string): string =>
     String(label || "").replace(/^(?:\uB0A8\uC131|\uC5EC\uC131)\s*/, "").trim();
+  const resolveAvailableVoiceMeta = useCallback(
+    (voiceName: string) => availableVoiceOptions.find((voice) => voice.name === voiceName) || null,
+    [availableVoiceOptions]
+  );
   const favoriteVoiceOptions = useMemo(
     () =>
       favoriteVoiceNames
-        .map((voiceName) => resolveVoiceMeta(voiceName))
+        .map((voiceName) => resolveAvailableVoiceMeta(voiceName))
         .filter((voice): voice is ExtendedVoiceOption => Boolean(voice && "googleVoice" in voice)),
-    [favoriteVoiceNames]
+    [favoriteVoiceNames, resolveAvailableVoiceMeta]
   );
   const isFavoriteVoice = (voiceName: string) => favoriteVoiceNames.includes(voiceName);
   const toggleFavoriteVoice = (voiceName: string) => {
@@ -1601,7 +1692,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     "나레이션용",
     "광고/홍보",
   ];
-  const filteredVoiceModalOptions = allVoiceOptions.filter((voice) => {
+  const filteredVoiceModalOptions = availableVoiceOptions.filter((voice) => {
     if (voiceGenderFilter !== "전체" && voice.category !== voiceGenderFilter) return false;
     if (voiceTagFilter !== "전체" && !voice.tags.includes(voiceTagFilter)) return false;
     return true;
@@ -1780,7 +1871,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       const strictProfile = strictVoiceProfileMap[voiceName];
       const googleVoice = strictProfile?.voice || "ko-KR-Standard-A";
       const ssmlGender = strictProfile?.ssmlGender || (maleVoiceNames.test(voiceName) ? "MALE" : "FEMALE");
-      const voiceMeta = allVoiceOptions.find((voice) => voice.name === voiceName) || null;
+      const voiceMeta = resolveAvailableVoiceMeta(voiceName);
       const voicePreset = resolveVoicePreset(voiceMeta);
       const voiceStyle = strictProfile
         ? { rate: strictProfile.rate, pitch: strictProfile.pitch }
@@ -3877,6 +3968,11 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     >
                       대사별 적용
                     </button>
+                    <span className="ml-auto text-xs text-white/50">
+                      {isLoadingCloudVoices
+                        ? "클라우드 음성 불러오는 중..."
+                        : `사용 가능 음성 ${availableVoiceOptions.length}개`}
+                    </span>
                   </div>
                   <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-white/10 bg-black/30 px-4 py-3">
                     <span className="text-sm font-semibold text-white/70">
@@ -3897,14 +3993,14 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     >
                       <option value="" disabled>목소리 선택</option>
                       <optgroup label="남성">
-                        {allVoiceOptions.filter(v => v.category === "남성").map((voice) => (
+                        {availableVoiceOptions.filter(v => v.category === "남성").map((voice) => (
                           <option key={voice.name} value={voice.name}>
                             {voice.name} · {stripGenderPrefix(voice.label)}
                           </option>
                         ))}
                       </optgroup>
                       <optgroup label="여성">
-                        {allVoiceOptions.filter(v => v.category === "여성").map((voice) => (
+                        {availableVoiceOptions.filter(v => v.category === "여성").map((voice) => (
                           <option key={voice.name} value={voice.name}>
                             {voice.name} · {stripGenderPrefix(voice.label)}
                           </option>
@@ -3968,7 +4064,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                   type="button"
                                   onClick={() => {
                                     setCurrentChapterForVoice(index);
-                                    const sampleText = allVoiceOptions.find(v => v.name === voice.name)?.sampleText || "안녕하세요, 유튜브 채널 미리듣기 샘플입니다.";
+                                    const sampleText = availableVoiceOptions.find(v => v.name === voice.name)?.sampleText || "안녕하세요, 유튜브 채널 미리듣기 샘플입니다.";
                                     playPreviewAudio(index, voice.name, sampleText);
                                   }}
                                   className={`p-2 rounded-lg border transition-all ${playingChapter === index && playingVoice === voice.name
@@ -4028,7 +4124,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                     }}
                                     className="rounded-lg border border-white/20 bg-black/60 px-2 py-1.5 text-xs text-white/90 focus:outline-none focus:ring-1 focus:ring-red-500"
                                   >
-                                    {allVoiceOptions.map((voice) => (
+                                    {availableVoiceOptions.map((voice) => (
                                       <option key={voice.name} value={voice.name}>
                                         {voice.name} · {stripGenderPrefix(voice.label)}
                                       </option>
