@@ -2621,7 +2621,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     setScriptError("");
     // 이전 생성 결과가 남아 있으면 실패 시에도 4단계처럼 보일 수 있어 시작 시 초기화
     setGeneratedPlan(null);
-    setScriptSubStep(2);
+    setScriptSubStep(3);
     setIsGeneratingScript(true);
     setGenerateProgress({ ...generateProgress, currentStep: 0 });
 
@@ -3497,18 +3497,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       )}
                     </div>
 
-                    {isGeneratingScript && (
-                      <ProgressTracker
-                        currentStepIndex={generateProgress.currentStep}
-                        stepLabels={generateProgress.steps}
-                        stepDescriptions={[
-                          "선택한 주제에 맞는 대본 구조를 설계하고 있습니다",
-                          "각 챕터의 내용을 상세하게 작성하고 있습니다",
-                          "생성된 대본의 품질을 확인하고 있습니다"
-                        ]}
-                        estimatedTimeSeconds={25}
-                      />
-                    )}
                   </>
                 )}
 
