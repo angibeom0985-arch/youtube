@@ -526,6 +526,19 @@ const stripScriptArtifacts = (value?: string): string => {
   return lines.join("\n").trim();
 };
 
+const normalizeChapterScriptContent = (value?: string): string => {
+  const normalized = String(value || "")
+    .split(/\r?\n/)
+    .map((line) =>
+      String(line || "")
+        .replace(/^\s*(내레이션|나레이션|나레이터|narration|narrator)\s*[:：]\s*/i, "")
+        .trim()
+    )
+    .filter(Boolean)
+    .join("\n");
+  return normalized.trim();
+};
+
 const toScriptLineText = (line: { character?: string; line?: string; timestamp?: string }): string => {
   const character = String(line?.character || "").trim();
   const content = stripNarrationPrefix(line?.line);
@@ -1071,6 +1084,25 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       cancelled = true;
     };
   }, [normalizedYoutubeUrl]);
+
+  useEffect(() => {
+    if (ttsVoiceApplyMode !== "chapter") return;
+    setChapterScripts((prev) => {
+      let changed = false;
+      const next = prev.map((chapter) => {
+        const cleaned = normalizeChapterScriptContent(chapter.content);
+        if (cleaned !== chapter.content) {
+          changed = true;
+          return { ...chapter, content: cleaned };
+        }
+        return chapter;
+      });
+      if (changed) {
+        setTtsScript(next.map((chapter) => chapter.content).join("\n\n"));
+      }
+      return changed ? next : prev;
+    });
+  }, [ttsVoiceApplyMode]);
 
   // 분석 및 생성 결과 localStorage 저장
   useEffect(() => setStoredJson("videopage_scriptAnalysis", scriptAnalysis), [scriptAnalysis]);
