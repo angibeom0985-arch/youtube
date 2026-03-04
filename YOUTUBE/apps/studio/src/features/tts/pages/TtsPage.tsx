@@ -100,10 +100,43 @@ const toTtsErrorMessage = (raw: string): string => {
   return raw;
 };
 
+const extractGoogleCloudApiKey = (raw: unknown): string => {
+  if (!raw) return "";
+
+  if (typeof raw === "string") {
+    const trimmed = raw.trim();
+    if (!trimmed) return "";
+    if (!trimmed.startsWith("{")) return trimmed;
+    try {
+      const parsed = JSON.parse(trimmed) as { apiKey?: unknown };
+      return typeof parsed.apiKey === "string" ? parsed.apiKey.trim() : "";
+    } catch {
+      return "";
+    }
+  }
+
+  if (typeof raw === "object") {
+    const apiKey = (raw as { apiKey?: unknown }).apiKey;
+    return typeof apiKey === "string" ? apiKey.trim() : "";
+  }
+
+  return "";
+};
+
+type VoiceOption = {
+  value: string;
+  label: string;
+  gender: "female" | "male" | "neutral";
+  type: string;
+  lang: string;
+  presetPitch?: number;
+  presetRate?: number;
+};
+
 // Voice presets for Google Cloud TTS.
 // Korean Google Cloud TTS provides limited base models: Female (A, B) and Male (C, D).
 // We use pitch and rate combinations to create distinct "virtual personas" from these base models.
-const voiceOptions = [
+const baseVoiceOptions: VoiceOption[] = [
   // --- 여성 (Female) ---
   { value: "ko-KR-Neural2-A", label: "지수 (차분한 어조)", gender: "female", type: "Neural2", lang: "ko", presetPitch: 0.0, presetRate: 1.0 },
   { value: "ko-KR-Wavenet-A", label: "지윤 (안정적인 설명)", gender: "female", type: "Wavenet", lang: "ko", presetPitch: -5.0, presetRate: 0.90 },
@@ -164,6 +197,9 @@ const TtsPage: React.FC<TtsPageProps> = ({ basePath = "/tts" }) => {
     steps: ["텍스트 준비", "AI 프롬프트 분석", "음성 생성", "완료"],
   });
   const [copyStatus, setCopyStatus] = useState("");
+  const [availableVoices, setAvailableVoices] = useState<VoiceOption[]>(baseVoiceOptions);
+  const [isLoadingCloudVoices, setIsLoadingCloudVoices] = useState(false);
+  const [googleCloudApiKey, setGoogleCloudApiKey] = useState("");
   const [previewAudio, setPreviewAudio] = useState<HTMLAudioElement | null>(null);
   const [playingPreview, setPlayingPreview] = useState<string | null>(null);
   const previewCacheRef = useRef<Map<string, string>>(new Map());
@@ -208,8 +244,10 @@ const TtsPage: React.FC<TtsPageProps> = ({ basePath = "/tts" }) => {
 
         const data = await response.json();
         const hasKey = hasGoogleCredential(data?.google_credit_json);
+        const cloudApiKey = extractGoogleCloudApiKey(data?.google_credit_json);
         const isCouponBypass = data?.coupon_bypass_credits === true;
         setHasUserGoogleKey(hasKey);
+        setGoogleCloudApiKey(cloudApiKey);
         setCouponBypassCredits(isCouponBypass);
         if (isCouponBypass && !hasKey) {
           alert("할인 쿠폰 계정은 마이페이지에서 Google Cloud API 키를 먼저 등록해야 합니다.");
@@ -220,12 +258,93 @@ const TtsPage: React.FC<TtsPageProps> = ({ basePath = "/tts" }) => {
         }
       } catch {
         setHasUserGoogleKey(false);
+        setGoogleCloudApiKey("");
         setCouponBypassCredits(false);
       }
     };
 
     loadUserKeyStatus();
   }, [user?.id, navigate, ttsFromPath]);
+
+  useEffect(() => {
+    const loadCloudVoices = async () => {
+      if (!googleCloudApiKey) {
+        setAvailableVoices(baseVoiceOptions);
+        return;
+      }
+
+      setIsLoadingCloudVoices(true);
+      try {
+        const res = await fetch(`https://texttospeech.googleapis.com/v1/voices?key=${googleCloudApiKey}`);
+        const payload = await res.json().catch(() => null);
+        if (!res.ok || !Array.isArray(payload?.voices)) {
+          setAvailableVoices(baseVoiceOptions);
+          return;
+        }
+
+        const languageAllowList = new Set(["ko", "en", "ja", "zh"]);
+        const mapped: VoiceOption[] = payload.voices
+          .map((voice: any) => {
+            const name = String(voice?.name || "").trim();
+            const firstLanguageCode = String(voice?.languageCodes?.[0] || "").trim();
+            const lang = firstLanguageCode.split("-")[0]?.toLowerCase();
+            if (!name || !lang || !languageAllowList.has(lang)) return null;
+
+            const upperName = name.toUpperCase();
+            const type = upperName.includes("NEURAL2")
+              ? "Neural2"
+              : upperName.includes("WAVENET")
+                ? "Wavenet"
+                : upperName.includes("CHIRP")
+                  ? "Chirp"
+                  : upperName.includes("STUDIO")
+                    ? "Studio"
+                    : "Standard";
+            const genderCode = String(voice?.ssmlGender || "").toUpperCase();
+            const gender: VoiceOption["gender"] =
+              genderCode === "MALE" ? "male" : genderCode === "FEMALE" ? "female" : "neutral";
+            const languageLabel = firstLanguageCode || lang.toUpperCase();
+
+            return {
+              value: name,
+              label: `${name} (${languageLabel})`,
+              gender,
+              type,
+              lang,
+            };
+          })
+          .filter((voice: VoiceOption | null): voice is VoiceOption => Boolean(voice));
+
+        const mergedMap = new Map<string, VoiceOption>();
+        [...baseVoiceOptions, ...mapped].forEach((voice) => {
+          if (!mergedMap.has(voice.value)) {
+            mergedMap.set(voice.value, voice);
+          }
+        });
+        const merged = Array.from(mergedMap.values()).sort((a, b) => {
+          if (a.lang === "ko" && b.lang !== "ko") return -1;
+          if (a.lang !== "ko" && b.lang === "ko") return 1;
+          return a.value.localeCompare(b.value);
+        });
+        setAvailableVoices(merged);
+      } catch (err) {
+        console.error("클라우드 음성 목록 로드 실패:", err);
+        setAvailableVoices(baseVoiceOptions);
+      } finally {
+        setIsLoadingCloudVoices(false);
+      }
+    };
+
+    void loadCloudVoices();
+  }, [googleCloudApiKey]);
+
+  useEffect(() => {
+    if (!voice) return;
+    const exists = availableVoices.some((item) => item.value === voice);
+    if (!exists) {
+      setVoice(baseVoiceOptions[0]?.value || "ko-KR-Standard-A");
+    }
+  }, [availableVoices, voice]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -294,7 +413,7 @@ const TtsPage: React.FC<TtsPageProps> = ({ basePath = "/tts" }) => {
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
       }
-      const previewVoiceConfig = voiceOptions.find(v => v.value === voiceId);
+      const previewVoiceConfig = availableVoices.find(v => v.value === voiceId);
       const previewPitch = previewVoiceConfig?.presetPitch ?? 0;
       const previewRate = previewVoiceConfig?.presetRate ?? 1;
 
@@ -443,7 +562,7 @@ const TtsPage: React.FC<TtsPageProps> = ({ basePath = "/tts" }) => {
     }
   };
 
-  const filterVoices = (gender: string) => voiceOptions.filter(v => v.gender === gender);
+  const filterVoices = (gender: VoiceOption["gender"]) => availableVoices.filter(v => v.gender === gender);
 
   if (isAuthChecking) {
     return (
@@ -493,6 +612,11 @@ const TtsPage: React.FC<TtsPageProps> = ({ basePath = "/tts" }) => {
               <h2 className="text-lg font-bold text-emerald-300 mb-5 flex items-center gap-2">
                 <FiUser /> 목소리 선택
               </h2>
+              <div className="mb-4 rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-xs text-slate-400">
+                {isLoadingCloudVoices
+                  ? "Google Cloud 음성 목록을 불러오는 중..."
+                  : `사용 가능 음성 ${availableVoices.length}개 (기본 + 클라우드)`}
+              </div>
 
               <div className="space-y-6 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
                 <div>
@@ -530,6 +654,37 @@ const TtsPage: React.FC<TtsPageProps> = ({ basePath = "/tts" }) => {
                   <label className="text-xs font-black text-slate-500 uppercase tracking-widest mb-3 block">남성 성우</label>
                   <div className="space-y-2">
                     {filterVoices("male").map(v => (
+                      <div
+                        key={v.value}
+                        onClick={() => {
+                          setVoice(v.value);
+                          if (v.presetPitch !== undefined) setPitch(v.presetPitch);
+                          if (v.presetRate !== undefined) setSpeakingRate(v.presetRate);
+                        }}
+                        className={`group flex items-center justify-between p-3.5 rounded-xl cursor-pointer border transition-all ${voice === v.value ? 'bg-emerald-500/20 border-emerald-500/50 ring-1 ring-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.15)]' : 'bg-slate-900/40 border-white/5 hover:border-white/20'}`}
+                      >
+                        <div className="flex flex-col min-w-0">
+                          <span className={`text-sm font-bold truncate ${voice === v.value ? 'text-emerald-300' : 'text-slate-200'}`}>
+                            {v.label} <span className="opacity-50 text-[10px] ml-1">({v.lang.toUpperCase()})</span>
+                          </span>
+                          <span className="text-[11px] text-slate-500">{v.type}</span>
+                        </div>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handlePreviewVoice(v.value); }}
+                          className="p-2 rounded-full bg-white/5 hover:bg-emerald-500 hover:text-white text-emerald-400 transition-all"
+                          title="미리듣기"
+                        >
+                          {playingPreview === v.value ? <FiPause size={14} /> : <FiPlay size={14} />}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-black text-slate-500 uppercase tracking-widest mb-3 block">중성/기타</label>
+                  <div className="space-y-2">
+                    {filterVoices("neutral").map(v => (
                       <div
                         key={v.value}
                         onClick={() => {
