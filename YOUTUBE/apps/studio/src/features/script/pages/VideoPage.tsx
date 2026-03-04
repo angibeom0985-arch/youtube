@@ -468,6 +468,25 @@ const stripNarrationPrefix = (value?: string): string => {
     .trim();
 };
 
+const stripScriptArtifacts = (value?: string): string => {
+  const text = String(value || "");
+  const lines = text
+    .split(/\r?\n/)
+    .map((line) =>
+      line
+        .replace(/^\s*(내레이션|나레이션|나레이터|narration|narrator)\s*[:：]\s*/i, "")
+        .replace(/^\s*이미지\s*프롬프트\s*[:：]\s*/i, "")
+        .replace(/^\s*image\s*prompt\s*[:：]\s*/i, "")
+        .trim()
+    )
+    .filter((line) => {
+      if (!line) return false;
+      const lower = line.toLowerCase();
+      return !lower.startsWith("이미지 프롬프트") && !lower.startsWith("image prompt");
+    });
+  return lines.join("\n").trim();
+};
+
 const toScriptLineText = (line: { character?: string; line?: string; timestamp?: string }): string => {
   const character = String(line?.character || "").trim();
   const content = stripNarrationPrefix(line?.line);
@@ -2361,19 +2380,19 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         script: chapter.script?.map(line => ({
           ...line,
           character: cleanText(line.character),
-          line: stripNarrationPrefix(cleanText(line.line)),
+          line: stripScriptArtifacts(stripNarrationPrefix(cleanText(line.line))),
         })),
       })),
       scriptWithCharacters: plan.scriptWithCharacters?.map(line => ({
         ...line,
         character: cleanText(line.character),
-        line: stripNarrationPrefix(cleanText(line.line)),
+        line: stripScriptArtifacts(stripNarrationPrefix(cleanText(line.line))),
       })),
       scriptOutline: plan.scriptOutline?.map(stage => ({
         ...stage,
         stage: cleanText(stage.stage),
         purpose: cleanText(stage.purpose),
-        details: cleanText(stage.details),
+        details: stripScriptArtifacts(cleanText(stage.details)),
       })),
       newIntent: plan.newIntent?.map(item => ({
         ...item,

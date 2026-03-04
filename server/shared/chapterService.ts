@@ -185,11 +185,10 @@ export const generateChapterScript = async (
             type: Type.OBJECT,
             properties: {
               character: { type: Type.STRING, description: "화자" },
-              line: { type: Type.STRING, description: "대사" },
+              line: { type: Type.STRING, description: "대사 본문만 작성한 순수 대본 텍스트" },
               timestamp: { type: Type.STRING, description: "타임스탬프 (MM:SS)" },
-              imagePrompt: { type: Type.STRING, description: "이미지 생성 프롬프트 (영어)" },
             },
-            required: ["character", "line", "timestamp", "imagePrompt"],
+            required: ["character", "line", "timestamp"],
           },
         },
       },
@@ -209,24 +208,34 @@ export const generateChapterScript = async (
       .join('\n');
 
     const isStoryChannel = category === "쇼 채널" || category === "북한 이슈" || category === "49금" || category === "야담" || category === "국뽕";
+    const parseDurationMinutes = (value?: string): number => {
+      const text = String(value || "").trim();
+      const hourMatch = text.match(/(\d+)\s*시간/);
+      const minuteMatch = text.match(/(\d+)\s*분/);
+      let total = 0;
+      if (hourMatch) total += Number(hourMatch[1]) * 60;
+      if (minuteMatch) total += Number(minuteMatch[1]);
+      if (!hourMatch && !minuteMatch) {
+        const fallback = Number(text.replace(/[^\d.]/g, ""));
+        if (Number.isFinite(fallback) && fallback > 0) {
+          total = fallback;
+        }
+      }
+      return Math.max(1, Math.round(total || 1));
+    };
+    const chapterMinutes = parseDurationMinutes(chapter.estimatedDuration);
+    const minimumLines = Math.max(8, Math.ceil(chapterMinutes * 5));
+    const minimumChars = Math.max(1200, chapterMinutes * 620);
 
     const styleGuideline = isNarration
       ? `5. **나레이션 스타일**: 단독 나레이터가 이야기하는 형식으로 작성하세요
    - character는 항상 "나레이터"로 통일
    - 설명하는 투의 문체 사용
-   - 예: "나레이터: 그날 밤, 그는 어두운 갤러리 앞에 서 있었습니다..."
-
-6. **이미지 프롬프트**: 각 장면을 시각적으로 표현할 수 있는 영어 프롬프트를 작성하세요
-   - 주요 인물, 장소, 행동, 분위기 포함
-   - 예: "A man standing in front of an art gallery at night, mysterious atmosphere"`
+   - line 필드에는 '나레이터:' 같은 라벨을 쓰지 말고 본문만 작성`
       : `5. **대화 스타일**: 등장인물 간의 대화로 이야기를 전개하세요
    - character에 지정된 등장인물 이름 사용
    - 자연스러운 대화체 문체
-   - 예: "주인공: 여기가 그 유명한 갤러리군요"
-
-6. **이미지 프롬프트**: 각 장면을 시각적으로 표현할 수 있는 영어 프롬프트를 작성하세요
-   - 주요 인물, 장소, 행동, 분위기 포함
-   - 예: "A man standing in front of an art gallery at night, mysterious atmosphere"`;
+   - line 필드에는 '이름:' 라벨을 쓰지 말고 본문만 작성`;
 
     const prompt = `"${newKeyword}" 주제의 다음 챕터에 대한 상세 대본을 작성해주세요:
 
@@ -242,12 +251,17 @@ ${nextChaptersSummary ? `**다음 챕터 예정:**\n${nextChaptersSummary}\n` : 
 
 **대본 작성 지침:**
 1. **분량 (중요!)**: 이 챕터의 예상 시간(${chapter.estimatedDuration})에 맞는 **풍부하고 상세한 대사**를 작성하세요
-   - 한국어 낭독 속도: 분당 약 600-700자 (기존의 2배)
-   - **대사 개수: 최소 ${Math.ceil(parseInt(chapter.estimatedDuration) * 8)}개 이상** (기존의 2배)
+   - 한국어 낭독 속도: 분당 약 600-700자
+   - **대사 개수: 최소 ${minimumLines}개 이상**
+   - **총 글자 수: 최소 ${minimumChars.toLocaleString()}자 이상**
    - 각 대사는 충분히 길고 상세하게 작성하여 시청자가 몰입할 수 있도록 구성하세요
 2. **흐름**: 이전 챕터와 자연스럽게 연결되고, 다음 챕터로 이어지도록 구성하세요
 3. **등장인물**: ${isNarration ? '"나레이터"만 사용하세요' : '지정된 등장인물만 사용하세요'}
 4. **타임스탬프**: 각 대사의 예상 시점을 MM:SS 형식으로 정확히 계산하세요
+5. **출력 형식 제한(필수)**:
+   - line에는 순수 대본 본문만 작성하세요
+   - '내레이션:', '나레이션:', '나레이터:', '이미지 프롬프트:' 같은 라벨/메타 문구를 절대 쓰지 마세요
+   - 이미지 생성 프롬프트 문장을 절대 포함하지 마세요
 ${styleGuideline}
 
 ${isStoryChannel ? `

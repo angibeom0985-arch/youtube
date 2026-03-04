@@ -150,7 +150,7 @@ const storyChannelNewPlanSchema = {
     scriptWithCharacters: {
       type: Type.ARRAY,
       description:
-        "새로운 영상에 대한 상세한, 한 줄 한 줄의 대본입니다. 각 객체는 화자, 대사, 타임스탬프(예상 시간), 그리고 해당 장면에 대한 이미지 생성 프롬프트를 포함해야 합니다.",
+        "새로운 영상에 대한 상세한, 한 줄 한 줄의 대본입니다. 각 객체는 화자, 대사, 타임스탬프(예상 시간)만 포함하며, 대사(line)에는 순수 대본 본문만 작성합니다.",
       items: {
         type: Type.OBJECT,
         properties: {
@@ -161,20 +161,15 @@ const storyChannelNewPlanSchema = {
           line: {
             type: Type.STRING,
             description:
-              "이 대사의 대화 또는 행동입니다. 마크다운 사용이 가능합니다.",
+              "이 대사의 대화 또는 행동입니다. 라벨 없이 순수 대본 본문만 작성하세요. 예: '내레이션:', '이미지 프롬프트:' 같은 메타 문구 금지.",
           },
           timestamp: {
             type: Type.STRING,
             description:
               "이 대사가 등장할 예상 시간 (MM:SS 형식, 예: '00:15', '01:30'). **중요**: 한국어 낭독 속도는 **분당 약 300-350자(약 5-6자/초)**입니다. 각 대사의 글자 수를 세고, 이전 대사들의 누적 시간을 더해 정확한 타임스탬프를 계산하세요. 예를 들어, 50자 대사는 약 8-10초가 소요됩니다. 대사 사이에 자연스러운 호흡(1-2초)도 고려하세요.",
           },
-          imagePrompt: {
-            type: Type.STRING,
-            description:
-              "이 대사와 장면에 어울리는 이미지를 생성하기 위한 상세한 프롬프트입니다. DALL-E 또는 Midjourney와 같은 이미지 생성 AI에 사용할 수 있도록 영어로 작성해주세요.\n\n**범용 프롬프트 구조 (Universal Prompt Skeleton)**:\n{Style}, {Composition} of {Subject}, {Action}, in {Background}, with {Lighting}, {Mood}, {Quality}\n\n- {Style}: 카테고리 특성 반영 스타일 (예: cinematic photo, digital art, candid vlog style)\n- {Composition}: 구도와 앵글 (예: close-up shot, wide angle, full body shot)\n- {Subject}: 대본에서 추출한 인물/사물 상세 묘사 (예: a young woman with long brown hair)\n- {Action}: 인물의 행동/상황 (예: reading a book, looking at city view)\n- {Background}: 장면 배경 (예: cozy living room, bustling street at night)\n- {Lighting}: 조명 효과 (예: soft natural light, dramatic neon lighting)\n- {Mood}: 전체 분위기 (예: peaceful and serene, mysterious and tense)\n- {Quality}: 품질 키워드 (예: highly detailed, 8K, photorealistic)\n\n**중요**: 실제 사진 스타일보다는 illustration style, digital art, anime style, webtoon style 등 AI가 생성하기 쉬운 예술적 스타일을 우선적으로 사용하세요.",
-          },
         },
-        required: ["character", "line", "timestamp", "imagePrompt"],
+        required: ["character", "line", "timestamp"],
       },
     },
   },
@@ -188,7 +183,7 @@ const structuredOutlinePlanSchema = {
     scriptOutline: {
       type: Type.ARRAY,
       description:
-        "A step-by-step breakdown of the new video's outline. Each step should have a title, purpose, and detailed content, in Korean. Use markdown for the details.",
+        "A step-by-step breakdown of the new video's outline. Each step should have a title, purpose, and detailed content in Korean. The details must be pure script content only.",
       items: {
         type: Type.OBJECT,
         properties: {
@@ -203,7 +198,7 @@ const structuredOutlinePlanSchema = {
           details: {
             type: Type.STRING,
             description:
-              "Detailed content for this stage. To ensure high readability, create clear separation between points using double line breaks instead of Markdown lists. Use `**bold text**` to emphasize important keywords or subheadings.",
+              "Detailed content for this stage. Write only pure script content without labels or meta text. Do not include phrases like '내레이션:' or '이미지 프롬프트:'.",
           },
         },
         required: ["stage", "purpose", "details"],
@@ -750,20 +745,28 @@ ${analysis.openingStyle.exampleLines.map((line, i) => `  ${i + 1}. ${line}`).joi
 
       let contents;
 
-      // 영상 길이에 따른 최소 대본 라인 수 계산
-      const getMinimumLines = (lengthStr: string): number => {
-        if (lengthStr.includes('1시간') || lengthStr.includes('60분')) return 200;
-        if (lengthStr.includes('30분')) return 100;
-        if (lengthStr.includes('8분')) return 30;
-        return 30;
-      };
+      // 영상 길이에 따른 최소 대본 분량 계산
+      const minimumLines = Math.max(20, Math.ceil(lengthMinutes * 4));
+      const minimumChars = Math.max(1600, lengthMinutes * 620);
+      const minimumCharsPerChapter = Math.max(
+        600,
+        Math.ceil(minimumChars / Math.max(1, targetChapters))
+      );
+      const lengthGuideline = `\n\n**영상 길이 가이드 (${length})**
+- 최소 ${minimumLines}개 이상의 대사 라인을 생성하세요
+- 총 분량은 최소 ${minimumChars.toLocaleString()}자 이상으로 작성하세요
+- 챕터별 상세 내용은 최소 ${minimumCharsPerChapter.toLocaleString()}자 이상으로 작성하세요
+- 선택한 길이(${lengthMinutes}분)에 맞도록 장면 전개와 설명 밀도를 충분히 확보하세요`;
 
-      const minimumLines = getMinimumLines(length);
-      const lengthGuideline = length.includes('1시간') || length.includes('60분')
-        ? `\n\n**⚠️ 중요: 영상 길이 가이드 (${length})**\n- 최소 ${minimumLines}개 이상의 대사 라인을 생성해야 합니다\n- 1시간 = 약 18,000-21,000자 분량 (한국어 낭독 속도 기준)\n- 각 대사는 자연스러운 대화 길이로 작성하되, 전체 스토리가 ${length} 분량에 맞도록 충분히 상세하게 작성하세요\n- 장면 전환, 복선, 클라이맥스 등 스토리 요소를 풍부하게 포함하세요\n- 대사 사이의 자연스러운 간격과 감정 표현도 충분히 담아주세요`
-        : `\n\n**영상 길이 가이드 (${length})**: 최소 ${minimumLines}개 이상의 대사 라인을 생성하세요.`;
+      const scriptPurityGuide = `
 
-      const lengthGuidelineWithChapters = `${lengthGuideline}${chapterGuide}${scriptStyleGuide}`;
+**출력 형식 고정 규칙 (필수)**
+- 결과 텍스트는 순수 대본 내용만 작성하세요
+- '내레이션:', '나레이션:', '나레이터:', '이미지 프롬프트:' 같은 라벨/메타 문구를 절대 쓰지 마세요
+- 이미지 생성 프롬프트 문장(영문 키워드 나열 포함)을 절대 포함하지 마세요
+- details/line 필드에는 실제 낭독할 대본 문장만 넣으세요`;
+
+      const lengthGuidelineWithChapters = `${lengthGuideline}${chapterGuide}${scriptStyleGuide}${scriptPurityGuide}`;
 
       if (useStoryPrompt) {
         contents = `"${newKeyword}"를 주제로 한 완전히 새로운 스토리 영상 기획안을 만들어 주세요. 목표 영상 길이는 약 ${length}입니다.${lengthGuidelineWithChapters}
@@ -780,14 +783,6 @@ ${openingStyleInfo}
 - 스토리의 맥락에 맞는 2~5명의 캐릭터를 등장시켜 대화형 형식으로 작성해주세요.
 - 각 캐릭터는 구체적인 역할명(예: '나', '친구 민수', '엄마', '회사 동료')을 사용해주세요.
 - 나레이션이 필요한 경우에만 '나레이터'를 사용하되, 대부분의 내용은 캐릭터 간의 대화와 행동으로 표현해주세요.
-
-각 대사마다 해당 장면을 시각적으로 묘사하는 상세한 이미지 생성 프롬프트('imagePrompt')를 반드시 포함해야 합니다.
-
-**이미지 프롬프트 작성 가이드 - 썰 채널 스타일**:
-- 핵심 키워드: cinematic, dramatic lighting, moody, mysterious, suspenseful, narrative still
-- 스타일 강조: 영화의 한 장면처럼 극적이고 서사적인 느낌
-- 조명과 분위기에 집중하여 긴장감 조성
-- 예시: "cinematic shot of a person in shock, dramatic lighting, moody atmosphere, mysterious background, highly detailed, film noir style"
 
 **참고용 대본 구조 (구조만 차용, 내용은 절대 사용 금지):**
 
@@ -842,23 +837,6 @@ ${specificVlogPrompt}
 
 각 장면마다 구체적인 촬영 가이드와 편집 포인트를 포함해주세요.
 
-**이미지 프롬프트 작성 가이드 - 브이로그 스타일**:
-기본 키워드: candid photo, vlog style, natural lighting, realistic, friendly, warm color palette
-
-하위 타입별 추가 키워드:
-- 모닝 루틴: soft morning light, cozy, peaceful, serene, waking up scene, warm tones
-- 다이어트: healthy food, fitness, energetic, fresh ingredients, bright and clean
-- 여행: beautiful landscape, wide angle shot, adventurous, vibrant colors, travel photography
-- 언박싱: unboxing, product focused, clean background, detailed shot, excitement
-- 패션: fashion style, full body shot, street style photography, stylish outfit, confident pose
-- 공부: study with me, desk setup, focused, calm, lofi mood, cozy lighting
-- 운동: dynamic action shot, fitness, workout, powerful, energetic, gym setting
-- 일상: slice of life, candid moment, authentic, simple, everyday scene
-- 데이트: romantic, lovely couple, warm sunset light, happy moment, soft focus
-- 요리: home cooking, cozy kitchen, bright natural light, simple and delicious food
-
-예시: "candid vlog style photo of a person waking up, soft morning light, cozy bedroom, peaceful and serene, warm tones, natural realistic style"
-
 **참고용 대본 구조 (구조만 차용, 내용은 절대 사용 금지):**
 
 ${analysisString}
@@ -888,12 +866,6 @@ ${analysisString}
 
 각 장면마다 촬영 팁과 편집 포인트를 포함해주세요.
 
-**이미지 프롬프트 작성 가이드 - 먹방 스타일**:
-- 핵심 키워드: extreme close-up on food, delicious, mouth-watering, vibrant, dynamic eating shot
-- 음식을 극단적으로 클로즈업하여 맛있어 보이는 질감과 색감 극대화
-- ASMR 요소를 시각적으로 표현
-- 예시: "extreme close-up of delicious Korean fried chicken, mouth-watering, vibrant colors, steam rising, highly detailed food texture, appetizing presentation"
-
 **참고용 대본 구조 (구조만 차용, 내용은 절대 사용 금지):**
 
 ${analysisString}
@@ -908,12 +880,6 @@ ${analysisString}
 - "${newKeyword}" 제품의 특성에 맞는 완전히 새로운 리뷰 내용을 창작하세요
 
 영상은 '오프닝', '제품 소개', '주요 특징 시연', '장단점 분석', '총평 및 추천'으로 구성되어야 합니다. 이 구조에 맞춰 각 단계별 제목, 목적, 상세 내용이 포함된 구조적인 개요를 작성해주세요.
-
-**이미지 프롬프트 작성 가이드 - 쇼핑 리뷰 스타일**:
-- 핵심 키워드: product shot, studio lighting, clean background, macro shot, detailed texture
-- 제품의 디테일과 질감이 잘 보이도록 스튜디오 조명과 깔끔한 배경 활용
-- 접사 구도로 제품 특징 강조
-- 예시: "product photography of wireless earbuds, studio lighting, white clean background, macro detailed shot, sleek design, high quality texture, 8K"
 
 **참고용 대본 구조 (구조만 차용, 내용은 절대 사용 금지):**
 
@@ -948,12 +914,6 @@ ${analysisString}
 - '나', '상대방', '친구' 등 자연스러운 대화형 구성
 - 각 배역의 심리와 감정선을 섬세하게 표현
 - 현실적이고 공감 가는 대사와 상황 연출
-
-**이미지 프롬프트 작성 가이드 - 49금 (연애 스토리) 스타일**:
-- 핵심 키워드: intimate, sensual, moody, low-key lighting, suggestive, romantic atmosphere
-- 은밀하고 감각적인 분위기를 위해 어둡고 부드러운 조명과 로맨틱한 무드 강조
-- 감정과 심리 상태 중심, 선정적 요소 배제
-- 예시: "intimate scene of two people talking closely, moody lighting, romantic atmosphere, soft focus, emotional connection, low-key photography, suggestive but tasteful"
 
 모든 내용은 건전하고 교육적인 가치를 지니며, 플랫폼 가이드라인을 100% 준수해야 합니다.
 
@@ -992,14 +952,6 @@ ${analysisString}
 - 한복, 전통 가옥 등 시대상 반영
 - 서예, 한시 등 전통 문화 요소 삽입
 - 현대인이 이해하기 쉽도록 적절한 설명 추가
-
-각 대사마다 조선시대 분위기를 살린 이미지 생성 프롬프트('imagePrompt')를 반드시 포함해야 합니다.
-
-**이미지 프롬프트 작성 가이드 - 야담 (조선시대) 스타일**:
-- 핵심 키워드: traditional Korean painting style, folklore, mysterious night, moonlight, ancient, historical illustration
-- 한국 전통 민담 느낌을 살리기 위해 전통 회화 스타일, 달빛, 고전적 요소 사용
-- 한복, 한옥, 전통 소품 등을 구체적으로 묘사
-- 예시: "traditional Korean painting style of a scholar in hanbok under moonlight, ancient Joseon era, mysterious atmosphere, historical illustration, folklore art style"
 
 성공적인 동영상 분석 내용:\n\n${analysisString}\n\n이제 위 분석된 성공 구조를 따르되 새로운 키워드 "${newKeyword}"에 초점을 맞춘 완전히 새로운 조선시대 야담 이야기를 창작해주세요. 원본 대본의 내용이나 스토리를 사용하지 말고, 새로운 인물과 사건으로 구성된 독창적인 야담을 만들어주세요. 모든 결과 항목을 지정된 구조에 맞춰 JSON 형식으로 제공해주세요.`;
       } else if (isGukppongChannel) {
@@ -1089,14 +1041,6 @@ ${analysisString}
 - 타국에 대한 직접적인 비난보다는 한국의 우수성 강조
 - 감정적 공감대 형성에 집중
 
-각 대사마다 한국의 우수성을 시각적으로 보여주는 이미지 생성 프롬프트('imagePrompt')를 반드시 포함해야 합니다.
-
-**이미지 프롬프트 작성 가이드 - 국뽕 스타일**:
-- 핵심 키워드: epic, grand scale, patriotic, dynamic, inspiring, vibrant national symbols
-- 웅장하고 영감을 주는 분위기를 위해 역동적인 구도와 상징적 요소를 화려하게 표현
-- 한국의 상징적 요소 강조 (한글, 태극기, 한복, 현대 건축물, K-pop, 한식 등)
-- 예시: "epic scene of Seoul city skyline at night with Namsan Tower, grand scale, vibrant neon lights, patriotic, inspiring atmosphere, dynamic composition, highly detailed, cinematic"
-
 **참고용 대본 구조 (구조만 차용, 내용은 절대 사용 금지):**
 
 ${analysisString}
@@ -1152,15 +1096,6 @@ ${analysisString}
 - 탈북민의 인권과 안전 고려
 - 통일과 화해의 메시지 포함
 
-각 대사마다 북한의 실상이나 탈북 과정을 시각적으로 표현하는 이미지 생성 프롬프트('imagePrompt')를 반드시 포함해야 합니다.
-
-**이미지 프롬프트 작성 가이드 - 북한 이슈 스타일**:
-- 핵심 키워드: documentary style, historical, somber mood, contrast between light and dark, emotional, realistic
-- 다큐멘터리 같은 진지하고 사실적인 분위기
-- 북한의 특징적 요소 반영 (건축물, 의상, 생활 모습 등)
-- 탈북 과정의 긴장감과 감정 표현
-- 예시: "documentary style photo of North Korean daily life, somber mood, historical atmosphere, realistic depiction, contrast lighting, emotional storytelling"
-
 **참고용 대본 구조 (구조만 차용, 내용은 절대 사용 금지):**
 
 ${analysisString}
@@ -1175,31 +1110,6 @@ ${analysisString}
 - "${newKeyword}"에 맞는 완전히 새로운 정보와 내용을 창작하세요
 
 영상은 '도입(문제 제기)', '본론(핵심 정보 전달)', '결론(요약 및 제언)'의 구조를 가져야 합니다. 이 구조에 맞춰 각 단계별 제목, 목적, 상세 내용이 포함된 구조적인 개요를 작성해주세요.
-
-**이미지 프롬프트 작성 가이드 - 카테고리별 스타일**:
-
-카테고리에 따라 아래 키워드를 활용하세요:
-
-- **정보 전달**: clean style, minimalist, bright lighting, infographic style, clear focus, organized
-  예: "clean minimalist infographic style, bright lighting, organized layout, information visualization, clear focus, professional"
-
-- **IT/테크**: futuristic, sleek, glowing elements, data visualization, minimalist, high-tech
-  예: "futuristic tech concept, sleek design, glowing blue elements, data visualization, high-tech atmosphere, minimalist"
-
-- **요리/쿡방**: delicious food photography, bright clean lighting, vibrant colors, fresh ingredients
-  예: "delicious food photography, bright natural lighting, vibrant colors, fresh ingredients, appetizing presentation"
-
-- **뷰티**: beauty shot, soft studio lighting, flawless skin, elegant, close-up on face
-  예: "beauty shot with soft studio lighting, elegant makeup, flawless skin, close-up portrait, professional beauty photography"
-
-- **게임**: epic, dynamic action, fantasy art, concept art, glowing magic effects, cinematic
-  예: "epic fantasy game art, dynamic action scene, glowing magic effects, cinematic composition, concept art style"
-
-- **건강**: healthy lifestyle, natural light, vibrant, energetic, clean and fresh
-  예: "healthy lifestyle scene, natural light, vibrant and energetic, clean fresh atmosphere, wellness concept"
-
-- **미스터리**: noir style, dramatic shadows, mysterious, suspenseful, foggy, low-key lighting
-  예: "noir mystery style, dramatic shadows, mysterious atmosphere, suspenseful mood, foggy background, low-key lighting"
 
 **참고용 대본 구조 (구조만 차용, 내용은 절대 사용 금지):**
 

@@ -40,7 +40,7 @@ export interface AnalysisResult {
 export interface ScriptLine {
   character: string;
   line: string;
-  imagePrompt: string;
+  imagePrompt?: string;
   timestamp?: string;
 }
 
