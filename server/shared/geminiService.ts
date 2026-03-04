@@ -301,10 +301,6 @@ const buildDeterministicIdeas = (
   ];
 
   const ideas = normalizeIdeaList(templates);
-  if (titleFormat && ideas.length) {
-    // 제목 형식 예시가 있을 때는 첫 줄에 형식 반영 힌트 키워드만 약하게 반영
-    ideas[0] = `${ideas[0]} (${String(titleFormat).slice(0, 14).trim()} 톤)`;
-  }
   return ideas.slice(0, 6);
 };
 
@@ -465,6 +461,17 @@ export const generateIdeas = async (
     {
       keywords: analysis.keywords,
       intent: analysis.intent,
+      scriptStructure: (analysis.scriptStructure || []).map((stage) => ({
+        stage: stage.stage,
+        purpose: stage.purpose,
+      })),
+      openingStyle: analysis.openingStyle
+        ? {
+          tone: analysis.openingStyle.tone,
+          startMethod: analysis.openingStyle.startMethod,
+          styleDescription: analysis.openingStyle.styleDescription,
+        }
+        : undefined,
     },
     null,
     2
@@ -491,11 +498,13 @@ export const generateIdeas = async (
 - No simple word swaps: if core keywords overlap >70%, it's a failure.
 - Proper nouns must not overlap with the original.
 - Ideas must be distinct from each other.
+- Keep the narrative feel and audience intent similar to the original script structure.
+- Use completely new examples/cases/material while preserving pacing and hook style.
 `;
 
       const prompt = isShoppingReview
-        ? `다음은 성공적인 "쇼핑 리뷰" 영상 분석 결과입니다. 이 분석을 바탕으로 쿠팡에서 현재 판매량이 높거나 후기 반응이 좋은 제품 중 리뷰 콘텐츠로 적합한 6가지 아이디어를 제안해주세요.\n아이디어는 한국어로 작성하고 JSON 배열로만 출력하세요.${keywordInstruction}${titleFormatInstruction}${noveltyInstruction}\n\n분석 내용:\n${analysisString}`
-        : `다음은 성공적인 유튜브 영상 분석 결과입니다. 이 분석을 바탕으로 조회수 가능성이 높은 새로운 영상 주제 아이디어 6가지를 제안해주세요.\n아이디어는 한국어로 작성하고 JSON 배열로만 출력하세요.${keywordInstruction}${titleFormatInstruction}${noveltyInstruction}\n\n분석 내용:\n${analysisString}`;
+        ? `다음은 사용자가 입력한 벤치마킹 대본의 분석 결과입니다. 이 분석을 바탕으로 "쇼핑 리뷰" 성격은 유지하되 소재는 새로운 6가지 아이디어를 제안해주세요.\n아이디어는 한국어로 작성하고 JSON 배열로만 출력하세요.${keywordInstruction}${titleFormatInstruction}${noveltyInstruction}\n\n중요 규칙:\n- 입력 대본과 유사한 문제의식/전개 리듬/후킹 방식은 유지하세요.\n- 구체적 제품/브랜드/사례는 입력 대본과 겹치지 않게 완전히 새롭게 바꾸세요.\n\n분석 내용:\n${analysisString}`
+        : `다음은 사용자가 입력한 벤치마킹 대본의 분석 결과입니다. 이 분석을 바탕으로 입력 대본과 결은 비슷하되 소재는 새로운 영상 주제 아이디어 6가지를 제안해주세요.\n아이디어는 한국어로 작성하고 JSON 배열로만 출력하세요.${keywordInstruction}${titleFormatInstruction}${noveltyInstruction}\n\n중요 규칙:\n- 입력 대본의 구조/톤/후킹 방식은 참고하되, 소재·사례·인물·배경은 반드시 새롭게 작성하세요.\n- 사용자가 입력한 제목 형식이 있다면 그 형식(말투/리듬/문장형)을 우선 적용하세요.\n\n분석 내용:\n${analysisString}`;
 
       const systemInstruction = isShoppingReview
         ? "You are a Korean YouTube shopping review title editor. Generate 6 ideas with strong hooks. If a title format example is provided, mimic its style but do NOT copy it."

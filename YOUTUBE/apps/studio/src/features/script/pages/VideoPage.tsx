@@ -2434,7 +2434,13 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
       // Step 3: 추천 주제 생성 (제목 형식 반영)
       setAnalyzeProgress(prev => ({ ...prev, currentStep: 2 }));
-      const ideas = await generateIdeas(analysis, selectedCategory, undefined, scriptTitle);
+      const titleFormatForIdeas = (scriptTitle || projectTitle).trim();
+      const ideas = await generateIdeas(
+        analysis,
+        selectedCategory,
+        undefined,
+        titleFormatForIdeas || undefined
+      );
       setScriptIdeas(ideas);
       if (ideas.length > 0) {
         setSelectedTopic(ideas[0]);
