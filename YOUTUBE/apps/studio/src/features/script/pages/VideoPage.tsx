@@ -32,7 +32,7 @@ import {
   FiSettings,
   FiSmartphone,
   FiTrash2,
-
+  FiUpload,
 } from "react-icons/fi";
 
 import { supabase } from "@/services/supabase";
@@ -42,6 +42,7 @@ import ErrorNotice from "@/components/ErrorNotice";
 import type { AnalysisResult, NewPlan } from "@/types";
 import { analyzeTranscript, generateIdeas, generateNewPlan } from "@/services/geminiService";
 import { getVideoDetails } from "@/services/youtubeService";
+import { generateVideo } from "@/services/videoService";
 import { generateCharacters, regenerateStoryboardImage } from "@/features/image/services/geminiService";
 import type { CharacterStyle, BackgroundStyle, AspectRatio, Character, ImageStyle } from "@/features/image/types";
 
@@ -687,6 +688,14 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [rendering, setRendering] = useState(false);
   const [renderingStatus, setRenderingStatus] = useState<string | null>(null);
   const [renderingProgress, setRenderingProgress] = useState(0);
+  const [videoPrompt, setVideoPrompt] = useState("");
+  const [isGeneratingVideo, setIsGeneratingVideo] = useState(false);
+  const [generatedVideoUrl, setGeneratedVideoUrl] = useState("");
+  const [assetFiles, setAssetFiles] = useState<File[]>([]);
+  const [isPackaging, setIsPackaging] = useState(false);
+  const [videoGenerating, setVideoGenerating] = useState(false);
+  const [videoError, setVideoError] = useState("");
+  const [videoUrl, setVideoUrl] = useState("");
 
   const progressTimerRef = useRef<number | null>(null);
   const stopBatchGenerationRef = useRef(false);
@@ -1252,6 +1261,95 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       openSupportErrorDialog("이미지 생성 오류", "이미지 생성", error);
     } finally {
       setGeneratingImageChapter(null);
+    }
+  };
+
+  const handleGenerateVideo = async () => {
+    const prompt = videoPrompt.trim();
+    if (!prompt) {
+      setVideoError("영상 프롬프트를 입력해 주세요.");
+      return;
+    }
+
+    setVideoError("");
+    setIsGeneratingVideo(true);
+    try {
+      const url = await generateVideo({
+        prompt,
+        duration: resolveRenderDurationSeconds(),
+        ratio: renderRatio,
+      });
+      setGeneratedVideoUrl(url);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "영상 생성에 실패했습니다.";
+      setVideoError(message);
+    } finally {
+      setIsGeneratingVideo(false);
+    }
+  };
+
+  const handleVideoGenerate = async () => {
+    const fallbackPrompt = timelineScenes
+      .slice(0, 6)
+      .map((scene) => scene.desc)
+      .filter(Boolean)
+      .join(" ");
+    const prompt = videoPrompt.trim() || fallbackPrompt || "시네마틱한 영상 편집 결과물";
+
+    setVideoError("");
+    setVideoGenerating(true);
+    try {
+      const url = await generateVideo({
+        prompt,
+        duration: resolveRenderDurationSeconds(),
+        ratio: renderRatio,
+      });
+      setVideoUrl(url);
+      if (!generatedVideoUrl) setGeneratedVideoUrl(url);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "영상 생성 요청에 실패했습니다.";
+      setVideoError(message);
+    } finally {
+      setVideoGenerating(false);
+    }
+  };
+
+  const handleFilesAdded = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    if (!files.length) return;
+    setAssetFiles((prev) => [...prev, ...files]);
+    event.target.value = "";
+  };
+
+  const handleRemoveFile = (index: number) => {
+    setAssetFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handlePackageDownload = async () => {
+    if (!assetFiles.length) return;
+
+    setIsPackaging(true);
+    try {
+      const summary = [
+        "Video Package Manifest",
+        `Created At: ${new Date().toISOString()}`,
+        `Render Duration: ${renderDuration}s`,
+        `Render Ratio: ${renderRatio}`,
+        `Render FPS: ${renderFps}`,
+        "",
+        "Assets:",
+        ...assetFiles.map((file, idx) => `${idx + 1}. ${file.name} (${formatFileSize(file.size)})`),
+      ].join("\n");
+
+      const blob = new Blob([summary], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = "video-package-manifest.txt";
+      anchor.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setIsPackaging(false);
     }
   };
 
@@ -2535,6 +2633,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
           .trim()
           .slice(0, 600);
         const cut = {
+          chapterIndex: chapter.chapterIndex,
           globalCutIndex,
           localCutIndex,
           imageKey,
