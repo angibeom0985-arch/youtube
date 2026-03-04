@@ -2805,22 +2805,33 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     const keywords = (scriptAnalysis.keywords || []).filter(Boolean);
     const intents = (scriptAnalysis.intent || []).map((item) => item?.title).filter(Boolean) as string[];
     const stages = (scriptAnalysis.scriptStructure || []).map((item) => item?.purpose).filter(Boolean) as string[];
+    const shortLabels = [
+      "핵심 메시지",
+      "문제 인식",
+      "타깃 시청자",
+      "전개 구조",
+      "실행 관점",
+      "수익 관점",
+      "리스크 관점",
+      "사례 확장",
+    ];
 
-    return scriptIdeas.map((idea, index) => {
+    return scriptIdeas.map((idea, index): string => {
       const matchedKeyword = keywords.find((keyword) => idea.includes(keyword));
       const intentHint = intents[index % Math.max(intents.length, 1)];
       const stageHint = stages[index % Math.max(stages.length, 1)];
+      const fallbackLabel = shortLabels[index % shortLabels.length];
 
       if (matchedKeyword) {
-        return `원본 대본의 핵심 축인 '${matchedKeyword}'을 유지하면서 소재만 새롭게 확장한 추천입니다.`;
+        return `'${matchedKeyword}' 키워드에 집중한 주제`;
       }
       if (intentHint) {
-        return `원본 대본의 기획 의도 '${intentHint}'를 유지하면서 다른 소재로 전개할 수 있어 추천했습니다.`;
+        return `'${intentHint}' 흐름에 맞춘 주제`;
       }
       if (stageHint) {
-        return `원본 대본의 전개 흐름(${stageHint})과 잘 맞아, 같은 구조로 확장 가능한 소재입니다.`;
+        return `'${stageHint}' 포인트를 살린 주제`;
       }
-      return "입력 대본의 문제의식과 타깃 관심사를 유지하면서 새롭게 변주하기 좋은 소재입니다.";
+      return `'${fallbackLabel}'에 집중한 주제`;
     });
   }, [scriptIdeas, scriptAnalysis]);
 
