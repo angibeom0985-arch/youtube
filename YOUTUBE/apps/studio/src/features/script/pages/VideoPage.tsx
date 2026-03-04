@@ -2079,7 +2079,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     if (currentStepId === 'script') {
       if (scriptSubStep === 0) return scriptDraft.trim().length > 0;
       if (scriptSubStep === 1) return Boolean(scriptAnalysis);
-      if (scriptSubStep === 2) return Boolean(generatedPlan);
+      if (scriptSubStep === 2) return Boolean(selectedTopic.trim()) && !isGeneratingScript;
       if (scriptSubStep === 3) return true;
       return false;
     }
@@ -2101,12 +2101,19 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     goToStep(currentStep - 1);
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (!canGoNext) return;
-    if (steps[currentStep].id === "script" && scriptSubStep < 3) {
-      setScriptSubStep((prev) => Math.min(prev + 1, 3));
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      return;
+    if (steps[currentStep].id === "script") {
+      if (scriptSubStep === 2) {
+        await handleGenerateScript();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
+      if (scriptSubStep < 3) {
+        setScriptSubStep((prev) => Math.min(prev + 1, 3));
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
     }
 
     // Step 2 (대본 작성)에서 Step 3 (음성 생성)으로 이동할 때 대본 자동 입력
@@ -2207,7 +2214,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
           items: [
             "영상 길이와 대본 스타일을 먼저 선택하세요.",
             "추천 주제를 선택하거나 직접 주제를 입력하세요.",
-            "`대본 생성하기` 버튼을 눌러 최종 대본을 만드세요.",
+            "선택이 끝나면 하단 `다음 단계` 버튼을 눌러 대본 생성을 시작하세요.",
           ],
         };
       }
@@ -3393,17 +3400,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                           </div>
                         </div>
                       )}
-                    </div>
-
-                    <div className="pt-4 border-t border-white/10 flex justify-end">
-                      <button
-                        type="button"
-                        onClick={handleGenerateScript}
-                        disabled={isGeneratingScript || !isScriptStepReady(2)}
-                        className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-red-600 to-red-500 text-white font-semibold shadow-lg hover:from-red-500 hover:to-red-400 transition-all disabled:opacity-50"
-                      >
-                        {isGeneratingScript ? "대본 작성 중..." : withOptionalCreditLabel("대본 생성하기", CREDIT_COSTS.GENERATE_SCRIPT)} <FiChevronRight />
-                      </button>
                     </div>
 
                     {isGeneratingScript && (
