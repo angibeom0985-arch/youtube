@@ -64,6 +64,8 @@ const STORAGE_KEYS = {
   tts: "video_project_tts",
   ttsChapters: "video_project_tts_chapters",
   ttsChapterVoices: "video_project_tts_chapter_voices",
+  ttsLineVoices: "video_project_tts_line_voices",
+  ttsVoiceApplyMode: "video_project_tts_voice_apply_mode",
   ttsFavorites: "video_project_tts_favorites",
   youtubeUrl: "video_project_youtube_url",
   scriptCategory: "video_project_script_category",
@@ -578,8 +580,15 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [voiceGenderFilter, setVoiceGenderFilter] = useState<"전체" | VoiceGender>("전체");
   const [voiceTagFilter, setVoiceTagFilter] = useState<"전체" | VoiceTag>("전체");
   const [currentChapterForVoice, setCurrentChapterForVoice] = useState<number | null>(null);
+  const [ttsVoiceApplyMode, setTtsVoiceApplyMode] = useState<"chapter" | "line">(() => {
+    const stored = getStoredString(STORAGE_KEYS.ttsVoiceApplyMode, "chapter");
+    return stored === "line" ? "line" : "chapter";
+  });
   const [chapterVoices, setChapterVoices] = useState<Record<number, string>>(() =>
     getStoredJson(STORAGE_KEYS.ttsChapterVoices, {})
+  );
+  const [lineVoices, setLineVoices] = useState<Record<string, string>>(() =>
+    getStoredJson(STORAGE_KEYS.ttsLineVoices, {})
   );
   const [chapterScripts, setChapterScripts] = useState<Array<{ title: string; content: string }>>(() =>
     getStoredJson(STORAGE_KEYS.ttsChapters, [])
@@ -917,6 +926,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   useEffect(() => setStoredJson(STORAGE_KEYS.ttsFavorites, favoriteVoiceNames), [favoriteVoiceNames]);
   useEffect(() => setStoredJson(STORAGE_KEYS.ttsChapters, chapterScripts), [chapterScripts]);
   useEffect(() => setStoredJson(STORAGE_KEYS.ttsChapterVoices, chapterVoices), [chapterVoices]);
+  useEffect(() => setStoredJson(STORAGE_KEYS.ttsLineVoices, lineVoices), [lineVoices]);
+  useEffect(() => setStoredValue(STORAGE_KEYS.ttsVoiceApplyMode, ttsVoiceApplyMode), [ttsVoiceApplyMode]);
   useEffect(() => setStoredValue(STORAGE_KEYS.scriptStyle, scriptStyle), [scriptStyle]);
   useEffect(() => setStoredValue(STORAGE_KEYS.imagePrompt, imagePrompt), [
     imagePrompt,
@@ -1535,7 +1546,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     }
     const newSample = {
       id: Date.now(),
-      voice: selectedVoice,
+      voice: ttsVoiceApplyMode === "line" ? "대사별 목소리" : selectedVoice,
       text: ttsScript.trim().slice(0, 60) + (ttsScript.trim().length > 60 ? "..." : ""),
       status: "생성 완료",
     };
@@ -1968,6 +1979,36 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     setSelectedVoice(voiceName);
   };
 
+  const getLineVoiceKey = (chapterIndex: number, lineIndex: number) => `${chapterIndex}:${lineIndex}`;
+  const getChapterDialogueLines = (content: string): string[] =>
+    String(content || "")
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean);
+  const parseDialogueLine = (line: string): { speaker: string; body: string } => {
+    const matched = String(line || "").match(/^\s*([^:：]{1,24})\s*[:：]\s*(.+)$/);
+    if (!matched) {
+      return { speaker: "나레이터", body: String(line || "").trim() };
+    }
+    return { speaker: matched[1].trim(), body: matched[2].trim() };
+  };
+  const resolveLineVoice = (chapterIndex: number, lineIndex: number, fallbackVoice: string) => {
+    const key = getLineVoiceKey(chapterIndex, lineIndex);
+    return lineVoices[key] || fallbackVoice;
+  };
+  const applyVoiceToAllLines = (voiceName: string) => {
+    if (!voiceName) return;
+    const next = { ...lineVoices };
+    chapterScripts.forEach((chapter, chapterIndex) => {
+      const lines = getChapterDialogueLines(chapter.content);
+      lines.forEach((_, lineIndex) => {
+        next[getLineVoiceKey(chapterIndex, lineIndex)] = voiceName;
+      });
+    });
+    setLineVoices(next);
+    setSelectedVoice(voiceName);
+  };
+
 
 
   const startRendering = () => {
@@ -2235,7 +2276,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       return {
         title: "음성 생성 순서",
         items: [
-          "챕터별 음성을 선택하고 필요한 경우 미리듣기를 하세요.",
+          "챕터별 또는 대사별 음성 적용 방식을 먼저 선택하세요.",
+          "선택한 방식에 맞춰 음성을 지정하고 필요한 경우 미리듣기를 하세요.",
           "대본을 확인한 뒤 음성 생성 버튼을 눌러 저장하세요.",
           "완료 후 다음 단계로 이동하세요.",
         ],
@@ -3798,7 +3840,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   <p className="text-sm font-semibold text-white/60">스크립트 & TTS</p>
                   <h3 className="text-2xl font-bold text-white mt-1">대본에 음성을 입혀주세요.</h3>
                   <p className="mt-2 text-sm text-white/60">
-                    각 챕터별로 목소리를 선택하고 편집할 수 있습니다.
+                    챕터별 또는 대사별로 목소리를 선택하고 편집할 수 있습니다.
                   </p>
                 </div>
                 <a
@@ -3813,12 +3855,45 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
               {chapterScripts.length > 0 ? (
                 <div className="space-y-4 overflow-visible">
+                  <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-white/10 bg-black/30 px-4 py-3">
+                    <span className="text-sm font-semibold text-white/70">음성 적용 방식</span>
+                    <button
+                      type="button"
+                      onClick={() => setTtsVoiceApplyMode("chapter")}
+                      className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${ttsVoiceApplyMode === "chapter"
+                        ? "border-red-400 bg-red-500/20 text-red-100"
+                        : "border-white/20 bg-white/5 text-white/70 hover:border-white/40"
+                        }`}
+                    >
+                      챕터별 적용
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTtsVoiceApplyMode("line")}
+                      className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${ttsVoiceApplyMode === "line"
+                        ? "border-red-400 bg-red-500/20 text-red-100"
+                        : "border-white/20 bg-white/5 text-white/70 hover:border-white/40"
+                        }`}
+                    >
+                      대사별 적용
+                    </button>
+                  </div>
                   <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-white/10 bg-black/30 px-4 py-3">
-                    <span className="text-sm font-semibold text-white/70">전체 목소리 적용</span>
+                    <span className="text-sm font-semibold text-white/70">
+                      {ttsVoiceApplyMode === "line" ? "전체 대사 목소리 적용" : "전체 챕터 목소리 적용"}
+                    </span>
                     <select
                       className="rounded-lg border border-white/20 bg-black/60 px-3 py-2 text-sm text-white/90 focus:outline-none focus:ring-2 focus:ring-red-500"
                       value=""
-                      onChange={(e) => applyVoiceToAllChapters(e.target.value)}
+                      onChange={(e) => {
+                        const voiceName = e.target.value;
+                        if (!voiceName) return;
+                        if (ttsVoiceApplyMode === "line") {
+                          applyVoiceToAllLines(voiceName);
+                        } else {
+                          applyVoiceToAllChapters(voiceName);
+                        }
+                      }}
                     >
                       <option value="" disabled>목소리 선택</option>
                       <optgroup label="남성">
@@ -3846,7 +3921,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         </h4>
                         <div className="flex items-center gap-2">
                           <span className="text-xs text-orange-400 font-semibold mr-3">
-                            {chapterVoices[index] || favoriteVoiceOptions[0]?.name || "민준"}
+                            {ttsVoiceApplyMode === "line"
+                              ? "대사별"
+                              : (chapterVoices[index] || favoriteVoiceOptions[0]?.name || "민준")}
                           </span>
                           <span className="text-xs text-white/50">{chapter.content.length}자</span>
                         </div>
@@ -3866,65 +3943,113 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         placeholder="스크립트를 입력하세요..."
                       />
 
-                      <div className="mt-4 flex flex-wrap items-center gap-3">
-                        <div className="text-sm font-semibold text-white/60">TTS 즐겨찾기</div>
-                        <div className="flex flex-wrap gap-2">
-                          {favoriteVoiceOptions.map((voice) => (
-                            <div key={voice.name} className="flex items-center gap-1">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setCurrentChapterForVoice(index);
-                                  setChapterVoices({ ...chapterVoices, [index]: voice.name });
-                                }}
-                                className={`px-4 py-2 rounded-lg border text-sm font-medium transition-all inline-flex items-center gap-2 ${(chapterVoices[index] || favoriteVoiceOptions[0]?.name || "민준") === voice.name
-                                  ? "border-red-400 bg-gradient-to-r from-red-600/30 to-red-500/25 text-red-200 shadow-lg"
-                                  : "border-white/20 bg-black/40 text-white/70 hover:border-red-400/50 hover:bg-red-500/10"
-                                  }`}
-                              >
-                                <span>{voice.name}</span>
-                                <span className="text-xs opacity-70 max-w-[170px] truncate">{voice.tone}</span>
-                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white/70">{resolveVoicePreset(voice)}</span>
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setCurrentChapterForVoice(index);
-                                  const sampleText = allVoiceOptions.find(v => v.name === voice.name)?.sampleText || "안녕하세요, 유튜브 채널 미리듣기 샘플입니다.";
-                                  playPreviewAudio(index, voice.name, sampleText);
-                                }}
-                                className={`p-2 rounded-lg border transition-all ${playingChapter === index && playingVoice === voice.name
-                                  ? 'border-red-400 bg-red-500 shadow-lg'
-                                  : 'border-white/10 bg-black/40 hover:bg-red-500/20 hover:border-red-400/50'
-                                  }`}
-                                title={playingChapter === index && playingVoice === voice.name ? '정지' : '미리듣기'}
-                              >
-                                {playingChapter === index && playingVoice === voice.name ? (
-                                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
-                                  </svg>
-                                ) : (
-                                  <svg className="w-4 h-4 text-white/70" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M8 5v14l11-7z" />
-                                  </svg>
-                                )}
-                              </button>
-                            </div>
-                          ))}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setCurrentChapterForVoice(index);
-                              setVoiceGenderFilter("전체");
-                              setVoiceTagFilter("전체");
-                              setShowVoiceModal(true);
-                            }}
-                            className="px-4 py-2 rounded-lg border border-red-400/50 bg-red-500/10 text-red-300 text-sm font-medium hover:bg-red-500/20 transition-all"
-                          >
-                            더 많은 TTS
-                          </button>
+                      {ttsVoiceApplyMode === "chapter" ? (
+                        <div className="mt-4 flex flex-wrap items-center gap-3">
+                          <div className="text-sm font-semibold text-white/60">TTS 즐겨찾기</div>
+                          <div className="flex flex-wrap gap-2">
+                            {favoriteVoiceOptions.map((voice) => (
+                              <div key={voice.name} className="flex items-center gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setCurrentChapterForVoice(index);
+                                    setChapterVoices({ ...chapterVoices, [index]: voice.name });
+                                  }}
+                                  className={`px-4 py-2 rounded-lg border text-sm font-medium transition-all inline-flex items-center gap-2 ${(chapterVoices[index] || favoriteVoiceOptions[0]?.name || "민준") === voice.name
+                                    ? "border-red-400 bg-gradient-to-r from-red-600/30 to-red-500/25 text-red-200 shadow-lg"
+                                    : "border-white/20 bg-black/40 text-white/70 hover:border-red-400/50 hover:bg-red-500/10"
+                                    }`}
+                                >
+                                  <span>{voice.name}</span>
+                                  <span className="text-xs opacity-70 max-w-[170px] truncate">{voice.tone}</span>
+                                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white/70">{resolveVoicePreset(voice)}</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setCurrentChapterForVoice(index);
+                                    const sampleText = allVoiceOptions.find(v => v.name === voice.name)?.sampleText || "안녕하세요, 유튜브 채널 미리듣기 샘플입니다.";
+                                    playPreviewAudio(index, voice.name, sampleText);
+                                  }}
+                                  className={`p-2 rounded-lg border transition-all ${playingChapter === index && playingVoice === voice.name
+                                    ? 'border-red-400 bg-red-500 shadow-lg'
+                                    : 'border-white/10 bg-black/40 hover:bg-red-500/20 hover:border-red-400/50'
+                                    }`}
+                                  title={playingChapter === index && playingVoice === voice.name ? '정지' : '미리듣기'}
+                                >
+                                  {playingChapter === index && playingVoice === voice.name ? (
+                                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                      <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
+                                    </svg>
+                                  ) : (
+                                    <svg className="w-4 h-4 text-white/70" fill="currentColor" viewBox="0 0 24 24">
+                                      <path d="M8 5v14l11-7z" />
+                                    </svg>
+                                  )}
+                                </button>
+                              </div>
+                            ))}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setCurrentChapterForVoice(index);
+                                setVoiceGenderFilter("전체");
+                                setVoiceTagFilter("전체");
+                                setShowVoiceModal(true);
+                              }}
+                              className="px-4 py-2 rounded-lg border border-red-400/50 bg-red-500/10 text-red-300 text-sm font-medium hover:bg-red-500/20 transition-all"
+                            >
+                              더 많은 TTS
+                            </button>
+                          </div>
                         </div>
-                      </div>
+                      ) : (
+                        <div className="mt-4 rounded-xl border border-white/10 bg-black/25 p-3">
+                          <p className="text-xs text-white/60 mb-2">대사별 목소리 선택</p>
+                          <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
+                            {getChapterDialogueLines(chapter.content).map((rawLine, lineIndex) => {
+                              const parsed = parseDialogueLine(rawLine);
+                              const fallbackVoice = chapterVoices[index] || favoriteVoiceOptions[0]?.name || "민준";
+                              const selectedLineVoice = resolveLineVoice(index, lineIndex, fallbackVoice);
+                              return (
+                                <div key={`${index}-${lineIndex}`} className="grid grid-cols-1 gap-2 rounded-lg border border-white/10 bg-black/30 p-2 sm:grid-cols-[minmax(0,1fr)_180px_auto] sm:items-center">
+                                  <div className="min-w-0">
+                                    <p className="text-xs font-semibold text-orange-300 truncate">{parsed.speaker}</p>
+                                    <p className="text-xs text-white/75 line-clamp-2">{parsed.body}</p>
+                                  </div>
+                                  <select
+                                    value={selectedLineVoice}
+                                    onChange={(e) => {
+                                      const nextVoice = e.target.value;
+                                      setLineVoices((prev) => ({
+                                        ...prev,
+                                        [getLineVoiceKey(index, lineIndex)]: nextVoice,
+                                      }));
+                                    }}
+                                    className="rounded-lg border border-white/20 bg-black/60 px-2 py-1.5 text-xs text-white/90 focus:outline-none focus:ring-1 focus:ring-red-500"
+                                  >
+                                    {allVoiceOptions.map((voice) => (
+                                      <option key={voice.name} value={voice.name}>
+                                        {voice.name} · {stripGenderPrefix(voice.label)}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setCurrentChapterForVoice(index);
+                                      playPreviewAudio(index, selectedLineVoice, parsed.body || rawLine);
+                                    }}
+                                    className="inline-flex items-center justify-center rounded-lg border border-white/15 bg-black/40 px-3 py-1.5 text-xs font-semibold text-white/80 hover:border-red-400/50 hover:bg-red-500/10"
+                                  >
+                                    미리듣기
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
 
                       <div className="mt-4 flex items-center justify-between">
                         <div className="flex items-center gap-4">
@@ -3946,8 +4071,14 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                           <button
                             onClick={() => {
                               setCurrentChapterForVoice(index);
-                              const voiceName = chapterVoices[index] || '민준';
-                              const text = chapter.content;
+                              const lines = getChapterDialogueLines(chapter.content);
+                              const fallbackVoice = chapterVoices[index] || favoriteVoiceOptions[0]?.name || "민준";
+                              const voiceName = ttsVoiceApplyMode === "line"
+                                ? resolveLineVoice(index, 0, fallbackVoice)
+                                : fallbackVoice;
+                              const text = ttsVoiceApplyMode === "line"
+                                ? (lines[0] || chapter.content)
+                                : chapter.content;
                               if (playingChapter === index) {
                                 stopAudio();
                               } else {
