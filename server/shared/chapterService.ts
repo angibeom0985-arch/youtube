@@ -5,6 +5,45 @@ const createAI = (apiKey: string) => {
   return new GoogleGenAI({ apiKey });
 };
 
+const parseJsonWithRecovery = <T>(raw: string): T => {
+  const trimmed = String(raw || "").trim();
+  if (!trimmed) {
+    throw new Error("EMPTY_RESPONSE");
+  }
+
+  const withoutFence = trimmed
+    .replace(/^```json\s*/i, "")
+    .replace(/^```\s*/i, "")
+    .replace(/```$/i, "")
+    .trim();
+
+  try {
+    return JSON.parse(withoutFence) as T;
+  } catch {
+    // 첫 중괄호~마지막 중괄호만 추출
+    const firstBrace = withoutFence.indexOf("{");
+    const lastBrace = withoutFence.lastIndexOf("}");
+    if (firstBrace >= 0 && lastBrace > firstBrace) {
+      const candidate = withoutFence.slice(firstBrace, lastBrace + 1);
+      try {
+        return JSON.parse(candidate) as T;
+      } catch {
+        // fallthrough
+      }
+    }
+
+    // 닫는 중괄호 부족 시 보정 시도
+    const openBraces = (withoutFence.match(/{/g) || []).length;
+    const closeBraces = (withoutFence.match(/}/g) || []).length;
+    if (openBraces > closeBraces) {
+      const fixed = withoutFence + "}".repeat(openBraces - closeBraces);
+      return JSON.parse(fixed) as T;
+    }
+
+    throw new Error("JSON_INCOMPLETE");
+  }
+};
+
 // 챕터 기반 개요 생성 (긴 영상용)
 export const generateChapterOutline = async (
   analysis: AnalysisResult,
@@ -15,8 +54,11 @@ export const generateChapterOutline = async (
   vlogType?: string,
   scriptStyle?: string  // "대화 버전" | "나레이션 버전"
 ): Promise<{ chapters: Chapter[]; characters: string[]; newIntent: StructuredContent[] }> => {
-  try {
-    const ai = createAI(apiKey);
+  const maxRetries = 2;
+  let lastError: any = null;
+  for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
+    try {
+      const ai = createAI(apiKey);
 
     const isStoryChannel = category === "썰 채널";
     const isNorthKoreaChannel = category === "북한 이슈";
@@ -141,23 +183,37 @@ ${analysisString}
 
 모든 결과를 JSON 형식으로 제공해주세요.`;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: chapterSchema,
-        temperature: 0.9,
-        maxOutputTokens: 8000,
-      },
-    });
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: chapterSchema,
+          temperature: 0.9,
+          maxOutputTokens: 8000,
+        },
+      });
 
-    const jsonText = response.text.trim();
-    return JSON.parse(jsonText);
-  } catch (error: any) {
-    console.error("Error generating chapter outline:", error);
-    throw new Error(`챕터 개요 생성 중 오류가 발생했습니다: ${error.message}`);
+      const jsonText = response.text?.trim() || "";
+      return parseJsonWithRecovery<{ chapters: Chapter[]; characters: string[]; newIntent: StructuredContent[] }>(jsonText);
+    } catch (error: any) {
+      lastError = error;
+      const message = String(error?.message || "");
+      const recoverable =
+        message.includes("JSON_INCOMPLETE") ||
+        message.includes("Unexpected end of JSON") ||
+        message.includes("EMPTY_RESPONSE") ||
+        message.includes("Unterminated string");
+      if (recoverable && attempt < maxRetries) {
+        await new Promise((resolve) => setTimeout(resolve, 700 * (attempt + 1)));
+        continue;
+      }
+      break;
+    }
   }
+
+  console.error("Error generating chapter outline:", lastError);
+  throw new Error(`챕터 개요 생성 중 오류가 발생했습니다: ${lastError?.message || "Unknown error"}`);
 };
 
 // 특정 챕터의 상세 대본 생성
@@ -170,8 +226,11 @@ export const generateChapterScript = async (
   allChapters: Chapter[],
   scriptStyle?: string  // "대화 버전" | "나레이션 버전"
 ): Promise<ScriptLine[]> => {
-  try {
-    const ai = createAI(apiKey);
+  const maxRetries = 2;
+  let lastError: any = null;
+  for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
+    try {
+      const ai = createAI(apiKey);
 
     const isNarration = scriptStyle === "나레이션 버전";
 
@@ -273,23 +332,40 @@ ${isStoryChannel ? `
 
 모든 결과를 JSON 형식으로 제공해주세요.`;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-      config: {
-        systemInstruction: "당신은 전문 대본 작가입니다. 모든 대사와 텍스트는 평문으로 작성하고, 마크다운 특수문자(*, **, _, __, #, - 등)를 절대 사용하지 마세요. 자연스러운 구어체로 대화를 작성하세요.",
-        responseMimeType: "application/json",
-        responseSchema: scriptSchema,
-        temperature: 0.9,
-        maxOutputTokens: 8000,
-      },
-    });
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: prompt,
+        config: {
+          systemInstruction: "당신은 전문 대본 작가입니다. 모든 대사와 텍스트는 평문으로 작성하고, 마크다운 특수문자(*, **, _, __, #, - 등)를 절대 사용하지 마세요. 자연스러운 구어체로 대화를 작성하세요.",
+          responseMimeType: "application/json",
+          responseSchema: scriptSchema,
+          temperature: 0.9,
+          maxOutputTokens: 8000,
+        },
+      });
 
-    const jsonText = response.text.trim();
-    const result = JSON.parse(jsonText);
-    return result.script;
-  } catch (error: any) {
-    console.error("Error generating chapter script:", error);
-    throw new Error(`챕터 대본 생성 중 오류가 발생했습니다: ${error.message}`);
+      const jsonText = response.text?.trim() || "";
+      const result = parseJsonWithRecovery<{ script: ScriptLine[] }>(jsonText);
+      if (!Array.isArray(result.script) || result.script.length === 0) {
+        throw new Error("JSON_INCOMPLETE");
+      }
+      return result.script;
+    } catch (error: any) {
+      lastError = error;
+      const message = String(error?.message || "");
+      const recoverable =
+        message.includes("JSON_INCOMPLETE") ||
+        message.includes("Unexpected end of JSON") ||
+        message.includes("EMPTY_RESPONSE") ||
+        message.includes("Unterminated string");
+      if (recoverable && attempt < maxRetries) {
+        await new Promise((resolve) => setTimeout(resolve, 700 * (attempt + 1)));
+        continue;
+      }
+      break;
+    }
   }
+
+  console.error("Error generating chapter script:", lastError);
+  throw new Error(`챕터 대본 생성 중 오류가 발생했습니다: ${lastError?.message || "Unknown error"}`);
 };
