@@ -2083,7 +2083,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       if (scriptSubStep === 0) return scriptDraft.trim().length > 0;
       if (scriptSubStep === 1) return Boolean(scriptAnalysis);
       if (scriptSubStep === 2) return Boolean(selectedTopic.trim()) && !isGeneratingScript;
-      if (scriptSubStep === 3) return true;
+      if (scriptSubStep === 3) return Boolean(generatedPlan) && !isGeneratingScript;
       return false;
     }
     if (currentStepId === "persona") {
@@ -2108,7 +2108,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     if (!canGoNext) return;
     if (steps[currentStep].id === "script") {
       if (scriptSubStep === 2) {
-        await handleGenerateScript();
+        setScriptSubStep(3);
         window.scrollTo({ top: 0, behavior: "smooth" });
         return;
       }
@@ -2569,6 +2569,15 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     autoAnalyzeKeyRef.current = analysisKey;
     void handleAnalyzeScript({ autoAdvance: false, showDetails: true });
   }, [currentStep, scriptSubStep, isAnalyzingScript, scriptDraft, selectedCategory, scriptTitle, scriptAnalysis]);
+
+  useEffect(() => {
+    const isScriptResultStep = steps[currentStep]?.id === "script" && scriptSubStep === 3;
+    if (!isScriptResultStep) return;
+    if (!scriptAnalysis || !selectedTopic.trim()) return;
+    if (generatedPlan || isGeneratingScript) return;
+    if (scriptError) return;
+    void handleGenerateScript();
+  }, [currentStep, scriptSubStep, scriptAnalysis, selectedTopic, generatedPlan, isGeneratingScript, scriptError]);
   const ensureChaptersByLength = (plan: NewPlan): NewPlan => {
     const minutes = resolveScriptLengthValue();
     const targetChapters = getTargetChapters(minutes);
@@ -3504,9 +3513,41 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 )}
 
                 {/* Step 3: 대본 생성 결과 */}
-                {scriptSubStep === 3 && generatedPlan && (
+                {scriptSubStep === 3 && (
                   <>
-                    <div className="space-y-3">
+                    {isGeneratingScript && (
+                      <ProgressTracker
+                        currentStepIndex={generateProgress.currentStep}
+                        stepLabels={generateProgress.steps}
+                        stepDescriptions={[
+                          "선택한 주제에 맞는 대본 구조를 설계하고 있습니다",
+                          "각 챕터의 내용을 상세하게 작성하고 있습니다",
+                          "생성된 대본의 품질을 확인하고 있습니다"
+                        ]}
+                        estimatedTimeSeconds={25}
+                      />
+                    )}
+
+                    {!isGeneratingScript && !generatedPlan && (
+                      <div className="rounded-2xl border border-white/10 bg-black/30 p-5 text-center">
+                        <p className="text-sm text-white/70 mb-4">
+                          대본 생성 결과를 준비하지 못했습니다. 다시 생성해 주세요.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setScriptError("");
+                            void handleGenerateScript();
+                          }}
+                          className="rounded-full bg-gradient-to-r from-red-600 to-red-500 px-5 py-2 text-sm font-semibold text-white hover:from-red-500 hover:to-red-400 transition-all"
+                        >
+                          다시 생성
+                        </button>
+                      </div>
+                    )}
+
+                    {generatedPlan && (
+                      <div className="space-y-3">
                       <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
                         <div className="mb-4 pb-3 border-b border-white/10 flex items-start justify-between gap-3">
                           <div>
@@ -3750,7 +3791,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         )}
                       </div>
                     </div>
-
+                    )}
                   </>
                 )}
 
