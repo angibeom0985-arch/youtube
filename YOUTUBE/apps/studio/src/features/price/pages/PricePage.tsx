@@ -1,109 +1,305 @@
-import React from "react";
+﻿import React from "react";
 import { Link } from "react-router-dom";
+import {
+  FiArrowRight,
+  FiBarChart2,
+  FiCheck,
+  FiLayers,
+  FiTrendingUp,
+  FiZap,
+} from "react-icons/fi";
+
 import HomeBackButton from "@/components/HomeBackButton";
 import { CREDIT_COSTS } from "@/constants/creditCosts";
 
 type Plan = {
+  id: "starter" | "growth" | "scale";
   name: string;
-  priceKrw: number;
+  subtitle: string;
+  monthlyPriceKrw: number;
   credits: number;
-  highlight: string;
+  badge: string;
+  cta: string;
+  recommended?: boolean;
+  anchorPriceKrw?: number;
 };
-
-const PLAN_LIST: Plan[] = [
-  { name: "스타터", priceKrw: 29000, credits: 1500, highlight: "테스트 + 첫 수익화" },
-  { name: "그로스", priceKrw: 79000, credits: 5000, highlight: "가장 많이 선택" },
-  { name: "스케일", priceKrw: 149000, credits: 12000, highlight: "채널 확장 운영" },
-];
 
 const ASSUMED_IMAGE_GENERATIONS_PER_VIDEO = 6;
 const ASSUMED_TTS_CHARS_PER_VIDEO = 1200;
 const ASSUMED_REVENUE_PER_VIDEO_KRW = 80000;
 
-const VIDEO_CREDIT_COST =
-  CREDIT_COSTS.ANALYZE_TRANSCRIPT +
-  CREDIT_COSTS.GENERATE_IDEAS +
-  CREDIT_COSTS.GENERATE_SCRIPT +
-  CREDIT_COSTS.GENERATE_IMAGE * ASSUMED_IMAGE_GENERATIONS_PER_VIDEO +
-  (ASSUMED_TTS_CHARS_PER_VIDEO / 10) * CREDIT_COSTS.TTS_PER_10_CHARS;
+const CREDIT_BREAKDOWN = [
+  { key: "search", label: "벤치마킹 검색", cost: CREDIT_COSTS.SEARCH },
+  {
+    key: "analysis",
+    label: "대본 분석 + 주제 추천",
+    cost: CREDIT_COSTS.ANALYZE_TRANSCRIPT + CREDIT_COSTS.GENERATE_IDEAS,
+  },
+  { key: "script", label: "대본 생성", cost: CREDIT_COSTS.GENERATE_SCRIPT },
+  {
+    key: "image",
+    label: `이미지 생성 (${ASSUMED_IMAGE_GENERATIONS_PER_VIDEO}컷)` ,
+    cost: CREDIT_COSTS.GENERATE_IMAGE * ASSUMED_IMAGE_GENERATIONS_PER_VIDEO,
+  },
+  {
+    key: "tts",
+    label: `TTS 생성 (${ASSUMED_TTS_CHARS_PER_VIDEO.toLocaleString()}자)` ,
+    cost: (ASSUMED_TTS_CHARS_PER_VIDEO / 10) * CREDIT_COSTS.TTS_PER_10_CHARS,
+  },
+];
+
+const VIDEO_CREDIT_COST = CREDIT_BREAKDOWN.reduce((sum, item) => sum + item.cost, 0);
+
+const PLAN_LIST: Plan[] = [
+  {
+    id: "starter",
+    name: "스타터",
+    subtitle: "초기 테스트 / 실험 채널",
+    monthlyPriceKrw: 39000,
+    credits: 1800,
+    badge: "입문 최적",
+    cta: "가볍게 시작",
+  },
+  {
+    id: "growth",
+    name: "그로스",
+    subtitle: "수익화 집중 / 가장 많이 선택",
+    monthlyPriceKrw: 89000,
+    anchorPriceKrw: 119000,
+    credits: 5400,
+    badge: "BEST VALUE",
+    cta: "지금 업그레이드",
+    recommended: true,
+  },
+  {
+    id: "scale",
+    name: "스케일",
+    subtitle: "팀 운영 / 고빈도 제작",
+    monthlyPriceKrw: 189000,
+    credits: 10000,
+    badge: "대량 제작",
+    cta: "팀 플랜 선택",
+  },
+];
 
 const formatWon = (value: number) => `${Math.round(value).toLocaleString()}원`;
 
+const getPlanMetrics = (plan: Plan) => {
+  const estimatedVideos = Math.floor(plan.credits / VIDEO_CREDIT_COST);
+  const estimatedRevenue = estimatedVideos * ASSUMED_REVENUE_PER_VIDEO_KRW;
+  const estimatedProfit = estimatedRevenue - plan.monthlyPriceKrw;
+  const costPerCredit = plan.monthlyPriceKrw / plan.credits;
+  return {
+    estimatedVideos,
+    estimatedRevenue,
+    estimatedProfit,
+    costPerCredit,
+  };
+};
+
 const PricePage: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#1f1800] via-[#120f00] to-black text-amber-50">
-      <div className="mx-auto max-w-4xl px-6 py-16">
+    <div className="min-h-screen bg-[#0c111b] text-slate-100">
+      <div className="pointer-events-none fixed inset-0">
+        <div className="absolute -top-20 left-0 h-[320px] w-[420px] rounded-full bg-cyan-500/20 blur-3xl" />
+        <div className="absolute top-32 right-[-80px] h-[420px] w-[420px] rounded-full bg-emerald-500/15 blur-3xl" />
+        <div className="absolute bottom-0 left-1/3 h-[260px] w-[360px] rounded-full bg-amber-500/15 blur-3xl" />
+      </div>
+
+      <div className="relative mx-auto max-w-7xl px-5 py-14 sm:px-8 lg:px-10">
         <HomeBackButton tone="yellow" className="mb-6" />
-        <h1 className="mb-2 bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-400 bg-clip-text text-4xl font-black text-transparent">
-          크레딧 요금 안내
-        </h1>
-        <p className="mb-8 text-amber-100/80">기능 실행 시 아래 기준으로 크레딧이 차감됩니다.</p>
 
-        <div className="rounded-2xl border border-amber-300/30 bg-amber-950/25 p-6 shadow-[0_0_0_1px_rgba(251,191,36,0.15),0_24px_60px_rgba(245,158,11,0.18)]">
-          <ul className="space-y-3 text-sm">
-            <li>벤치마킹 검색: {CREDIT_COSTS.SEARCH} 크레딧</li>
-            <li>대본 분석 + 주제 추천: {CREDIT_COSTS.ANALYZE_TRANSCRIPT + CREDIT_COSTS.GENERATE_IDEAS} 크레딧</li>
-            <li>주제 형식 변환: {CREDIT_COSTS.REFORMAT_TOPIC} 크레딧</li>
-            <li>대본 생성: {CREDIT_COSTS.GENERATE_SCRIPT} 크레딧</li>
-            <li>이미지 생성(1회): {CREDIT_COSTS.GENERATE_IMAGE} 크레딧</li>
-            <li>TTS 생성: 10자당 {CREDIT_COSTS.TTS_PER_10_CHARS} 크레딧</li>
-          </ul>
-        </div>
-
-        <div className="mt-8 rounded-2xl border border-emerald-300/35 bg-emerald-950/20 p-6 shadow-[0_0_0_1px_rgba(16,185,129,0.15),0_24px_60px_rgba(16,185,129,0.16)]">
-          <h2 className="text-xl font-black text-emerald-200">요금제별 수익 시뮬레이션 (이득 중심)</h2>
-          <p className="mt-2 text-sm text-emerald-100/85">
-            계산 기준: 영상 1개 제작에 약 {VIDEO_CREDIT_COST}크레딧, 영상 1개 평균 수익 {formatWon(ASSUMED_REVENUE_PER_VIDEO_KRW)}
+        <section className="rounded-3xl border border-white/10 bg-gradient-to-br from-slate-900/90 via-slate-900/75 to-slate-900/50 p-6 shadow-[0_30px_80px_rgba(2,6,23,0.55)] sm:p-9">
+          <p className="inline-flex items-center gap-2 rounded-full border border-cyan-300/35 bg-cyan-400/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-cyan-100">
+            <FiTrendingUp className="h-3.5 w-3.5" />
+            Conversion Pricing
           </p>
-          <p className="mt-1 text-xs text-emerald-100/70">
-            채널 주제/조회수/광고단가에 따라 실제 수익은 달라질 수 있습니다.
+          <h1 className="mt-4 text-3xl font-black leading-tight text-white sm:text-5xl">
+            크레딧 요금제,
+            <br className="hidden sm:block" />
+            <span className="bg-gradient-to-r from-cyan-300 via-emerald-300 to-amber-300 bg-clip-text text-transparent">
+              그로스 플랜 중심으로 설계
+            </span>
+          </h1>
+          <p className="mt-4 max-w-3xl text-sm leading-relaxed text-slate-300 sm:text-base">
+            제작 1회당 평균 소모 크레딧을 기준으로 실전 수익 시뮬레이션을 제공합니다.
+            스타터는 진입장벽을 낮추고, 스케일은 상위 확장용으로 배치해
+            <span className="font-bold text-emerald-200"> 중간 플랜의 체감 가성비</span>가 가장 높게 보이도록 설계했습니다.
           </p>
 
-          <div className="mt-5 grid gap-4 md:grid-cols-3">
-            {PLAN_LIST.map((plan) => {
-              const estimatedVideos = Math.floor(plan.credits / VIDEO_CREDIT_COST);
-              const estimatedRevenue = estimatedVideos * ASSUMED_REVENUE_PER_VIDEO_KRW;
-              const estimatedProfit = estimatedRevenue - plan.priceKrw;
-
-              return (
-                <article
-                  key={plan.name}
-                  className="rounded-xl border border-emerald-300/30 bg-black/30 p-4 backdrop-blur-sm"
-                >
-                  <p className="text-xs font-semibold tracking-wide text-emerald-200/90">{plan.highlight}</p>
-                  <h3 className="mt-1 text-2xl font-black text-white">{plan.name}</h3>
-                  <p className="mt-1 text-sm text-emerald-100/90">요금: {formatWon(plan.priceKrw)}</p>
-                  <p className="text-sm text-emerald-100/90">제공 크레딧: {plan.credits.toLocaleString()}크레딧</p>
-
-                  <div className="mt-4 space-y-2 text-sm">
-                    <p className="rounded-lg bg-emerald-500/15 px-3 py-2 text-emerald-100">
-                      제작 가능 영상: <span className="font-black text-white">{estimatedVideos.toLocaleString()}개</span>
-                    </p>
-                    <p className="rounded-lg bg-sky-500/15 px-3 py-2 text-sky-100">
-                      예상 총수익: <span className="font-black text-white">{formatWon(estimatedRevenue)}</span>
-                    </p>
-                    <p className="rounded-lg bg-amber-500/20 px-3 py-2 text-amber-100">
-                      요금 대비 예상 순이익: <span className="font-black text-white">{formatWon(estimatedProfit)}</span>
-                    </p>
-                  </div>
-
-                  <p className="mt-4 text-xs font-semibold text-emerald-200/90">
-                    한 달 안에 1개만 성과가 나와도 요금 이상 회수 가능성을 노릴 수 있습니다.
-                  </p>
-                </article>
-              );
-            })}
+          <div className="mt-7 grid gap-4 md:grid-cols-3">
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <p className="text-xs text-slate-400">평균 제작 원가</p>
+              <p className="mt-1 text-2xl font-black text-white">{Math.round(VIDEO_CREDIT_COST)} 크레딧</p>
+              <p className="mt-1 text-xs text-slate-300">영상 1개 기준</p>
+            </div>
+            <div className="rounded-2xl border border-emerald-300/20 bg-emerald-500/10 p-4">
+              <p className="text-xs text-emerald-100/85">평균 영상 수익</p>
+              <p className="mt-1 text-2xl font-black text-white">{formatWon(ASSUMED_REVENUE_PER_VIDEO_KRW)}</p>
+              <p className="mt-1 text-xs text-emerald-100/75">채널 상황에 따라 변동 가능</p>
+            </div>
+            <div className="rounded-2xl border border-amber-300/20 bg-amber-500/10 p-4">
+              <p className="text-xs text-amber-100/90">핵심 추천</p>
+              <p className="mt-1 text-2xl font-black text-white">그로스 플랜</p>
+              <p className="mt-1 text-xs text-amber-100/80">월 제작량/수익화 밸런스 최적화</p>
+            </div>
           </div>
-        </div>
+        </section>
 
-        <div className="mt-6 flex gap-3">
-          <Link to="/mypage" className="rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-black hover:bg-amber-400">
-            마이페이지로 이동
-          </Link>
-          <Link to="/" className="rounded-lg border border-amber-300/30 px-4 py-2 text-sm font-semibold text-amber-100 hover:bg-amber-500/10">
-            홈으로
-          </Link>
-        </div>
+        <section className="mt-8 grid gap-6 lg:grid-cols-[1.1fr_1.9fr]">
+          <article className="rounded-3xl border border-white/10 bg-slate-900/70 p-6 shadow-[0_24px_60px_rgba(2,6,23,0.45)]">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-slate-800 px-3 py-1 text-xs font-semibold text-slate-200">
+              <FiBarChart2 className="h-4 w-4" />
+              크레딧 인포그래픽
+            </div>
+            <h2 className="text-xl font-black text-white">영상 1개 제작 시 소모 구조</h2>
+            <p className="mt-2 text-sm text-slate-300">어디서 크레딧이 많이 쓰이는지 한눈에 확인하세요.</p>
+
+            <div className="mt-5 space-y-3">
+              {CREDIT_BREAKDOWN.map((item, idx) => {
+                const ratio = Math.max(8, Math.round((item.cost / VIDEO_CREDIT_COST) * 100));
+                const barTone =
+                  idx === 0
+                    ? "from-cyan-400 to-cyan-300"
+                    : idx === 1
+                      ? "from-indigo-400 to-violet-300"
+                      : idx === 2
+                        ? "from-emerald-400 to-emerald-300"
+                        : idx === 3
+                          ? "from-amber-400 to-orange-300"
+                          : "from-pink-400 to-rose-300";
+                return (
+                  <div key={item.key}>
+                    <div className="mb-1 flex items-center justify-between text-xs text-slate-300">
+                      <span>{item.label}</span>
+                      <span className="font-semibold text-white">{Math.round(item.cost)}크레딧</span>
+                    </div>
+                    <div className="h-2.5 rounded-full bg-slate-800/90">
+                      <div
+                        className={`h-full rounded-full bg-gradient-to-r ${barTone}`}
+                        style={{ width: `${ratio}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="mt-5 rounded-2xl border border-emerald-300/25 bg-emerald-500/10 p-3">
+              <p className="text-xs text-emerald-100/85">한 줄 요약</p>
+              <p className="mt-1 text-sm font-semibold text-emerald-50">
+                이미지 + TTS 비중이 크기 때문에, 크레딧 여유가 있는 플랜일수록 제작 단가가 안정됩니다.
+              </p>
+            </div>
+          </article>
+
+          <article className="rounded-3xl border border-white/10 bg-slate-900/70 p-5 shadow-[0_24px_60px_rgba(2,6,23,0.45)] sm:p-6">
+            <div className="mb-5 flex items-center justify-between gap-3">
+              <h2 className="text-xl font-black text-white sm:text-2xl">요금제 선택</h2>
+              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-300/40 bg-emerald-500/15 px-3 py-1 text-xs font-bold text-emerald-100">
+                <FiZap className="h-3.5 w-3.5" />
+                중간 플랜 구매율 극대화 구조
+              </div>
+            </div>
+
+            <div className="grid gap-4 lg:grid-cols-3">
+              {PLAN_LIST.map((plan) => {
+                const m = getPlanMetrics(plan);
+                return (
+                  <article
+                    key={plan.id}
+                    className={`relative overflow-hidden rounded-2xl border p-4 transition-transform ${plan.recommended
+                      ? "border-emerald-300/70 bg-gradient-to-b from-emerald-500/20 via-emerald-500/10 to-slate-900/75 shadow-[0_20px_55px_rgba(16,185,129,0.3)] lg:-translate-y-2"
+                      : "border-white/10 bg-black/25"
+                      }`}
+                  >
+                    {plan.recommended && (
+                      <div className="absolute right-3 top-3 rounded-full bg-emerald-300 px-2.5 py-1 text-[10px] font-black text-slate-900">
+                        추천
+                      </div>
+                    )}
+
+                    <p className={`text-xs font-semibold ${plan.recommended ? "text-emerald-100" : "text-slate-300"}`}>{plan.badge}</p>
+                    <h3 className="mt-1 text-3xl font-black text-white">{plan.name}</h3>
+                    <p className="mt-1 text-xs text-slate-300">{plan.subtitle}</p>
+
+                    <div className="mt-4">
+                      {plan.anchorPriceKrw && (
+                        <p className="text-xs text-slate-400 line-through">정가 {formatWon(plan.anchorPriceKrw)}</p>
+                      )}
+                      <p className="text-2xl font-black text-white">{formatWon(plan.monthlyPriceKrw)}</p>
+                      <p className="text-xs text-slate-300">{plan.credits.toLocaleString()} 크레딧 포함</p>
+                    </div>
+
+                    <div className="mt-4 space-y-2 text-sm">
+                      <p className="rounded-lg bg-slate-800/75 px-3 py-2 text-slate-200">
+                        제작 가능 예상: <span className="font-black text-white">{m.estimatedVideos.toLocaleString()}개</span>
+                      </p>
+                      <p className="rounded-lg bg-cyan-500/15 px-3 py-2 text-cyan-100">
+                        예상 총수익: <span className="font-black text-white">{formatWon(m.estimatedRevenue)}</span>
+                      </p>
+                      <p className="rounded-lg bg-amber-500/15 px-3 py-2 text-amber-100">
+                        요금 대비 순이익: <span className="font-black text-white">{formatWon(m.estimatedProfit)}</span>
+                      </p>
+                      <p className="rounded-lg bg-emerald-500/15 px-3 py-2 text-emerald-100">
+                        1크레딧 단가: <span className="font-black text-white">{m.costPerCredit.toFixed(1)}원</span>
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      className={`mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold transition ${plan.recommended
+                        ? "bg-emerald-400 text-slate-900 hover:bg-emerald-300"
+                        : "border border-white/20 bg-white/5 text-white hover:bg-white/10"
+                        }`}
+                    >
+                      {plan.cta}
+                      <FiArrowRight className="h-4 w-4" />
+                    </button>
+                  </article>
+                );
+              })}
+            </div>
+          </article>
+        </section>
+
+        <section className="mt-8 rounded-3xl border border-white/10 bg-slate-900/70 p-6 shadow-[0_24px_60px_rgba(2,6,23,0.45)]">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-xl font-black text-white">바로 시작 가이드</h2>
+            <p className="text-xs text-slate-300">리스크는 낮추고, 제작량은 올리는 순서</p>
+          </div>
+          <div className="mt-4 grid gap-3 md:grid-cols-3">
+            <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+              <p className="text-xs text-slate-400">STEP 1</p>
+              <p className="mt-1 font-bold text-white">스타터로 1주 검증</p>
+            </div>
+            <div className="rounded-xl border border-emerald-300/35 bg-emerald-500/10 p-4">
+              <p className="text-xs text-emerald-100">STEP 2</p>
+              <p className="mt-1 font-bold text-white">그로스로 본격 수익화</p>
+            </div>
+            <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+              <p className="text-xs text-slate-400">STEP 3</p>
+              <p className="mt-1 font-bold text-white">팀 운영 시 스케일 확장</p>
+            </div>
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link
+              to="/mypage"
+              className="inline-flex items-center gap-2 rounded-xl bg-emerald-400 px-5 py-3 text-sm font-black text-slate-900 hover:bg-emerald-300"
+            >
+              <FiCheck className="h-4 w-4" />
+              지금 크레딧 구매하러 가기
+            </Link>
+            <Link
+              to="/"
+              className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/5 px-5 py-3 text-sm font-semibold text-white hover:bg-white/10"
+            >
+              <FiLayers className="h-4 w-4" />
+              홈으로 돌아가기
+            </Link>
+          </div>
+        </section>
       </div>
     </div>
   );
