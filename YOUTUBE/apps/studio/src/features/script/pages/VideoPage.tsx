@@ -2610,6 +2610,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       return;
     }
     setScriptError("");
+    // 이전 생성 결과가 남아 있으면 실패 시에도 4단계처럼 보일 수 있어 시작 시 초기화
+    setGeneratedPlan(null);
+    setScriptSubStep(2);
     setIsGeneratingScript(true);
     setGenerateProgress({ ...generateProgress, currentStep: 0 });
 
