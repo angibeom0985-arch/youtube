@@ -607,6 +607,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [isAnalyzingScript, setIsAnalyzingScript] = useState(false);
   const [isGeneratingScript, setIsGeneratingScript] = useState(false);
   const [isReformattingTopic, setIsReformattingTopic] = useState(false);
+  const [isRefreshingIdeas, setIsRefreshingIdeas] = useState(false);
 
   // Script sub-step management (대본 생성 단계의 하위 단계)
   const [scriptSubStep, setScriptSubStep] = useState(0); // 0: 입력, 1: 분석, 2: 주제선택, 3: 결과
@@ -2492,6 +2493,25 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     void handleAnalyzeScript({ autoAdvance: false, showDetails: true });
   };
 
+  const handleRefreshIdeas = async () => {
+    if (!scriptAnalysis || isAnalyzingScript || isRefreshingIdeas) return;
+    setScriptError("");
+    setIsRefreshingIdeas(true);
+    try {
+      setAnalyzeProgress((prev) => ({ ...prev, currentStep: 2 }));
+      const ideas = await generateIdeas(scriptAnalysis, selectedCategory, undefined);
+      setScriptIdeas(ideas);
+      if (ideas.length > 0) {
+        setSelectedTopic(ideas[0]);
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "추천 주제 생성에 실패했습니다.";
+      setScriptError(errorMessage);
+    } finally {
+      setIsRefreshingIdeas(false);
+    }
+  };
+
   useEffect(() => {
     const isScriptAnalyzeStep = steps[currentStep]?.id === "script" && scriptSubStep === 1;
     if (!isScriptAnalyzeStep) {
@@ -2738,6 +2758,30 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     }
     return "";
   };
+
+  const recommendationReasons = useMemo(() => {
+    if (!scriptIdeas.length || !scriptAnalysis) return [];
+    const keywords = (scriptAnalysis.keywords || []).filter(Boolean);
+    const intents = (scriptAnalysis.intent || []).map((item) => item?.title).filter(Boolean) as string[];
+    const stages = (scriptAnalysis.scriptStructure || []).map((item) => item?.purpose).filter(Boolean) as string[];
+
+    return scriptIdeas.map((idea, index) => {
+      const matchedKeyword = keywords.find((keyword) => idea.includes(keyword));
+      const intentHint = intents[index % Math.max(intents.length, 1)];
+      const stageHint = stages[index % Math.max(stages.length, 1)];
+
+      if (matchedKeyword) {
+        return `원본 대본의 핵심 축인 '${matchedKeyword}'을 유지하면서 소재만 새롭게 확장한 추천입니다.`;
+      }
+      if (intentHint) {
+        return `원본 대본의 기획 의도 '${intentHint}'를 유지하면서 다른 소재로 전개할 수 있어 추천했습니다.`;
+      }
+      if (stageHint) {
+        return `원본 대본의 전개 흐름(${stageHint})과 잘 맞아, 같은 구조로 확장 가능한 소재입니다.`;
+      }
+      return "입력 대본의 문제의식과 타깃 관심사를 유지하면서 새롭게 변주하기 좋은 소재입니다.";
+    });
+  }, [scriptIdeas, scriptAnalysis]);
 
   const chapterCutPlans = useMemo(() => {
     const source = chapterScripts.length
@@ -3276,15 +3320,23 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
                       {scriptIdeas.length === 0 ? (
                         <div className="rounded-2xl border border-white/10 bg-black/30 p-5">
-                          <div className="mb-3 pb-3 border-b border-white/10">
+                          <div className="mb-3 pb-3 border-b border-white/10 flex items-center justify-between gap-3">
                             <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
                               <span className="text-blue-400">추천</span>
                               AI 추천 주제
                             </h3>
-                            <p className="text-xs text-white/50">
-                              분석 결과를 바탕으로 생성할 수 있는 주제들입니다
-                            </p>
+                            <button
+                              type="button"
+                              onClick={handleRefreshIdeas}
+                              disabled={isRefreshingIdeas || !scriptAnalysis}
+                              className="rounded-full border border-white/20 bg-white/5 px-3 py-1 text-xs font-semibold text-white/80 transition hover:border-white/40 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+                            >
+                              {isRefreshingIdeas ? "추천 갱신 중..." : "다시 추천"}
+                            </button>
                           </div>
+                          <p className="text-xs text-white/50">
+                            분석 결과를 바탕으로 생성할 수 있는 소재 중심 주제들입니다
+                          </p>
                           <p className="text-sm text-white/60 mb-4">
                             {isAnalyzingScript
                               ? "추천 주제를 생성 중입니다. 잠시만 기다려 주세요."
@@ -3320,15 +3372,23 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         </div>
                       ) : (
                         <div className="rounded-2xl border border-white/10 bg-black/30 p-5">
-                          <div className="mb-4 pb-3 border-b border-white/10">
+                          <div className="mb-4 pb-3 border-b border-white/10 flex items-center justify-between gap-3">
                             <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
                               <span className="text-blue-400">추천</span>
                               AI 추천 주제
                             </h3>
-                            <p className="text-xs text-white/50">
-                              원하는 주제를 선택하면 해당 주제로 새로운 대본을 작성합니다 ({scriptIdeas.length}개)
-                            </p>
+                            <button
+                              type="button"
+                              onClick={handleRefreshIdeas}
+                              disabled={isRefreshingIdeas || isAnalyzingScript || !scriptAnalysis}
+                              className="rounded-full border border-white/20 bg-white/5 px-3 py-1 text-xs font-semibold text-white/80 transition hover:border-white/40 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+                            >
+                              {isRefreshingIdeas ? "추천 갱신 중..." : "다시 추천"}
+                            </button>
                           </div>
+                          <p className="text-xs text-white/50 mb-4">
+                            원하는 주제를 선택하면 해당 주제로 새로운 대본을 작성합니다 ({scriptIdeas.length}개)
+                          </p>
                           <div className="grid gap-2 mb-4">
                             {scriptIdeas.map((idea, index) => (
                               <button
@@ -3342,6 +3402,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                               >
                                 <span className="font-semibold text-white/80 mr-2">주제 {index + 1}.</span>
                                 {idea}
+                                <p className="mt-1 text-xs text-white/55">
+                                  추천 이유: {recommendationReasons[index] || "입력 대본 흐름에 맞는 소재 확장 추천입니다."}
+                                </p>
                               </button>
                             ))}
                           </div>
