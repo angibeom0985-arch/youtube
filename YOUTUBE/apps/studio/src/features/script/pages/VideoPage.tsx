@@ -2195,7 +2195,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         return {
           title: "대본 분석 순서",
           items: [
-            "`빠르게 주제 추천` 또는 `대본 구조 분석 보기` 버튼을 누르세요.",
+            "2단계에 진입하면 대본 구조 분석이 자동으로 시작됩니다.",
             "분석과 추천 주제가 생성될 때까지 기다리세요.",
             "완료되면 `다음 단계`를 눌러 주제 선택으로 이동하세요.",
           ],
@@ -3289,7 +3289,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                           <p className="text-sm text-white/60 mb-4">
                             {isAnalyzingScript
                               ? "추천 주제를 생성 중입니다. 잠시만 기다려 주세요."
-                              : "추천 주제를 보려면 빠르게 주제 추천을 실행해주세요."}
+                              : "대본 분석이 끝나면 추천 주제가 자동으로 표시됩니다."}
                           </p>
                           {isAnalyzingScript && (
                             <ProgressTracker
