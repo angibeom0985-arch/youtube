@@ -277,6 +277,54 @@ const extractIdeasFromLooseText = (text: string): string[] => {
   return normalizeIdeaList(lines);
 };
 
+const buildTitleStyleHints = (titleFormat?: string) => {
+  const sample = String(titleFormat || "").trim();
+  return {
+    hasQuote: /["'“”‘’]/u.test(sample),
+    hasEllipsis: /\.{2,}|…/u.test(sample),
+    hasQuestion: /\?/u.test(sample),
+    hasExclaim: /!/u.test(sample),
+    hasKoreanSlang: /ㄷㄷ|ㅁㅊ|실화|레전드|소름/u.test(sample),
+  };
+};
+
+const stylizeIdeaWithTitleFormat = (idea: string, titleFormat?: string): string => {
+  const base = String(idea || "").trim();
+  if (!base || !titleFormat) return base;
+
+  const hints = buildTitleStyleHints(titleFormat);
+  let result = base;
+
+  if (hints.hasQuote && !/["'“”‘’]/u.test(result)) {
+    const words = result.split(/\s+/).filter(Boolean);
+    const cutIndex = Math.max(2, Math.min(5, Math.ceil(words.length * 0.45)));
+    const head = words.slice(0, cutIndex).join(" ");
+    const tail = words.slice(cutIndex).join(" ");
+    if (head) {
+      result = `"${head}${hints.hasEllipsis ? "..." : ""}" ${tail}`.trim();
+    }
+  }
+
+  if (hints.hasEllipsis && !/\.{2,}|…/u.test(result)) {
+    result = result.replace(/"([^"]+)"/u, '"$1..."');
+    if (!/\.{2,}|…/u.test(result)) {
+      result = `${result}...`;
+    }
+  }
+
+  if (hints.hasKoreanSlang && !/ㄷㄷ|ㅁㅊ|실화|레전드|소름/u.test(result)) {
+    result = `${result} ㄷㄷ`;
+  }
+
+  if (hints.hasQuestion && !/\?/u.test(result)) {
+    result = `${result}?`;
+  } else if (hints.hasExclaim && !/!/u.test(result)) {
+    result = `${result}!`;
+  }
+
+  return result.trim();
+};
+
 const buildDeterministicIdeas = (
   analysis: AnalysisResult,
   category: string,
@@ -290,17 +338,17 @@ const buildDeterministicIdeas = (
     userKeyword || "",
   ]).slice(0, 10);
 
-  const core = seed.length ? seed : ["핵심 주제", "실전 사례", "비교 분석", "실수 방지", "로드맵", "체크리스트"];
+  const core = seed.length ? seed : ["핵심 주제", "실전 사례", "비교 분석", "돈 버는 방법", "로드맵", "체크리스트"];
   const templates = [
-    `${core[0] || "핵심 주제"}의 숨은 원리와 실제 적용법`,
-    `${core[1] || "실전 사례"}로 보는 ${category} 성공 패턴`,
-    `${core[2] || "비교 분석"} 중심으로 정리한 핵심 포인트`,
-    `${core[3] || "실수 방지"}를 위한 실전 가이드`,
-    `${core[4] || "로드맵"} 기반 단계별 실행 전략`,
-    `${core[5] || "체크리스트"}로 완성하는 결과 중심 설계`,
+    `${core[0] || "핵심 주제"}의 숨은 구조, 다른 시장에 적용해보면`,
+    `${core[1] || "실전 사례"}로 보는 ${category} 수익화 패턴`,
+    `${core[2] || "비교 분석"} 관점으로 재해석한 돈 되는 소재`,
+    `${core[3] || "돈 버는 방법"}으로 연결되는 인접 업종 아이디어`,
+    `${core[4] || "로드맵"} 기반으로 만든 현실 실행 시나리오`,
+    `${core[5] || "체크리스트"}만 바꿔도 달라지는 결과 설계`,
   ];
 
-  const ideas = normalizeIdeaList(templates);
+  const ideas = normalizeIdeaList(templates).map((idea) => stylizeIdeaWithTitleFormat(idea, titleFormat));
   return ideas.slice(0, 6);
 };
 
@@ -482,33 +530,35 @@ export const generateIdeas = async (
       const ai = createAI(apiKey);
 
       const isShoppingReview = category === "쇼핑 리뷰";
+      const sourceKeywords = normalizeIdeaList((analysis.keywords || []).slice(0, 8));
       const keywordInstruction = userKeyword
-        ? `\n\n**중요: 사용자 키워드 "${userKeyword}"를 반드시 포함하거나 밀접히 관련된 주제로 아이디어를 생성하세요.**`
+        ? `\n\n중요: "${userKeyword}"를 반드시 포함하거나 강하게 연관된 방향으로 제안하세요.`
         : "";
 
       const titleFormatInstruction = titleFormat
-        ? `\n\n**제목 형식 기준:** 아래 예시 제목의 말투/리듬/문장 구조/기호 사용(… , ㄷㄷ, ?, ! 등)을 따라 작성하세요.\n- 예시 제목을 그대로 복붙하거나 1:1 치환하지 마세요.\n- 예시 제목에서 6자 이상 연속으로 그대로 가져오지 마세요.\n- 의미는 새롭게, 형식만 비슷하게 유지하세요.\n\n예시 제목:\n${titleFormat}\n`
+        ? `\n\n제목 형식 기준(강제):\n- 아래 예시 제목의 말투/리듬/문장 골격/후킹 방식(따옴표, ... , ㄷㄷ, 경고형 결론 등)을 강하게 따르세요.\n- 단, 예시 제목을 복붙하거나 6자 이상 연속 복사 금지.\n- 소재는 새롭게 바꾸고 형식만 유지하세요.\n- 결과는 모두 "유튜브 썸네일에 바로 쓸 수 있는 한 줄 제목"이어야 합니다.\n\n예시 제목:\n${titleFormat}\n`
         : "";
 
       const noveltyInstruction = `
 
-**Novelty rules (required):**
-- Do NOT reuse the same material (people/places/events/products/cases) from the original.
-- Keep the same category or problem, but switch to completely different material.
-- No simple word swaps: if core keywords overlap >70%, it's a failure.
-- Proper nouns must not overlap with the original.
+Novelty rules (required):
+- Keep structure/tone/hook logic of the benchmark script, but replace material with new material.
+- For each idea, change at least one of: industry, target audience, or concrete case.
+- Cover multiple expansion ranges across 6 ideas:
+  1) adjacent topic (similar mechanism),
+  2) broader category topic,
+  3) same audience with a different monetization angle.
+- Do NOT reuse specific source nouns if alternatives exist. Source keywords: ${sourceKeywords.join(", ") || "none"}.
 - Ideas must be distinct from each other.
-- Keep the narrative feel and audience intent similar to the original script structure.
-- Use completely new examples/cases/material while preserving pacing and hook style.
 `;
 
       const prompt = isShoppingReview
-        ? `다음은 사용자가 입력한 벤치마킹 대본의 분석 결과입니다. 이 분석을 바탕으로 "쇼핑 리뷰" 성격은 유지하되 소재는 새로운 6가지 아이디어를 제안해주세요.\n아이디어는 한국어로 작성하고 JSON 배열로만 출력하세요.${keywordInstruction}${titleFormatInstruction}${noveltyInstruction}\n\n중요 규칙:\n- 입력 대본과 유사한 문제의식/전개 리듬/후킹 방식은 유지하세요.\n- 구체적 제품/브랜드/사례는 입력 대본과 겹치지 않게 완전히 새롭게 바꾸세요.\n\n분석 내용:\n${analysisString}`
-        : `다음은 사용자가 입력한 벤치마킹 대본의 분석 결과입니다. 이 분석을 바탕으로 입력 대본과 결은 비슷하되 소재는 새로운 영상 주제 아이디어 6가지를 제안해주세요.\n아이디어는 한국어로 작성하고 JSON 배열로만 출력하세요.${keywordInstruction}${titleFormatInstruction}${noveltyInstruction}\n\n중요 규칙:\n- 입력 대본의 구조/톤/후킹 방식은 참고하되, 소재·사례·인물·배경은 반드시 새롭게 작성하세요.\n- 사용자가 입력한 제목 형식이 있다면 그 형식(말투/리듬/문장형)을 우선 적용하세요.\n\n분석 내용:\n${analysisString}`;
+        ? `다음은 사용자가 입력한 벤치마킹 대본 분석입니다. 이 구조를 참고해 "쇼핑 리뷰" 결은 유지하되 소재는 새로운 주제 6개를 만드세요.${keywordInstruction}${titleFormatInstruction}${noveltyInstruction}\n\n출력 규칙:\n- 한국어 JSON만 출력: {"ideas":["..."]}\n- 각 아이디어는 제목형 한 줄\n- 입력 대본과 동일 제품/브랜드/사례 재사용 금지\n\n분석 데이터:\n${analysisString}`
+        : `다음은 사용자가 입력한 벤치마킹 대본 분석입니다. 입력 대본과 유사한 전개 방식은 유지하되, 소재는 새로운 방향으로 확장된 주제 6개를 만드세요.${keywordInstruction}${titleFormatInstruction}${noveltyInstruction}\n\n출력 규칙:\n- 한국어 JSON만 출력: {"ideas":["..."]}\n- 각 아이디어는 제목형 한 줄\n- 입력 대본의 핵심 구조(문제 제기 -> 이유 설명 -> 실행/결론)는 참고하되 소재는 새롭게 변주\n\n분석 데이터:\n${analysisString}`;
 
       const systemInstruction = isShoppingReview
-        ? "You are a Korean YouTube shopping review title editor. Generate 6 ideas with strong hooks. If a title format example is provided, mimic its style but do NOT copy it."
-        : "You are a Korean YouTube title editor. Generate 6 punchy ideas. If a title format example is provided, mimic its style but do NOT copy it.";
+        ? "You are a Korean YouTube shopping-review title strategist. Generate 6 highly clickable topic titles in Korean, with strong stylistic mimicry but no copying."
+        : "You are a Korean YouTube title strategist. Generate 6 highly clickable topic titles in Korean. Preserve structure intent, but diversify subject matter.";
 
       console.log(`[generateIdeas] 시도 ${attempt + 1}/${maxRetries + 1}`);
 
@@ -552,7 +602,7 @@ export const generateIdeas = async (
         const recoveredIdeas = extractIdeasFromLooseText(jsonText);
         if (recoveredIdeas.length >= 3) {
           console.log(`[generateIdeas] JSON 불완전 응답에서 아이디어 복구 성공: ${recoveredIdeas.length}개`);
-          return recoveredIdeas;
+          return recoveredIdeas.map((idea) => stylizeIdeaWithTitleFormat(idea, titleFormat));
         }
         throw new Error(`JSON_INCOMPLETE: AI 응답이 불완전합니다. 잠시 후 다시 시도해주세요.`);
       }
@@ -564,7 +614,7 @@ export const generateIdeas = async (
         if (parsedIdeas.length >= 3) {
           if (titleFormat) {
             try {
-              const formatPrompt = `다음은 영상 주제 아이디어 목록입니다. 아래 예시 제목의 말투/리듬/문장 구조/기호 사용을 "형식"만 참고하여 각 아이디어를 제목으로 다시 작성해주세요.\n\n요구사항:\n- 의미는 유지하되 문장 표현은 새로 쓰세요.\n- 예시 제목을 그대로 복붙하거나 1:1 치환하지 마세요.\n- 예시 제목에서 6자 이상 연속으로 그대로 가져오지 마세요.\n- 아이디어의 순서와 개수는 그대로 유지하세요.\n- 결과는 JSON 형식으로만 반환하세요.\n\n예시 제목:\n${titleFormat}\n\n아이디어 목록:\n${parsedIdeas.map((idea: string, index: number) => `${index + 1}. ${idea}`).join("\n")}`;
+              const formatPrompt = `다음은 AI가 만든 주제 아이디어 목록입니다. 아래 예시 제목의 형식(말투/리듬/문장 길이/후킹 구조/기호 사용)을 강하게 적용해, 각 아이디어를 더 클릭되는 제목으로 다시 작성하세요.\n\n반드시 지킬 것:\n- "소재"는 현재 아이디어의 의미를 유지하고, "형식"만 예시 제목을 따르세요.\n- 예시 제목 문구를 복붙하지 마세요.\n- 예시 제목에서 6자 이상 연속 복사 금지.\n- 결과는 한 줄 제목만, 아이디어 개수/순서 유지.\n- 결과는 JSON으로만 반환: {"ideas":["..."]}\n\n예시 제목:\n${titleFormat}\n\n아이디어 목록:\n${parsedIdeas.map((idea: string, index: number) => `${index + 1}. ${idea}`).join("\n")}`;
 
               const formatResponse = await ai.models.generateContent({
                 model: "gemini-2.5-flash",
@@ -584,14 +634,14 @@ export const generateIdeas = async (
                 const formatted = JSON.parse(formatJson);
                 const formattedIdeas = normalizeIdeaList(formatted.ideas);
                 if (formattedIdeas.length === parsedIdeas.length) {
-                  return formattedIdeas;
+                  return formattedIdeas.map((idea) => stylizeIdeaWithTitleFormat(idea, titleFormat));
                 }
               }
             } catch (formatError) {
               console.warn("Idea formatting failed, fallback to raw ideas.", formatError);
             }
           }
-          return parsedIdeas;
+          return parsedIdeas.map((idea) => stylizeIdeaWithTitleFormat(idea, titleFormat));
         }
         throw new Error("IDEAS_EMPTY: 아이디어 배열이 비어 있습니다");
       } catch (parseError: any) {
@@ -603,7 +653,7 @@ export const generateIdeas = async (
         const recoveredIdeas = extractIdeasFromLooseText(jsonText);
         if (recoveredIdeas.length >= 3) {
           console.log(`[generateIdeas] 파싱 실패 응답에서 아이디어 복구 성공: ${recoveredIdeas.length}개`);
-          return recoveredIdeas;
+          return recoveredIdeas.map((idea) => stylizeIdeaWithTitleFormat(idea, titleFormat));
         }
 
         // 마지막 시도가 아니면 재시도
@@ -654,8 +704,9 @@ export const generateIdeas = async (
 - 각 줄은 1개의 아이디어 제목만 작성하세요.
 - 번호/불릿/JSON/코드블록 금지.
 - 기존 대본의 핵심 소재를 그대로 재사용하지 마세요.
+- 6개 안에 인접 주제/상위 카테고리/다른 수익각도 아이디어를 반드시 섞으세요.
 ${userKeyword ? `- "${userKeyword}"와 밀접한 주제를 포함하세요.` : ""}
-${titleFormat ? `- 제목 톤은 다음 예시의 말투를 참고하세요: ${titleFormat}` : ""}
+${titleFormat ? `- 제목 형식은 다음 예시의 말투와 리듬을 따르세요: ${titleFormat}` : ""}
 
 분석:
 ${analysisString}`;
@@ -672,7 +723,7 @@ ${analysisString}`;
     const backupIdeas = extractIdeasFromLooseText(backupText);
     if (backupIdeas.length >= 3) {
       console.log(`[generateIdeas] 최종 폴백 성공: ${backupIdeas.length}개`);
-      return backupIdeas;
+      return backupIdeas.map((idea) => stylizeIdeaWithTitleFormat(idea, titleFormat));
     }
   } catch (backupError) {
     console.warn("[generateIdeas] 최종 폴백 실패", backupError);
