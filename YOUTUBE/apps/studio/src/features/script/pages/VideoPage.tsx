@@ -195,6 +195,33 @@ const getCloudVoiceFeature = (suffix: string): string => {
           : "균형형 내레이션";
 };
 
+const hashText = (value: string): number => {
+  let hash = 2166136261 >>> 0;
+  const text = String(value || "");
+  for (let i = 0; i < text.length; i += 1) {
+    hash ^= text.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+};
+
+const getCloudVoiceKoreanName = (googleVoice: string, gender: VoiceGender): string => {
+  const seed = hashText(googleVoice);
+  const maleFirst = ["강", "건", "도", "민", "서", "성", "시", "우", "재", "준", "진", "태", "하", "현"];
+  const maleSecond = ["건", "권", "민", "석", "성", "우", "윤", "준", "진", "호", "혁", "환", "현", "훈"];
+  const femaleFirst = ["가", "나", "다", "라", "미", "서", "소", "수", "아", "예", "유", "윤", "지", "하"];
+  const femaleSecond = ["나", "린", "라", "리", "민", "빈", "서", "아", "연", "윤", "은", "진", "하", "혜"];
+  const neutralFirst = ["가", "다", "라", "민", "보", "새", "시", "온", "주", "하", "한", "해"];
+  const neutralSecond = ["결", "나", "담", "람", "별", "빛", "솔", "온", "율", "이", "찬", "해"];
+
+  const firstPool = gender === "남성" ? maleFirst : gender === "여성" ? femaleFirst : neutralFirst;
+  const secondPool = gender === "남성" ? maleSecond : gender === "여성" ? femaleSecond : neutralSecond;
+
+  const first = firstPool[seed % firstPool.length];
+  const second = secondPool[(seed >>> 8) % secondPool.length];
+  return `클라우드 ${first}${second}`;
+};
+
 // 확장된 목소리 옵션 (모달용)
 const allVoiceOptions: ExtendedVoiceOption[] = [
   { name: "민준", label: "신뢰 나레이션", tone: "신뢰감 있는 다큐 스타일", category: "남성", model: "Neural2", googleVoice: "ko-KR-Neural2-C", ssmlGender: "MALE", rate: 0.95, pitch: -6.0, tags: ["신뢰감 있는", "나레이션용"], sampleText: "핵심 데이터부터 차분하게 정리해 드리겠습니다." },
@@ -332,9 +359,7 @@ const mapCloudVoiceToExtendedOption = (voice: any): ExtendedVoiceOption | null =
           ? "Studio"
           : "Standard";
   const suffix = googleVoice.split("-").pop() || googleVoice;
-  const compactSuffix = String(suffix).replace(/[^0-9A-Za-z가-힣]/g, "").trim();
-  const baseName = `클라우드 ${compactSuffix || googleVoice}`.trim();
-  const name = baseName || googleVoice;
+  const name = getCloudVoiceKoreanName(googleVoice, category);
   const feature = getCloudVoiceFeature(suffix);
 
   return {
