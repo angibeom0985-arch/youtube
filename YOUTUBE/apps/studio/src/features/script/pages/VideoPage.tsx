@@ -3244,37 +3244,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         </div>
                       </div>
 
-                      {/* 주제 선택 섹션 */}
-                      {scriptAnalysis && (
-                        <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-sm font-semibold text-white">대본 구조 분석 (선택)</p>
-                              <p className="text-xs text-white/50">궁금한 경우에만 열어보세요</p>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => setShowAnalysisDetails((prev) => !prev)}
-                              className="rounded-full border border-white/20 px-4 py-2 text-xs font-semibold text-white/80 hover:bg-white/10 transition-all"
-                            >
-                              {showAnalysisDetails ? "닫기" : "분석 결과 보기"}
-                            </button>
-                          </div>
-                          {showAnalysisDetails && scriptAnalysis?.scriptStructure && (
-                            <div className="mt-3 grid gap-2">
-                              {scriptAnalysis.scriptStructure.map((stage) => (
-                                <div
-                                  key={stage.stage}
-                                  className="rounded-xl border border-white/10 bg-white/5 px-3 py-2"
-                                >
-                                  <p className="text-sm font-semibold text-white">{stage.stage}</p>
-                                  <p className="text-xs text-white/50">{stage.purpose}</p>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      )}
                       {scriptIdeas.length === 0 ? (
                         <div className="rounded-2xl border border-white/10 bg-black/30 p-5">
                           <div className="mb-3 pb-3 border-b border-white/10">
