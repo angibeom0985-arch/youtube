@@ -1369,6 +1369,13 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     const source = personaSourceScript.trim();
     if (!source) {
       setPersonaError("페르소나를 만들 대본이 없습니다. 먼저 대본을 준비해주세요.");
+      setImageStepProgress({
+        active: true,
+        title: "이미지 생성 준비 실패",
+        detail: "페르소나를 만들 대본이 없습니다.",
+        percent: 100,
+        tone: "error",
+      });
       return false;
     }
 
@@ -1379,6 +1386,14 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
     setPersonaError("");
     setIsGeneratingPersonas(true);
+    setPersonas([]);
+    setImageStepProgress({
+      active: true,
+      title: "이미지 생성 준비 중",
+      detail: "페르소나 분석 중...",
+      percent: 8,
+      tone: "running",
+    });
     try {
       const generated = await generateCharacters(
         source,
@@ -1393,20 +1408,50 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         backgroundStyle,
         customCharacterStyle,
         customBackgroundStyle,
-        styleReferenceImage
+        styleReferenceImage,
+        (progressMessage) => {
+          setImageStepProgress((prev) => ({
+            active: true,
+            title: "이미지 생성 준비 중",
+            detail: progressMessage || "페르소나 생성 중...",
+            percent: Math.min(92, prev.percent + 12),
+            tone: "running",
+          }));
+        }
       );
 
       if (!generated.length) {
         setPersonaError("페르소나 생성 결과가 비어 있습니다. 입력을 바꿔 다시 시도해주세요.");
+        setImageStepProgress({
+          active: true,
+          title: "이미지 생성 준비 실패",
+          detail: "페르소나 생성 결과가 비어 있습니다.",
+          percent: 100,
+          tone: "error",
+        });
         return false;
       }
 
       setPersonas(generated);
+      setImageStepProgress({
+        active: true,
+        title: "이미지 생성 준비 완료",
+        detail: `페르소나 ${generated.length}개 생성 완료`,
+        percent: 100,
+        tone: "success",
+      });
       return true;
     } catch (error) {
       console.error("페르소나 생성 오류:", error);
       const message = error instanceof Error ? error.message : "페르소나 생성 중 오류가 발생했습니다.";
       setPersonaError(message);
+      setImageStepProgress({
+        active: true,
+        title: "이미지 생성 준비 실패",
+        detail: message,
+        percent: 100,
+        tone: "error",
+      });
       return false;
     } finally {
       setIsGeneratingPersonas(false);
@@ -3067,48 +3112,17 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     }
     if (steps[currentStep].id === "image") {
       if (imageSubStep === 0 && personas.length === 0) {
-        setImageStepProgress({
-          active: true,
-          title: "이미지 생성 준비 중",
-          detail: "페르소나를 생성하고 있습니다.",
-          percent: 10,
-          tone: "running",
-        });
-        if (imageStepProgressTimerRef.current !== null) {
-          window.clearInterval(imageStepProgressTimerRef.current);
-        }
-        imageStepProgressTimerRef.current = window.setInterval(() => {
-          setImageStepProgress((prev) => {
-            if (!prev.active || prev.tone !== "running") return prev;
-            return { ...prev, percent: Math.min(88, prev.percent + 6) };
-          });
-        }, 320);
-
         const created = await handleGeneratePersonas();
         if (imageStepProgressTimerRef.current !== null) {
           window.clearInterval(imageStepProgressTimerRef.current);
           imageStepProgressTimerRef.current = null;
         }
         if (!created) {
-          setImageStepProgress({
-            active: true,
-            title: "이미지 생성 준비 실패",
-            detail: personaError || "페르소나 생성에 실패했습니다. 입력값과 API 상태를 확인해 주세요.",
-            percent: 100,
-            tone: "error",
-          });
           window.setTimeout(() => {
             setImageStepProgress((prev) => ({ ...prev, active: false }));
           }, 2400);
           return;
         }
-        setImageStepProgress({
-          active: true,
-          title: "이미지 생성 준비 완료",
-          detail: "페르소나 생성이 완료되어 다음 단계로 이동합니다.",
-          percent: 100,
-          tone: "success",
-        });
         window.setTimeout(() => {
           setImageStepProgress((prev) => ({ ...prev, active: false }));
         }, 1400);
