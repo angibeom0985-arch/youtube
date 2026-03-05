@@ -819,6 +819,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [renderingProgress, setRenderingProgress] = useState(0);
   const [isExportingSrt, setIsExportingSrt] = useState(false);
   const [isExportingTtsMp3, setIsExportingTtsMp3] = useState(false);
+  const [isApplyingEditorTts, setIsApplyingEditorTts] = useState(false);
   const [editorImageUrls, setEditorImageUrls] = useState<string[]>([]);
   const [editorAudioUrl, setEditorAudioUrl] = useState("");
   const [editorAudioDurationSec, setEditorAudioDurationSec] = useState(0);
@@ -1881,59 +1882,119 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   };
 
   const handleDownloadTtsMp3 = async () => {
-    const text = buildSubtitleLines().join(" ").replace(/\s+/g, " ").trim();
-    if (!text) {
-      alert("MP3로 생성할 대본이 없습니다.");
-      return;
-    }
-
     setIsExportingTtsMp3(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        throw new Error("로그인이 필요합니다.");
+      const text = buildSubtitleLines().join(" ").replace(/\s+/g, " ").trim();
+      if (!text) {
+        alert("MP3로 생성할 대본이 없습니다.");
+        return;
       }
 
-      const strictProfile = strictVoiceProfileMap[selectedVoice];
-      const voice = strictProfile?.voice || "ko-KR-Standard-A";
-      const ssmlGender = strictProfile?.ssmlGender || "FEMALE";
-      const speakingRate = Math.min(2.0, Math.max(0.8, ttsSpeed * (strictProfile?.rate || 1)));
-      const pitch = strictProfile?.pitch || 0;
-
-      const response = await fetch("/api/tts", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
-          text,
-          voice,
-          ssmlGender,
-          speakingRate,
-          pitch,
-          preview: false,
-        }),
-      });
-
-      const payload = await response.json().catch(() => ({}));
-      if (!response.ok || !payload?.audioContent) {
-        throw new Error(String(payload?.message || "mp3_generation_failed"));
-      }
-
-      const binary = atob(String(payload.audioContent));
-      const bytes = new Uint8Array(binary.length);
-      for (let i = 0; i < binary.length; i += 1) {
-        bytes[i] = binary.charCodeAt(i);
-      }
+      const blob = await requestTtsMp3Blob(text);
       const baseName = (projectTitle || "video").trim().replace(/[^\w\-가-힣]+/g, "_");
-      downloadBlob(new Blob([bytes], { type: "audio/mpeg" }), `${baseName || "video"}-tts.mp3`);
+      downloadBlob(blob, `${baseName || "video"}-tts.mp3`);
     } catch (error) {
       console.error("MP3 생성 오류:", error);
       alert("MP3 생성 중 오류가 발생했습니다. API 키/권한을 확인해 주세요.");
     } finally {
       setIsExportingTtsMp3(false);
     }
+  };
+
+  const requestTtsMp3Blob = async (text: string): Promise<Blob> => {
+    const normalizedText = String(text || "").replace(/\s+/g, " ").trim();
+    if (!normalizedText) {
+      throw new Error("empty_tts_text");
+    }
+
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      throw new Error("로그인이 필요합니다.");
+    }
+
+    const strictProfile = strictVoiceProfileMap[selectedVoice];
+    const voice = strictProfile?.voice || "ko-KR-Standard-A";
+    const ssmlGender = strictProfile?.ssmlGender || "FEMALE";
+    const speakingRate = Math.min(2.0, Math.max(0.8, ttsSpeed * (strictProfile?.rate || 1)));
+    const pitch = strictProfile?.pitch || 0;
+
+    const response = await fetch("/api/tts", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({
+        text: normalizedText,
+        voice,
+        ssmlGender,
+        speakingRate,
+        pitch,
+        preview: false,
+      }),
+    });
+
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || !payload?.audioContent) {
+      throw new Error(String(payload?.message || "mp3_generation_failed"));
+    }
+
+    const binary = atob(String(payload.audioContent));
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i += 1) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    return new Blob([bytes], { type: "audio/mpeg" });
+  };
+
+  const applyAudioBlobToEditor = async (blob: Blob) => {
+    const url = URL.createObjectURL(blob);
+    setEditorAudioUrl(url);
+
+    const duration = await new Promise<number>((resolve) => {
+      const audio = new Audio(url);
+      audio.onloadedmetadata = () => resolve(Number.isFinite(audio.duration) ? audio.duration : 0);
+      audio.onerror = () => resolve(0);
+    });
+
+    setEditorAudioDurationSec(duration);
+    rebuildEditorCuts(editorImageUrls, editorSubtitleCues, duration);
+  };
+
+  const handleApplyScriptToEditorSrt = () => {
+    const lines = buildSubtitleLines();
+    if (lines.length === 0) {
+      alert("SRT로 변환할 대본이 없습니다.");
+      return;
+    }
+    const cues = buildAutoSubtitleCues(lines, editorAudioDurationSec || Number(renderDuration || 60));
+    setEditorSubtitleCues(cues);
+    rebuildEditorCuts(editorImageUrls, cues, editorAudioDurationSec);
+  };
+
+  const handleApplyTtsToEditorMp3 = async () => {
+    const text = buildSubtitleLines().join(" ").replace(/\s+/g, " ").trim();
+    if (!text) {
+      alert("MP3로 생성할 대본이 없습니다.");
+      return;
+    }
+
+    setIsApplyingEditorTts(true);
+    try {
+      const blob = await requestTtsMp3Blob(text);
+      await applyAudioBlobToEditor(blob);
+    } catch (error) {
+      console.error("에디터 MP3 적용 오류:", error);
+      alert("TTS를 MP3로 생성해 컷 편집에 적용하지 못했습니다.");
+    } finally {
+      setIsApplyingEditorTts(false);
+    }
+  };
+
+  const handleApplyGeneratedAssetsToEditor = async () => {
+    handleLoadGeneratedImagesToEditor();
+    handleApplyScriptToEditorSrt();
+    await handleApplyTtsToEditorMp3();
   };
 
   const parseSrtTimestampToSec = (value: string): number => {
@@ -5746,6 +5807,29 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       className="w-full rounded-lg border border-emerald-500/60 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-100 hover:bg-emerald-500/20"
                     >
                       대본으로 자막 자동 생성
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleApplyScriptToEditorSrt}
+                      className="w-full rounded-lg border border-sky-500/60 bg-sky-500/10 px-3 py-2 text-xs font-semibold text-sky-100 hover:bg-sky-500/20"
+                    >
+                      앞서 만든 대본 {"->"} SRT 적용
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleApplyTtsToEditorMp3}
+                      disabled={isApplyingEditorTts}
+                      className="w-full rounded-lg border border-violet-500/60 bg-violet-500/10 px-3 py-2 text-xs font-semibold text-violet-100 hover:bg-violet-500/20 disabled:opacity-60"
+                    >
+                      {isApplyingEditorTts ? "TTS MP3 적용 중..." : "앞서 만든 TTS -> MP3 적용"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleApplyGeneratedAssetsToEditor}
+                      disabled={isApplyingEditorTts}
+                      className="w-full rounded-lg border border-amber-500/60 bg-amber-500/10 px-3 py-2 text-xs font-semibold text-amber-100 hover:bg-amber-500/20 disabled:opacity-60"
+                    >
+                      이미지 + SRT + MP3 한번에 적용
                     </button>
                     <p className="text-[11px] text-slate-400">
                       이미지 {editorImageUrls.length}장 · 자막 {editorSubtitleCues.length}개 · 오디오 {editorAudioUrl ? "1개" : "0개"}
