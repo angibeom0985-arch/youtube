@@ -565,6 +565,20 @@ const formatFileSize = (size: number) => {
   return `${(size / (1024 * 1024 * 1024)).toFixed(1)} GB`;
 };
 
+const buildDefaultExpandedChapters = (plan: NewPlan | null): Record<number, boolean> => {
+  if (!plan) return {};
+  if (Array.isArray(plan.chapters) && plan.chapters.length > 0) {
+    return plan.chapters.reduce<Record<number, boolean>>((acc, _, index) => {
+      acc[index] = true;
+      return acc;
+    }, {});
+  }
+  if (Array.isArray(plan.scriptWithCharacters) && plan.scriptWithCharacters.length > 0) {
+    return { 0: true };
+  }
+  return {};
+};
+
 const isNarrationLabel = (value?: string): boolean => {
   const text = String(value || "").trim().toLowerCase();
   return (
@@ -3668,6 +3682,15 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     if (scriptError) return;
     void handleGenerateScript();
   }, [currentStep, scriptSubStep, scriptAnalysis, selectedTopic, generatedPlan, isGeneratingScript, scriptError]);
+
+  useEffect(() => {
+    if (!generatedPlan) {
+      setExpandedChapters({});
+      return;
+    }
+    setExpandedChapters(buildDefaultExpandedChapters(generatedPlan));
+  }, [generatedPlan]);
+
   const ensureChaptersByLength = (plan: NewPlan): NewPlan => {
     const minutes = resolveScriptLengthValue();
     const targetChapters = getTargetChapters(minutes);
