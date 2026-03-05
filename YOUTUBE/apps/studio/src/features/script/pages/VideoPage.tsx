@@ -5915,13 +5915,13 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 {timelineScenes.map((scene) => (
                   <div
                     key={scene.id}
-                    className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/80"
+                    className="flex min-w-0 items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/80"
                   >
-                    <div>
+                    <div className="min-w-0 flex-1">
                       <p className="font-semibold text-white">{scene.label}</p>
-                      <p className="text-sm text-white/50 truncate">{scene.desc}</p>
+                      <p className="text-sm text-white/50 break-words line-clamp-2">{scene.desc}</p>
                     </div>
-                    <span className="text-sm text-white/50">{scene.duration}</span>
+                    <span className="shrink-0 text-sm text-white/50">{scene.duration}</span>
                   </div>
                 ))}
               </div>
