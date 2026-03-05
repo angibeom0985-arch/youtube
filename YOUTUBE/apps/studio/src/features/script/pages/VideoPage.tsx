@@ -1947,7 +1947,19 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     return new Blob([bytes], { type: "audio/mpeg" });
   };
 
-  const applyAudioBlobToEditor = async (blob: Blob) => {
+  const getGeneratedEditorImages = useCallback((): string[] => {
+    return Object.entries(chapterImages)
+      .filter(([, src]) => Boolean(src))
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([, src]) => normalizeGeneratedImageSrc(src))
+      .filter(Boolean);
+  }, [chapterImages]);
+
+  const applyAudioBlobToEditor = async (
+    blob: Blob,
+    images: string[] = editorImageUrls,
+    cues: SubtitleCue[] = editorSubtitleCues
+  ) => {
     const url = URL.createObjectURL(blob);
     setEditorAudioUrl(url);
 
@@ -1958,21 +1970,23 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     });
 
     setEditorAudioDurationSec(duration);
-    rebuildEditorCuts(editorImageUrls, editorSubtitleCues, duration);
+    rebuildEditorCuts(images, cues, duration);
   };
 
-  const handleApplyScriptToEditorSrt = () => {
+  const handleApplyScriptToEditorSrt = (forcedImages?: string[]) => {
     const lines = buildSubtitleLines();
     if (lines.length === 0) {
       alert("SRT로 변환할 대본이 없습니다.");
-      return;
+      return [] as SubtitleCue[];
     }
     const cues = buildAutoSubtitleCues(lines, editorAudioDurationSec || Number(renderDuration || 60));
+    const images = forcedImages ?? editorImageUrls;
     setEditorSubtitleCues(cues);
-    rebuildEditorCuts(editorImageUrls, cues, editorAudioDurationSec);
+    rebuildEditorCuts(images, cues, editorAudioDurationSec);
+    return cues;
   };
 
-  const handleApplyTtsToEditorMp3 = async () => {
+  const handleApplyTtsToEditorMp3 = async (forcedImages?: string[], forcedCues?: SubtitleCue[]) => {
     const text = buildSubtitleLines().join(" ").replace(/\s+/g, " ").trim();
     if (!text) {
       alert("MP3로 생성할 대본이 없습니다.");
@@ -1982,7 +1996,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     setIsApplyingEditorTts(true);
     try {
       const blob = await requestTtsMp3Blob(text);
-      await applyAudioBlobToEditor(blob);
+      await applyAudioBlobToEditor(blob, forcedImages ?? editorImageUrls, forcedCues ?? editorSubtitleCues);
     } catch (error) {
       console.error("에디터 MP3 적용 오류:", error);
       alert("TTS를 MP3로 생성해 컷 편집에 적용하지 못했습니다.");
@@ -1992,9 +2006,15 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   };
 
   const handleApplyGeneratedAssetsToEditor = async () => {
-    handleLoadGeneratedImagesToEditor();
-    handleApplyScriptToEditorSrt();
-    await handleApplyTtsToEditorMp3();
+    const generated = getGeneratedEditorImages();
+    if (generated.length === 0) {
+      alert("불러올 생성 이미지가 없습니다. 먼저 이미지 생성 단계에서 컷을 생성해 주세요.");
+      return;
+    }
+
+    setEditorImageUrls(generated);
+    const cues = handleApplyScriptToEditorSrt(generated);
+    await handleApplyTtsToEditorMp3(generated, cues);
   };
 
   const parseSrtTimestampToSec = (value: string): number => {
@@ -2126,11 +2146,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   };
 
   const handleLoadGeneratedImagesToEditor = () => {
-    const generated = Object.entries(chapterImages)
-      .filter(([, src]) => Boolean(src))
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([, src]) => normalizeGeneratedImageSrc(src))
-      .filter(Boolean);
+    const generated = getGeneratedEditorImages();
 
     if (generated.length === 0) {
       alert("불러올 생성 이미지가 없습니다. 먼저 이미지 생성 단계에서 컷을 생성해 주세요.");
