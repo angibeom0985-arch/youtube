@@ -840,6 +840,11 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [timelineDragState, setTimelineDragState] = useState<TimelineDragState | null>(null);
   const [timelineCurrentSec, setTimelineCurrentSec] = useState(0);
   const [isTimelinePlaying, setIsTimelinePlaying] = useState(false);
+  const [timelinePlaybackRate, setTimelinePlaybackRate] = useState(1);
+  const [timelineVolume, setTimelineVolume] = useState(1);
+  const [isTimelineMuted, setIsTimelineMuted] = useState(false);
+  const [previewColorPreset, setPreviewColorPreset] = useState<"base" | "warm" | "cold" | "mono">("base");
+  const [logoRemovalMode, setLogoRemovalMode] = useState(false);
   const [videoPrompt, setVideoPrompt] = useState("");
   const [isGeneratingVideo, setIsGeneratingVideo] = useState(false);
   const [generatedVideoUrl, setGeneratedVideoUrl] = useState("");
@@ -1804,6 +1809,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     if (timelineAudioRef.current && editorAudioUrl) {
       const audio = timelineAudioRef.current;
       audio.currentTime = timelineCurrentRef.current;
+      audio.playbackRate = timelinePlaybackRate;
+      audio.volume = isTimelineMuted ? 0 : timelineVolume;
       void audio.play().catch(() => {
         setIsTimelinePlaying(false);
       });
@@ -1823,7 +1830,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     setIsTimelinePlaying(true);
     clearTimelineTimer();
     timelineTimerRef.current = window.setInterval(() => {
-      const next = timelineCurrentRef.current + 0.1;
+      const next = timelineCurrentRef.current + 0.1 * timelinePlaybackRate;
       if (next >= totalEditorDurationSec) {
         seekTimeline(totalEditorDurationSec);
         pauseTimeline();
@@ -1832,7 +1839,16 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       setTimelineCurrentSec(next);
       timelineCurrentRef.current = next;
     }, 100);
-  }, [clearTimelineTimer, editorAudioUrl, pauseTimeline, seekTimeline, totalEditorDurationSec]);
+  }, [
+    clearTimelineTimer,
+    editorAudioUrl,
+    isTimelineMuted,
+    pauseTimeline,
+    seekTimeline,
+    timelinePlaybackRate,
+    timelineVolume,
+    totalEditorDurationSec,
+  ]);
 
   const toggleTimelinePlayback = useCallback(() => {
     if (isTimelinePlaying) {
@@ -2324,6 +2340,12 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (!timelineAudioRef.current) return;
+    timelineAudioRef.current.playbackRate = timelinePlaybackRate;
+    timelineAudioRef.current.volume = isTimelineMuted ? 0 : timelineVolume;
+  }, [isTimelineMuted, timelinePlaybackRate, timelineVolume, editorAudioUrl]);
 
   const voiceStyleMap: Record<string, { rate: number; pitch: number }> = useMemo(
     () =>
@@ -5843,6 +5865,58 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
           const ratio = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
           seekTimeline(ratio * totalEditorDuration);
         };
+        const ensureEditableCuts = () => {
+          if (editorCuts.length > 0) return editorCuts;
+          if (timelineCuts.length === 0) return [] as EditorCut[];
+          setEditorCuts(timelineCuts);
+          setSelectedCutId((prev) => prev || timelineCuts[0]?.id || null);
+          return timelineCuts;
+        };
+        const applyToolbarAction = (action: "split" | "trim" | "speed" | "volume" | "color" | "logo") => {
+          const editable = ensureEditableCuts();
+          const target = editable.find((cut) => cut.id === (selectedCutId || editable[0]?.id));
+          if (action === "split") {
+            if (target) splitEditorCut(target.id);
+            return;
+          }
+          if (action === "trim") {
+            if (!target) return;
+            const nextEnd = Math.max(target.startSec + 0.2, Math.min(timelineCurrentSec, totalEditorDuration));
+            updateEditorCutTime(target.id, "endSec", nextEnd);
+            return;
+          }
+          if (action === "speed") {
+            const speedSteps = [0.75, 1.0, 1.25, 1.5, 2.0];
+            const idx = speedSteps.findIndex((v) => Math.abs(v - timelinePlaybackRate) < 0.001);
+            const next = speedSteps[(idx + 1) % speedSteps.length];
+            setTimelinePlaybackRate(next);
+            return;
+          }
+          if (action === "volume") {
+            const volumeSteps = [1, 0.7, 0.4, 0];
+            const current = isTimelineMuted ? 0 : timelineVolume;
+            const idx = volumeSteps.findIndex((v) => Math.abs(v - current) < 0.001);
+            const next = volumeSteps[(idx + 1) % volumeSteps.length];
+            setTimelineVolume(next);
+            setIsTimelineMuted(next === 0);
+            return;
+          }
+          if (action === "color") {
+            const cycle: Array<"base" | "warm" | "cold" | "mono"> = ["base", "warm", "cold", "mono"];
+            const idx = cycle.findIndex((v) => v === previewColorPreset);
+            setPreviewColorPreset(cycle[(idx + 1) % cycle.length]);
+            return;
+          }
+          setLogoRemovalMode((prev) => !prev);
+        };
+        const previewFilterStyle =
+          previewColorPreset === "warm"
+            ? { filter: "saturate(1.1) contrast(1.04) sepia(0.08)" }
+            : previewColorPreset === "cold"
+              ? { filter: "saturate(0.92) contrast(1.02) hue-rotate(8deg)" }
+              : previewColorPreset === "mono"
+                ? { filter: "grayscale(1) contrast(1.05)" }
+                : undefined;
 
         return (
           <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
@@ -5850,34 +5924,77 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
               <div className="grid min-h-[680px] grid-cols-1 lg:grid-cols-[280px_minmax(0,1fr)]">
                 <aside className="border-b border-slate-800 bg-[#0a0f1a] p-4 lg:border-b-0 lg:border-r">
                   <h3 className="text-lg font-bold text-white">동영상</h3>
-                  <div className="mt-3 grid grid-cols-2 gap-2 rounded-xl bg-[#0f1728] p-1.5">
-                    <button className="rounded-lg bg-slate-800 px-3 py-2 text-sm font-semibold text-white">비디오</button>
-                    <button className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-300 hover:bg-slate-800/50">오디오</button>
+                  <div className="mt-3 rounded-xl border border-slate-700 bg-[#0f1728] px-3 py-2 text-center text-xs font-semibold tracking-[0.12em] text-cyan-200">
+                    VIDEO TIMELINE
                   </div>
 
                   <div className="mt-4 grid grid-cols-5 gap-2">
-                    {[FiMonitor, FiFilm, FiUpload, FiVolume2, FiSettings].map((Icon, idx) => (
-                      <button key={idx} className="flex h-11 w-full items-center justify-center rounded-lg border border-slate-700 bg-[#0f1728] text-slate-200 hover:border-slate-500">
-                        <Icon className="h-4 w-4" />
-                      </button>
-                    ))}
+                    <button
+                      type="button"
+                      onClick={() => seekTimeline(0)}
+                      className="flex h-11 w-full items-center justify-center rounded-lg border border-slate-700 bg-[#0f1728] text-slate-200 hover:border-cyan-400"
+                      title="처음으로"
+                    >
+                      <FiMonitor className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => applyToolbarAction("split")}
+                      className="flex h-11 w-full items-center justify-center rounded-lg border border-slate-700 bg-[#0f1728] text-slate-200 hover:border-cyan-400"
+                      title="클립 분할"
+                    >
+                      <FiFilm className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        void handleApplyGeneratedAssetsToEditor();
+                      }}
+                      className="flex h-11 w-full items-center justify-center rounded-lg border border-slate-700 bg-[#0f1728] text-slate-200 hover:border-cyan-400"
+                      title="생성 결과 자동 적용"
+                    >
+                      <FiUpload className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => applyToolbarAction("volume")}
+                      className="flex h-11 w-full items-center justify-center rounded-lg border border-slate-700 bg-[#0f1728] text-slate-200 hover:border-cyan-400"
+                      title="볼륨 순환"
+                    >
+                      <FiVolume2 className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        pauseTimeline();
+                        seekTimeline(0);
+                        rebuildEditorCuts(editorImageUrls, editorSubtitleCues, editorAudioDurationSec);
+                      }}
+                      className="flex h-11 w-full items-center justify-center rounded-lg border border-slate-700 bg-[#0f1728] text-slate-200 hover:border-cyan-400"
+                      title="타임라인 재정렬"
+                    >
+                      <FiSettings className="h-4 w-4" />
+                    </button>
                   </div>
 
-                  <div className="mt-4 space-y-2">
+                  <div className="mt-4 grid grid-cols-3 gap-2">
                     {[
-                      { icon: FiScissors, label: "자르기" },
-                      { icon: FiFilm, label: "트리밍" },
-                      { icon: FiClock, label: "속도" },
-                      { icon: FiVolume2, label: "볼륨" },
-                      { icon: FiImage, label: "색상 보정" },
-                      { icon: FiTrash2, label: "로고 제거" },
+                      { icon: FiScissors, key: "split" as const, label: "자르기" },
+                      { icon: FiFilm, key: "trim" as const, label: "트림" },
+                      { icon: FiClock, key: "speed" as const, label: `${timelinePlaybackRate.toFixed(2)}x` },
+                      { icon: FiVolume2, key: "volume" as const, label: isTimelineMuted ? "음소거" : `${Math.round(timelineVolume * 100)}%` },
+                      { icon: FiImage, key: "color" as const, label: previewColorPreset.toUpperCase() },
+                      { icon: FiTrash2, key: "logo" as const, label: logoRemovalMode ? "ON" : "OFF" },
                     ].map((tool) => (
                       <button
-                        key={tool.label}
-                        className="flex w-full items-center gap-2 rounded-xl border border-slate-700 bg-[#0f1728] px-3 py-2.5 text-sm text-slate-100 hover:border-slate-500"
+                        key={tool.key}
+                        type="button"
+                        onClick={() => applyToolbarAction(tool.key)}
+                        className="rounded-xl border border-slate-700 bg-[#0f1728] px-2 py-2 text-slate-100 hover:border-cyan-400"
+                        title={tool.label}
                       >
-                        <tool.icon className="h-4 w-4 text-slate-300" />
-                        <span>{tool.label}</span>
+                        <tool.icon className="mx-auto h-4 w-4 text-slate-200" />
+                        <p className="mt-1 text-[10px] font-semibold text-slate-300">{tool.label}</p>
                       </button>
                     ))}
                   </div>
@@ -5952,26 +6069,17 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 </aside>
 
                 <section className="flex min-h-[680px] flex-col bg-[#090f19]">
-                  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 px-4 py-3">
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.16em] text-slate-400">영상 편집</p>
-                      <h4 className="text-lg font-bold text-white">
-                        {previewCut?.caption || "타임라인 미리보기"}
-                      </h4>
-                    </div>
-                    <span className="rounded-full border border-slate-600 bg-slate-800/60 px-3 py-1 text-xs font-semibold text-slate-200">
-                      진행도 {renderingProgress}%
-                    </span>
-                  </div>
-
                   <div className="px-4 py-4">
                     <div className="relative overflow-hidden rounded-2xl border border-slate-700 bg-black">
-                      <div className="absolute left-3 top-3 z-10 rounded-md bg-black/70 px-2 py-1 text-xs text-white">1.00x</div>
+                      <div className="absolute left-3 top-3 z-10 rounded-md bg-black/70 px-2 py-1 text-xs text-white">{timelinePlaybackRate.toFixed(2)}x</div>
+                      <div className="absolute right-3 top-3 z-10 rounded-md border border-slate-500/70 bg-black/50 px-2 py-1 text-[10px] font-semibold text-slate-200">
+                        {logoRemovalMode ? "로고 제거 ON" : "로고 제거 OFF"}
+                      </div>
                       <div className="aspect-video w-full bg-gradient-to-br from-slate-800 via-slate-900 to-black">
                         {previewCut?.imageUrl ? (
-                          <img src={previewCut.imageUrl} alt="선택 컷" className="h-full w-full object-contain" />
+                          <img src={previewCut.imageUrl} alt="선택 컷" className="h-full w-full object-contain" style={previewFilterStyle} />
                         ) : videoUrl ? (
-                          <video src={videoUrl} controls className="h-full w-full object-contain" />
+                          <video src={videoUrl} controls className="h-full w-full object-contain" style={previewFilterStyle} />
                         ) : (
                           <div className="flex h-full items-center justify-center">
                             <div className="rounded-xl border border-slate-600/70 bg-slate-900/70 px-5 py-4 text-center">
