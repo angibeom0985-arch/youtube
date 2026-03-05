@@ -6688,19 +6688,24 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
             </div>
 
             <div
-              className={`grid gap-4 px-[clamp(1rem,2vw,2rem)] pb-[clamp(1.2rem,2.4vw,2rem)] lg:grid-cols-[clamp(220px,16vw,280px)_minmax(0,1fr)] ${activeStep.id === "image"
+              className={`grid gap-4 px-[clamp(1rem,2vw,2rem)] pb-[clamp(1.2rem,2.4vw,2rem)] ${isSidebarGuideCollapsed
+                ? "lg:grid-cols-[72px_minmax(0,1fr)]"
+                : "lg:grid-cols-[clamp(220px,16vw,280px)_minmax(0,1fr)]"
+                } ${activeStep.id === "image"
                 ? "pt-[clamp(0.6rem,1.2vw,0.9rem)]"
                 : "pt-[clamp(1.5rem,3vw,2.5rem)]"
                 }`}
             >
               <aside className="hidden lg:flex min-h-full flex-col gap-3">
-                <div className="flex-1 rounded-2xl border border-white/10 bg-black/25 p-3">
+                <div className={`flex-1 rounded-2xl border border-white/10 bg-black/25 ${isSidebarGuideCollapsed ? "p-2" : "p-3"}`}>
                     <div className="flex items-center justify-between">
-                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">단계 안내</p>
+                      {!isSidebarGuideCollapsed && (
+                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">단계 안내</p>
+                      )}
                       <button
                         type="button"
                         onClick={() => setIsSidebarGuideCollapsed((prev) => !prev)}
-                        className="rounded-md border border-white/20 px-2 py-1 text-[10px] font-semibold text-white/70 hover:border-white/40"
+                        className={`rounded-md border border-white/20 px-2 py-1 text-[10px] font-semibold text-white/70 hover:border-white/40 ${isSidebarGuideCollapsed ? "w-full" : ""}`}
                       >
                         {isSidebarGuideCollapsed ? "펼치기" : "접기"}
                       </button>
