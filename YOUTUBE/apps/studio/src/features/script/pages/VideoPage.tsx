@@ -1879,6 +1879,26 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     return cues.sort((a, b) => a.startSec - b.startSec);
   };
 
+  const buildAutoSubtitleCues = (lines: string[], durationSec: number): SubtitleCue[] => {
+    if (lines.length === 0) return [];
+    const totalDuration = Math.max(10, durationSec || Number(renderDuration || 60));
+    const weights = lines.map((line) => Math.max(1, line.replace(/\s+/g, "").length));
+    const totalWeight = weights.reduce((sum, w) => sum + w, 0) || 1;
+    const minCueSec = 1.2;
+    const raw = weights.map((w) => Math.max(minCueSec, (totalDuration * w) / totalWeight));
+    const rawTotal = raw.reduce((sum, v) => sum + v, 0) || totalDuration;
+    const scale = totalDuration / rawTotal;
+    const durations = raw.map((v) => Math.max(minCueSec, v * scale));
+
+    let cursor = 0;
+    return lines.map((text, idx) => {
+      const startSec = cursor;
+      const endSec = idx === lines.length - 1 ? totalDuration : Math.min(totalDuration, startSec + durations[idx]);
+      cursor = endSec;
+      return { id: `auto-cue-${idx + 1}`, startSec, endSec, text };
+    });
+  };
+
   const rebuildEditorCuts = useCallback(
     (images: string[], cues: SubtitleCue[], audioDuration: number) => {
       const totalDuration = Math.max(
@@ -1952,6 +1972,33 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     setEditorSubtitleCues(cues);
     rebuildEditorCuts(editorImageUrls, cues, editorAudioDurationSec);
     event.target.value = "";
+  };
+
+  const handleLoadGeneratedImagesToEditor = () => {
+    const generated = Object.entries(chapterImages)
+      .filter(([, src]) => Boolean(src))
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([, src]) => normalizeGeneratedImageSrc(src))
+      .filter(Boolean);
+
+    if (generated.length === 0) {
+      alert("불러올 생성 이미지가 없습니다. 먼저 이미지 생성 단계에서 컷을 생성해 주세요.");
+      return;
+    }
+
+    setEditorImageUrls(generated);
+    rebuildEditorCuts(generated, editorSubtitleCues, editorAudioDurationSec);
+  };
+
+  const handleGenerateAutoSrtForEditor = () => {
+    const lines = buildSubtitleLines();
+    if (lines.length === 0) {
+      alert("자막으로 변환할 대본이 없습니다.");
+      return;
+    }
+    const cues = buildAutoSubtitleCues(lines, editorAudioDurationSec || Number(renderDuration || 60));
+    setEditorSubtitleCues(cues);
+    rebuildEditorCuts(editorImageUrls, cues, editorAudioDurationSec);
   };
 
   const updateEditorCutTime = (cutId: string, field: "startSec" | "endSec", value: number) => {
@@ -5558,6 +5605,20 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       SRT 업로드
                       <input type="file" accept=".srt,text/plain" onChange={handleEditorSrtUpload} className="hidden" />
                     </label>
+                    <button
+                      type="button"
+                      onClick={handleLoadGeneratedImagesToEditor}
+                      className="w-full rounded-lg border border-cyan-500/60 bg-cyan-500/10 px-3 py-2 text-xs font-semibold text-cyan-100 hover:bg-cyan-500/20"
+                    >
+                      기존 생성 이미지 불러오기
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleGenerateAutoSrtForEditor}
+                      className="w-full rounded-lg border border-emerald-500/60 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-100 hover:bg-emerald-500/20"
+                    >
+                      대본으로 자막 자동 생성
+                    </button>
                     <p className="text-[11px] text-slate-400">
                       이미지 {editorImageUrls.length}장 · 자막 {editorSubtitleCues.length}개 · 오디오 {editorAudioUrl ? "1개" : "0개"}
                     </p>
@@ -5692,60 +5753,64 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                           </button>
                         </div>
 
-                        {editorCuts.length > 0 && (
-                          <div className="mt-3 rounded-lg border border-slate-600 bg-slate-900/40 p-2">
+                        <div className="mt-3 rounded-lg border border-slate-600 bg-slate-900/40 p-2">
                             <div className="mb-2 flex items-center justify-between">
                               <p className="text-xs font-semibold text-slate-200">컷 편집</p>
                               <p className="text-[11px] text-slate-400">{editorCuts.length}개</p>
                             </div>
-                            <div className="max-h-56 space-y-1.5 overflow-y-auto pr-1">
-                              {editorCuts.map((cut, idx) => (
-                                <div
-                                  key={cut.id}
-                                  className={`rounded-md border px-2 py-1.5 ${selectedCutId === cut.id ? "border-amber-300/60 bg-amber-400/10" : "border-slate-700 bg-slate-800/60"}`}
-                                >
-                                  <button
-                                    type="button"
-                                    onClick={() => setSelectedCutId(cut.id)}
-                                    className="w-full text-left text-[11px] font-semibold text-slate-100"
+                            {editorCuts.length === 0 ? (
+                              <p className="rounded-md border border-dashed border-slate-600 bg-slate-800/40 px-2 py-3 text-[11px] text-slate-300">
+                                이미지/SRT/MP3를 업로드하거나 좌측의 '기존 생성 이미지 불러오기'를 눌러 컷을 생성하세요.
+                              </p>
+                            ) : (
+                              <div className="max-h-56 space-y-1.5 overflow-y-auto pr-1">
+                                {editorCuts.map((cut, idx) => (
+                                  <div
+                                    key={cut.id}
+                                    className={`rounded-md border px-2 py-1.5 ${selectedCutId === cut.id ? "border-amber-300/60 bg-amber-400/10" : "border-slate-700 bg-slate-800/60"}`}
                                   >
-                                    컷 {idx + 1} · {cut.caption || "무자막"}
-                                  </button>
-                                  <div className="mt-1 grid grid-cols-[1fr_1fr_auto_auto] items-center gap-1">
-                                    <input
-                                      type="number"
-                                      step={0.1}
-                                      value={Number(cut.startSec.toFixed(2))}
-                                      onChange={(e) => updateEditorCutTime(cut.id, "startSec", Number(e.target.value))}
-                                      className="rounded border border-slate-600 bg-slate-900 px-1.5 py-1 text-[11px] text-slate-100"
-                                    />
-                                    <input
-                                      type="number"
-                                      step={0.1}
-                                      value={Number(cut.endSec.toFixed(2))}
-                                      onChange={(e) => updateEditorCutTime(cut.id, "endSec", Number(e.target.value))}
-                                      className="rounded border border-slate-600 bg-slate-900 px-1.5 py-1 text-[11px] text-slate-100"
-                                    />
                                     <button
                                       type="button"
-                                      onClick={() => splitEditorCut(cut.id)}
-                                      className="rounded border border-slate-500 px-2 py-1 text-[10px] text-slate-100 hover:border-slate-300"
+                                      onClick={() => setSelectedCutId(cut.id)}
+                                      className="w-full text-left text-[11px] font-semibold text-slate-100"
                                     >
-                                      분할
+                                      컷 {idx + 1} · {cut.caption || "무자막"}
                                     </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => deleteEditorCut(cut.id)}
-                                      className="rounded border border-red-500/60 px-2 py-1 text-[10px] text-red-200 hover:bg-red-500/20"
-                                    >
-                                      삭제
-                                    </button>
+                                    <div className="mt-1 grid grid-cols-[1fr_1fr_auto_auto] items-center gap-1">
+                                      <input
+                                        type="number"
+                                        step={0.1}
+                                        value={Number(cut.startSec.toFixed(2))}
+                                        onChange={(e) => updateEditorCutTime(cut.id, "startSec", Number(e.target.value))}
+                                        className="rounded border border-slate-600 bg-slate-900 px-1.5 py-1 text-[11px] text-slate-100"
+                                      />
+                                      <input
+                                        type="number"
+                                        step={0.1}
+                                        value={Number(cut.endSec.toFixed(2))}
+                                        onChange={(e) => updateEditorCutTime(cut.id, "endSec", Number(e.target.value))}
+                                        className="rounded border border-slate-600 bg-slate-900 px-1.5 py-1 text-[11px] text-slate-100"
+                                      />
+                                      <button
+                                        type="button"
+                                        onClick={() => splitEditorCut(cut.id)}
+                                        className="rounded border border-slate-500 px-2 py-1 text-[10px] text-slate-100 hover:border-slate-300"
+                                      >
+                                        분할
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => deleteEditorCut(cut.id)}
+                                        className="rounded border border-red-500/60 px-2 py-1 text-[10px] text-red-200 hover:bg-red-500/20"
+                                      >
+                                        삭제
+                                      </button>
+                                    </div>
                                   </div>
-                                </div>
-                              ))}
-                            </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
-                        )}
                       </div>
 
                       <div className="rounded-xl border border-slate-700 bg-[#0f1728] p-3">
