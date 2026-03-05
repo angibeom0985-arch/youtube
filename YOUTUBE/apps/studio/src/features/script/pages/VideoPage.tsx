@@ -709,6 +709,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   });
   const [ttsSpeed, setTtsSpeed] = useState(1);
   const [showVoiceModal, setShowVoiceModal] = useState(false);
+  const [isBulkVoiceDropdownOpen, setIsBulkVoiceDropdownOpen] = useState(false);
   const [voiceGenderFilter, setVoiceGenderFilter] = useState<"전체" | VoiceGender>("전체");
   const [voiceTagFilter, setVoiceTagFilter] = useState<"전체" | VoiceTag>("전체");
   const [currentChapterForVoice, setCurrentChapterForVoice] = useState<number | null>(null);
@@ -884,6 +885,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
   const progressTimerRef = useRef<number | null>(null);
   const timelineTimerRef = useRef<number | null>(null);
+  const bulkVoiceDropdownRef = useRef<HTMLDivElement | null>(null);
   const timelineCurrentRef = useRef(0);
   const timelineAudioRef = useRef<HTMLAudioElement | null>(null);
   const timelineVideoTrackRef = useRef<HTMLDivElement | null>(null);
@@ -3246,6 +3248,17 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const activeStep = steps[currentStep];
 
   useEffect(() => {
+    const onClickOutside = (event: MouseEvent) => {
+      if (!bulkVoiceDropdownRef.current) return;
+      if (!bulkVoiceDropdownRef.current.contains(event.target as Node)) {
+        setIsBulkVoiceDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
+  }, []);
+
+  useEffect(() => {
     if (activeStep.id !== "render") return;
     if (timelineAutoPopulateRef.current) return;
     if (editorImageUrls.length > 0 && editorSubtitleCues.length > 0 && editorAudioUrl) {
@@ -4958,42 +4971,49 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     <span className="text-sm font-semibold text-white/70">
                       {ttsVoiceApplyMode === "line" ? "전체 대사 목소리 적용" : "전체 챕터 목소리 적용"}
                     </span>
-                    <select
-                      className="rounded-lg border border-white/20 bg-black/60 px-3 py-2 text-sm text-white/90 focus:outline-none focus:ring-2 focus:ring-red-500"
-                      value=""
-                      onChange={(e) => {
-                        const voiceName = e.target.value;
-                        if (!voiceName) return;
-                        if (ttsVoiceApplyMode === "line") {
-                          applyVoiceToAllLines(voiceName);
-                        } else {
-                          applyVoiceToAllChapters(voiceName);
-                        }
-                      }}
-                    >
-                      <option value="" disabled>목소리 선택</option>
-                      <optgroup label="남성">
-                        {availableVoiceOptions.filter(v => v.category === "남성").map((voice) => (
-                          <option key={voice.name} value={voice.name}>
-                            {voice.name} · {voice.tone}
-                          </option>
-                        ))}
-                      </optgroup>
-                      <optgroup label="여성">
-                        {availableVoiceOptions.filter(v => v.category === "여성").map((voice) => (
-                          <option key={voice.name} value={voice.name}>
-                            {voice.name} · {voice.tone}
-                          </option>
-                        ))}
-                      </optgroup>
-                      <optgroup label="중성">
-                        {availableVoiceOptions.filter(v => v.category === "중성").map((voice) => (
-                          <option key={voice.name} value={voice.name}>
-                            {voice.name} · {voice.tone}
-                          </option>
-                        ))}
-                      </optgroup>
-                    </select>
+                    <div ref={bulkVoiceDropdownRef} className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setIsBulkVoiceDropdownOpen((prev) => !prev)}
+                        className="inline-flex min-w-[230px] items-center justify-between gap-3 rounded-lg border border-red-400/70 bg-black px-3 py-2 text-sm font-semibold text-white transition hover:border-red-300"
+                      >
+                        <span>목소리 선택</span>
+                        <span className={`text-xs text-red-200 transition-transform ${isBulkVoiceDropdownOpen ? "rotate-180" : ""}`}>▼</span>
+                      </button>
+                      {isBulkVoiceDropdownOpen && (
+                        <div className="absolute left-0 top-full z-50 mt-2 w-[min(90vw,360px)] max-h-[380px] overflow-y-auto rounded-xl border border-red-400/50 bg-[#3c3c3c] p-2 shadow-[0_18px_40px_rgba(0,0,0,0.6)]">
+                          {(["남성", "여성", "중성"] as const).map((group) => {
+                            const voices = availableVoiceOptions.filter((voice) => voice.category === group);
+                            if (voices.length === 0) return null;
+                            return (
+                              <div key={`bulk-voice-group-${group}`} className="mb-2 last:mb-0">
+                                <p className="px-2 py-1 text-xs font-bold text-white/90">{group}</p>
+                                <div className="space-y-1">
+                                  {voices.map((voice) => (
+                                    <button
+                                      key={`bulk-voice-option-${group}-${voice.name}`}
+                                      type="button"
+                                      onClick={() => {
+                                        if (ttsVoiceApplyMode === "line") {
+                                          applyVoiceToAllLines(voice.name);
+                                        } else {
+                                          applyVoiceToAllChapters(voice.name);
+                                        }
+                                        setIsBulkVoiceDropdownOpen(false);
+                                      }}
+                                      className="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left text-sm text-white/90 transition hover:bg-red-500/20 hover:text-white"
+                                    >
+                                      <span>{voice.name}</span>
+                                      <span className="ml-2 truncate text-xs text-white/70">{voice.tone}</span>
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
                   </div>
                   {chapterScripts.map((chapter, index) => (
                     <div key={index} className="relative rounded-2xl border border-white/10 bg-black/30 p-5 overflow-visible">
