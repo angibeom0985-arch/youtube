@@ -5423,30 +5423,53 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         const getBackgroundStyleImage = (style: BackgroundStyle) =>
           `/${encodeURIComponent(style === "AI" ? "ai" : style)}.png`;
         const imageSubSteps = [
-          { title: "1단계", label: "페르소나/스타일" },
-          { title: "2단계", label: "컷 이미지 생성" },
-          { title: "3단계", label: "결과 확인" },
+          { title: "페르소나/스타일", description: "인물·배경 스타일을 고르고 이미지 생성 기준을 설정합니다." },
+          { title: "컷 이미지 생성", description: "챕터별 컷 이미지를 생성하고 필요 시 개별 재생성합니다." },
+          { title: "결과 확인", description: "생성된 컷 이미지를 확인하고 전체 저장을 진행하세요." },
         ];
+        const currentImageSubStep = imageSubSteps[imageSubStep];
         const renderImageSubStepHeader = () => (
-          <div className="mb-4 rounded-2xl border border-white/10 bg-black/30 p-3">
-            <div className="flex flex-wrap items-center gap-2">
+          <div className="mt-4 flex items-center gap-2">
               {imageSubSteps.map((step, index) => (
-                <React.Fragment key={step.title}>
+                <React.Fragment key={index}>
                   <button
                     type="button"
                     onClick={() => setImageSubStep(index)}
                     className={`px-3 py-1 text-xs rounded-full transition-all ${imageSubStep === index
-                      ? "bg-red-500 text-white shadow-lg"
-                      : "bg-white/10 text-white/60 hover:bg-white/20"
+                      ? "bg-red-500/20 text-red-300 border border-red-400/50"
+                      : "bg-white/5 text-white/50 border border-white/10 hover:bg-white/10"
                       }`}
                   >
-                    {step.title} {step.label}
+                    {index + 1}. {step.title}
                   </button>
                   {index < imageSubSteps.length - 1 && (
-                    <span className="text-white/30 text-xs">→</span>
+                    <FiChevronRight className="text-white/30" size={14} />
                   )}
                 </React.Fragment>
               ))}
+          </div>
+        );
+        const renderImageSubStepShell = (content: React.ReactNode) => (
+          <div className="mt-0">
+            <div className="rounded-[clamp(1rem,2vw,1.6rem)] border border-white/10 bg-black/40 p-[clamp(1.25rem,2vw,1.8rem)] shadow-[0_18px_40px_rgba(0,0,0,0.45)]">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-2xl font-bold text-white">{currentImageSubStep.title}</h3>
+                  <p className="mt-2 text-sm text-white/60 text-right">
+                    {currentImageSubStep.description}
+                  </p>
+                </div>
+                <a
+                  href="/image?no_ads=true"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded-full border border-red-500/30 px-4 py-1 text-sm font-semibold text-red-300 hover:border-red-400"
+                >
+                  이미지 페이지 열기
+                </a>
+              </div>
+              {renderImageSubStepHeader()}
+              <div className="mt-6">{content}</div>
             </div>
           </div>
         );
@@ -5469,11 +5492,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         }
 
         if (imageSubStep === 0) {
-          return (
-            <div className="mt-2">
-              {renderImageSubStepHeader()}
-              <div className="mb-6 rounded-2xl border border-white/10 bg-black/30 p-6">
-                <h3 className="text-lg font-bold text-white mb-4">이미지 스타일 설정</h3>
+          return renderImageSubStepShell(
+              <div className="rounded-2xl border border-white/10 bg-black/30 p-6">
                 <div className="mt-8 bg-black/30 border border-white/10 rounded-xl p-[clamp(1rem,2vw,1.4rem)]">
                   {styleReferenceImage && (
                     <p className="mb-4 rounded-lg border border-amber-300/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
@@ -5611,23 +5631,18 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   </div>
                 </div>
               </div>
-            </div>
           );
         }
 
         if (imageSubStep === 2) {
           const generatedCount = Object.keys(chapterImages).length;
           const missingCount = Math.max(requiredImageCount - generatedCount, 0);
-          return (
-            <div className="mt-2">
-              {renderImageSubStepHeader()}
+          return renderImageSubStepShell(
               <div className="rounded-2xl border border-white/10 bg-black/30 p-6">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <h3 className="text-lg font-bold text-white">3단계: 결과 확인</h3>
-                    <p className="mt-1 text-xs text-white/60">
-                      생성된 컷 이미지를 점검하고 저장한 뒤 다음 단계로 이동하세요.
-                    </p>
+                    <h3 className="text-lg font-bold text-white">생성 결과</h3>
+                    <p className="mt-1 text-xs text-white/60">생성된 컷 이미지를 점검하고 저장하세요.</p>
                   </div>
                   <button
                     type="button"
@@ -5684,13 +5699,11 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   </div>
                 )}
               </div>
-            </div>
           );
         }
 
-        return (
-          <div className="mt-2">
-            {renderImageSubStepHeader()}
+        return renderImageSubStepShell(
+            <>
             {personas.length === 0 && (
               <div className="mb-6 rounded-2xl border border-amber-300/30 bg-amber-900/10 p-5">
                 <p className="text-sm text-amber-100">
@@ -5896,7 +5909,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 ) : null}
               </div>
             </div>
-          </div>
+            </>
         );
       }
       case "generate": {
