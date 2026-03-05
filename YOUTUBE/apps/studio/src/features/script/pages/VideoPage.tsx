@@ -4214,23 +4214,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 {/* Step 0: 대본 입력 */}
                 {scriptSubStep === 0 && (
                   <>
-                    {/* 제목 입력 */}
-                    <div className="space-y-2">
-                      <label className="text-sm font-semibold text-white/80">
-                        영상 제목 (선택사항)
-                      </label>
-                      <input
-                        type="text"
-                        value={scriptTitle}
-                        onChange={(event) => setScriptTitle(event.target.value)}
-                        className="w-full rounded-xl border border-white/20 bg-black/30 px-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-red-500"
-                        placeholder="예: 경제 위기 속 재테크 주식 투자 전략"
-                      />
-                      <p className="text-xs text-white/50">
-                        제목을 입력하면 AI 추천 주제가 비슷한 형식으로, 새로운 소재로 생성됩니다
-                      </p>
-                    </div>
-
                     {/* 유튜브 URL 입력 */}
                     <div className="space-y-2">
                       <label className="text-sm font-semibold text-white/80">
@@ -6723,21 +6706,30 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
             >
               <aside className="hidden lg:flex min-h-full flex-col gap-3">
                 <div className={`flex-1 rounded-2xl border border-white/10 bg-black/25 ${isSidebarGuideCollapsed ? "p-2" : "p-3"}`}>
+                    <div className={`${isSidebarGuideCollapsed ? "" : "mb-3"} flex items-center justify-end`}>
+                      <button
+                        type="button"
+                        onClick={() => setIsSidebarGuideCollapsed((prev) => !prev)}
+                        className={`rounded-md border border-red-400/50 bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-100 hover:border-red-300 hover:bg-red-500/20 ${isSidebarGuideCollapsed ? "w-full" : ""}`}
+                      >
+                        {isSidebarGuideCollapsed ? "펼치기" : "접기"}
+                      </button>
+                    </div>
                     {!isSidebarGuideCollapsed && (
                       <div className="mb-3 rounded-xl border border-red-400/30 bg-red-500/10 p-3">
                         <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-red-100/70">
                           Step {currentStep + 1}
                         </p>
                         <p className="mt-1 text-lg font-bold text-white">{activeStep.label}</p>
-                        <p className="mt-1 text-sm leading-6 text-red-100/85">{activeStep.description}</p>
+                        <p className="mt-1 text-base leading-7 text-red-100/90">{activeStep.description}</p>
                       </div>
                     )}
                     {!isSidebarGuideCollapsed && (
                       <div className="mb-3 rounded-xl border border-red-400/25 bg-red-500/10 p-3">
-                        <p className="text-xs font-semibold text-red-100/95">{currentActionGuide.title}</p>
+                        <p className="text-sm font-semibold text-red-100">{currentActionGuide.title}</p>
                         <div className="mt-2 space-y-1">
                           {sidebarGuideItems.map((item, idx) => (
-                            <p key={`${activeStep.id}-sidebar-guide-${idx}`} className="text-xs leading-5 text-red-100/85">
+                            <p key={`${activeStep.id}-sidebar-guide-${idx}`} className="text-sm leading-6 text-red-100/90">
                               {idx + 1}. {item.replace(/`/g, "")}
                             </p>
                           ))}
@@ -6746,15 +6738,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     )}
                     <div className="flex items-center justify-between">
                       {!isSidebarGuideCollapsed && (
-                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">단계 안내</p>
+                        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-white/60">단계 안내</p>
                       )}
-                      <button
-                        type="button"
-                        onClick={() => setIsSidebarGuideCollapsed((prev) => !prev)}
-                        className={`rounded-md border border-white/20 px-2 py-1 text-[10px] font-semibold text-white/70 hover:border-white/40 ${isSidebarGuideCollapsed ? "w-full" : ""}`}
-                      >
-                        {isSidebarGuideCollapsed ? "펼치기" : "접기"}
-                      </button>
                     </div>
                     {!isSidebarGuideCollapsed && (
                     <div className="mt-2 space-y-1.5">
@@ -6774,12 +6759,12 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                           <div className="flex items-center justify-between gap-2">
                             <p className="text-xs font-semibold">{index + 1}. {step.label}</p>
                             {isCompletedStep && (
-                              <span className="inline-flex items-center rounded-full border border-red-300/40 bg-red-500/20 px-2 py-0.5 text-[10px] font-semibold text-red-100">
-                                완료
+                              <span className="inline-flex items-center gap-1 rounded-full border border-red-300/60 bg-red-500/30 px-2 py-0.5 text-[10px] font-semibold text-red-50">
+                                ✓ 완료됨
                               </span>
                             )}
                           </div>
-                          <p className="mt-1 text-xs leading-5 text-white/70">{step.description}</p>
+                          <p className="mt-1 text-sm leading-6 text-white/80">{step.description}</p>
                         </button>
                         );
                       })}
