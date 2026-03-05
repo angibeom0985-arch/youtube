@@ -4208,13 +4208,13 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         placeholder="https://www.youtube.com/watch?v=..."
                       />
                       {normalizedYoutubeUrl && (
-                        <div className="rounded-xl border border-sky-400/35 bg-sky-500/10 px-4 py-3">
-                          <p className="text-xs font-semibold text-sky-300 mb-2">외부 링크</p>
+                        <div className="rounded-xl border border-red-400/35 bg-red-500/10 px-4 py-3">
+                          <p className="text-xs font-semibold text-red-300 mb-2">외부 링크</p>
                           <a
                             href={normalizedYoutubeUrl}
                             target="_blank"
                             rel="noreferrer"
-                            className="group block rounded-lg border border-sky-300/30 bg-slate-950/40 p-3 hover:border-sky-300/50 hover:bg-slate-900/55 transition-colors"
+                            className="group block rounded-lg border border-red-300/30 bg-slate-950/40 p-3 hover:border-red-300/50 hover:bg-slate-900/55 transition-colors"
                           >
                             <div className="flex items-start gap-3">
                               <div className="h-20 w-36 shrink-0 overflow-hidden rounded-md border border-white/10 bg-black/40">
@@ -4235,12 +4235,12 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                               </div>
 
                               <div className="min-w-0 flex-1">
-                                <p className="text-sm font-semibold text-sky-100 line-clamp-2">
+                                <p className="text-sm font-semibold text-red-100 line-clamp-2">
                                   {youtubeLinkPreviewLoading
                                     ? "영상 정보를 불러오는 중..."
                                     : (youtubeLinkPreview?.title || "유튜브 영상 열기")}
                                 </p>
-                                <p className="mt-1 text-xs text-sky-100/75 break-all line-clamp-2">
+                                <p className="mt-1 text-xs text-red-100/75 break-all line-clamp-2">
                                   {normalizedYoutubeUrl}
                                 </p>
                                 {youtubeLinkPreviewError && (
@@ -4248,7 +4248,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                 )}
                               </div>
 
-                              <FiExternalLink className="mt-0.5 shrink-0 text-sky-100/80 group-hover:text-sky-50" />
+                              <FiExternalLink className="mt-0.5 shrink-0 text-red-100/80 group-hover:text-red-50" />
                             </div>
                           </a>
                         </div>
@@ -4302,7 +4302,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     </div>
 
                     {scriptDraft.length > 20000 && (
-                      <div className="rounded-xl border border-blue-400/50 bg-blue-500/10 px-4 py-3 text-sm text-blue-300">
+                      <div className="rounded-xl border border-red-400/50 bg-red-500/10 px-4 py-3 text-sm text-red-300">
                         <div className="flex items-start gap-2">
                           <span className="text-lg">안내</span>
                           <div>
@@ -4476,7 +4476,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         <div className="rounded-2xl border border-white/10 bg-black/30 p-5">
                           <div className="mb-3 pb-3 border-b border-white/10 flex items-center justify-between gap-3">
                             <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
-                              <span className="text-blue-400">추천</span>
+                              <span className="text-red-300">추천</span>
                               AI 추천 주제
                             </h3>
                             <button
@@ -4528,7 +4528,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         <div className="rounded-2xl border border-white/10 bg-black/30 p-5">
                           <div className="mb-4 pb-3 border-b border-white/10 flex items-center justify-between gap-3">
                             <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
-                              <span className="text-blue-400">추천</span>
+                              <span className="text-red-300">추천</span>
                               AI 추천 주제
                             </h3>
                             <button
@@ -6088,14 +6088,14 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
         return (
           <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
-            <div className="overflow-hidden rounded-[clamp(1rem,2vw,1.6rem)] border border-slate-700/70 bg-[#0b111d] shadow-[0_20px_40px_rgba(2,6,23,0.55)]">
+            <div className="overflow-hidden rounded-[clamp(1rem,2vw,1.6rem)] border border-slate-700/70 bg-[#1a0b0c] shadow-[0_20px_40px_rgba(2,6,23,0.55)]">
               <div className="grid min-h-[680px] grid-cols-1 lg:grid-cols-[280px_minmax(0,1fr)]">
-                <aside className="border-b border-slate-800 bg-[#0a0f1a] p-4 lg:border-b-0 lg:border-r">
+                <aside className="border-b border-slate-800 bg-[#16090a] p-4 lg:border-b-0 lg:border-r">
                   <h3 className="text-lg font-bold text-white">동영상</h3>
-                  <div className="mt-3 rounded-xl border border-slate-700 bg-[#0f1728] px-3 py-2 text-center text-xs font-semibold tracking-[0.12em] text-cyan-200">
+                  <div className="mt-3 rounded-xl border border-slate-700 bg-[#221112] px-3 py-2 text-center text-xs font-semibold tracking-[0.12em] text-red-200">
                     VIDEO TIMELINE
                   </div>
-                  <div className="mt-3 rounded-xl border border-slate-700 bg-[#101a2d] p-2">
+                  <div className="mt-3 rounded-xl border border-slate-700 bg-[#2a1416] p-2">
                     <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">비율</p>
                     <div className="grid grid-cols-3 gap-1.5">
                       {(["16:9", "9:16", "1:1"] as const).map((ratio) => (
@@ -6104,7 +6104,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                           type="button"
                           onClick={() => setRenderRatio(ratio)}
                           className={`rounded-md border px-2 py-1 text-[11px] font-semibold ${renderRatio === ratio
-                            ? "border-cyan-400 bg-cyan-500/20 text-cyan-100"
+                            ? "border-red-400 bg-red-500/20 text-red-100"
                             : "border-slate-600 bg-slate-800 text-slate-200 hover:border-slate-400"
                             }`}
                         >
@@ -6118,7 +6118,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     <button
                       type="button"
                       onClick={() => seekTimeline(0)}
-                      className="flex h-11 w-full items-center justify-center rounded-lg border border-slate-700 bg-[#0f1728] text-slate-200 hover:border-cyan-400"
+                      className="flex h-11 w-full items-center justify-center rounded-lg border border-slate-700 bg-[#221112] text-slate-200 hover:border-red-400"
                       title="처음으로"
                     >
                       <FiMonitor className="h-4 w-4" />
@@ -6126,7 +6126,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     <button
                       type="button"
                       onClick={() => applyToolbarAction("split")}
-                      className="flex h-11 w-full items-center justify-center rounded-lg border border-slate-700 bg-[#0f1728] text-slate-200 hover:border-cyan-400"
+                      className="flex h-11 w-full items-center justify-center rounded-lg border border-slate-700 bg-[#221112] text-slate-200 hover:border-red-400"
                       title="클립 분할"
                     >
                       <FiFilm className="h-4 w-4" />
@@ -6136,7 +6136,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       onClick={() => {
                         void handleApplyGeneratedAssetsToEditor();
                       }}
-                      className="flex h-11 w-full items-center justify-center rounded-lg border border-slate-700 bg-[#0f1728] text-slate-200 hover:border-cyan-400"
+                      className="flex h-11 w-full items-center justify-center rounded-lg border border-slate-700 bg-[#221112] text-slate-200 hover:border-red-400"
                       title="생성 결과 자동 적용"
                     >
                       <FiUpload className="h-4 w-4" />
@@ -6144,7 +6144,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     <button
                       type="button"
                       onClick={() => applyToolbarAction("volume")}
-                      className="flex h-11 w-full items-center justify-center rounded-lg border border-slate-700 bg-[#0f1728] text-slate-200 hover:border-cyan-400"
+                      className="flex h-11 w-full items-center justify-center rounded-lg border border-slate-700 bg-[#221112] text-slate-200 hover:border-red-400"
                       title="볼륨 순환"
                     >
                       <FiVolume2 className="h-4 w-4" />
@@ -6156,7 +6156,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         seekTimeline(0);
                         rebuildEditorCuts(editorImageUrls, editorSubtitleCues, editorAudioDurationSec);
                       }}
-                      className="flex h-11 w-full items-center justify-center rounded-lg border border-slate-700 bg-[#0f1728] text-slate-200 hover:border-cyan-400"
+                      className="flex h-11 w-full items-center justify-center rounded-lg border border-slate-700 bg-[#221112] text-slate-200 hover:border-red-400"
                       title="타임라인 재정렬"
                     >
                       <FiSettings className="h-4 w-4" />
@@ -6176,7 +6176,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         key={tool.key}
                         type="button"
                         onClick={() => applyToolbarAction(tool.key)}
-                        className="rounded-xl border border-slate-700 bg-[#0f1728] px-2 py-2 text-slate-100 hover:border-cyan-400"
+                        className="rounded-xl border border-slate-700 bg-[#221112] px-2 py-2 text-slate-100 hover:border-red-400"
                         title={tool.label}
                       >
                         <tool.icon className="mx-auto h-4 w-4 text-slate-200" />
@@ -6185,13 +6185,13 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     ))}
                   </div>
 
-                  <div className="mt-4 rounded-xl border border-slate-700 bg-[#101a2d] p-3">
+                  <div className="mt-4 rounded-xl border border-slate-700 bg-[#2a1416] p-3">
                     <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Export</p>
                     <p className="mt-2 text-sm text-slate-100">MP4 / {renderRatio} / {renderFps}fps</p>
                     <p className="mt-1 text-xs text-slate-400">컷 {Object.keys(chapterImages).length || requiredImageCount}개</p>
                   </div>
 
-                  <div className="mt-4 rounded-xl border border-slate-700 bg-[#101a2d] p-3 space-y-2">
+                  <div className="mt-4 rounded-xl border border-slate-700 bg-[#2a1416] p-3 space-y-2">
                     <p className="text-xs uppercase tracking-[0.18em] text-slate-400">소스 업로드</p>
                     <label className="block cursor-pointer rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-xs font-semibold text-slate-100 hover:border-slate-400">
                       이미지 업로드
@@ -6208,7 +6208,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     <button
                       type="button"
                       onClick={handleLoadGeneratedImagesToEditor}
-                      className="w-full rounded-lg border border-cyan-500/60 bg-cyan-500/10 px-3 py-2 text-xs font-semibold text-cyan-100 hover:bg-cyan-500/20"
+                      className="w-full rounded-lg border border-red-500/60 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-100 hover:bg-red-500/20"
                     >
                       기존 생성 이미지 불러오기
                     </button>
@@ -6224,7 +6224,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       onClick={() => {
                         handleApplyScriptToEditorSrt();
                       }}
-                      className="w-full rounded-lg border border-sky-500/60 bg-sky-500/10 px-3 py-2 text-xs font-semibold text-sky-100 hover:bg-sky-500/20"
+                      className="w-full rounded-lg border border-red-500/60 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-100 hover:bg-red-500/20"
                     >
                       앞서 만든 대본 {"->"} SRT 적용
                     </button>
@@ -6254,7 +6254,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   </div>
                 </aside>
 
-                <section className="flex min-h-[680px] flex-col bg-[#090f19]">
+                <section className="flex min-h-[680px] flex-col bg-[#17090a]">
                   <div className="px-4 py-4">
                     <div className="relative overflow-hidden rounded-2xl border border-slate-700 bg-black">
                       <div className="absolute left-3 top-3 z-10 rounded-md bg-black/70 px-2 py-1 text-xs text-white">{timelinePlaybackRate.toFixed(2)}x</div>
@@ -6319,7 +6319,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       step={0.01}
                       value={Math.min(timelineCurrentSec, totalEditorDuration)}
                       onChange={(event) => seekTimeline(Number(event.target.value))}
-                      className="mt-3 w-full accent-cyan-400"
+                      className="mt-3 w-full accent-red-500"
                     />
                   </div>
 
@@ -6372,7 +6372,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                   onMouseDown={(event) => beginTimelineCutDrag(event, cut.id, "move", totalEditorDuration)}
                                   className={`absolute top-[20px] h-[18px] overflow-hidden rounded border text-[10px] ${selectedCutId === cut.id
                                     ? "border-amber-300 bg-amber-400/35 text-amber-100"
-                                    : "border-cyan-300/50 bg-cyan-500/20 text-cyan-100"
+                                    : "border-red-300/50 bg-red-500/20 text-red-100"
                                     }`}
                                   style={{ left: `${left}%`, width: `${Math.max(width, 1.2)}%` }}
                                   title={`${cut.caption} (${cut.startSec.toFixed(2)}s ~ ${cut.endSec.toFixed(2)}s)`}
@@ -6402,7 +6402,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                             {editorAudioUrl ? (
                               <>
                                 <div
-                                  className="absolute top-[20px] h-[16px] rounded bg-indigo-400/35"
+                                  className="absolute top-[20px] h-[16px] rounded bg-red-400/35"
                                   style={{
                                     left: "0%",
                                     width: `${Math.min(
@@ -6482,7 +6482,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     )}
 
                     <div className="mt-4 grid gap-3 lg:grid-cols-[1.2fr_1fr]">
-                      <div className="rounded-xl border border-slate-700 bg-[#0f1728] p-3">
+                      <div className="rounded-xl border border-slate-700 bg-[#221112] p-3">
                         <p className="text-xs font-semibold uppercase tracking-[0.15em] text-slate-400">편집 메모</p>
                         <textarea
                           value={editNotes}
@@ -6503,7 +6503,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                             type="button"
                             onClick={handleDownloadSrt}
                             disabled={isExportingSrt}
-                            className="rounded-lg border border-cyan-500/60 bg-cyan-500/10 px-3 py-2 text-xs font-semibold text-cyan-100 hover:bg-cyan-500/20 disabled:opacity-60"
+                            className="rounded-lg border border-red-500/60 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-100 hover:bg-red-500/20 disabled:opacity-60"
                           >
                             {isExportingSrt ? "SRT 생성 중..." : "자막 SRT 다운로드"}
                           </button>
@@ -6577,7 +6577,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                           </div>
                       </div>
 
-                      <div className="rounded-xl border border-slate-700 bg-[#0f1728] p-3">
+                      <div className="rounded-xl border border-slate-700 bg-[#221112] p-3">
                         <p className="text-xs font-semibold uppercase tracking-[0.15em] text-slate-400">렌더 상태</p>
                         <div className="mt-2 h-2 w-full rounded-full bg-slate-700">
                           <div
@@ -6658,21 +6658,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         <div className="mt-[clamp(0.8rem,1.8vw,1.4rem)]">
           <main className="rounded-[clamp(1.2rem,2.5vw,2rem)] border border-white/10 bg-white/5 shadow-[0_18px_40px_rgba(0,0,0,0.6)] backdrop-blur-2xl">
             <div className="border-b border-white/10 px-[clamp(1.2rem,2.2vw,2rem)] py-[clamp(0.8rem,1.8vw,1.2rem)]">
-              <div className="mx-auto grid max-w-[1100px] gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(340px,420px)] lg:items-center">
-                <div className="min-w-0">
-                  <p className="text-[clamp(0.6rem,1vw,0.75rem)] font-semibold uppercase tracking-[0.3em] text-white/40">
-                    STEP {currentStep + 1}
-                  </p>
-                  <div className="mt-2">
-                    <h2 className="text-[clamp(1.6rem,2.6vw,2.2rem)] font-bold text-white">
-                      {activeStep.label}
-                    </h2>
-                    <p className="mt-1 text-[clamp(0.9rem,1.5vw,1.05rem)] text-white/70 text-left">
-                      {activeStep.description}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex w-full flex-col gap-3">
+              <div className="mx-auto flex max-w-[1100px] justify-end">
+                <div className="flex w-full max-w-[420px] flex-col gap-3">
                   <div className="px-1 py-1 text-red-100/90">
                     <p className="text-sm font-semibold">{currentActionGuide.title}</p>
                     <div className="mt-1 space-y-1">
@@ -6698,6 +6685,15 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
             >
               <aside className="hidden lg:flex min-h-full flex-col gap-3">
                 <div className={`flex-1 rounded-2xl border border-white/10 bg-black/25 ${isSidebarGuideCollapsed ? "p-2" : "p-3"}`}>
+                    {!isSidebarGuideCollapsed && (
+                      <div className="mb-3 rounded-xl border border-red-400/30 bg-red-500/10 p-3">
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-red-100/70">
+                          Step {currentStep + 1}
+                        </p>
+                        <p className="mt-1 text-lg font-bold text-white">{activeStep.label}</p>
+                        <p className="mt-1 text-xs leading-5 text-red-100/85">{activeStep.description}</p>
+                      </div>
+                    )}
                     <div className="flex items-center justify-between">
                       {!isSidebarGuideCollapsed && (
                         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">단계 안내</p>
@@ -6796,25 +6792,25 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
               className="absolute inset-0 bg-black/60 backdrop-blur-sm"
               onClick={() => setSupportErrorDialog(null)}
             />
-            <div className="absolute left-1/2 top-1/2 w-[min(96vw,1120px)] max-h-[92vh] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-cyan-300/50 bg-[#0f1b1d] shadow-[0_18px_55px_rgba(0,0,0,0.55)] overflow-hidden">
-              <div className="flex items-center justify-between gap-3 border-b border-cyan-200/20 px-6 py-4">
-                <h3 className="text-lg font-bold text-cyan-100">{supportErrorDialog.title}</h3>
+            <div className="absolute left-1/2 top-1/2 w-[min(96vw,1120px)] max-h-[92vh] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-red-300/50 bg-[#1d0f10] shadow-[0_18px_55px_rgba(0,0,0,0.55)] overflow-hidden">
+              <div className="flex items-center justify-between gap-3 border-b border-red-200/20 px-6 py-4">
+                <h3 className="text-lg font-bold text-red-100">{supportErrorDialog.title}</h3>
                 <button
                   type="button"
                   onClick={() => setSupportErrorDialog(null)}
-                  className="rounded-full border border-cyan-200/40 px-4 py-1.5 text-sm font-semibold text-cyan-100 hover:bg-cyan-200/10"
+                  className="rounded-full border border-red-200/40 px-4 py-1.5 text-sm font-semibold text-red-100 hover:bg-red-200/10"
                 >
                   닫기
                 </button>
               </div>
               <div className="max-h-[calc(92vh-82px)] overflow-y-auto px-6 py-5 space-y-5">
-                <div className="rounded-xl border border-cyan-200/20 bg-black/25 p-4">
-                  <p className="text-sm font-semibold text-cyan-100">오류 기능</p>
-                  <p className="mt-1 text-sm text-cyan-50">{supportErrorDialog.context}</p>
+                <div className="rounded-xl border border-red-200/20 bg-black/25 p-4">
+                  <p className="text-sm font-semibold text-red-100">오류 기능</p>
+                  <p className="mt-1 text-sm text-red-50">{supportErrorDialog.context}</p>
                 </div>
-                <div className="rounded-xl border border-cyan-200/20 bg-black/25 p-4">
-                  <p className="text-sm font-semibold text-cyan-100">오류 메시지</p>
-                  <pre className="mt-2 whitespace-pre-wrap break-words text-[14px] leading-6 text-cyan-50">{supportErrorDialog.message}</pre>
+                <div className="rounded-xl border border-red-200/20 bg-black/25 p-4">
+                  <p className="text-sm font-semibold text-red-100">오류 메시지</p>
+                  <pre className="mt-2 whitespace-pre-wrap break-words text-[14px] leading-6 text-red-50">{supportErrorDialog.message}</pre>
                 </div>
                 <div className="rounded-xl border border-emerald-300/30 bg-emerald-900/20 p-4">
                   <p className="text-sm font-semibold text-emerald-200">해결 방법</p>
@@ -6879,6 +6875,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 };
 
 export default VideoPage;
+
+
 
 
 
