@@ -4917,12 +4917,11 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       }
       case "tts": {
         return (
-          <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
-            <div className="rounded-[clamp(1rem,2vw,1.6rem)] border border-white/10 bg-black/40 p-[clamp(1.25rem,2vw,1.8rem)] shadow-[0_18px_40px_rgba(0,0,0,0.45)]">
+          <div className="h-full">
+            <div className="h-full rounded-[clamp(1rem,2vw,1.6rem)] border border-white/10 bg-black/40 p-[clamp(1.25rem,2vw,1.8rem)] shadow-[0_18px_40px_rgba(0,0,0,0.45)]">
               <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
                 <div>
-                  <p className="text-sm font-semibold text-white/60">스크립트 & TTS</p>
-                  <h3 className="text-2xl font-bold text-white mt-1">대본에 음성을 입혀주세요.</h3>
+                  <h3 className="text-2xl font-bold text-white mt-1">음성 생성</h3>
                   <p className="mt-2 text-sm text-white/60">
                     챕터별 또는 대사별로 목소리를 선택하고 편집할 수 있습니다.
                   </p>
@@ -6717,7 +6716,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                           Step {currentStep + 1}
                         </p>
                         <p className="mt-1 text-lg font-bold text-white">{activeStep.label}</p>
-                        <p className="mt-1 text-xs leading-5 text-red-100/85">{activeStep.description}</p>
+                        <p className="mt-1 text-sm leading-6 text-red-100/85">{activeStep.description}</p>
                       </div>
                     )}
                     {!isSidebarGuideCollapsed && (
@@ -6725,7 +6724,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         <p className="text-xs font-semibold text-red-100/95">{currentActionGuide.title}</p>
                         <div className="mt-2 space-y-1">
                           {sidebarGuideItems.map((item, idx) => (
-                            <p key={`${activeStep.id}-sidebar-guide-${idx}`} className="text-[11px] leading-4 text-red-100/85">
+                            <p key={`${activeStep.id}-sidebar-guide-${idx}`} className="text-xs leading-5 text-red-100/85">
                               {idx + 1}. {item.replace(/`/g, "")}
                             </p>
                           ))}
@@ -6767,7 +6766,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                               </span>
                             )}
                           </div>
-                          <p className="mt-1 text-[11px] leading-4 text-white/60">{step.description}</p>
+                          <p className="mt-1 text-xs leading-5 text-white/70">{step.description}</p>
                         </button>
                         );
                       })}
