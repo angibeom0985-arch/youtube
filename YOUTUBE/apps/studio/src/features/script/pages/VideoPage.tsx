@@ -6634,7 +6634,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
             <p className="text-[clamp(0.7rem,1.2vw,0.85rem)] font-semibold uppercase tracking-[0.35em] text-white/40">
               All-in-one studio
             </p>
-            <h1 className="mt-3 text-[clamp(2.1rem,3.2vw,3.4rem)] font-black text-white">
+            <h1 className="mt-3 whitespace-nowrap text-[clamp(1.9rem,2.8vw,3rem)] font-black text-white">
               올인원 영상 제작 스튜디오
             </h1>
             <p className="mt-3 text-[clamp(0.95rem,1.6vw,1.1rem)] text-white/70 text-balance">
