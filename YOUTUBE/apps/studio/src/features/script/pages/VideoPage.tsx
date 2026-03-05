@@ -2214,20 +2214,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   };
 
   const ensureEditorCutsForTimelineEdit = useCallback((): EditorCut[] => {
-    if (editorCuts.length > 0) return editorCuts;
-    const seeded = allCuts.map((cut) => ({
-      id: `plan-cut-${cut.globalCutIndex + 1}`,
-      startSec: cut.secondsFrom,
-      endSec: cut.secondsTo,
-      imageUrl: normalizeGeneratedImageSrc(chapterImages[cut.imageKey]) || "",
-      caption: cut.content || `컷 ${cut.globalCutIndex + 1}`,
-    }));
-    if (seeded.length > 0) {
-      setEditorCuts(seeded);
-      setSelectedCutId((prev) => prev || seeded[0].id);
-    }
-    return seeded;
-  }, [editorCuts, allCuts, chapterImages]);
+    return editorCuts;
+  }, [editorCuts]);
 
   const beginTimelineCutDrag = useCallback(
     (event: React.MouseEvent, cutId: string, mode: TimelineDragMode, totalDurationSec: number) => {
@@ -5930,14 +5918,18 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     </button>
                     <button
                       type="button"
-                      onClick={handleApplyScriptToEditorSrt}
+                      onClick={() => {
+                        handleApplyScriptToEditorSrt();
+                      }}
                       className="w-full rounded-lg border border-sky-500/60 bg-sky-500/10 px-3 py-2 text-xs font-semibold text-sky-100 hover:bg-sky-500/20"
                     >
                       앞서 만든 대본 {"->"} SRT 적용
                     </button>
                     <button
                       type="button"
-                      onClick={handleApplyTtsToEditorMp3}
+                      onClick={() => {
+                        void handleApplyTtsToEditorMp3();
+                      }}
                       disabled={isApplyingEditorTts}
                       className="w-full rounded-lg border border-violet-500/60 bg-violet-500/10 px-3 py-2 text-xs font-semibold text-violet-100 hover:bg-violet-500/20 disabled:opacity-60"
                     >
@@ -5945,7 +5937,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     </button>
                     <button
                       type="button"
-                      onClick={handleApplyGeneratedAssetsToEditor}
+                      onClick={() => {
+                        void handleApplyGeneratedAssetsToEditor();
+                      }}
                       disabled={isApplyingEditorTts}
                       className="w-full rounded-lg border border-amber-500/60 bg-amber-500/10 px-3 py-2 text-xs font-semibold text-amber-100 hover:bg-amber-500/20 disabled:opacity-60"
                     >
