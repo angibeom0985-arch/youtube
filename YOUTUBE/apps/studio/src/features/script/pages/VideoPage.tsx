@@ -3360,6 +3360,16 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       ],
     };
   }, [activeStep.id, scriptSubStep, imageSubStep]);
+  const headerGuideItems = useMemo(() => {
+    const seen = new Set<string>();
+    const deduped = currentActionGuide.items.filter((item) => {
+      const normalized = String(item || "").replace(/\s+/g, " ").trim();
+      if (!normalized || seen.has(normalized)) return false;
+      seen.add(normalized);
+      return true;
+    });
+    return deduped.slice(0, 2);
+  }, [currentActionGuide.items]);
   const formatOptions = [
     {
       value: "long" as VideoFormat,
@@ -6661,7 +6671,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         <div className="mt-[clamp(2rem,4vw,3rem)]">
           <main className="rounded-[clamp(1.2rem,2.5vw,2rem)] border border-white/10 bg-white/5 shadow-[0_18px_40px_rgba(0,0,0,0.6)] backdrop-blur-2xl">
             <div className="border-b border-white/10 px-[clamp(1.5rem,3vw,2.5rem)] py-[clamp(1.1rem,2.4vw,1.8rem)]">
-              <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                 <div className="min-w-0">
                   <p className="text-[clamp(0.6rem,1vw,0.75rem)] font-semibold uppercase tracking-[0.3em] text-white/40">
                     STEP {currentStep + 1}
@@ -6675,17 +6685,19 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     </p>
                   </div>
                 </div>
-                <div className="flex w-full flex-col gap-3 sm:flex-row lg:w-auto lg:min-w-[560px] lg:justify-end">
-                  <div className="rounded-2xl border border-red-400/25 bg-red-500/10 px-4 py-3 sm:flex-1 lg:max-w-[380px]">
-                    <div className="space-y-1.5 text-red-100/90">
+                <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center lg:w-auto lg:min-w-[620px] lg:justify-end">
+                  <div className="rounded-2xl border border-red-400/25 bg-red-500/10 px-4 py-3 sm:flex-1 lg:max-w-[420px] lg:self-center">
+                    <div className="text-red-100/90">
                       <p className="text-sm font-semibold">
-                        {activeStep.label} <span className="mx-2 text-red-200/60">|</span> {currentActionGuide.title}
+                        {currentActionGuide.title}
                       </p>
-                      <p className="text-sm">
-                        {activeStep.description?.replace(/·/g, " ").trim()}
-                        <span className="mx-2 text-red-200/60">|</span>
-                        {currentStep + 1}
-                      </p>
+                      <div className="mt-1.5 space-y-1">
+                        {headerGuideItems.map((item, idx) => (
+                          <p key={`${activeStep.id}-header-guide-${idx}`} className="text-xs leading-5 text-red-100/90">
+                            {idx + 1}. {item.replace(/`/g, "")}
+                          </p>
+                        ))}
+                      </div>
                     </div>
                   </div>
                   <div className="rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-sm text-white/70 sm:w-[120px]">
