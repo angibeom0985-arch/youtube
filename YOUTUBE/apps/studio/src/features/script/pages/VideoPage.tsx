@@ -6699,16 +6699,18 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">단계 안내</p>
                     <div className="mt-2 space-y-1.5">
                       {steps.map((step, index) => (
-                        <div
+                        <button
                           key={`sidebar-step-${step.id}`}
+                          type="button"
+                          onClick={() => goToStep(index)}
                           className={`w-full rounded-lg border px-2 py-2 text-left transition ${index === currentStep
                             ? "border-red-400/60 bg-red-500/15 text-red-100"
-                            : "border-white/10 bg-white/5 text-white/70"
+                            : "border-white/10 bg-white/5 text-white/70 hover:border-white/35"
                             }`}
                         >
                           <p className="text-xs font-semibold">{index + 1}. {step.label}</p>
                           <p className="mt-1 text-[11px] leading-4 text-white/60">{step.description}</p>
-                        </div>
+                        </button>
                       ))}
                     </div>
                   </div>
