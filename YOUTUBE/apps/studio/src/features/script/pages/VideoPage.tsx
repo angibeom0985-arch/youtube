@@ -6635,8 +6635,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         <div className="flex flex-wrap items-center justify-between gap-3">
         </div>
 
-        <header className="mt-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-2xl">
+        <header className="mt-6 flex justify-center">
+          <div className="max-w-4xl text-center">
             <p className="text-[clamp(0.7rem,1.2vw,0.85rem)] font-semibold uppercase tracking-[0.35em] text-white/40">
               All-in-one studio
             </p>
@@ -6688,28 +6688,27 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
             </div>
 
             <div
-              className={`grid gap-4 px-[clamp(1.5rem,3vw,2.5rem)] pb-[clamp(1.5rem,3vw,2.5rem)] xl:grid-cols-[220px_minmax(0,1fr)_240px] ${activeStep.id === "image"
+              className={`grid gap-4 px-[clamp(1.5rem,3vw,2.5rem)] pb-[clamp(1.5rem,3vw,2.5rem)] lg:grid-cols-[clamp(220px,18vw,280px)_minmax(0,1fr)_clamp(180px,15vw,240px)] ${activeStep.id === "image"
                 ? "pt-[clamp(0.6rem,1.2vw,0.9rem)]"
                 : "pt-[clamp(1.5rem,3vw,2.5rem)]"
                 }`}
             >
-              <aside className="hidden xl:block">
+              <aside className="hidden lg:block">
                 <div className="sticky top-24 space-y-3">
                   <div className="rounded-2xl border border-white/10 bg-black/25 p-3">
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">단계 이동</p>
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">단계 안내</p>
                     <div className="mt-2 space-y-1.5">
                       {steps.map((step, index) => (
-                        <button
+                        <div
                           key={`sidebar-step-${step.id}`}
-                          type="button"
-                          onClick={() => goToStep(index)}
-                          className={`w-full rounded-lg border px-2 py-2 text-left text-xs font-semibold transition ${index === currentStep
+                          className={`w-full rounded-lg border px-2 py-2 text-left transition ${index === currentStep
                             ? "border-red-400/60 bg-red-500/15 text-red-100"
-                            : "border-white/10 bg-white/5 text-white/65 hover:border-white/30"
+                            : "border-white/10 bg-white/5 text-white/70"
                             }`}
                         >
-                          {index + 1}. {step.label}
-                        </button>
+                          <p className="text-xs font-semibold">{index + 1}. {step.label}</p>
+                          <p className="mt-1 text-[11px] leading-4 text-white/60">{step.description}</p>
+                        </div>
                       ))}
                     </div>
                   </div>
@@ -6724,36 +6723,41 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
               <div>{renderStepContent()}</div>
 
-              <aside className="hidden xl:block">
-                <div className="sticky top-24 space-y-3">
-                  <div className="rounded-2xl border border-white/10 bg-black/25 p-3">
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">작업 현황</p>
-                    <div className="mt-2 space-y-1.5 text-xs text-white/75">
-                      <p>챕터: {chapterScripts.length}개</p>
-                      <p>페르소나: {personas.length}개</p>
-                      <p>이미지: {Object.keys(chapterImages).length}개</p>
-                      <p>컷: {editorCuts.length}개</p>
-                      <p>렌더: {renderingProgress}%</p>
-                    </div>
+              <aside className="hidden lg:block">
+                <div className="sticky top-24 rounded-2xl border border-white/10 bg-black/25 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">단계 이동</p>
+                  <div className="mt-2 space-y-1.5">
+                    {steps.map((step, index) => (
+                      <button
+                        key={`right-nav-step-${step.id}`}
+                        type="button"
+                        onClick={() => goToStep(index)}
+                        className={`w-full rounded-md border px-2 py-1.5 text-left text-xs font-semibold ${index === currentStep
+                          ? "border-red-400/60 bg-red-500/15 text-red-100"
+                          : "border-white/15 bg-white/5 text-white/70 hover:border-white/35"
+                          }`}
+                      >
+                        {index + 1}. {step.label}
+                      </button>
+                    ))}
                   </div>
-                  <div className="rounded-2xl border border-white/10 bg-black/25 p-3">
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">빠른 이동</p>
-                    <div className="mt-2 grid grid-cols-2 gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => goToStep(Math.max(0, currentStep - 1))}
-                        className="rounded-md border border-white/15 bg-white/5 px-2 py-1.5 text-[11px] font-semibold text-white/70 hover:border-white/35"
-                      >
-                        이전
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => goToStep(Math.min(steps.length - 1, currentStep + 1))}
-                        className="rounded-md border border-white/15 bg-white/5 px-2 py-1.5 text-[11px] font-semibold text-white/70 hover:border-white/35"
-                      >
-                        다음
-                      </button>
-                    </div>
+                  <div className="mt-2 grid grid-cols-2 gap-1.5">
+                    <button
+                      type="button"
+                      onClick={handlePrev}
+                      disabled={!canGoPrev}
+                      className="rounded-md border border-white/15 bg-white/5 px-2 py-1.5 text-[11px] font-semibold text-white/70 hover:border-white/35 disabled:opacity-40"
+                    >
+                      이전
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleNext}
+                      disabled={!canGoNext}
+                      className="rounded-md border border-white/15 bg-white/5 px-2 py-1.5 text-[11px] font-semibold text-white/70 hover:border-white/35 disabled:opacity-40"
+                    >
+                      다음
+                    </button>
                   </div>
                 </div>
               </aside>
