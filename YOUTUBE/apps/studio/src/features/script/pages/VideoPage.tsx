@@ -188,6 +188,21 @@ type SupportErrorDialog = {
   reportText: string;
 };
 
+type SubtitleCue = {
+  id: string;
+  startSec: number;
+  endSec: number;
+  text: string;
+};
+
+type EditorCut = {
+  id: string;
+  startSec: number;
+  endSec: number;
+  imageUrl: string;
+  caption: string;
+};
+
 const getCloudVoiceFeature = (suffix: string): string => {
   const key = String(suffix || "").toUpperCase();
   return key === "A"
@@ -804,6 +819,12 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [renderingProgress, setRenderingProgress] = useState(0);
   const [isExportingSrt, setIsExportingSrt] = useState(false);
   const [isExportingTtsMp3, setIsExportingTtsMp3] = useState(false);
+  const [editorImageUrls, setEditorImageUrls] = useState<string[]>([]);
+  const [editorAudioUrl, setEditorAudioUrl] = useState("");
+  const [editorAudioDurationSec, setEditorAudioDurationSec] = useState(0);
+  const [editorSubtitleCues, setEditorSubtitleCues] = useState<SubtitleCue[]>([]);
+  const [editorCuts, setEditorCuts] = useState<EditorCut[]>([]);
+  const [selectedCutId, setSelectedCutId] = useState<string | null>(null);
   const [videoPrompt, setVideoPrompt] = useState("");
   const [isGeneratingVideo, setIsGeneratingVideo] = useState(false);
   const [generatedVideoUrl, setGeneratedVideoUrl] = useState("");
@@ -1825,6 +1846,146 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     }
   };
 
+  const parseSrtTimestampToSec = (value: string): number => {
+    const normalized = String(value || "").trim().replace(".", ",");
+    const m = normalized.match(/(\d{2}):(\d{2}):(\d{2}),(\d{1,3})/);
+    if (!m) return 0;
+    const h = Number(m[1] || 0);
+    const min = Number(m[2] || 0);
+    const sec = Number(m[3] || 0);
+    const ms = Number((m[4] || "0").padEnd(3, "0"));
+    return h * 3600 + min * 60 + sec + ms / 1000;
+  };
+
+  const parseSrtText = (raw: string): SubtitleCue[] => {
+    const blocks = String(raw || "")
+      .replace(/\r/g, "")
+      .split("\n\n")
+      .map((b) => b.trim())
+      .filter(Boolean);
+
+    const cues: SubtitleCue[] = [];
+    blocks.forEach((block, idx) => {
+      const lines = block.split("\n").map((line) => line.trim()).filter(Boolean);
+      const timelineLine = lines.find((line) => line.includes("-->")) || "";
+      if (!timelineLine) return;
+      const [startRaw, endRaw] = timelineLine.split("-->").map((v) => v.trim());
+      const startSec = parseSrtTimestampToSec(startRaw);
+      const endSec = parseSrtTimestampToSec(endRaw);
+      const text = lines.filter((line) => !line.includes("-->") && !/^\d+$/.test(line)).join(" ").trim();
+      if (!text || endSec <= startSec) return;
+      cues.push({ id: `cue-${idx + 1}`, startSec, endSec, text });
+    });
+    return cues.sort((a, b) => a.startSec - b.startSec);
+  };
+
+  const rebuildEditorCuts = useCallback(
+    (images: string[], cues: SubtitleCue[], audioDuration: number) => {
+      const totalDuration = Math.max(
+        1,
+        audioDuration,
+        cues.length > 0 ? cues[cues.length - 1].endSec : 0,
+        Number(renderDuration || 0)
+      );
+      if (images.length === 0) {
+        setEditorCuts([]);
+        setSelectedCutId(null);
+        return;
+      }
+
+      let nextCuts: EditorCut[] = [];
+      if (cues.length > 0) {
+        nextCuts = cues.map((cue, idx) => ({
+          id: `cut-${idx + 1}`,
+          startSec: Math.max(0, cue.startSec),
+          endSec: Math.max(cue.startSec + 0.2, cue.endSec),
+          imageUrl: images[idx % images.length],
+          caption: cue.text,
+        }));
+      } else {
+        const segment = totalDuration / images.length;
+        nextCuts = images.map((img, idx) => ({
+          id: `cut-${idx + 1}`,
+          startSec: Number((idx * segment).toFixed(2)),
+          endSec: Number(((idx + 1) * segment).toFixed(2)),
+          imageUrl: img,
+          caption: `컷 ${idx + 1}`,
+        }));
+      }
+      setEditorCuts(nextCuts);
+      setSelectedCutId((prev) => prev || nextCuts[0]?.id || null);
+    },
+    [renderDuration]
+  );
+
+  const handleEditorImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []).filter((file) => file.type.startsWith("image/"));
+    if (files.length === 0) return;
+    const urls = files.map((file) => URL.createObjectURL(file));
+    setEditorImageUrls((prev) => {
+      const next = [...prev, ...urls];
+      rebuildEditorCuts(next, editorSubtitleCues, editorAudioDurationSec);
+      return next;
+    });
+    event.target.value = "";
+  };
+
+  const handleEditorAudioUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = Array.from(event.target.files || [])[0];
+    if (!file || !file.type.startsWith("audio/")) return;
+    const url = URL.createObjectURL(file);
+    setEditorAudioUrl(url);
+    const audio = new Audio(url);
+    audio.onloadedmetadata = () => {
+      const duration = Number.isFinite(audio.duration) ? audio.duration : 0;
+      setEditorAudioDurationSec(duration);
+      rebuildEditorCuts(editorImageUrls, editorSubtitleCues, duration);
+    };
+    event.target.value = "";
+  };
+
+  const handleEditorSrtUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = Array.from(event.target.files || [])[0];
+    if (!file) return;
+    const text = await file.text().catch(() => "");
+    const cues = parseSrtText(text);
+    setEditorSubtitleCues(cues);
+    rebuildEditorCuts(editorImageUrls, cues, editorAudioDurationSec);
+    event.target.value = "";
+  };
+
+  const updateEditorCutTime = (cutId: string, field: "startSec" | "endSec", value: number) => {
+    setEditorCuts((prev) =>
+      prev.map((cut) => {
+        if (cut.id !== cutId) return cut;
+        const next = { ...cut, [field]: Math.max(0, value) } as EditorCut;
+        if (next.endSec <= next.startSec) {
+          if (field === "startSec") next.endSec = next.startSec + 0.2;
+          else next.startSec = Math.max(0, next.endSec - 0.2);
+        }
+        return next;
+      })
+    );
+  };
+
+  const deleteEditorCut = (cutId: string) => {
+    setEditorCuts((prev) => prev.filter((cut) => cut.id !== cutId));
+    setSelectedCutId((prev) => (prev === cutId ? null : prev));
+  };
+
+  const splitEditorCut = (cutId: string) => {
+    setEditorCuts((prev) => {
+      const idx = prev.findIndex((cut) => cut.id === cutId);
+      if (idx < 0) return prev;
+      const target = prev[idx];
+      const mid = Number(((target.startSec + target.endSec) / 2).toFixed(2));
+      if (mid <= target.startSec + 0.1 || mid >= target.endSec - 0.1) return prev;
+      const first: EditorCut = { ...target, id: `${target.id}-a`, endSec: mid };
+      const second: EditorCut = { ...target, id: `${target.id}-b`, startSec: mid };
+      return [...prev.slice(0, idx), first, second, ...prev.slice(idx + 1)];
+    });
+  };
+
   const handleGenerateTts = () => {
     if (!ttsScript.trim()) {
       alert("음성으로 변환할 텍스트를 입력해 주세요.");
@@ -2623,9 +2784,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         return {
           title: "이미지 생성 1단계",
           items: [
-            "페르소나를 먼저 생성하고 인물/배경 스타일을 선택하세요.",
-            "필요하면 스타일 참조 이미지를 업로드하세요.",
-            "완료되면 하단 '다음 단계'로 컷 생성 단계로 이동하세요.",
+            "인물/배경 스타일을 선택하세요.",
+            "하단 '다음 단계'를 누르면 페르소나가 자동 생성됩니다.",
           ],
         };
       }
@@ -2633,9 +2793,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         return {
           title: "이미지 생성 2단계",
           items: [
-            "프롬프트를 조정한 뒤 컷 이미지 생성을 시작하세요.",
-            "전체 생성 또는 컷별 생성으로 이미지를 채우세요.",
-            "이미지 생성이 끝나면 '다음 단계'로 결과 확인으로 이동하세요.",
+            "프롬프트를 조정하고 컷 이미지를 생성하세요.",
+            "이미지 생성이 끝나면 '다음 단계'로 이동하세요.",
           ],
         };
       }
@@ -2644,7 +2803,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         items: [
           "생성된 컷 이미지를 챕터별로 최종 점검하세요.",
           "필요하면 '전체 이미지 저장'으로 내려받으세요.",
-          "검토가 끝나면 다음 단계로 이동하세요.",
         ],
       };
     }
@@ -5324,13 +5482,21 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       }
       case "render": {
         const timelineDurationSeconds = Math.max(60, Number(renderDuration || 0));
-        const selectedScene = timelineScenes[0] || null;
-        const frameDensity = Math.min(42, Math.max(18, timelineScenes.length * 6));
+        const totalEditorDuration = Math.max(
+          timelineDurationSeconds,
+          editorAudioDurationSec,
+          ...editorCuts.map((cut) => cut.endSec)
+        );
+        const selectedCut =
+          editorCuts.find((cut) => cut.id === selectedCutId) ||
+          editorCuts[0] ||
+          null;
+        const frameDensity = Math.min(42, Math.max(18, (editorCuts.length || timelineScenes.length) * 6));
         const fakeFrames = Array.from({ length: frameDensity }, (_, idx) => {
-          const scene = timelineScenes[idx % Math.max(1, timelineScenes.length)];
+          const scene = editorCuts[idx % Math.max(1, editorCuts.length)] || timelineScenes[idx % Math.max(1, timelineScenes.length)];
           return {
             id: idx,
-            label: scene?.label || `컷 ${idx + 1}`,
+            label: ("caption" in (scene || {}) ? (scene as any).caption : (scene as any)?.label) || `컷 ${idx + 1}`,
           };
         });
 
@@ -5377,13 +5543,32 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     <p className="mt-2 text-sm text-slate-100">MP4 / {renderRatio} / {renderFps}fps</p>
                     <p className="mt-1 text-xs text-slate-400">컷 {Object.keys(chapterImages).length || requiredImageCount}개</p>
                   </div>
+
+                  <div className="mt-4 rounded-xl border border-slate-700 bg-[#101a2d] p-3 space-y-2">
+                    <p className="text-xs uppercase tracking-[0.18em] text-slate-400">소스 업로드</p>
+                    <label className="block cursor-pointer rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-xs font-semibold text-slate-100 hover:border-slate-400">
+                      이미지 업로드
+                      <input type="file" accept="image/*" multiple onChange={handleEditorImageUpload} className="hidden" />
+                    </label>
+                    <label className="block cursor-pointer rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-xs font-semibold text-slate-100 hover:border-slate-400">
+                      MP3 업로드
+                      <input type="file" accept=".mp3,audio/mpeg,audio/*" onChange={handleEditorAudioUpload} className="hidden" />
+                    </label>
+                    <label className="block cursor-pointer rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-xs font-semibold text-slate-100 hover:border-slate-400">
+                      SRT 업로드
+                      <input type="file" accept=".srt,text/plain" onChange={handleEditorSrtUpload} className="hidden" />
+                    </label>
+                    <p className="text-[11px] text-slate-400">
+                      이미지 {editorImageUrls.length}장 · 자막 {editorSubtitleCues.length}개 · 오디오 {editorAudioUrl ? "1개" : "0개"}
+                    </p>
+                  </div>
                 </aside>
 
                 <section className="flex min-h-[680px] flex-col bg-[#090f19]">
                   <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 px-4 py-3">
                     <div>
                       <p className="text-xs uppercase tracking-[0.16em] text-slate-400">영상 편집</p>
-                      <h4 className="text-lg font-bold text-white">{selectedScene?.label || "타임라인 미리보기"}</h4>
+                      <h4 className="text-lg font-bold text-white">{selectedCut?.caption || "타임라인 미리보기"}</h4>
                     </div>
                     <span className="rounded-full border border-slate-600 bg-slate-800/60 px-3 py-1 text-xs font-semibold text-slate-200">
                       진행도 {renderingProgress}%
@@ -5394,7 +5579,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     <div className="relative overflow-hidden rounded-2xl border border-slate-700 bg-black">
                       <div className="absolute left-3 top-3 z-10 rounded-md bg-black/70 px-2 py-1 text-xs text-white">1.00x</div>
                       <div className="aspect-video w-full bg-gradient-to-br from-slate-800 via-slate-900 to-black">
-                        {videoUrl ? (
+                        {selectedCut?.imageUrl ? (
+                          <img src={selectedCut.imageUrl} alt="선택 컷" className="h-full w-full object-contain" />
+                        ) : videoUrl ? (
                           <video src={videoUrl} controls className="h-full w-full object-contain" />
                         ) : (
                           <div className="flex h-full items-center justify-center">
@@ -5412,14 +5599,14 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     <div className="flex items-center justify-center gap-4 text-slate-200">
                       <button className="rounded-full border border-slate-600 p-2 hover:border-slate-400"><FiPlay className="h-4 w-4" /></button>
                       <button className="rounded-full border border-slate-600 p-2 hover:border-slate-400"><FiPause className="h-4 w-4" /></button>
-                      <span className="text-xs text-slate-400">00:00 / {Math.floor(timelineDurationSeconds / 60).toString().padStart(2, "0")}:{(timelineDurationSeconds % 60).toString().padStart(2, "0")}</span>
+                      <span className="text-xs text-slate-400">00:00 / {Math.floor(totalEditorDuration / 60).toString().padStart(2, "0")}:{Math.floor(totalEditorDuration % 60).toString().padStart(2, "0")}</span>
                     </div>
                   </div>
 
                   <div className="mt-auto border-t border-slate-800 bg-[#070d16] p-4">
                     <div className="mb-2 flex items-center justify-between text-xs text-slate-400">
                       <span>타임라인</span>
-                      <span>{timelineScenes.length} Scene</span>
+                      <span>{editorCuts.length || timelineScenes.length} Scene</span>
                     </div>
                     <div className="relative overflow-x-auto rounded-xl border border-slate-700 bg-[#0d1524] p-2">
                       <div className="flex min-w-[960px] gap-1.5">
@@ -5437,6 +5624,37 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         ))}
                       </div>
                     </div>
+
+                    {editorCuts.length > 0 && (
+                      <div className="mt-3 space-y-2 rounded-xl border border-slate-700 bg-[#0e1728] p-3">
+                        <div className="text-[11px] uppercase tracking-[0.14em] text-slate-400">컷 트랙</div>
+                        <div className="relative h-6 rounded bg-slate-800/70">
+                          {editorCuts.map((cut) => {
+                            const left = (cut.startSec / totalEditorDuration) * 100;
+                            const width = ((cut.endSec - cut.startSec) / totalEditorDuration) * 100;
+                            return (
+                              <button
+                                key={cut.id}
+                                type="button"
+                                onClick={() => setSelectedCutId(cut.id)}
+                                className={`absolute top-0 h-full rounded border ${selectedCutId === cut.id ? "border-amber-300 bg-amber-400/30" : "border-cyan-300/50 bg-cyan-500/20"}`}
+                                style={{ left: `${left}%`, width: `${Math.max(width, 2)}%` }}
+                                title={`${cut.caption} (${cut.startSec.toFixed(2)}s ~ ${cut.endSec.toFixed(2)}s)`}
+                              />
+                            );
+                          })}
+                        </div>
+                        {editorAudioUrl && (
+                          <>
+                            <div className="text-[11px] uppercase tracking-[0.14em] text-slate-400">오디오 트랙</div>
+                            <div className="h-3 rounded bg-slate-800/70">
+                              <div className="h-full rounded bg-indigo-400/50" style={{ width: `${Math.min(100, (editorAudioDurationSec / totalEditorDuration) * 100)}%` }} />
+                            </div>
+                            <audio src={editorAudioUrl} controls className="w-full" />
+                          </>
+                        )}
+                      </div>
+                    )}
 
                     <div className="mt-4 grid gap-3 lg:grid-cols-[1.2fr_1fr]">
                       <div className="rounded-xl border border-slate-700 bg-[#0f1728] p-3">
@@ -5473,6 +5691,61 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                             {isExportingTtsMp3 ? "MP3 생성 중..." : "TTS MP3 다운로드"}
                           </button>
                         </div>
+
+                        {editorCuts.length > 0 && (
+                          <div className="mt-3 rounded-lg border border-slate-600 bg-slate-900/40 p-2">
+                            <div className="mb-2 flex items-center justify-between">
+                              <p className="text-xs font-semibold text-slate-200">컷 편집</p>
+                              <p className="text-[11px] text-slate-400">{editorCuts.length}개</p>
+                            </div>
+                            <div className="max-h-56 space-y-1.5 overflow-y-auto pr-1">
+                              {editorCuts.map((cut, idx) => (
+                                <div
+                                  key={cut.id}
+                                  className={`rounded-md border px-2 py-1.5 ${selectedCutId === cut.id ? "border-amber-300/60 bg-amber-400/10" : "border-slate-700 bg-slate-800/60"}`}
+                                >
+                                  <button
+                                    type="button"
+                                    onClick={() => setSelectedCutId(cut.id)}
+                                    className="w-full text-left text-[11px] font-semibold text-slate-100"
+                                  >
+                                    컷 {idx + 1} · {cut.caption || "무자막"}
+                                  </button>
+                                  <div className="mt-1 grid grid-cols-[1fr_1fr_auto_auto] items-center gap-1">
+                                    <input
+                                      type="number"
+                                      step={0.1}
+                                      value={Number(cut.startSec.toFixed(2))}
+                                      onChange={(e) => updateEditorCutTime(cut.id, "startSec", Number(e.target.value))}
+                                      className="rounded border border-slate-600 bg-slate-900 px-1.5 py-1 text-[11px] text-slate-100"
+                                    />
+                                    <input
+                                      type="number"
+                                      step={0.1}
+                                      value={Number(cut.endSec.toFixed(2))}
+                                      onChange={(e) => updateEditorCutTime(cut.id, "endSec", Number(e.target.value))}
+                                      className="rounded border border-slate-600 bg-slate-900 px-1.5 py-1 text-[11px] text-slate-100"
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => splitEditorCut(cut.id)}
+                                      className="rounded border border-slate-500 px-2 py-1 text-[10px] text-slate-100 hover:border-slate-300"
+                                    >
+                                      분할
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => deleteEditorCut(cut.id)}
+                                      className="rounded border border-red-500/60 px-2 py-1 text-[10px] text-red-200 hover:bg-red-500/20"
+                                    >
+                                      삭제
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       <div className="rounded-xl border border-slate-700 bg-[#0f1728] p-3">
