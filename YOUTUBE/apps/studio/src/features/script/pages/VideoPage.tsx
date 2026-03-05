@@ -6635,7 +6635,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         <HomeBackButton tone="red" />
       </div>
 
-      <div className="relative mx-auto max-w-[min(1800px,98vw)] px-[clamp(0.8rem,2vw,2rem)] py-[clamp(0.8rem,1.8vw,1.6rem)] pb-[90px]">
+      <div className="relative mx-auto max-w-[min(1800px,98vw)] px-[clamp(0.8rem,2vw,2rem)] py-[clamp(0.8rem,1.8vw,1.6rem)] pb-[64px]">
         <div className="flex flex-wrap items-center justify-between gap-3">
         </div>
 
@@ -6782,8 +6782,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 z-[60] border-t border-white/10 bg-black/70 px-3 py-2 backdrop-blur-md">
-        <div className="mx-auto w-full max-w-[980px] overflow-hidden rounded-lg border border-white/10 bg-black/25 p-1">
+      <div className="fixed bottom-0 left-0 right-0 z-[60] border-t border-white/10 bg-black/65 px-2 py-1 backdrop-blur-md">
+        <div className="mx-auto w-full max-w-[760px] overflow-hidden rounded-md border border-white/10 bg-black/20 p-0.5">
           <ins
             className="adsbygoogle block w-full"
             style={{ display: "block" }}
