@@ -3360,16 +3360,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       ],
     };
   }, [activeStep.id, scriptSubStep, imageSubStep]);
-  const dedupedGuideItems = useMemo(() => {
-    const seen = new Set<string>();
-    return currentActionGuide.items.filter((item) => {
-      const key = String(item || "").replace(/\s+/g, " ").trim();
-      if (!key) return false;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
-  }, [currentActionGuide.items]);
   const formatOptions = [
     {
       value: "long" as VideoFormat,
@@ -6691,20 +6681,15 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 </div>
               </div>
               <div className="mt-4 rounded-2xl border border-red-400/25 bg-red-500/10 px-4 py-3">
-                <div className="flex flex-col gap-3 md:flex-row md:items-start">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-red-200/80 md:min-w-[140px] md:pt-1">
-                    {currentActionGuide.title}
+                <div className="space-y-1.5 text-red-100/90">
+                  <p className="text-sm font-semibold">
+                    {activeStep.label} <span className="mx-2 text-red-200/60">|</span> {currentActionGuide.title}
                   </p>
-                  <div className="space-y-1.5 md:flex-1">
-                    {dedupedGuideItems.map((item, index) => (
-                      <div key={`${activeStep.id}-guide-${index}`} className="flex items-start gap-2 text-sm text-red-100/90">
-                        <span className="mt-[1px] inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-red-200/40 bg-red-500/20 text-xs font-bold text-red-100">
-                          {index + 1}
-                        </span>
-                        <span>{item.replace(/`/g, "")}</span>
-                      </div>
-                    ))}
-                  </div>
+                  <p className="text-sm">
+                    {activeStep.description?.replace(/·/g, " ").trim()}
+                    <span className="mx-2 text-red-200/60">|</span>
+                    {currentStep + 1}
+                  </p>
                 </div>
               </div>
             </div>
