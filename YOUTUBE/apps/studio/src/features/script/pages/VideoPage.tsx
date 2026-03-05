@@ -805,6 +805,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     percent: 0,
     tone: "running",
   });
+  const [isSidebarGuideCollapsed, setIsSidebarGuideCollapsed] = useState(false);
 
   const [renderDuration, setRenderDuration] = useState(() =>
     getStoredString(STORAGE_KEYS.renderDuration, "60")
@@ -6634,19 +6635,19 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         <HomeBackButton tone="red" />
       </div>
 
-      <div className="relative mx-auto max-w-[min(1800px,98vw)] px-[clamp(0.8rem,2vw,2rem)] py-[clamp(1.4rem,3vw,3rem)]">
+      <div className="relative mx-auto max-w-[min(1800px,98vw)] px-[clamp(0.8rem,2vw,2rem)] py-[clamp(0.8rem,1.8vw,1.6rem)] pb-[90px]">
         <div className="flex flex-wrap items-center justify-between gap-3">
         </div>
 
-        <header className="mt-6 flex justify-center">
+        <header className="mt-2 flex justify-center">
           <div className="max-w-4xl text-center">
             <p className="text-[clamp(0.7rem,1.2vw,0.85rem)] font-semibold uppercase tracking-[0.35em] text-white/40">
               All-in-one studio
             </p>
-            <h1 className="mt-3 whitespace-nowrap text-[clamp(1.9rem,2.8vw,3rem)] font-black text-white">
+            <h1 className="mt-2 whitespace-nowrap text-[clamp(1.8rem,2.5vw,2.7rem)] font-black text-white">
               올인원 영상 제작 스튜디오
             </h1>
-            <p className="mt-3 whitespace-nowrap text-[clamp(0.9rem,1.4vw,1rem)] text-white/70">
+            <p className="mt-2 whitespace-nowrap text-[clamp(0.85rem,1.2vw,0.95rem)] text-white/70">
               필요한 단계를 빠르게 확인하고 바로 제작을 이어가세요.
             </p>
           </div>
@@ -6654,9 +6655,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
         {/* API 키 입력 섹션 제거됨 (마이페이지로 이동) */}
 
-        <div className="mt-[clamp(2rem,4vw,3rem)]">
+        <div className="mt-[clamp(0.8rem,1.8vw,1.4rem)]">
           <main className="rounded-[clamp(1.2rem,2.5vw,2rem)] border border-white/10 bg-white/5 shadow-[0_18px_40px_rgba(0,0,0,0.6)] backdrop-blur-2xl">
-            <div className="border-b border-white/10 px-[clamp(1.5rem,3vw,2.5rem)] py-[clamp(1.1rem,2.4vw,1.8rem)]">
+            <div className="border-b border-white/10 px-[clamp(1.2rem,2.2vw,2rem)] py-[clamp(0.8rem,1.8vw,1.2rem)]">
               <div className="mx-auto grid max-w-[1100px] gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(340px,420px)] lg:items-center">
                 <div className="min-w-0">
                   <p className="text-[clamp(0.6rem,1vw,0.75rem)] font-semibold uppercase tracking-[0.3em] text-white/40">
@@ -6672,18 +6673,14 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   </div>
                 </div>
                 <div className="flex w-full flex-col gap-3">
-                  <div className="rounded-2xl border border-red-400/25 bg-red-500/10 px-4 py-3">
-                    <div className="text-red-100/90">
-                      <p className="text-sm font-semibold">
-                        {currentActionGuide.title}
-                      </p>
-                      <div className="mt-1.5 space-y-1">
-                        {headerGuideItems.map((item, idx) => (
-                          <p key={`${activeStep.id}-header-guide-${idx}`} className="text-xs leading-5 text-red-100/90">
-                            {idx + 1}. {item.replace(/`/g, "")}
-                          </p>
-                        ))}
-                      </div>
+                  <div className="px-1 py-1 text-red-100/90">
+                    <p className="text-sm font-semibold">{currentActionGuide.title}</p>
+                    <div className="mt-1 space-y-1">
+                      {headerGuideItems.map((item, idx) => (
+                        <p key={`${activeStep.id}-header-guide-${idx}`} className="text-xs leading-5 text-red-100/90">
+                          {idx + 1}. {item.replace(/`/g, "")}
+                        </p>
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -6698,7 +6695,17 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
             >
               <aside className="hidden lg:flex min-h-full flex-col gap-3">
                 <div className="flex-1 rounded-2xl border border-white/10 bg-black/25 p-3">
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">단계 안내</p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">단계 안내</p>
+                      <button
+                        type="button"
+                        onClick={() => setIsSidebarGuideCollapsed((prev) => !prev)}
+                        className="rounded-md border border-white/20 px-2 py-1 text-[10px] font-semibold text-white/70 hover:border-white/40"
+                      >
+                        {isSidebarGuideCollapsed ? "펼치기" : "접기"}
+                      </button>
+                    </div>
+                    {!isSidebarGuideCollapsed && (
                     <div className="mt-2 space-y-1.5">
                       {steps.map((step, index) => (
                         <button
@@ -6715,19 +6722,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         </button>
                       ))}
                     </div>
-                </div>
-                <div className="sticky top-24 rounded-2xl border border-white/10 bg-black/25 p-3">
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">사이드바 광고</p>
-                  <div className="mt-2 overflow-hidden rounded-xl border border-white/10 bg-black/35 p-2">
-                    <ins
-                      className="adsbygoogle block w-full"
-                      style={{ display: "block" }}
-                      data-ad-client="ca-pub-2686975437928535"
-                      data-ad-slot="3538616561"
-                      data-ad-format="auto"
-                      data-full-width-responsive="true"
-                    />
-                  </div>
+                    )}
                 </div>
               </aside>
 
@@ -6764,18 +6759,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   </div>
                 </div>
               )}
-              <div className="mb-2 overflow-hidden rounded-2xl border border-white/10 bg-black/30 px-2 py-2 sm:px-3">
-                <div className="mx-auto h-[72px] w-full max-w-[920px] sm:h-[90px] md:h-[100px]">
-                  <ins
-                    className="adsbygoogle block h-full w-full"
-                    style={{ display: "block" }}
-                    data-ad-client="ca-pub-2686975437928535"
-                    data-ad-slot="3672059148"
-                    data-ad-format="horizontal"
-                    data-full-width-responsive="false"
-                  />
-                </div>
-              </div>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <button
                   type="button"
@@ -6798,6 +6781,20 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
           </main>
         </div>
       </div>
+
+      <div className="fixed bottom-0 left-0 right-0 z-[60] border-t border-white/10 bg-black/70 px-3 py-2 backdrop-blur-md">
+        <div className="mx-auto w-full max-w-[980px] overflow-hidden rounded-lg border border-white/10 bg-black/25 p-1">
+          <ins
+            className="adsbygoogle block w-full"
+            style={{ display: "block" }}
+            data-ad-client="ca-pub-2686975437928535"
+            data-ad-slot="3538616561"
+            data-ad-format="auto"
+            data-full-width-responsive="true"
+          />
+        </div>
+      </div>
+
       {supportErrorDialog && typeof document !== "undefined" &&
         createPortal(
           <div className="fixed inset-0 z-[100001]">
