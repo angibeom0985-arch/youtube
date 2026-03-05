@@ -6726,20 +6726,31 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     </div>
                     {!isSidebarGuideCollapsed && (
                     <div className="mt-2 space-y-1.5">
-                      {steps.map((step, index) => (
+                      {steps.map((step, index) => {
+                        const isCompletedStep = index < currentStep;
+                        const isActiveStep = index === currentStep;
+                        return (
                         <button
                           key={`sidebar-step-${step.id}`}
                           type="button"
                           onClick={() => goToStep(index)}
-                          className={`w-full rounded-lg border px-2 py-2 text-left transition ${index === currentStep
+                          className={`w-full rounded-lg border px-2 py-2 text-left transition ${isActiveStep
                             ? "border-red-400/60 bg-red-500/15 text-red-100"
                             : "border-white/10 bg-white/5 text-white/70 hover:border-white/35"
                             }`}
                         >
-                          <p className="text-xs font-semibold">{index + 1}. {step.label}</p>
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="text-xs font-semibold">{index + 1}. {step.label}</p>
+                            {isCompletedStep && (
+                              <span className="inline-flex items-center rounded-full border border-red-300/40 bg-red-500/20 px-2 py-0.5 text-[10px] font-semibold text-red-100">
+                                완료
+                              </span>
+                            )}
+                          </div>
                           <p className="mt-1 text-[11px] leading-4 text-white/60">{step.description}</p>
                         </button>
-                      ))}
+                        );
+                      })}
                     </div>
                     )}
                 </div>
