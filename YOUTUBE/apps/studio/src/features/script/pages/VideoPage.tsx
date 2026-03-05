@@ -792,6 +792,19 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [personas, setPersonas] = useState<Character[]>([]);
   const [isGeneratingPersonas, setIsGeneratingPersonas] = useState(false);
   const [personaError, setPersonaError] = useState("");
+  const [imageStepProgress, setImageStepProgress] = useState<{
+    active: boolean;
+    title: string;
+    detail: string;
+    percent: number;
+    tone: "running" | "success" | "error";
+  }>({
+    active: false,
+    title: "",
+    detail: "",
+    percent: 0,
+    tone: "running",
+  });
 
   const [renderDuration, setRenderDuration] = useState(() =>
     getStoredString(STORAGE_KEYS.renderDuration, "60")
@@ -860,6 +873,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const timelineAudioRef = useRef<HTMLAudioElement | null>(null);
   const timelineVideoTrackRef = useRef<HTMLDivElement | null>(null);
   const timelineAutoPopulateRef = useRef(false);
+  const imageStepProgressTimerRef = useRef<number | null>(null);
   const stopBatchGenerationRef = useRef(false);
   const autoAnalyzeKeyRef = useRef("");
   const refreshIdeasRequestIdRef = useRef(0);
@@ -2351,6 +2365,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       if (timelineTimerRef.current !== null) {
         window.clearInterval(timelineTimerRef.current);
       }
+      if (imageStepProgressTimerRef.current !== null) {
+        window.clearInterval(imageStepProgressTimerRef.current);
+      }
     };
   }, []);
 
@@ -3050,8 +3067,51 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     }
     if (steps[currentStep].id === "image") {
       if (imageSubStep === 0 && personas.length === 0) {
+        setImageStepProgress({
+          active: true,
+          title: "이미지 생성 준비 중",
+          detail: "페르소나를 생성하고 있습니다.",
+          percent: 10,
+          tone: "running",
+        });
+        if (imageStepProgressTimerRef.current !== null) {
+          window.clearInterval(imageStepProgressTimerRef.current);
+        }
+        imageStepProgressTimerRef.current = window.setInterval(() => {
+          setImageStepProgress((prev) => {
+            if (!prev.active || prev.tone !== "running") return prev;
+            return { ...prev, percent: Math.min(88, prev.percent + 6) };
+          });
+        }, 320);
+
         const created = await handleGeneratePersonas();
-        if (!created) return;
+        if (imageStepProgressTimerRef.current !== null) {
+          window.clearInterval(imageStepProgressTimerRef.current);
+          imageStepProgressTimerRef.current = null;
+        }
+        if (!created) {
+          setImageStepProgress({
+            active: true,
+            title: "이미지 생성 준비 실패",
+            detail: personaError || "페르소나 생성에 실패했습니다. 입력값과 API 상태를 확인해 주세요.",
+            percent: 100,
+            tone: "error",
+          });
+          window.setTimeout(() => {
+            setImageStepProgress((prev) => ({ ...prev, active: false }));
+          }, 2400);
+          return;
+        }
+        setImageStepProgress({
+          active: true,
+          title: "이미지 생성 준비 완료",
+          detail: "페르소나 생성이 완료되어 다음 단계로 이동합니다.",
+          percent: 100,
+          tone: "success",
+        });
+        window.setTimeout(() => {
+          setImageStepProgress((prev) => ({ ...prev, active: false }));
+        }, 1400);
       }
       if (imageSubStep < 2) {
         setImageSubStep((prev) => Math.min(prev + 1, 2));
@@ -3086,6 +3146,15 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     timelineAutoPopulateRef.current = true;
     void handleApplyGeneratedAssetsToEditor();
   }, [activeStep.id, chapterImages, editorAudioUrl, editorImageUrls.length, editorSubtitleCues.length]);
+
+  useEffect(() => {
+    if (activeStep.id === "image" && imageSubStep === 0) return;
+    if (imageStepProgressTimerRef.current !== null) {
+      window.clearInterval(imageStepProgressTimerRef.current);
+      imageStepProgressTimerRef.current = null;
+    }
+    setImageStepProgress((prev) => (prev.active ? { ...prev, active: false } : prev));
+  }, [activeStep.id, imageSubStep]);
 
   const currentActionGuide = useMemo(() => {
     if (activeStep.id === "setup") {
@@ -5255,42 +5324,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
           return (
             <div className="mt-2">
               {renderImageSubStepHeader()}
-              <div className="mb-6 rounded-2xl border border-red-300/30 bg-red-900/10 p-6">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <h3 className="text-lg font-bold text-white">1단계: 페르소나 생성</h3>
-                    <p className="mt-1 text-xs text-white/60">
-                      하단 '다음 단계'를 누르면 페르소나가 자동 생성됩니다.
-                    </p>
-                  </div>
-                  {isGeneratingPersonas && (
-                    <span className="rounded-full border border-red-300 bg-red-600/80 px-4 py-1.5 text-xs font-bold text-white">
-                      페르소나 생성 중...
-                    </span>
-                  )}
-                </div>
-                {personaError && <p className="mt-3 text-xs text-red-200">{personaError}</p>}
-                {personas.length > 0 && (
-                  <div className="mt-4">
-                    <p className="mb-2 text-xs font-semibold text-green-300">
-                      페르소나 {personas.length}개 생성 완료
-                    </p>
-                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
-                      {personas.map((persona) => (
-                        <div key={persona.id} className="overflow-hidden rounded-lg border border-white/20 bg-black/30">
-                          <img
-                            src={normalizeGeneratedImageSrc(persona.image)}
-                            alt={persona.name}
-                            className="aspect-square w-full object-cover"
-                          />
-                          <p className="truncate px-2 py-1 text-[11px] text-white/80">{persona.name}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
               <div className="mb-6 rounded-2xl border border-white/10 bg-black/30 p-6">
                 <h3 className="text-lg font-bold text-white mb-4">이미지 스타일 설정</h3>
                 <div className="mt-8 bg-black/30 border border-white/10 rounded-xl p-[clamp(1rem,2vw,1.4rem)]">
@@ -6585,6 +6618,35 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
             </div>
 
             <div className="border-t border-white/10 p-[clamp(1.2rem,2.5vw,2rem)]">
+              {(activeStep.id === "image" && imageSubStep === 0 && imageStepProgress.active) && (
+                <div
+                  className={`mb-3 rounded-2xl border px-4 py-3 ${imageStepProgress.tone === "error"
+                    ? "border-red-300/40 bg-red-900/20"
+                    : imageStepProgress.tone === "success"
+                      ? "border-emerald-300/40 bg-emerald-900/20"
+                      : "border-amber-300/40 bg-amber-900/20"
+                    }`}
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-sm font-bold text-white">{imageStepProgress.title}</p>
+                    <span className="text-xs font-semibold text-white/80">{Math.round(imageStepProgress.percent)}%</span>
+                  </div>
+                  <p className="mt-1 text-xs text-white/75">
+                    현재 작업: {imageStepProgress.detail}
+                  </p>
+                  <div className="mt-2 h-2 w-full rounded-full bg-black/40">
+                    <div
+                      className={`h-full rounded-full ${imageStepProgress.tone === "error"
+                        ? "bg-red-400"
+                        : imageStepProgress.tone === "success"
+                          ? "bg-emerald-400"
+                          : "bg-amber-300"
+                        }`}
+                      style={{ width: `${Math.max(4, Math.min(100, imageStepProgress.percent))}%` }}
+                    />
+                  </div>
+                </div>
+              )}
               <div className="mb-2 overflow-hidden rounded-2xl border border-white/10 bg-black/30 px-2 py-2 sm:px-3">
                 <div className="mx-auto h-[72px] w-full max-w-[920px] sm:h-[90px] md:h-[100px]">
                   <ins
