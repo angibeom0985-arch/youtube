@@ -3212,8 +3212,17 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   useEffect(() => {
     try {
       if (typeof window === "undefined") return;
+      const ads = document.querySelectorAll("ins.adsbygoogle");
+      if (ads.length === 0) return;
       (window as any).adsbygoogle = (window as any).adsbygoogle || [];
-      (window as any).adsbygoogle.push({});
+      ads.forEach((ad) => {
+        if (ad.getAttribute("data-adsbygoogle-status") === "done") return;
+        try {
+          (window as any).adsbygoogle.push({});
+        } catch {
+          // ignore per-slot errors and continue remaining slots
+        }
+      });
     } catch (error) {
       console.error("Footer AdSense error:", error);
     }
@@ -3364,12 +3373,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     });
     return deduped.slice(0, 2);
   }, [currentActionGuide.items]);
-  const currentRouteSegment = useMemo(() => {
-    const base = normalizePath(normalizedBasePath);
-    const current = normalizePath(location.pathname);
-    const replaced = current.startsWith(base) ? current.slice(base.length) : current;
-    return replaced || "/video/setup";
-  }, [location.pathname, normalizedBasePath]);
   const formatOptions = [
     {
       value: "long" as VideoFormat,
@@ -6693,9 +6696,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 : "pt-[clamp(1.5rem,3vw,2.5rem)]"
                 }`}
             >
-              <aside className="hidden lg:block">
-                <div className="sticky top-24 space-y-3">
-                  <div className="rounded-2xl border border-white/10 bg-black/25 p-3">
+              <aside className="hidden lg:flex min-h-full flex-col gap-3">
+                <div className="flex-1 rounded-2xl border border-white/10 bg-black/25 p-3">
                     <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">단계 안내</p>
                     <div className="mt-2 space-y-1.5">
                       {steps.map((step, index) => (
@@ -6713,17 +6715,23 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         </button>
                       ))}
                     </div>
-                  </div>
-                  <div className="rounded-2xl border border-white/10 bg-black/25 p-3">
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">현재 경로</p>
-                    <p className="mt-2 rounded-md border border-white/10 bg-black/25 px-2 py-1.5 text-[11px] text-white/70">
-                      {currentRouteSegment}
-                    </p>
+                </div>
+                <div className="sticky top-24 rounded-2xl border border-white/10 bg-black/25 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">사이드바 광고</p>
+                  <div className="mt-2 overflow-hidden rounded-xl border border-white/10 bg-black/35 p-2">
+                    <ins
+                      className="adsbygoogle block w-full"
+                      style={{ display: "block" }}
+                      data-ad-client="ca-pub-2686975437928535"
+                      data-ad-slot="3538616561"
+                      data-ad-format="auto"
+                      data-full-width-responsive="true"
+                    />
                   </div>
                 </div>
               </aside>
 
-              <div>{renderStepContent()}</div>
+              <div className="min-h-full">{renderStepContent()}</div>
             </div>
 
             <div className="border-t border-white/10 p-[clamp(1.2rem,2.5vw,2rem)]">
