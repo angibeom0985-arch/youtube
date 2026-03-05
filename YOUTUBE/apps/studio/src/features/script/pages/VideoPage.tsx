@@ -6778,7 +6778,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   </div>
                 </div>
               )}
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-center">
                 <button
                   type="button"
                   onClick={handlePrev}
