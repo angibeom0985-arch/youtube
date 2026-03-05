@@ -6573,7 +6573,14 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
               </div>
             </div>
 
-            <div className="p-[clamp(1.5rem,3vw,2.5rem)]">{renderStepContent()}</div>
+            <div
+              className={`px-[clamp(1.5rem,3vw,2.5rem)] pb-[clamp(1.5rem,3vw,2.5rem)] ${activeStep.id === "image"
+                ? "pt-[clamp(0.6rem,1.2vw,0.9rem)]"
+                : "pt-[clamp(1.5rem,3vw,2.5rem)]"
+                }`}
+            >
+              {renderStepContent()}
+            </div>
 
             <div className="border-t border-white/10 p-[clamp(1.2rem,2.5vw,2rem)]">
               <div className="mb-2 overflow-hidden rounded-2xl border border-white/10 bg-black/30 px-2 py-2 sm:px-3">
