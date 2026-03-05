@@ -3378,7 +3378,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       ],
     };
   }, [activeStep.id, scriptSubStep, imageSubStep]);
-  const headerGuideItems = useMemo(() => {
+  const sidebarGuideItems = useMemo(() => {
     const seen = new Set<string>();
     const deduped = currentActionGuide.items.filter((item) => {
       const normalized = String(item || "").replace(/\s+/g, " ").trim();
@@ -3386,7 +3386,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       seen.add(normalized);
       return true;
     });
-    return deduped.slice(0, 2);
+    return deduped;
   }, [currentActionGuide.items]);
   const formatOptions = [
     {
@@ -6680,23 +6680,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
         <div className="mt-[clamp(0.8rem,1.8vw,1.4rem)]">
           <main className="rounded-[clamp(1.2rem,2.5vw,2rem)] border border-white/10 bg-white/5 shadow-[0_18px_40px_rgba(0,0,0,0.6)] backdrop-blur-2xl">
-            <div className="border-b border-white/10 px-[clamp(1.2rem,2.2vw,2rem)] py-[clamp(0.8rem,1.8vw,1.2rem)]">
-              <div className="mx-auto flex max-w-[1100px] justify-end">
-                <div className="flex w-full max-w-[420px] flex-col gap-3">
-                  <div className="px-1 py-1 text-red-100/90">
-                    <p className="text-sm font-semibold">{currentActionGuide.title}</p>
-                    <div className="mt-1 space-y-1">
-                      {headerGuideItems.map((item, idx) => (
-                        <p key={`${activeStep.id}-header-guide-${idx}`} className="text-xs leading-5 text-red-100/90">
-                          {idx + 1}. {item.replace(/`/g, "")}
-                        </p>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
             <div
               className={`grid gap-4 px-[clamp(1rem,2vw,2rem)] pb-[clamp(1.2rem,2.4vw,2rem)] ${isSidebarGuideCollapsed
                 ? "lg:grid-cols-[72px_minmax(0,1fr)]"
@@ -6715,6 +6698,18 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         </p>
                         <p className="mt-1 text-lg font-bold text-white">{activeStep.label}</p>
                         <p className="mt-1 text-xs leading-5 text-red-100/85">{activeStep.description}</p>
+                      </div>
+                    )}
+                    {!isSidebarGuideCollapsed && (
+                      <div className="mb-3 rounded-xl border border-red-400/25 bg-red-500/10 p-3">
+                        <p className="text-xs font-semibold text-red-100/95">{currentActionGuide.title}</p>
+                        <div className="mt-2 space-y-1">
+                          {sidebarGuideItems.map((item, idx) => (
+                            <p key={`${activeStep.id}-sidebar-guide-${idx}`} className="text-[11px] leading-4 text-red-100/85">
+                              {idx + 1}. {item.replace(/`/g, "")}
+                            </p>
+                          ))}
+                        </div>
                       </div>
                     )}
                     <div className="flex items-center justify-between">
