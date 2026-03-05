@@ -6544,12 +6544,14 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   <p className="text-[clamp(0.6rem,1vw,0.75rem)] font-semibold uppercase tracking-[0.3em] text-white/40">
                     STEP {currentStep + 1}
                   </p>
-                  <h2 className="mt-2 text-[clamp(1.6rem,2.6vw,2.2rem)] font-bold text-white">
-                    {activeStep.label}
-                  </h2>
-                  <p className="mt-2 text-[clamp(0.9rem,1.5vw,1.05rem)] text-white/70 text-left">
-                    {activeStep.description}
-                  </p>
+                  <div className="mt-2 flex flex-col gap-1 md:flex-row md:items-end md:gap-4">
+                    <h2 className="text-[clamp(1.6rem,2.6vw,2.2rem)] font-bold text-white">
+                      {activeStep.label}
+                    </h2>
+                    <p className="text-[clamp(0.9rem,1.5vw,1.05rem)] text-white/70 text-left md:pb-1">
+                      {activeStep.description}
+                    </p>
+                  </div>
                 </div>
                 <div className="rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-sm text-white/70">
                   <p className="text-xs uppercase tracking-[0.2em] text-white/40">Progress</p>
