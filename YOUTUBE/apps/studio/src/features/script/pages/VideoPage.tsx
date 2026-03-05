@@ -3360,6 +3360,16 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       ],
     };
   }, [activeStep.id, scriptSubStep, imageSubStep]);
+  const dedupedGuideItems = useMemo(() => {
+    const seen = new Set<string>();
+    return currentActionGuide.items.filter((item) => {
+      const key = String(item || "").replace(/\s+/g, " ").trim();
+      if (!key) return false;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [currentActionGuide.items]);
   const formatOptions = [
     {
       value: "long" as VideoFormat,
@@ -5419,9 +5429,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
               <div className="mb-6 rounded-2xl border border-white/10 bg-black/30 p-6">
                 <h3 className="text-lg font-bold text-white mb-4">이미지 스타일 설정</h3>
                 <div className="mt-8 bg-black/30 border border-white/10 rounded-xl p-[clamp(1rem,2vw,1.4rem)]">
-                  <h3 className="text-red-300 font-medium mb-6 flex items-center text-xl">
-                    이미지 스타일 선택
-                  </h3>
                   {styleReferenceImage && (
                     <p className="mb-4 rounded-lg border border-amber-300/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
                       참조 이미지 사용 중: 인물/배경 스타일 선택은 비활성화됩니다.
@@ -6689,7 +6696,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     {currentActionGuide.title}
                   </p>
                   <div className="space-y-1.5 md:flex-1">
-                    {currentActionGuide.items.map((item, index) => (
+                    {dedupedGuideItems.map((item, index) => (
                       <div key={`${activeStep.id}-guide-${index}`} className="flex items-start gap-2 text-sm text-red-100/90">
                         <span className="mt-[1px] inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-red-200/40 bg-red-500/20 text-xs font-bold text-red-100">
                           {index + 1}
