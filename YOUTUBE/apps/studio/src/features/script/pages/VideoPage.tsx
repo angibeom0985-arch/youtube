@@ -6631,7 +6631,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         <HomeBackButton tone="red" />
       </div>
 
-      <div className="relative mx-auto max-w-[min(1280px,94vw)] px-[clamp(1rem,3vw,2.5rem)] py-[clamp(2rem,4vw,3.8rem)]">
+      <div className="relative mx-auto max-w-[min(1800px,98vw)] px-[clamp(0.8rem,2vw,2rem)] py-[clamp(1.4rem,3vw,3rem)]">
         <div className="flex flex-wrap items-center justify-between gap-3">
         </div>
 
@@ -6688,7 +6688,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
             </div>
 
             <div
-              className={`grid gap-4 px-[clamp(1.5rem,3vw,2.5rem)] pb-[clamp(1.5rem,3vw,2.5rem)] lg:grid-cols-[clamp(220px,18vw,280px)_minmax(0,1fr)_clamp(180px,15vw,240px)] ${activeStep.id === "image"
+              className={`grid gap-4 px-[clamp(1rem,2vw,2rem)] pb-[clamp(1.2rem,2.4vw,2rem)] lg:grid-cols-[clamp(220px,16vw,280px)_minmax(0,1fr)] ${activeStep.id === "image"
                 ? "pt-[clamp(0.6rem,1.2vw,0.9rem)]"
                 : "pt-[clamp(1.5rem,3vw,2.5rem)]"
                 }`}
@@ -6722,45 +6722,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
               </aside>
 
               <div>{renderStepContent()}</div>
-
-              <aside className="hidden lg:block">
-                <div className="sticky top-24 rounded-2xl border border-white/10 bg-black/25 p-3">
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">단계 이동</p>
-                  <div className="mt-2 space-y-1.5">
-                    {steps.map((step, index) => (
-                      <button
-                        key={`right-nav-step-${step.id}`}
-                        type="button"
-                        onClick={() => goToStep(index)}
-                        className={`w-full rounded-md border px-2 py-1.5 text-left text-xs font-semibold ${index === currentStep
-                          ? "border-red-400/60 bg-red-500/15 text-red-100"
-                          : "border-white/15 bg-white/5 text-white/70 hover:border-white/35"
-                          }`}
-                      >
-                        {index + 1}. {step.label}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="mt-2 grid grid-cols-2 gap-1.5">
-                    <button
-                      type="button"
-                      onClick={handlePrev}
-                      disabled={!canGoPrev}
-                      className="rounded-md border border-white/15 bg-white/5 px-2 py-1.5 text-[11px] font-semibold text-white/70 hover:border-white/35 disabled:opacity-40"
-                    >
-                      이전
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleNext}
-                      disabled={!canGoNext}
-                      className="rounded-md border border-white/15 bg-white/5 px-2 py-1.5 text-[11px] font-semibold text-white/70 hover:border-white/35 disabled:opacity-40"
-                    >
-                      다음
-                    </button>
-                  </div>
-                </div>
-              </aside>
             </div>
 
             <div className="border-t border-white/10 p-[clamp(1.2rem,2.5vw,2rem)]">
