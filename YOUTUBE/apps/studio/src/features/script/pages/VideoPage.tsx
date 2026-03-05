@@ -6637,8 +6637,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
             <h1 className="mt-3 whitespace-nowrap text-[clamp(1.9rem,2.8vw,3rem)] font-black text-white">
               올인원 영상 제작 스튜디오
             </h1>
-            <p className="mt-3 text-[clamp(0.95rem,1.6vw,1.1rem)] text-white/70 text-balance">
-              필요한 단계를 쉽게 확인하고, 빠르게 영상 제작 기능을 이어서 사용할 수 있어요.
+            <p className="mt-3 whitespace-nowrap text-[clamp(0.9rem,1.4vw,1rem)] text-white/70">
+              필요한 단계를 빠르게 확인하고 바로 제작을 이어가세요.
             </p>
           </div>
           <div className="grid w-full gap-2.5 text-sm text-white/70 sm:max-w-[700px] sm:grid-cols-3">
