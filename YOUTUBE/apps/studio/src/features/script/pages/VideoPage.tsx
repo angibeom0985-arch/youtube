@@ -2926,12 +2926,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     progressTimerRef.current = interval;
   };
 
-
-
-  const progressLabel = useMemo(() => `${currentStep + 1} / ${steps.length}`, [
-    currentStep,
-  ]);
-
   const SCRIPT_SUBSTEP_COUNT = 4;
   const IMAGE_SUBSTEP_COUNT = 3;
 
@@ -6685,8 +6679,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     </p>
                   </div>
                 </div>
-                <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center lg:w-auto lg:min-w-[620px] lg:justify-end">
-                  <div className="rounded-2xl border border-red-400/25 bg-red-500/10 px-4 py-3 sm:flex-1 lg:max-w-[420px] lg:self-center">
+                <div className="flex w-full flex-col gap-3 lg:w-auto lg:min-w-[440px] lg:justify-end">
+                  <div className="rounded-2xl border border-red-400/25 bg-red-500/10 px-4 py-3 lg:max-w-[420px] lg:self-center">
                     <div className="text-red-100/90">
                       <p className="text-sm font-semibold">
                         {currentActionGuide.title}
@@ -6699,10 +6693,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         ))}
                       </div>
                     </div>
-                  </div>
-                  <div className="rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-sm text-white/70 sm:w-[120px]">
-                    <p className="text-xs uppercase tracking-[0.2em] text-white/40">Progress</p>
-                    <p className="mt-2 text-lg font-semibold text-white">{progressLabel}</p>
                   </div>
                 </div>
               </div>
