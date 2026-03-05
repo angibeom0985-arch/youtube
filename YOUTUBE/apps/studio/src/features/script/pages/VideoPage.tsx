@@ -3364,6 +3364,12 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     });
     return deduped.slice(0, 2);
   }, [currentActionGuide.items]);
+  const currentRouteSegment = useMemo(() => {
+    const base = normalizePath(normalizedBasePath);
+    const current = normalizePath(location.pathname);
+    const replaced = current.startsWith(base) ? current.slice(base.length) : current;
+    return replaced || "/video/setup";
+  }, [location.pathname, normalizedBasePath]);
   const formatOptions = [
     {
       value: "long" as VideoFormat,
@@ -6641,23 +6647,6 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
               필요한 단계를 빠르게 확인하고 바로 제작을 이어가세요.
             </p>
           </div>
-          <div className="grid w-full gap-2.5 text-sm text-white/70 sm:max-w-[700px] sm:grid-cols-3">
-            {steps.map((step, index) => (
-              <button
-                key={step.id}
-                type="button"
-                onClick={() => goToStep(index)}
-                className={`rounded-full border px-5 py-2.5 text-center font-semibold transition-all ${index === currentStep
-                  ? "border-red-400/50 bg-red-500/10 text-red-200"
-                  : index < currentStep
-                    ? "border-green-400/30 bg-green-500/5 text-green-200/70"
-                    : "border-white/10 bg-white/5 text-white/40"
-                  } hover:scale-105 active:scale-95`}
-              >
-                {index + 1}. {step.label}
-              </button>
-            ))}
-          </div>
         </header>
 
         {/* API 키 입력 섹션 제거됨 (마이페이지로 이동) */}
@@ -6699,12 +6688,75 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
             </div>
 
             <div
-              className={`px-[clamp(1.5rem,3vw,2.5rem)] pb-[clamp(1.5rem,3vw,2.5rem)] ${activeStep.id === "image"
+              className={`grid gap-4 px-[clamp(1.5rem,3vw,2.5rem)] pb-[clamp(1.5rem,3vw,2.5rem)] xl:grid-cols-[220px_minmax(0,1fr)_240px] ${activeStep.id === "image"
                 ? "pt-[clamp(0.6rem,1.2vw,0.9rem)]"
                 : "pt-[clamp(1.5rem,3vw,2.5rem)]"
                 }`}
             >
-              {renderStepContent()}
+              <aside className="hidden xl:block">
+                <div className="sticky top-24 space-y-3">
+                  <div className="rounded-2xl border border-white/10 bg-black/25 p-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">단계 이동</p>
+                    <div className="mt-2 space-y-1.5">
+                      {steps.map((step, index) => (
+                        <button
+                          key={`sidebar-step-${step.id}`}
+                          type="button"
+                          onClick={() => goToStep(index)}
+                          className={`w-full rounded-lg border px-2 py-2 text-left text-xs font-semibold transition ${index === currentStep
+                            ? "border-red-400/60 bg-red-500/15 text-red-100"
+                            : "border-white/10 bg-white/5 text-white/65 hover:border-white/30"
+                            }`}
+                        >
+                          {index + 1}. {step.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-black/25 p-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">현재 경로</p>
+                    <p className="mt-2 rounded-md border border-white/10 bg-black/25 px-2 py-1.5 text-[11px] text-white/70">
+                      {currentRouteSegment}
+                    </p>
+                  </div>
+                </div>
+              </aside>
+
+              <div>{renderStepContent()}</div>
+
+              <aside className="hidden xl:block">
+                <div className="sticky top-24 space-y-3">
+                  <div className="rounded-2xl border border-white/10 bg-black/25 p-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">작업 현황</p>
+                    <div className="mt-2 space-y-1.5 text-xs text-white/75">
+                      <p>챕터: {chapterScripts.length}개</p>
+                      <p>페르소나: {personas.length}개</p>
+                      <p>이미지: {Object.keys(chapterImages).length}개</p>
+                      <p>컷: {editorCuts.length}개</p>
+                      <p>렌더: {renderingProgress}%</p>
+                    </div>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-black/25 p-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">빠른 이동</p>
+                    <div className="mt-2 grid grid-cols-2 gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => goToStep(Math.max(0, currentStep - 1))}
+                        className="rounded-md border border-white/15 bg-white/5 px-2 py-1.5 text-[11px] font-semibold text-white/70 hover:border-white/35"
+                      >
+                        이전
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => goToStep(Math.min(steps.length - 1, currentStep + 1))}
+                        className="rounded-md border border-white/15 bg-white/5 px-2 py-1.5 text-[11px] font-semibold text-white/70 hover:border-white/35"
+                      >
+                        다음
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </aside>
             </div>
 
             <div className="border-t border-white/10 p-[clamp(1.2rem,2.5vw,2rem)]">
