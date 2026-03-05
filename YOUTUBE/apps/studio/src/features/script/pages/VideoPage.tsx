@@ -825,6 +825,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [editorSubtitleCues, setEditorSubtitleCues] = useState<SubtitleCue[]>([]);
   const [editorCuts, setEditorCuts] = useState<EditorCut[]>([]);
   const [selectedCutId, setSelectedCutId] = useState<string | null>(null);
+  const [timelineCurrentSec, setTimelineCurrentSec] = useState(0);
+  const [isTimelinePlaying, setIsTimelinePlaying] = useState(false);
   const [videoPrompt, setVideoPrompt] = useState("");
   const [isGeneratingVideo, setIsGeneratingVideo] = useState(false);
   const [generatedVideoUrl, setGeneratedVideoUrl] = useState("");
@@ -835,6 +837,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [videoUrl, setVideoUrl] = useState("");
 
   const progressTimerRef = useRef<number | null>(null);
+  const timelineTimerRef = useRef<number | null>(null);
+  const timelineCurrentRef = useRef(0);
+  const timelineAudioRef = useRef<HTMLAudioElement | null>(null);
   const stopBatchGenerationRef = useRef(false);
   const autoAnalyzeKeyRef = useRef("");
   const refreshIdeasRequestIdRef = useRef(0);
@@ -1738,6 +1743,91 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")},${String(millis).padStart(3, "0")}`;
   };
 
+  const totalEditorDurationSec = useMemo(
+    () =>
+      Math.max(
+        1,
+        Number(renderDuration || 0),
+        editorAudioDurationSec,
+        ...editorCuts.map((cut) => cut.endSec),
+        ...editorSubtitleCues.map((cue) => cue.endSec)
+      ),
+    [renderDuration, editorAudioDurationSec, editorCuts, editorSubtitleCues]
+  );
+
+  const clearTimelineTimer = useCallback(() => {
+    if (timelineTimerRef.current !== null) {
+      window.clearInterval(timelineTimerRef.current);
+      timelineTimerRef.current = null;
+    }
+  }, []);
+
+  const seekTimeline = useCallback(
+    (nextSec: number) => {
+      const clamped = Math.max(0, Math.min(totalEditorDurationSec, Number(nextSec || 0)));
+      setTimelineCurrentSec(clamped);
+      timelineCurrentRef.current = clamped;
+      if (timelineAudioRef.current) {
+        timelineAudioRef.current.currentTime = clamped;
+      }
+    },
+    [totalEditorDurationSec]
+  );
+
+  const pauseTimeline = useCallback(() => {
+    clearTimelineTimer();
+    if (timelineAudioRef.current) {
+      timelineAudioRef.current.pause();
+    }
+    setIsTimelinePlaying(false);
+  }, [clearTimelineTimer]);
+
+  const playTimeline = useCallback(() => {
+    if (timelineCurrentRef.current >= totalEditorDurationSec) {
+      seekTimeline(0);
+    }
+
+    if (timelineAudioRef.current && editorAudioUrl) {
+      const audio = timelineAudioRef.current;
+      audio.currentTime = timelineCurrentRef.current;
+      void audio.play().catch(() => {
+        setIsTimelinePlaying(false);
+      });
+      setIsTimelinePlaying(true);
+      clearTimelineTimer();
+      timelineTimerRef.current = window.setInterval(() => {
+        const next = audio.currentTime;
+        setTimelineCurrentSec(next);
+        timelineCurrentRef.current = next;
+        if (next >= totalEditorDurationSec || audio.ended) {
+          pauseTimeline();
+        }
+      }, 80);
+      return;
+    }
+
+    setIsTimelinePlaying(true);
+    clearTimelineTimer();
+    timelineTimerRef.current = window.setInterval(() => {
+      const next = timelineCurrentRef.current + 0.1;
+      if (next >= totalEditorDurationSec) {
+        seekTimeline(totalEditorDurationSec);
+        pauseTimeline();
+        return;
+      }
+      setTimelineCurrentSec(next);
+      timelineCurrentRef.current = next;
+    }, 100);
+  }, [clearTimelineTimer, editorAudioUrl, pauseTimeline, seekTimeline, totalEditorDurationSec]);
+
+  const toggleTimelinePlayback = useCallback(() => {
+    if (isTimelinePlaying) {
+      pauseTimeline();
+    } else {
+      playTimeline();
+    }
+  }, [isTimelinePlaying, pauseTimeline, playTimeline]);
+
   const buildSubtitleLines = (): string[] => {
     const chapterLines = chapterScripts
       .flatMap((chapter) =>
@@ -2047,6 +2137,24 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     setTtsSamples((prev) => [newSample, ...prev].slice(0, 3));
     setRenderingStatus("AI 음성 출력을 준비했습니다.");
   };
+
+  useEffect(() => {
+    timelineCurrentRef.current = timelineCurrentSec;
+  }, [timelineCurrentSec]);
+
+  useEffect(() => {
+    if (timelineCurrentSec > totalEditorDurationSec) {
+      seekTimeline(totalEditorDurationSec);
+    }
+  }, [timelineCurrentSec, totalEditorDurationSec, seekTimeline]);
+
+  useEffect(() => {
+    return () => {
+      if (timelineTimerRef.current !== null) {
+        window.clearInterval(timelineTimerRef.current);
+      }
+    };
+  }, []);
 
   const voiceStyleMap: Record<string, { rate: number; pitch: number }> = useMemo(
     () =>
@@ -5528,24 +5636,44 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         );
       }
       case "render": {
-        const timelineDurationSeconds = Math.max(60, Number(renderDuration || 0));
-        const totalEditorDuration = Math.max(
-          timelineDurationSeconds,
-          editorAudioDurationSec,
-          ...editorCuts.map((cut) => cut.endSec)
-        );
+        const timelineCuts: EditorCut[] =
+          editorCuts.length > 0
+            ? editorCuts
+            : allCuts.map((cut) => ({
+              id: `plan-cut-${cut.globalCutIndex + 1}`,
+              startSec: cut.secondsFrom,
+              endSec: cut.secondsTo,
+              imageUrl: normalizeGeneratedImageSrc(chapterImages[cut.imageKey]) || "",
+              caption: cut.content || `컷 ${cut.globalCutIndex + 1}`,
+            }));
+        const totalEditorDuration = totalEditorDurationSec;
         const selectedCut =
-          editorCuts.find((cut) => cut.id === selectedCutId) ||
-          editorCuts[0] ||
+          timelineCuts.find((cut) => cut.id === selectedCutId) ||
+          timelineCuts[0] ||
           null;
-        const frameDensity = Math.min(42, Math.max(18, (editorCuts.length || timelineScenes.length) * 6));
-        const fakeFrames = Array.from({ length: frameDensity }, (_, idx) => {
-          const scene = editorCuts[idx % Math.max(1, editorCuts.length)] || timelineScenes[idx % Math.max(1, timelineScenes.length)];
-          return {
-            id: idx,
-            label: ("caption" in (scene || {}) ? (scene as any).caption : (scene as any)?.label) || `컷 ${idx + 1}`,
-          };
-        });
+        const activeCutByPlayhead =
+          timelineCuts.find(
+            (cut) => timelineCurrentSec >= cut.startSec && timelineCurrentSec < cut.endSec
+          ) || null;
+        const previewCut = activeCutByPlayhead || selectedCut;
+        const timelineWidthPx = Math.max(980, Math.ceil(totalEditorDuration * 56));
+        const majorTickSec = totalEditorDuration <= 90 ? 5 : 10;
+        const tickCount = Math.floor(totalEditorDuration / majorTickSec) + 1;
+        const playheadPercent = Math.max(
+          0,
+          Math.min(100, (timelineCurrentSec / Math.max(totalEditorDuration, 0.001)) * 100)
+        );
+        const formatTimelineClock = (seconds: number) => {
+          const safe = Math.max(0, Math.floor(seconds));
+          const minutes = Math.floor(safe / 60);
+          const remain = safe % 60;
+          return `${String(minutes).padStart(2, "0")}:${String(remain).padStart(2, "0")}`;
+        };
+        const handleTimelineSeek = (event: React.MouseEvent<HTMLDivElement>) => {
+          const rect = event.currentTarget.getBoundingClientRect();
+          const ratio = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+          seekTimeline(ratio * totalEditorDuration);
+        };
 
         return (
           <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
@@ -5629,7 +5757,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 px-4 py-3">
                     <div>
                       <p className="text-xs uppercase tracking-[0.16em] text-slate-400">영상 편집</p>
-                      <h4 className="text-lg font-bold text-white">{selectedCut?.caption || "타임라인 미리보기"}</h4>
+                      <h4 className="text-lg font-bold text-white">
+                        {previewCut?.caption || "타임라인 미리보기"}
+                      </h4>
                     </div>
                     <span className="rounded-full border border-slate-600 bg-slate-800/60 px-3 py-1 text-xs font-semibold text-slate-200">
                       진행도 {renderingProgress}%
@@ -5640,8 +5770,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     <div className="relative overflow-hidden rounded-2xl border border-slate-700 bg-black">
                       <div className="absolute left-3 top-3 z-10 rounded-md bg-black/70 px-2 py-1 text-xs text-white">1.00x</div>
                       <div className="aspect-video w-full bg-gradient-to-br from-slate-800 via-slate-900 to-black">
-                        {selectedCut?.imageUrl ? (
-                          <img src={selectedCut.imageUrl} alt="선택 컷" className="h-full w-full object-contain" />
+                        {previewCut?.imageUrl ? (
+                          <img src={previewCut.imageUrl} alt="선택 컷" className="h-full w-full object-contain" />
                         ) : videoUrl ? (
                           <video src={videoUrl} controls className="h-full w-full object-contain" />
                         ) : (
@@ -5657,63 +5787,175 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   </div>
 
                   <div className="border-t border-slate-800 px-4 py-3">
-                    <div className="flex items-center justify-center gap-4 text-slate-200">
-                      <button className="rounded-full border border-slate-600 p-2 hover:border-slate-400"><FiPlay className="h-4 w-4" /></button>
-                      <button className="rounded-full border border-slate-600 p-2 hover:border-slate-400"><FiPause className="h-4 w-4" /></button>
-                      <span className="text-xs text-slate-400">00:00 / {Math.floor(totalEditorDuration / 60).toString().padStart(2, "0")}:{Math.floor(totalEditorDuration % 60).toString().padStart(2, "0")}</span>
+                    <div className="flex items-center justify-center gap-3 text-slate-200">
+                      <button
+                        type="button"
+                        onClick={() => seekTimeline(0)}
+                        className="rounded-full border border-slate-600 p-2 hover:border-slate-400"
+                        title="처음으로"
+                      >
+                        <FiChevronLeft className="h-4 w-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={toggleTimelinePlayback}
+                        className="rounded-full border border-slate-600 p-2 hover:border-slate-400"
+                        title={isTimelinePlaying ? "일시정지" : "재생"}
+                      >
+                        {isTimelinePlaying ? (
+                          <FiPause className="h-4 w-4" />
+                        ) : (
+                          <FiPlay className="h-4 w-4" />
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => seekTimeline(totalEditorDuration)}
+                        className="rounded-full border border-slate-600 p-2 hover:border-slate-400"
+                        title="끝으로"
+                      >
+                        <FiChevronRight className="h-4 w-4" />
+                      </button>
+                      <span className="text-xs text-slate-300">
+                        {formatTimelineClock(timelineCurrentSec)} / {formatTimelineClock(totalEditorDuration)}
+                      </span>
                     </div>
+                    <input
+                      type="range"
+                      min={0}
+                      max={Math.max(0.001, totalEditorDuration)}
+                      step={0.01}
+                      value={Math.min(timelineCurrentSec, totalEditorDuration)}
+                      onChange={(event) => seekTimeline(Number(event.target.value))}
+                      className="mt-3 w-full accent-cyan-400"
+                    />
                   </div>
 
                   <div className="mt-auto border-t border-slate-800 bg-[#070d16] p-4">
                     <div className="mb-2 flex items-center justify-between text-xs text-slate-400">
                       <span>타임라인</span>
-                      <span>{editorCuts.length || timelineScenes.length} Scene</span>
+                      <span>{timelineCuts.length || timelineScenes.length} Scene</span>
                     </div>
                     <div className="relative overflow-x-auto rounded-xl border border-slate-700 bg-[#0d1524] p-2">
-                      <div className="flex min-w-[960px] gap-1.5">
-                        {fakeFrames.map((frame) => (
-                          <button
-                            key={frame.id}
-                            className={`h-14 min-w-[60px] rounded border px-1 text-[10px] font-medium transition ${frame.id === 0
-                              ? "border-amber-300 bg-amber-400/20 text-amber-100"
-                              : "border-slate-700 bg-slate-800/70 text-slate-300 hover:border-slate-500"
-                              }`}
-                            title={frame.label}
-                          >
-                            {frame.id + 1}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {editorCuts.length > 0 && (
-                      <div className="mt-3 space-y-2 rounded-xl border border-slate-700 bg-[#0e1728] p-3">
-                        <div className="text-[11px] uppercase tracking-[0.14em] text-slate-400">컷 트랙</div>
-                        <div className="relative h-6 rounded bg-slate-800/70">
-                          {editorCuts.map((cut) => {
-                            const left = (cut.startSec / totalEditorDuration) * 100;
-                            const width = ((cut.endSec - cut.startSec) / totalEditorDuration) * 100;
+                      <div className="relative" style={{ width: `${timelineWidthPx}px` }}>
+                        <div className="relative mb-2 h-6 rounded border border-slate-700 bg-[#0c1321]">
+                          {Array.from({ length: tickCount }).map((_, idx) => {
+                            const sec = idx * majorTickSec;
+                            const left = (sec / Math.max(totalEditorDuration, 0.001)) * 100;
                             return (
-                              <button
-                                key={cut.id}
-                                type="button"
-                                onClick={() => setSelectedCutId(cut.id)}
-                                className={`absolute top-0 h-full rounded border ${selectedCutId === cut.id ? "border-amber-300 bg-amber-400/30" : "border-cyan-300/50 bg-cyan-500/20"}`}
-                                style={{ left: `${left}%`, width: `${Math.max(width, 2)}%` }}
-                                title={`${cut.caption} (${cut.startSec.toFixed(2)}s ~ ${cut.endSec.toFixed(2)}s)`}
-                              />
+                              <div
+                                key={`tick-${sec}`}
+                                className="absolute top-0 h-full border-l border-slate-600/70"
+                                style={{ left: `${left}%` }}
+                              >
+                                <span className="absolute left-1 top-0.5 text-[10px] text-slate-400">
+                                  {formatTimelineClock(sec)}
+                                </span>
+                              </div>
                             );
                           })}
                         </div>
+
+                        <div className="relative space-y-2">
+                          <div
+                            className="relative h-10 cursor-pointer rounded border border-slate-700 bg-slate-800/40"
+                            onClick={handleTimelineSeek}
+                            title="비디오 트랙"
+                          >
+                            <span className="absolute left-2 top-1 text-[10px] uppercase tracking-[0.1em] text-slate-400">VIDEO</span>
+                            {timelineCuts.map((cut) => {
+                              const left = (cut.startSec / Math.max(totalEditorDuration, 0.001)) * 100;
+                              const width =
+                                ((cut.endSec - cut.startSec) / Math.max(totalEditorDuration, 0.001)) * 100;
+                              return (
+                                <button
+                                  key={cut.id}
+                                  type="button"
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    setSelectedCutId(cut.id);
+                                    seekTimeline(cut.startSec);
+                                  }}
+                                  className={`absolute top-[18px] h-[18px] rounded border text-[10px] ${selectedCutId === cut.id
+                                    ? "border-amber-300 bg-amber-400/35 text-amber-100"
+                                    : "border-cyan-300/50 bg-cyan-500/20 text-cyan-100"
+                                    }`}
+                                  style={{ left: `${left}%`, width: `${Math.max(width, 1.2)}%` }}
+                                  title={`${cut.caption} (${cut.startSec.toFixed(2)}s ~ ${cut.endSec.toFixed(2)}s)`}
+                                />
+                              );
+                            })}
+                          </div>
+
+                          <div
+                            className="relative h-10 cursor-pointer rounded border border-slate-700 bg-slate-800/40"
+                            onClick={handleTimelineSeek}
+                            title="오디오 트랙"
+                          >
+                            <span className="absolute left-2 top-1 text-[10px] uppercase tracking-[0.1em] text-slate-400">AUDIO</span>
+                            {editorAudioUrl ? (
+                              <div
+                                className="absolute top-[18px] h-[14px] rounded bg-indigo-400/50"
+                                style={{
+                                  left: "0%",
+                                  width: `${Math.min(
+                                    100,
+                                    (editorAudioDurationSec / Math.max(totalEditorDuration, 0.001)) * 100
+                                  )}%`,
+                                }}
+                              />
+                            ) : (
+                              <div className="absolute left-2 top-[18px] text-[10px] text-slate-500">
+                                MP3를 업로드하면 오디오 클립이 표시됩니다.
+                              </div>
+                            )}
+                          </div>
+
+                          <div
+                            className="relative h-10 cursor-pointer rounded border border-slate-700 bg-slate-800/40"
+                            onClick={handleTimelineSeek}
+                            title="자막 트랙"
+                          >
+                            <span className="absolute left-2 top-1 text-[10px] uppercase tracking-[0.1em] text-slate-400">SUBTITLE</span>
+                            {editorSubtitleCues.map((cue) => {
+                              const left = (cue.startSec / Math.max(totalEditorDuration, 0.001)) * 100;
+                              const width =
+                                ((cue.endSec - cue.startSec) / Math.max(totalEditorDuration, 0.001)) * 100;
+                              return (
+                                <button
+                                  key={cue.id}
+                                  type="button"
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    seekTimeline(cue.startSec);
+                                  }}
+                                  className="absolute top-[18px] h-[14px] rounded border border-emerald-300/50 bg-emerald-500/20 px-1 text-[9px] text-emerald-100"
+                                  style={{ left: `${left}%`, width: `${Math.max(width, 1.1)}%` }}
+                                  title={`${cue.text} (${cue.startSec.toFixed(2)}s ~ ${cue.endSec.toFixed(2)}s)`}
+                                />
+                              );
+                            })}
+                          </div>
+
+                          <div
+                            className="pointer-events-none absolute top-0 h-full border-l-2 border-amber-300"
+                            style={{ left: `${playheadPercent}%` }}
+                          />
+                        </div>
+
                         {editorAudioUrl && (
-                          <>
-                            <div className="text-[11px] uppercase tracking-[0.14em] text-slate-400">오디오 트랙</div>
-                            <div className="h-3 rounded bg-slate-800/70">
-                              <div className="h-full rounded bg-indigo-400/50" style={{ width: `${Math.min(100, (editorAudioDurationSec / totalEditorDuration) * 100)}%` }} />
-                            </div>
-                            <audio src={editorAudioUrl} controls className="w-full" />
-                          </>
+                          <audio ref={timelineAudioRef} src={editorAudioUrl} preload="auto" className="hidden" />
                         )}
+                      </div>
+                    </div>
+
+                    {timelineCuts.length > 0 && (
+                      <div className="mt-3 space-y-2 rounded-xl border border-slate-700 bg-[#0e1728] p-3">
+                        <div className="text-[11px] uppercase tracking-[0.14em] text-slate-400">선택 클립 정보</div>
+                        <p className="text-xs text-slate-200">
+                          {previewCut ? `${previewCut.caption} (${previewCut.startSec.toFixed(2)}s ~ ${previewCut.endSec.toFixed(2)}s)` : "클립을 선택하세요."}
+                        </p>
+                        {editorAudioUrl && <audio src={editorAudioUrl} controls className="w-full" />}
                       </div>
                     )}
 
