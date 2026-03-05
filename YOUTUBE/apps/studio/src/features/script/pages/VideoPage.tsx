@@ -874,6 +874,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const timelineVideoTrackRef = useRef<HTMLDivElement | null>(null);
   const timelineAutoPopulateRef = useRef(false);
   const imageStepProgressTimerRef = useRef<number | null>(null);
+  const lastRoutePathRef = useRef("");
   const stopBatchGenerationRef = useRef(false);
   const autoAnalyzeKeyRef = useRef("");
   const refreshIdeasRequestIdRef = useRef(0);
@@ -2931,27 +2932,66 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     currentStep,
   ]);
 
+  const SCRIPT_SUBSTEP_COUNT = 4;
+  const IMAGE_SUBSTEP_COUNT = 3;
+
   const stepPaths = useMemo(
     () => [
       `${normalizedBasePath}/video/setup`,
-      `${normalizedBasePath}/video/script`,
+      `${normalizedBasePath}/video/script/1`,
       `${normalizedBasePath}/video/tts`,
-      `${normalizedBasePath}/video/image`,
+      `${normalizedBasePath}/video/image/1`,
       `${normalizedBasePath}/video/generate`,
       `${normalizedBasePath}/video/render`,
     ],
     [normalizedBasePath]
   );
+
+  const buildStepPath = useCallback(
+    (stepIndex: number, options?: { scriptSubStep?: number; imageSubStep?: number }) => {
+      if (stepIndex === 1) {
+        const raw = options?.scriptSubStep ?? 0;
+        const clamped = Math.min(Math.max(raw, 0), SCRIPT_SUBSTEP_COUNT - 1);
+        return `${normalizedBasePath}/video/script/${clamped + 1}`;
+      }
+      if (stepIndex === 3) {
+        const raw = options?.imageSubStep ?? 0;
+        const clamped = Math.min(Math.max(raw, 0), IMAGE_SUBSTEP_COUNT - 1);
+        return `${normalizedBasePath}/video/image/${clamped + 1}`;
+      }
+      return stepPaths[Math.min(Math.max(stepIndex, 0), stepPaths.length - 1)];
+    },
+    [normalizedBasePath, stepPaths]
+  );
+
   const normalizePath = (path: string) =>
     path !== "/" && path.endsWith("/") ? path.slice(0, -1) : path;
-  const getStepIndexFromPath = (path: string) => {
+  const parseStepStateFromPath = (
+    path: string
+  ): { stepIndex: number; scriptSubStep?: number; imageSubStep?: number } | null => {
     const normalized = normalizePath(path);
     const legacyPersonaPath = normalizePath(`${normalizedBasePath}/video/persona`);
     if (normalized === legacyPersonaPath) {
-      return stepPaths.indexOf(normalizePath(`${normalizedBasePath}/video/image`));
+      return { stepIndex: 3, imageSubStep: 0 };
     }
+
+    const scriptMatch = normalized.match(new RegExp(`${normalizePath(`${normalizedBasePath}/video/script`)}(?:/(\\d+))?$`));
+    if (scriptMatch) {
+      const parsed = Number.parseInt(scriptMatch[1] || "1", 10);
+      const sub = Number.isFinite(parsed) ? parsed - 1 : 0;
+      return { stepIndex: 1, scriptSubStep: Math.min(Math.max(sub, 0), SCRIPT_SUBSTEP_COUNT - 1) };
+    }
+
+    const imageMatch = normalized.match(new RegExp(`${normalizePath(`${normalizedBasePath}/video/image`)}(?:/(\\d+))?$`));
+    if (imageMatch) {
+      const parsed = Number.parseInt(imageMatch[1] || "1", 10);
+      const sub = Number.isFinite(parsed) ? parsed - 1 : 0;
+      return { stepIndex: 3, imageSubStep: Math.min(Math.max(sub, 0), IMAGE_SUBSTEP_COUNT - 1) };
+    }
+
     const index = stepPaths.indexOf(normalized);
-    return index >= 0 ? index : null;
+    if (index >= 0) return { stepIndex: index };
+    return null;
   };
   const getStoredStepIndex = () => {
     const stored = getStoredString(STORAGE_KEYS.step, "0");
@@ -2962,8 +3002,13 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   };
   const goToStep = (index: number, replace = false) => {
     const safeIndex = Math.min(Math.max(index, 0), steps.length - 1);
+    if (safeIndex === 1) setScriptSubStep(0);
+    if (safeIndex === 3) setImageSubStep(0);
     setCurrentStep(safeIndex);
-    const targetPath = stepPaths[safeIndex];
+    const targetPath = buildStepPath(safeIndex, {
+      scriptSubStep: safeIndex === 1 ? 0 : scriptSubStep,
+      imageSubStep: safeIndex === 3 ? 0 : imageSubStep,
+    });
     if (normalizePath(location.pathname) !== targetPath) {
       navigate(targetPath, { replace });
     }
@@ -2973,13 +3018,14 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
   useEffect(() => {
     const normalizedPath = normalizePath(location.pathname);
-    const pathIndex = getStepIndexFromPath(normalizedPath);
+    const pathState = parseStepStateFromPath(normalizedPath);
     const storedIndex = getStoredStepIndex();
+    const isPathChanged = lastRoutePathRef.current !== normalizedPath;
 
     console.log('[VideoPage] URL 라우팅:', {
       pathname: location.pathname,
       normalizedPath,
-      pathIndex,
+      pathState,
       storedIndex,
       currentStep,
       stepPaths
@@ -2988,23 +3034,55 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
     // /video 경로는 저장된 step이 있으면 그걸 사용하고, 없으면 /video/setup으로
     const isBaseVideoPath = normalizedPath === `${normalizedBasePath}/video` || normalizedPath === normalizedBasePath + '/video';
     const shouldUseStored = isBaseVideoPath && storedIndex !== 0;
-    const nextIndex = shouldUseStored ? storedIndex : (pathIndex ?? (isBaseVideoPath ? 0 : storedIndex));
+    const nextIndex = shouldUseStored
+      ? storedIndex
+      : (pathState?.stepIndex ?? (isBaseVideoPath ? 0 : storedIndex));
 
     console.log('[VideoPage] Step 결정:', {
       isBaseVideoPath,
       shouldUseStored,
       nextIndex,
-      willNavigate: normalizedPath !== stepPaths[nextIndex]
+      willNavigate: normalizedPath !== buildStepPath(nextIndex, {
+        scriptSubStep: isPathChanged && pathState?.scriptSubStep !== undefined ? pathState.scriptSubStep : scriptSubStep,
+        imageSubStep: isPathChanged && pathState?.imageSubStep !== undefined ? pathState.imageSubStep : imageSubStep,
+      })
     });
 
     if (nextIndex !== currentStep) {
       setCurrentStep(nextIndex);
     }
-    const targetPath = stepPaths[nextIndex];
+    if (
+      isPathChanged &&
+      pathState?.scriptSubStep !== undefined &&
+      pathState.scriptSubStep !== scriptSubStep
+    ) {
+      setScriptSubStep(pathState.scriptSubStep);
+    }
+    if (
+      isPathChanged &&
+      pathState?.imageSubStep !== undefined &&
+      pathState.imageSubStep !== imageSubStep
+    ) {
+      setImageSubStep(pathState.imageSubStep);
+    }
+    const targetPath = buildStepPath(nextIndex, {
+      scriptSubStep: isPathChanged && pathState?.scriptSubStep !== undefined ? pathState.scriptSubStep : scriptSubStep,
+      imageSubStep: isPathChanged && pathState?.imageSubStep !== undefined ? pathState.imageSubStep : imageSubStep,
+    });
     if (normalizedPath !== targetPath) {
       navigate(targetPath, { replace: true });
     }
-  }, [location.pathname, navigate, stepPaths, normalizedBasePath, currentStep]);
+    lastRoutePathRef.current = normalizePath(targetPath);
+  }, [
+    location.pathname,
+    navigate,
+    stepPaths,
+    normalizedBasePath,
+    currentStep,
+    buildStepPath,
+    scriptSubStep,
+    imageSubStep,
+  ]);
 
   const canGoPrev =
     currentStep > 0 ||
