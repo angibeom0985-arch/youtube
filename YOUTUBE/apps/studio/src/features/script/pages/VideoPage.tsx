@@ -6669,11 +6669,11 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                   <p className="text-[clamp(0.6rem,1vw,0.75rem)] font-semibold uppercase tracking-[0.3em] text-white/40">
                     STEP {currentStep + 1}
                   </p>
-                  <div className="mt-2 flex flex-col gap-1 md:flex-row md:items-end md:gap-4">
+                  <div className="mt-2">
                     <h2 className="text-[clamp(1.6rem,2.6vw,2.2rem)] font-bold text-white">
                       {activeStep.label}
                     </h2>
-                    <p className="text-[clamp(0.9rem,1.5vw,1.05rem)] text-white/70 text-left md:pb-1">
+                    <p className="mt-1 text-[clamp(0.9rem,1.5vw,1.05rem)] text-white/70 text-left">
                       {activeStep.description}
                     </p>
                   </div>
@@ -6684,18 +6684,20 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 </div>
               </div>
               <div className="mt-4 rounded-2xl border border-red-400/25 bg-red-500/10 px-4 py-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-red-200/80">
-                  {currentActionGuide.title}
-                </p>
-                <div className="mt-2 space-y-1.5">
-                  {currentActionGuide.items.map((item, index) => (
-                    <div key={`${activeStep.id}-guide-${index}`} className="flex items-start gap-2 text-sm text-red-100/90">
-                      <span className="mt-[1px] inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-red-200/40 bg-red-500/20 text-xs font-bold text-red-100">
-                        {index + 1}
-                      </span>
-                      <span>{item.replace(/`/g, "")}</span>
-                    </div>
-                  ))}
+                <div className={`flex gap-3 ${activeStep.id === "image" ? "flex-col md:flex-row md:items-start" : "flex-col"}`}>
+                  <p className={`text-xs font-semibold uppercase tracking-[0.2em] text-red-200/80 ${activeStep.id === "image" ? "md:min-w-[140px] md:pt-1" : ""}`}>
+                    {currentActionGuide.title}
+                  </p>
+                  <div className={`${activeStep.id === "image" ? "md:flex-1" : ""} space-y-1.5`}>
+                    {currentActionGuide.items.map((item, index) => (
+                      <div key={`${activeStep.id}-guide-${index}`} className="flex items-start gap-2 text-sm text-red-100/90">
+                        <span className="mt-[1px] inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-red-200/40 bg-red-500/20 text-xs font-bold text-red-100">
+                          {index + 1}
+                        </span>
+                        <span>{item.replace(/`/g, "")}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
