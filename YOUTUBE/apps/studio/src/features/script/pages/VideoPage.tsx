@@ -6684,11 +6684,11 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                 </div>
               </div>
               <div className="mt-4 rounded-2xl border border-red-400/25 bg-red-500/10 px-4 py-3">
-                <div className={`flex gap-3 ${activeStep.id === "image" ? "flex-col md:flex-row md:items-start" : "flex-col"}`}>
-                  <p className={`text-xs font-semibold uppercase tracking-[0.2em] text-red-200/80 ${activeStep.id === "image" ? "md:min-w-[140px] md:pt-1" : ""}`}>
+                <div className="flex flex-col gap-3 md:flex-row md:items-start">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-red-200/80 md:min-w-[140px] md:pt-1">
                     {currentActionGuide.title}
                   </p>
-                  <div className={`${activeStep.id === "image" ? "md:flex-1" : ""} space-y-1.5`}>
+                  <div className="space-y-1.5 md:flex-1">
                     {currentActionGuide.items.map((item, index) => (
                       <div key={`${activeStep.id}-guide-${index}`} className="flex items-start gap-2 text-sm text-red-100/90">
                         <span className="mt-[1px] inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-red-200/40 bg-red-500/20 text-xs font-bold text-red-100">
