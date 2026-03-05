@@ -203,6 +203,17 @@ type EditorCut = {
   caption: string;
 };
 
+type TimelineDragMode = "move" | "trimStart" | "trimEnd";
+type TimelineDragState = {
+  cutId: string;
+  mode: TimelineDragMode;
+  pointerStartX: number;
+  trackWidthPx: number;
+  totalDurationSec: number;
+  baseStartSec: number;
+  baseEndSec: number;
+};
+
 const getCloudVoiceFeature = (suffix: string): string => {
   const key = String(suffix || "").toUpperCase();
   return key === "A"
@@ -826,6 +837,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const [editorSubtitleCues, setEditorSubtitleCues] = useState<SubtitleCue[]>([]);
   const [editorCuts, setEditorCuts] = useState<EditorCut[]>([]);
   const [selectedCutId, setSelectedCutId] = useState<string | null>(null);
+  const [timelineDragState, setTimelineDragState] = useState<TimelineDragState | null>(null);
   const [timelineCurrentSec, setTimelineCurrentSec] = useState(0);
   const [isTimelinePlaying, setIsTimelinePlaying] = useState(false);
   const [videoPrompt, setVideoPrompt] = useState("");
@@ -841,6 +853,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
   const timelineTimerRef = useRef<number | null>(null);
   const timelineCurrentRef = useRef(0);
   const timelineAudioRef = useRef<HTMLAudioElement | null>(null);
+  const timelineVideoTrackRef = useRef<HTMLDivElement | null>(null);
   const stopBatchGenerationRef = useRef(false);
   const autoAnalyzeKeyRef = useRef("");
   const refreshIdeasRequestIdRef = useRef(0);
@@ -2199,6 +2212,97 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
       return [...prev.slice(0, idx), first, second, ...prev.slice(idx + 1)];
     });
   };
+
+  const ensureEditorCutsForTimelineEdit = useCallback((): EditorCut[] => {
+    if (editorCuts.length > 0) return editorCuts;
+    const seeded = allCuts.map((cut) => ({
+      id: `plan-cut-${cut.globalCutIndex + 1}`,
+      startSec: cut.secondsFrom,
+      endSec: cut.secondsTo,
+      imageUrl: normalizeGeneratedImageSrc(chapterImages[cut.imageKey]) || "",
+      caption: cut.content || `컷 ${cut.globalCutIndex + 1}`,
+    }));
+    if (seeded.length > 0) {
+      setEditorCuts(seeded);
+      setSelectedCutId((prev) => prev || seeded[0].id);
+    }
+    return seeded;
+  }, [editorCuts, allCuts, chapterImages]);
+
+  const beginTimelineCutDrag = useCallback(
+    (event: React.MouseEvent, cutId: string, mode: TimelineDragMode, totalDurationSec: number) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const trackEl = timelineVideoTrackRef.current;
+      if (!trackEl) return;
+
+      const editableCuts = ensureEditorCutsForTimelineEdit();
+      const target = editableCuts.find((cut) => cut.id === cutId);
+      if (!target) return;
+
+      const trackWidthPx = trackEl.getBoundingClientRect().width;
+      if (!Number.isFinite(trackWidthPx) || trackWidthPx <= 0) return;
+
+      setSelectedCutId(cutId);
+      setTimelineDragState({
+        cutId,
+        mode,
+        pointerStartX: event.clientX,
+        trackWidthPx,
+        totalDurationSec: Math.max(0.001, totalDurationSec),
+        baseStartSec: target.startSec,
+        baseEndSec: target.endSec,
+      });
+    },
+    [ensureEditorCutsForTimelineEdit]
+  );
+
+  useEffect(() => {
+    if (!timelineDragState) return;
+    const minDurationSec = 0.2;
+
+    const handleMouseMove = (event: MouseEvent) => {
+      const deltaRatio = (event.clientX - timelineDragState.pointerStartX) / Math.max(1, timelineDragState.trackWidthPx);
+      const deltaSec = deltaRatio * timelineDragState.totalDurationSec;
+
+      setEditorCuts((prev) =>
+        prev.map((cut) => {
+          if (cut.id !== timelineDragState.cutId) return cut;
+          const baseStart = timelineDragState.baseStartSec;
+          const baseEnd = timelineDragState.baseEndSec;
+          const baseDuration = Math.max(minDurationSec, baseEnd - baseStart);
+
+          if (timelineDragState.mode === "move") {
+            const nextStart = Math.max(0, Math.min(baseStart + deltaSec, timelineDragState.totalDurationSec - baseDuration));
+            return {
+              ...cut,
+              startSec: Number(nextStart.toFixed(3)),
+              endSec: Number((nextStart + baseDuration).toFixed(3)),
+            };
+          }
+
+          if (timelineDragState.mode === "trimStart") {
+            const nextStart = Math.max(0, Math.min(baseStart + deltaSec, baseEnd - minDurationSec));
+            return { ...cut, startSec: Number(nextStart.toFixed(3)) };
+          }
+
+          const nextEnd = Math.max(baseStart + minDurationSec, Math.min(baseEnd + deltaSec, timelineDragState.totalDurationSec));
+          return { ...cut, endSec: Number(nextEnd.toFixed(3)) };
+        })
+      );
+    };
+
+    const handleMouseUp = () => {
+      setTimelineDragState(null);
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [timelineDragState]);
 
   const handleGenerateTts = () => {
     if (!ttsScript.trim()) {
@@ -5958,7 +6062,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
                         <div className="relative space-y-2">
                           <div
-                            className="relative h-10 cursor-pointer rounded border border-slate-700 bg-slate-800/40"
+                            ref={timelineVideoTrackRef}
+                            className={`relative h-10 cursor-pointer rounded border border-slate-700 bg-slate-800/40 ${timelineDragState ? "select-none" : ""}`}
                             onClick={handleTimelineSeek}
                             title="비디오 트랙"
                           >
@@ -5976,13 +6081,26 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                     setSelectedCutId(cut.id);
                                     seekTimeline(cut.startSec);
                                   }}
+                                  onMouseDown={(event) => beginTimelineCutDrag(event, cut.id, "move", totalEditorDuration)}
                                   className={`absolute top-[18px] h-[18px] rounded border text-[10px] ${selectedCutId === cut.id
                                     ? "border-amber-300 bg-amber-400/35 text-amber-100"
                                     : "border-cyan-300/50 bg-cyan-500/20 text-cyan-100"
                                     }`}
                                   style={{ left: `${left}%`, width: `${Math.max(width, 1.2)}%` }}
                                   title={`${cut.caption} (${cut.startSec.toFixed(2)}s ~ ${cut.endSec.toFixed(2)}s)`}
-                                />
+                                >
+                                  <span
+                                    className="absolute left-0 top-0 h-full w-1.5 cursor-ew-resize rounded-l border-r border-white/40 bg-black/30"
+                                    onMouseDown={(event) => beginTimelineCutDrag(event, cut.id, "trimStart", totalEditorDuration)}
+                                  />
+                                  <span className="pointer-events-none px-1 truncate">
+                                    {cut.caption || "컷"}
+                                  </span>
+                                  <span
+                                    className="absolute right-0 top-0 h-full w-1.5 cursor-ew-resize rounded-r border-l border-white/40 bg-black/30"
+                                    onMouseDown={(event) => beginTimelineCutDrag(event, cut.id, "trimEnd", totalEditorDuration)}
+                                  />
+                                </button>
                               );
                             })}
                           </div>
