@@ -6641,13 +6641,13 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
               필요한 단계를 쉽게 확인하고, 빠르게 영상 제작 기능을 이어서 사용할 수 있어요.
             </p>
           </div>
-          <div className="grid w-full gap-2 text-xs text-white/70 sm:max-w-[520px] sm:grid-cols-3">
+          <div className="grid w-full gap-2.5 text-sm text-white/70 sm:max-w-[700px] sm:grid-cols-3">
             {steps.map((step, index) => (
               <button
                 key={step.id}
                 type="button"
                 onClick={() => goToStep(index)}
-                className={`rounded-full border px-3 py-1 text-center transition-all ${index === currentStep
+                className={`rounded-full border px-5 py-2.5 text-center font-semibold transition-all ${index === currentStep
                   ? "border-red-400/50 bg-red-500/10 text-red-200"
                   : index < currentStep
                     ? "border-green-400/30 bg-green-500/5 text-green-200/70"
