@@ -6143,15 +6143,15 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
 
         return (
           <div className="mt-[clamp(1.5rem,2.5vw,2.5rem)]">
-            <div className="overflow-hidden rounded-[clamp(1rem,2vw,1.6rem)] border border-slate-700/70 bg-[#1a0b0c] shadow-[0_20px_40px_rgba(2,6,23,0.55)]">
-              <div className="grid min-h-[680px] grid-cols-1 lg:grid-cols-[280px_minmax(0,1fr)]">
-                <aside className="border-b border-slate-800 bg-[#16090a] p-4 lg:border-b-0 lg:border-r">
+            <div className="overflow-hidden rounded-[clamp(1rem,2vw,1.6rem)] border border-red-900/40 bg-[#1a0b0c] shadow-[0_20px_40px_rgba(2,6,23,0.55)]">
+              <div className="grid min-h-[760px] grid-cols-1 lg:grid-cols-[280px_minmax(0,1fr)]">
+                <aside className="border-b border-red-900/40 bg-[#16090a] p-4 lg:border-b-0 lg:border-r">
                   <h3 className="text-lg font-bold text-white">동영상</h3>
-                  <div className="mt-3 rounded-xl border border-slate-700 bg-[#221112] px-3 py-2 text-center text-xs font-semibold tracking-[0.12em] text-red-200">
+                  <div className="mt-3 rounded-xl border border-red-900/40 bg-[#221112] px-3 py-2 text-center text-xs font-semibold tracking-[0.12em] text-red-200">
                     VIDEO TIMELINE
                   </div>
-                  <div className="mt-3 rounded-xl border border-slate-700 bg-[#2a1416] p-2">
-                    <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">비율</p>
+                  <div className="mt-3 rounded-xl border border-red-900/40 bg-[#2a1416] p-2">
+                    <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-red-100/65">비율</p>
                     <div className="grid grid-cols-3 gap-1.5">
                       {(["16:9", "9:16", "1:1"] as const).map((ratio) => (
                         <button
@@ -6160,7 +6160,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                           onClick={() => setRenderRatio(ratio)}
                           className={`rounded-md border px-2 py-1 text-[11px] font-semibold ${renderRatio === ratio
                             ? "border-red-400 bg-red-500/20 text-red-100"
-                            : "border-slate-600 bg-slate-800 text-slate-200 hover:border-slate-400"
+                            : "border-red-900/40 bg-[#1a0d0f] text-red-100/85 hover:border-red-400/70"
                             }`}
                         >
                           {ratio}
@@ -6173,36 +6173,36 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     <button
                       type="button"
                       onClick={() => seekTimeline(0)}
-                      className="flex h-11 w-full items-center justify-center rounded-lg border border-slate-700 bg-[#221112] text-slate-200 hover:border-red-400"
+                      className="flex h-11 w-full items-center justify-center rounded-lg border border-red-900/40 bg-[#221112] text-red-100 hover:border-red-400"
                       title="처음으로"
                     >
-                      <FiMonitor className="h-4 w-4" />
+                      <FiMonitor className="h-4 w-4 text-red-100" />
                     </button>
                     <button
                       type="button"
                       onClick={() => applyToolbarAction("split")}
-                      className="flex h-11 w-full items-center justify-center rounded-lg border border-slate-700 bg-[#221112] text-slate-200 hover:border-red-400"
+                      className="flex h-11 w-full items-center justify-center rounded-lg border border-red-900/40 bg-[#221112] text-red-100 hover:border-red-400"
                       title="클립 분할"
                     >
-                      <FiFilm className="h-4 w-4" />
+                      <FiFilm className="h-4 w-4 text-red-100" />
                     </button>
                     <button
                       type="button"
                       onClick={() => {
                         void handleApplyGeneratedAssetsToEditor();
                       }}
-                      className="flex h-11 w-full items-center justify-center rounded-lg border border-slate-700 bg-[#221112] text-slate-200 hover:border-red-400"
+                      className="flex h-11 w-full items-center justify-center rounded-lg border border-red-900/40 bg-[#221112] text-red-100 hover:border-red-400"
                       title="생성 결과 자동 적용"
                     >
-                      <FiUpload className="h-4 w-4" />
+                      <FiUpload className="h-4 w-4 text-red-100" />
                     </button>
                     <button
                       type="button"
                       onClick={() => applyToolbarAction("volume")}
-                      className="flex h-11 w-full items-center justify-center rounded-lg border border-slate-700 bg-[#221112] text-slate-200 hover:border-red-400"
+                      className="flex h-11 w-full items-center justify-center rounded-lg border border-red-900/40 bg-[#221112] text-red-100 hover:border-red-400"
                       title="볼륨 순환"
                     >
-                      <FiVolume2 className="h-4 w-4" />
+                      <FiVolume2 className="h-4 w-4 text-red-100" />
                     </button>
                     <button
                       type="button"
@@ -6211,10 +6211,10 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         seekTimeline(0);
                         rebuildEditorCuts(editorImageUrls, editorSubtitleCues, editorAudioDurationSec);
                       }}
-                      className="flex h-11 w-full items-center justify-center rounded-lg border border-slate-700 bg-[#221112] text-slate-200 hover:border-red-400"
+                      className="flex h-11 w-full items-center justify-center rounded-lg border border-red-900/40 bg-[#221112] text-red-100 hover:border-red-400"
                       title="타임라인 재정렬"
                     >
-                      <FiSettings className="h-4 w-4" />
+                      <FiSettings className="h-4 w-4 text-red-100" />
                     </button>
                   </div>
 
@@ -6231,32 +6231,32 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         key={tool.key}
                         type="button"
                         onClick={() => applyToolbarAction(tool.key)}
-                        className="rounded-xl border border-slate-700 bg-[#221112] px-2 py-2 text-slate-100 hover:border-red-400"
+                        className="rounded-xl border border-red-900/40 bg-[#221112] px-2 py-2 text-red-100 hover:border-red-400"
                         title={tool.label}
                       >
-                        <tool.icon className="mx-auto h-4 w-4 text-slate-200" />
-                        <p className="mt-1 text-[10px] font-semibold text-slate-300">{tool.label}</p>
+                        <tool.icon className="mx-auto h-4 w-4 text-red-100" />
+                        <p className="mt-1 text-[10px] font-semibold text-red-100/85">{tool.label}</p>
                       </button>
                     ))}
                   </div>
 
-                  <div className="mt-4 rounded-xl border border-slate-700 bg-[#2a1416] p-3">
-                    <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Export</p>
-                    <p className="mt-2 text-sm text-slate-100">MP4 / {renderRatio} / {renderFps}fps</p>
-                    <p className="mt-1 text-xs text-slate-400">컷 {Object.keys(chapterImages).length || requiredImageCount}개</p>
+                  <div className="mt-4 rounded-xl border border-red-900/40 bg-[#2a1416] p-3">
+                    <p className="text-xs uppercase tracking-[0.18em] text-red-100/70">Export</p>
+                    <p className="mt-2 text-sm text-red-100">MP4 / {renderRatio} / {renderFps}fps</p>
+                    <p className="mt-1 text-xs text-red-100/65">컷 {Object.keys(chapterImages).length || requiredImageCount}개</p>
                   </div>
 
-                  <div className="mt-4 rounded-xl border border-slate-700 bg-[#2a1416] p-3 space-y-2">
-                    <p className="text-xs uppercase tracking-[0.18em] text-slate-400">소스 업로드</p>
-                    <label className="block cursor-pointer rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-xs font-semibold text-slate-100 hover:border-slate-400">
+                  <div className="mt-4 rounded-xl border border-red-900/40 bg-[#2a1416] p-3 space-y-2">
+                    <p className="text-xs uppercase tracking-[0.18em] text-red-100/70">소스 업로드</p>
+                    <label className="block cursor-pointer rounded-lg border border-red-900/40 bg-[#1a0d0f] px-3 py-2 text-xs font-semibold text-red-100 hover:border-red-400/70">
                       이미지 업로드
                       <input type="file" accept="image/*" multiple onChange={handleEditorImageUpload} className="hidden" />
                     </label>
-                    <label className="block cursor-pointer rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-xs font-semibold text-slate-100 hover:border-slate-400">
+                    <label className="block cursor-pointer rounded-lg border border-red-900/40 bg-[#1a0d0f] px-3 py-2 text-xs font-semibold text-red-100 hover:border-red-400/70">
                       MP3 업로드
                       <input type="file" accept=".mp3,audio/mpeg,audio/*" onChange={handleEditorAudioUpload} className="hidden" />
                     </label>
-                    <label className="block cursor-pointer rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-xs font-semibold text-slate-100 hover:border-slate-400">
+                    <label className="block cursor-pointer rounded-lg border border-red-900/40 bg-[#1a0d0f] px-3 py-2 text-xs font-semibold text-red-100 hover:border-red-400/70">
                       SRT 업로드
                       <input type="file" accept=".srt,text/plain" onChange={handleEditorSrtUpload} className="hidden" />
                     </label>
@@ -6270,7 +6270,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     <button
                       type="button"
                       onClick={handleGenerateAutoSrtForEditor}
-                      className="w-full rounded-lg border border-emerald-500/60 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-100 hover:bg-emerald-500/20"
+                      className="w-full rounded-lg border border-red-500/60 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-100 hover:bg-red-500/20"
                     >
                       대본으로 자막 자동 생성
                     </button>
@@ -6289,7 +6289,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         void handleApplyTtsToEditorMp3();
                       }}
                       disabled={isApplyingEditorTts}
-                      className="w-full rounded-lg border border-violet-500/60 bg-violet-500/10 px-3 py-2 text-xs font-semibold text-violet-100 hover:bg-violet-500/20 disabled:opacity-60"
+                      className="w-full rounded-lg border border-red-500/60 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-100 hover:bg-red-500/20 disabled:opacity-60"
                     >
                       {isApplyingEditorTts ? "TTS MP3 적용 중..." : "앞서 만든 TTS -> MP3 적용"}
                     </button>
@@ -6299,33 +6299,33 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         void handleApplyGeneratedAssetsToEditor();
                       }}
                       disabled={isApplyingEditorTts}
-                      className="w-full rounded-lg border border-amber-500/60 bg-amber-500/10 px-3 py-2 text-xs font-semibold text-amber-100 hover:bg-amber-500/20 disabled:opacity-60"
+                      className="w-full rounded-lg border border-red-500/60 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-100 hover:bg-red-500/20 disabled:opacity-60"
                     >
                       이미지 + SRT + MP3 한번에 적용
                     </button>
-                    <p className="text-[11px] text-slate-400">
+                    <p className="text-[11px] text-red-100/60">
                       이미지 {editorImageUrls.length}장 · 자막 {editorSubtitleCues.length}개 · 오디오 {editorAudioUrl ? "1개" : "0개"}
                     </p>
                   </div>
                 </aside>
 
-                <section className="flex min-h-[680px] flex-col bg-[#17090a]">
+                <section className="flex min-h-[760px] flex-col bg-[#17090a]">
                   <div className="px-4 py-4">
-                    <div className="relative overflow-hidden rounded-2xl border border-slate-700 bg-black">
+                    <div className="relative overflow-hidden rounded-2xl border border-red-900/40 bg-black">
                       <div className="absolute left-3 top-3 z-10 rounded-md bg-black/70 px-2 py-1 text-xs text-white">{timelinePlaybackRate.toFixed(2)}x</div>
-                      <div className="absolute right-3 top-3 z-10 rounded-md border border-slate-500/70 bg-black/50 px-2 py-1 text-[10px] font-semibold text-slate-200">
+                      <div className="absolute right-3 top-3 z-10 rounded-md border border-red-400/50 bg-black/50 px-2 py-1 text-[10px] font-semibold text-red-100">
                         {logoRemovalMode ? "로고 제거 ON" : "로고 제거 OFF"}
                       </div>
-                      <div className="w-full bg-gradient-to-br from-slate-800 via-slate-900 to-black" style={{ aspectRatio: previewAspectRatio }}>
+                      <div className="w-full bg-gradient-to-br from-[#3a1216] via-[#1f0a0d] to-black" style={{ aspectRatio: previewAspectRatio }}>
                         {previewCut?.imageUrl ? (
                           <img src={previewCut.imageUrl} alt="선택 컷" className="h-full w-full object-contain" style={previewFilterStyle} />
                         ) : videoUrl ? (
                           <video src={videoUrl} controls className="h-full w-full object-contain" style={previewFilterStyle} />
                         ) : (
                           <div className="flex h-full items-center justify-center">
-                            <div className="rounded-xl border border-slate-600/70 bg-slate-900/70 px-5 py-4 text-center">
-                              <p className="text-sm font-semibold text-slate-100">편집 프리뷰</p>
-                              <p className="mt-1 text-xs text-slate-400">출력 전 샘플 화면입니다</p>
+                            <div className="rounded-xl border border-red-400/40 bg-[#1f0a0d]/80 px-5 py-4 text-center">
+                              <p className="text-sm font-semibold text-red-100">편집 프리뷰</p>
+                              <p className="mt-1 text-xs text-red-200/70">출력 전 샘플 화면입니다</p>
                             </div>
                           </div>
                         )}
@@ -6333,12 +6333,12 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     </div>
                   </div>
 
-                  <div className="border-t border-slate-800 px-4 py-3">
-                    <div className="flex items-center justify-center gap-3 text-slate-200">
+                  <div className="border-t border-red-900/40 px-4 py-3">
+                    <div className="flex items-center justify-center gap-3 text-red-100">
                       <button
                         type="button"
                         onClick={() => seekTimeline(0)}
-                        className="rounded-full border border-slate-600 p-2 hover:border-slate-400"
+                        className="rounded-full border border-red-500/50 p-2 hover:border-red-300"
                         title="처음으로"
                       >
                         <FiChevronLeft className="h-4 w-4" />
@@ -6346,7 +6346,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       <button
                         type="button"
                         onClick={toggleTimelinePlayback}
-                        className="rounded-full border border-slate-600 p-2 hover:border-slate-400"
+                        className="rounded-full border border-red-500/50 p-2 hover:border-red-300"
                         title={isTimelinePlaying ? "일시정지" : "재생"}
                       >
                         {isTimelinePlaying ? (
@@ -6358,12 +6358,12 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                       <button
                         type="button"
                         onClick={() => seekTimeline(totalEditorDuration)}
-                        className="rounded-full border border-slate-600 p-2 hover:border-slate-400"
+                        className="rounded-full border border-red-500/50 p-2 hover:border-red-300"
                         title="끝으로"
                       >
                         <FiChevronRight className="h-4 w-4" />
                       </button>
-                      <span className="text-xs text-slate-300">
+                      <span className="text-xs text-red-100/80">
                         {formatTimelineClock(timelineCurrentSec)} / {formatTimelineClock(totalEditorDuration)}
                       </span>
                     </div>
@@ -6378,24 +6378,24 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     />
                   </div>
 
-                  <div className="mt-auto border-t border-slate-800 bg-[#070d16] p-4">
-                    <div className="mb-2 flex items-center justify-between text-xs text-slate-400">
+                  <div className="mt-auto border-t border-red-900/40 bg-[#13090b] p-4">
+                    <div className="mb-2 flex items-center justify-between text-xs text-red-100/70">
                       <span>타임라인</span>
                       <span>{timelineCuts.length || timelineScenes.length} Scene</span>
                     </div>
-                    <div className="relative overflow-x-auto rounded-xl border border-slate-700 bg-[#0d1524] p-2">
+                    <div className="relative overflow-x-auto rounded-xl border border-red-900/40 bg-[#1b0d10] p-2">
                       <div className="relative" style={{ width: `${timelineWidthPx}px` }}>
-                        <div className="relative mb-2 h-6 rounded border border-slate-700 bg-[#0c1321]">
+                        <div className="relative mb-2 h-6 rounded border border-red-900/40 bg-[#160a0d]">
                           {Array.from({ length: tickCount }).map((_, idx) => {
                             const sec = idx * majorTickSec;
                             const left = (sec / Math.max(totalEditorDuration, 0.001)) * 100;
                             return (
                               <div
                                 key={`tick-${sec}`}
-                                className="absolute top-0 h-full border-l border-slate-600/70"
+                                className="absolute top-0 h-full border-l border-red-700/60"
                                 style={{ left: `${left}%` }}
                               >
-                                <span className="absolute left-1 top-0.5 text-[10px] text-slate-400">
+                                <span className="absolute left-1 top-0.5 text-[10px] text-red-100/60">
                                   {formatTimelineClock(sec)}
                                 </span>
                               </div>
@@ -6406,11 +6406,11 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         <div className="relative space-y-2">
                           <div
                             ref={timelineVideoTrackRef}
-                            className={`relative h-11 cursor-pointer rounded border border-slate-700 bg-slate-800/40 ${timelineDragState ? "select-none" : ""}`}
+                            className={`relative h-11 cursor-pointer rounded border border-red-900/40 bg-[#2a1114]/40 ${timelineDragState ? "select-none" : ""}`}
                             onClick={handleTimelineSeek}
                             title="비디오 트랙"
                           >
-                            <span className="absolute left-2 top-1 text-[10px] uppercase tracking-[0.1em] text-slate-400">VIDEO</span>
+                            <span className="absolute left-2 top-1 text-[10px] uppercase tracking-[0.1em] text-red-100/60">VIDEO</span>
                             {timelineCuts.map((cut) => {
                               const left = (cut.startSec / Math.max(totalEditorDuration, 0.001)) * 100;
                               const width =
@@ -6426,7 +6426,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                   }}
                                   onMouseDown={(event) => beginTimelineCutDrag(event, cut.id, "move", totalEditorDuration)}
                                   className={`absolute top-[20px] h-[18px] overflow-hidden rounded border text-[10px] ${selectedCutId === cut.id
-                                    ? "border-amber-300 bg-amber-400/35 text-amber-100"
+                                    ? "border-red-200 bg-red-500/35 text-red-50"
                                     : "border-red-300/50 bg-red-500/20 text-red-100"
                                     }`}
                                   style={{ left: `${left}%`, width: `${Math.max(width, 1.2)}%` }}
@@ -6449,11 +6449,11 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                           </div>
 
                           <div
-                            className="relative h-11 cursor-pointer rounded border border-slate-700 bg-slate-800/40"
+                            className="relative h-11 cursor-pointer rounded border border-red-900/40 bg-[#2a1114]/40"
                             onClick={handleTimelineSeek}
                             title="오디오 트랙"
                           >
-                            <span className="absolute left-2 top-1 text-[10px] uppercase tracking-[0.1em] text-slate-400">AUDIO</span>
+                            <span className="absolute left-2 top-1 text-[10px] uppercase tracking-[0.1em] text-red-100/60">AUDIO</span>
                             {editorAudioUrl ? (
                               <>
                                 <div
@@ -6467,7 +6467,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                   }}
                                 />
                                 <div
-                                  className="pointer-events-none absolute top-[22px] h-[12px] rounded bg-[repeating-linear-gradient(90deg,rgba(199,210,254,0.85)_0px,rgba(199,210,254,0.85)_1px,transparent_1px,transparent_5px)]"
+                                  className="pointer-events-none absolute top-[22px] h-[12px] rounded bg-[repeating-linear-gradient(90deg,rgba(254,202,202,0.85)_0px,rgba(254,202,202,0.85)_1px,transparent_1px,transparent_5px)]"
                                   style={{
                                     left: "0%",
                                     width: `${Math.min(
@@ -6478,18 +6478,18 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                 />
                               </>
                             ) : (
-                              <div className="absolute left-2 top-[20px] text-[10px] text-slate-500">
+                              <div className="absolute left-2 top-[20px] text-[10px] text-red-100/50">
                                 TTS를 MP3로 만들면 여기에 오디오 클립이 표시됩니다.
                               </div>
                             )}
                           </div>
 
                           <div
-                            className="relative h-11 cursor-pointer rounded border border-slate-700 bg-slate-800/40"
+                            className="relative h-11 cursor-pointer rounded border border-red-900/40 bg-[#2a1114]/40"
                             onClick={handleTimelineSeek}
                             title="자막 트랙"
                           >
-                            <span className="absolute left-2 top-1 text-[10px] uppercase tracking-[0.1em] text-slate-400">SUBTITLE</span>
+                            <span className="absolute left-2 top-1 text-[10px] uppercase tracking-[0.1em] text-red-100/60">SUBTITLE</span>
                             {editorSubtitleCues.map((cue) => {
                               const left = (cue.startSec / Math.max(totalEditorDuration, 0.001)) * 100;
                               const width =
@@ -6502,7 +6502,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                     event.stopPropagation();
                                     seekTimeline(cue.startSec);
                                   }}
-                                  className="absolute top-[20px] h-[16px] overflow-hidden rounded border border-emerald-300/50 bg-emerald-500/20 px-1 text-[9px] text-emerald-100"
+                                  className="absolute top-[20px] h-[16px] overflow-hidden rounded border border-red-300/60 bg-red-500/20 px-1 text-[9px] text-red-100"
                                   style={{ left: `${left}%`, width: `${Math.max(width, 1.1)}%` }}
                                   title={`${cue.text} (${cue.startSec.toFixed(2)}s ~ ${cue.endSec.toFixed(2)}s)`}
                                 >
@@ -6515,7 +6515,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                           </div>
 
                           <div
-                            className="pointer-events-none absolute top-0 h-full border-l-2 border-amber-300"
+                            className="pointer-events-none absolute top-0 h-full border-l-2 border-red-300"
                             style={{ left: `${playheadPercent}%` }}
                           />
                         </div>
@@ -6527,9 +6527,9 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     </div>
 
                     {timelineCuts.length > 0 && (
-                      <div className="mt-3 space-y-2 rounded-xl border border-slate-700 bg-[#0e1728] p-3">
-                        <div className="text-[11px] uppercase tracking-[0.14em] text-slate-400">선택 클립 정보</div>
-                        <p className="text-xs text-slate-200">
+                      <div className="mt-3 space-y-2 rounded-xl border border-red-900/40 bg-[#211112] p-3">
+                        <div className="text-[11px] uppercase tracking-[0.14em] text-red-100/70">선택 클립 정보</div>
+                        <p className="text-xs text-red-100">
                           {previewCut ? `${previewCut.caption} (${previewCut.startSec.toFixed(2)}s ~ ${previewCut.endSec.toFixed(2)}s)` : "클립을 선택하세요."}
                         </p>
                         {editorAudioUrl && <audio src={editorAudioUrl} controls className="w-full" />}
@@ -6537,19 +6537,19 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     )}
 
                     <div className="mt-4 grid gap-3 lg:grid-cols-[1.2fr_1fr]">
-                      <div className="rounded-xl border border-slate-700 bg-[#221112] p-3">
-                        <p className="text-xs font-semibold uppercase tracking-[0.15em] text-slate-400">편집 메모</p>
+                      <div className="rounded-xl border border-red-900/40 bg-[#221112] p-3">
+                        <p className="text-xs font-semibold uppercase tracking-[0.15em] text-red-100/70">편집 메모</p>
                         <textarea
                           value={editNotes}
                           onChange={(event) => setEditNotes(event.target.value)}
                           rows={4}
-                          className="mt-2 w-full rounded-lg border border-slate-600 bg-slate-900/60 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-red-500"
+                          className="mt-2 w-full rounded-lg border border-red-900/40 bg-[#12090b]/80 px-3 py-2 text-sm text-red-50 placeholder:text-red-100/45 focus:outline-none focus:ring-2 focus:ring-red-500"
                           placeholder="컷 전환, 자막 스타일, 강조 구간 등을 기록하세요."
                         />
                         <button
                           type="button"
                           onClick={handleDownloadEditNotes}
-                          className="mt-2 rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-xs font-semibold text-slate-100 hover:border-slate-400"
+                          className="mt-2 rounded-lg border border-red-900/40 bg-[#1a0d0f] px-3 py-2 text-xs font-semibold text-red-100 hover:border-red-400/70"
                         >
                           편집 노트 다운로드
                         </button>
@@ -6566,19 +6566,19 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                             type="button"
                             onClick={handleDownloadTtsMp3}
                             disabled={isExportingTtsMp3}
-                            className="rounded-lg border border-emerald-500/60 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-100 hover:bg-emerald-500/20 disabled:opacity-60"
+                            className="rounded-lg border border-red-500/60 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-100 hover:bg-red-500/20 disabled:opacity-60"
                           >
                             {isExportingTtsMp3 ? "MP3 생성 중..." : "TTS MP3 다운로드"}
                           </button>
                         </div>
 
-                        <div className="mt-3 rounded-lg border border-slate-600 bg-slate-900/40 p-2">
+                        <div className="mt-3 rounded-lg border border-red-900/40 bg-[#12090b]/70 p-2">
                             <div className="mb-2 flex items-center justify-between">
-                              <p className="text-xs font-semibold text-slate-200">컷 편집</p>
-                              <p className="text-[11px] text-slate-400">{editorCuts.length}개</p>
+                              <p className="text-xs font-semibold text-red-100">컷 편집</p>
+                              <p className="text-[11px] text-red-100/65">{editorCuts.length}개</p>
                             </div>
                             {editorCuts.length === 0 ? (
-                              <p className="rounded-md border border-dashed border-slate-600 bg-slate-800/40 px-2 py-3 text-[11px] text-slate-300">
+                              <p className="rounded-md border border-dashed border-red-900/40 bg-[#1a0d0f] px-2 py-3 text-[11px] text-red-100/70">
                                 이미지/SRT/MP3를 업로드하거나 좌측의 '기존 생성 이미지 불러오기'를 눌러 컷을 생성하세요.
                               </p>
                             ) : (
@@ -6586,12 +6586,12 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                 {editorCuts.map((cut, idx) => (
                                   <div
                                     key={cut.id}
-                                    className={`rounded-md border px-2 py-1.5 ${selectedCutId === cut.id ? "border-amber-300/60 bg-amber-400/10" : "border-slate-700 bg-slate-800/60"}`}
+                                    className={`rounded-md border px-2 py-1.5 ${selectedCutId === cut.id ? "border-red-300/60 bg-red-500/15" : "border-red-900/40 bg-[#1a0d0f]/70"}`}
                                   >
                                     <button
                                       type="button"
                                       onClick={() => setSelectedCutId(cut.id)}
-                                      className="w-full text-left text-[11px] font-semibold text-slate-100"
+                                      className="w-full text-left text-[11px] font-semibold text-red-100"
                                     >
                                       컷 {idx + 1} · {cut.caption || "무자막"}
                                     </button>
@@ -6601,19 +6601,19 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                                         step={0.1}
                                         value={Number(cut.startSec.toFixed(2))}
                                         onChange={(e) => updateEditorCutTime(cut.id, "startSec", Number(e.target.value))}
-                                        className="rounded border border-slate-600 bg-slate-900 px-1.5 py-1 text-[11px] text-slate-100"
+                                        className="rounded border border-red-900/40 bg-[#12090b] px-1.5 py-1 text-[11px] text-red-100"
                                       />
                                       <input
                                         type="number"
                                         step={0.1}
                                         value={Number(cut.endSec.toFixed(2))}
                                         onChange={(e) => updateEditorCutTime(cut.id, "endSec", Number(e.target.value))}
-                                        className="rounded border border-slate-600 bg-slate-900 px-1.5 py-1 text-[11px] text-slate-100"
+                                        className="rounded border border-red-900/40 bg-[#12090b] px-1.5 py-1 text-[11px] text-red-100"
                                       />
                                       <button
                                         type="button"
                                         onClick={() => splitEditorCut(cut.id)}
-                                        className="rounded border border-slate-500 px-2 py-1 text-[10px] text-slate-100 hover:border-slate-300"
+                                        className="rounded border border-red-900/40 px-2 py-1 text-[10px] text-red-100 hover:border-red-400/70"
                                       >
                                         분할
                                       </button>
@@ -6632,15 +6632,15 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                           </div>
                       </div>
 
-                      <div className="rounded-xl border border-slate-700 bg-[#221112] p-3">
-                        <p className="text-xs font-semibold uppercase tracking-[0.15em] text-slate-400">렌더 상태</p>
-                        <div className="mt-2 h-2 w-full rounded-full bg-slate-700">
+                      <div className="rounded-xl border border-red-900/40 bg-[#221112] p-3">
+                        <p className="text-xs font-semibold uppercase tracking-[0.15em] text-red-100/70">렌더 상태</p>
+                        <div className="mt-2 h-2 w-full rounded-full bg-red-900/40">
                           <div
                             style={{ width: `${renderingProgress}%` }}
-                            className="h-full rounded-full bg-gradient-to-r from-red-600 to-amber-400"
+                            className="h-full rounded-full bg-gradient-to-r from-red-600 to-red-400"
                           />
                         </div>
-                        <p className="mt-2 text-xs text-slate-300">
+                        <p className="mt-2 text-xs text-red-100/75">
                           {renderingStatus || "출력을 시작하면 모든 컷을 자동으로 조합합니다."}
                         </p>
                         <button
@@ -6653,7 +6653,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                         <button
                           onClick={handleVideoGenerate}
                           disabled={videoGenerating}
-                          className="mt-2 w-full rounded-xl border border-slate-600 bg-slate-800 px-4 py-2 text-sm font-semibold text-slate-100 hover:border-slate-400 disabled:opacity-60"
+                          className="mt-2 w-full rounded-xl border border-red-900/40 bg-[#1a0d0f] px-4 py-2 text-sm font-semibold text-red-100 hover:border-red-400/70 disabled:opacity-60"
                         >
                           {videoGenerating ? "영상 생성 요청 중..." : "영상 생성 요청하기"}
                         </button>
