@@ -6654,7 +6654,7 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
         <div className="mt-[clamp(2rem,4vw,3rem)]">
           <main className="rounded-[clamp(1.2rem,2.5vw,2rem)] border border-white/10 bg-white/5 shadow-[0_18px_40px_rgba(0,0,0,0.6)] backdrop-blur-2xl">
             <div className="border-b border-white/10 px-[clamp(1.5rem,3vw,2.5rem)] py-[clamp(1.1rem,2.4vw,1.8rem)]">
-              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+              <div className="mx-auto grid max-w-[1100px] gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(340px,420px)] lg:items-center">
                 <div className="min-w-0">
                   <p className="text-[clamp(0.6rem,1vw,0.75rem)] font-semibold uppercase tracking-[0.3em] text-white/40">
                     STEP {currentStep + 1}
@@ -6668,8 +6668,8 @@ const VideoPage: React.FC<VideoPageProps> = ({ basePath = "" }) => {
                     </p>
                   </div>
                 </div>
-                <div className="flex w-full flex-col gap-3 lg:w-auto lg:min-w-[440px] lg:justify-end">
-                  <div className="rounded-2xl border border-red-400/25 bg-red-500/10 px-4 py-3 lg:max-w-[420px] lg:self-center">
+                <div className="flex w-full flex-col gap-3">
+                  <div className="rounded-2xl border border-red-400/25 bg-red-500/10 px-4 py-3">
                     <div className="text-red-100/90">
                       <p className="text-sm font-semibold">
                         {currentActionGuide.title}
